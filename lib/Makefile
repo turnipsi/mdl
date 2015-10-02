@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.4 2015/10/02 12:13:20 je Exp $
+# $Id: Makefile,v 1.5 2015/10/02 12:20:23 je Exp $
 
-SRCS= parse.y mdl.c
+SRCS= lex.l mdl.c parse.y
 
 PROG=	mdl
 

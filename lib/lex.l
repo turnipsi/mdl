@@ -1,4 +1,5 @@
-/* $Id: parse.y,v 1.2 2015/10/02 12:20:23 je Exp $
+%{
+/* $Id: lex.l,v 1.1 2015/10/02 12:20:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,18 +17,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-%{
-  /* XXX */
+#define yywrap() 1
 %}
 
 %%
 
-grammar:	/* empty */
-		;
-
 %%
-
-void
-yyerror(const char *fmt, ...)
-{
-}
