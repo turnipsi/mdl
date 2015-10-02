@@ -1,5 +1,10 @@
-# $Id: Makefile,v 1.2 2015/10/02 11:46:10 je Exp $
+# $Id: Makefile,v 1.3 2015/10/02 12:02:23 je Exp $
+
+PREFIX	?= /usr/local
 
 PROG=	mdl
+
+BINDIR=	${PREFIX}/bin
+MANDIR=	${PREFIX}/man/man
 
 .include <bsd.prog.mk>
