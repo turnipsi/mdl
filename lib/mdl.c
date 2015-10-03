@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.4 2015/10/03 06:40:23 je Exp $ */
+/* $Id: mdl.c,v 1.5 2015/10/03 10:39:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,10 +17,13 @@
  */
 
 #include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/syslimits.h>
 #include <sys/types.h>
 #include <sys/un.h>
 
 #include <assert.h>
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,8 +31,9 @@
 
 #define SOCKETPATH_LEN 104
 
-int	get_default_socketpath(char *);
+int	get_default_socketpath(char *, char *);
 int	handle_musicfiles_and_socket(char **, int, char *);
+int	make_and_get_mdlhome(char *);
 int	setup_server_socket(char *);
 
 static void __dead
@@ -46,15 +50,18 @@ usage(void)
 int
 main(int argc, char *argv[])
 {
-	char server_socketpath[SOCKETPATH_LEN];
+	char mdlhome[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
 	int musicfile_count, ch, sflag, Sflag;
 	size_t ret;
 
 	sflag = Sflag = 0;
 
-	if (get_default_socketpath(server_socketpath) != 0)
-		errx("could not get default socketpath");
+	if (make_and_get_mdlhome(mdlhome) != 0)
+		errx(1, "could not make mdl directory");
+
+	if (get_default_socketpath(server_socketpath, mdlhome) != 0)
+		errx(1, "could not get default socketpath");
 
 	while ((ch = getopt(argc, argv, "sS:")) != -1) {
 		switch (ch) {
@@ -99,7 +106,7 @@ main(int argc, char *argv[])
 }
 
 int
-get_default_socketpath(char *socketpath)
+make_and_get_mdlhome(char *mdlhome)
 {
 	int ret;
 	char *home;
@@ -109,9 +116,29 @@ get_default_socketpath(char *socketpath)
 		return 1;
 	}
 
-	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/.mdl/socket", home);
+	ret = snprintf(mdlhome, PATH_MAX, "%s/.mdl", home);
+	if (ret == -1 || ret >= PATH_MAX) {
+		warnx("mdl home directory too long, check HOME");
+		return 1;
+	}
+
+	if ((mkdir(mdlhome, 0755) == -1) && (errno != EEXIST)) {
+		warn("error creating %s", mdlhome);
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+get_default_socketpath(char *socketpath, char *mdlhome)
+{
+	int ret;
+
+	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/socket", mdlhome);
 	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("default server socketpath too long, check HOME");
+		warnx("default server socketpath too long, mdl home is %s",
+		      mdlhome);
 		return 1;
 	}
 
@@ -123,13 +150,16 @@ handle_musicfiles_and_socket(char **musicfiles,
 			     int musicfile_count,
 			     char *socketpath)
 {
-	int server_socket, i;
+	int server_socket;
 
 	server_socket = -1;
 	if (socketpath) {
 		if ((server_socket = setup_server_socket(socketpath)) < 0)
 			return 1;
 	}
+
+	/* XXX unlink() server_socket if done with */
+	/* XXX close()  server_socket if done with */
 
 	return 0;
 }
@@ -138,9 +168,7 @@ int
 setup_server_socket(char *socketpath)
 {
 	struct sockaddr_un sun;
-	int ret, retvalue, server_socket;
-
-	retvalue = 0;
+	int ret, server_socket;
 
 	bzero(&sun, sizeof(struct sockaddr_un));
 	sun.sun_family = AF_UNIX;
@@ -148,20 +176,16 @@ setup_server_socket(char *socketpath)
 	assert(ret < SOCKETPATH_LEN);
 
 	if ((server_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		warn("could not open socket");
+		warn("could not open socket %s", socketpath);
 		return 1;
 	}
 
-	if (bind(server_socket, (struct sockaddr *)&sun, /* XXX */ 0) == -1) {
-		warn("could not bind socket");
-		retvalue = 1;
-		goto close;
+	ret = bind(server_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
+	if (ret == -1) {
+		warn("could not bind socket %s", socketpath);
+		(void) close(server_socket);
+		return 1;
 	}
 
-unlink:
-	/* XXX unlink() server_socket */
-close:
-	(void) close(server_socket);
-
-	return retvalue;
+	return 0;
 }
