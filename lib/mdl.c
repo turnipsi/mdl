@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.5 2015/10/03 10:39:16 je Exp $ */
+/* $Id: mdl.c,v 1.6 2015/10/03 20:02:02 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,7 +42,7 @@ usage(void)
 	extern char *__progname;
 
 	(void) fprintf(stderr,
-		       "usage: %s [-s] [-S socketpath] [file ...]\n",
+		       "usage: %s [-cd] [-s socketpath] [file ...]\n",
 		       __progname);
 	exit(1);
 }
@@ -52,10 +52,10 @@ main(int argc, char *argv[])
 {
 	char mdlhome[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	int musicfile_count, ch, sflag, Sflag;
+	int musicfile_count, ch, cflag, dflag, sflag;
 	size_t ret;
 
-	sflag = Sflag = 0;
+	cflag = dflag = sflag = 0;
 
 	if (make_and_get_mdlhome(mdlhome) != 0)
 		errx(1, "could not make mdl directory");
@@ -63,13 +63,16 @@ main(int argc, char *argv[])
 	if (get_default_socketpath(server_socketpath, mdlhome) != 0)
 		errx(1, "could not get default socketpath");
 
-	while ((ch = getopt(argc, argv, "sS:")) != -1) {
+	while ((ch = getopt(argc, argv, "cds:")) != -1) {
 		switch (ch) {
+		case 'c':
+			cflag = 1;
+			break;
+		case 'd':
+			dflag = 1;
+			break;
 		case 's':
 			sflag = 1;
-			break;
-		case 'S':
-			Sflag = 1;
 			ret = strlcpy(server_socketpath,
 				      optarg,
 				      SOCKETPATH_LEN);
@@ -87,18 +90,27 @@ main(int argc, char *argv[])
 	musicfiles = argv;
 	musicfile_count = argc;
 
-	if (musicfile_count == 0 && !sflag) {
-		warnx("no musicfiles given and not in server mode");
+	if (cflag && dflag) {
+		warnx("-c and -d options are mutually exclusive");
 		usage();
 		/* NOTREACHED */
 	}
 
-	if (Sflag && !sflag)
-		warnx("socketpath set but not in server mode");
+	if (!dflag && musicfile_count == 0 ) {
+		warnx("no musicfiles given and not in daemon mode");
+		usage();
+		/* NOTREACHED */
+	}
+
+	if (cflag && musicfile_count > 1)
+		warnx("sending only the first musicfile (%s)", musicfiles[0]);
+
+	if (!dflag && sflag)
+		warnx("socketpath set but not in daemon mode");
 
 	ret = handle_musicfiles_and_socket(musicfiles,
 					   musicfile_count,
-					   sflag ? server_socketpath : NULL);
+					   dflag ? server_socketpath : NULL);
 	if (ret)
 		return 1;
 
