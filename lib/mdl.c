@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.3 2015/10/02 17:28:29 je Exp $ */
+/* $Id: mdl.c,v 1.4 2015/10/03 06:40:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/un.h>
+
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +28,9 @@
 
 #define SOCKETPATH_LEN 104
 
-void get_default_socketpath(char *, size_t);
+int	get_default_socketpath(char *);
+int	handle_musicfiles_and_socket(char **, int, char *);
+int	setup_server_socket(char *);
 
 static void __dead
 usage(void)
@@ -40,12 +47,14 @@ int
 main(int argc, char *argv[])
 {
 	char server_socketpath[SOCKETPATH_LEN];
-	int ch, sflag;
-	size_t n;
+	char **musicfiles;
+	int musicfile_count, ch, sflag, Sflag;
+	size_t ret;
 
-	sflag = 0;
+	sflag = Sflag = 0;
 
-	get_default_socketpath(server_socketpath, SOCKETPATH_LEN);
+	if (get_default_socketpath(server_socketpath) != 0)
+		errx("could not get default socketpath");
 
 	while ((ch = getopt(argc, argv, "sS:")) != -1) {
 		switch (ch) {
@@ -53,9 +62,12 @@ main(int argc, char *argv[])
 			sflag = 1;
 			break;
 		case 'S':
-			n = strlcpy(server_socketpath, optarg, SOCKETPATH_LEN);
-			if (n >= SOCKETPATH_LEN)
-				errx(1, "Server socketpath too long");
+			Sflag = 1;
+			ret = strlcpy(server_socketpath,
+				      optarg,
+				      SOCKETPATH_LEN);
+			if (ret >= SOCKETPATH_LEN)
+				errx(1, "server socketpath too long");
 			break;
 		default:
 			usage();
@@ -65,19 +77,91 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	musicfiles = argv;
+	musicfile_count = argc;
+
+	if (musicfile_count == 0 && !sflag) {
+		warnx("no musicfiles given and not in server mode");
+		usage();
+		/* NOTREACHED */
+	}
+
+	if (Sflag && !sflag)
+		warnx("socketpath set but not in server mode");
+
+	ret = handle_musicfiles_and_socket(musicfiles,
+					   musicfile_count,
+					   sflag ? server_socketpath : NULL);
+	if (ret)
+		return 1;
+
 	return 0;
 }
 
-void
-get_default_socketpath(char *socketpath, size_t sockpath_len)
+int
+get_default_socketpath(char *socketpath)
 {
 	int ret;
 	char *home;
 
-	if ((home = getenv("HOME")) == NULL)
-		errx(1, "Could not determine user home directory");
+	if ((home = getenv("HOME")) == NULL) {
+		warnx("could not determine user home directory");
+		return 1;
+	}
 
-	ret = snprintf(socketpath, sockpath_len, "%s/.mdl/socket", home);
-	if (ret == -1 || ret >= sockpath_len)
-		errx(1, "Default server socketpath too long, check HOME");
+	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/.mdl/socket", home);
+	if (ret == -1 || ret >= SOCKETPATH_LEN) {
+		warnx("default server socketpath too long, check HOME");
+		return 1;
+	}
+
+	return 0;
+}
+
+int
+handle_musicfiles_and_socket(char **musicfiles,
+			     int musicfile_count,
+			     char *socketpath)
+{
+	int server_socket, i;
+
+	server_socket = -1;
+	if (socketpath) {
+		if ((server_socket = setup_server_socket(socketpath)) < 0)
+			return 1;
+	}
+
+	return 0;
+}
+
+int
+setup_server_socket(char *socketpath)
+{
+	struct sockaddr_un sun;
+	int ret, retvalue, server_socket;
+
+	retvalue = 0;
+
+	bzero(&sun, sizeof(struct sockaddr_un));
+	sun.sun_family = AF_UNIX;
+	ret = strlcpy(sun.sun_path, socketpath, SOCKETPATH_LEN);
+	assert(ret < SOCKETPATH_LEN);
+
+	if ((server_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		warn("could not open socket");
+		return 1;
+	}
+
+	if (bind(server_socket, (struct sockaddr *)&sun, /* XXX */ 0) == -1) {
+		warn("could not bind socket");
+		retvalue = 1;
+		goto close;
+	}
+
+unlink:
+	/* XXX unlink() server_socket */
+close:
+	(void) close(server_socket);
+
+	return retvalue;
 }
