@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.6 2015/10/03 20:02:02 je Exp $ */
+/* $Id: mdl.c,v 1.7 2015/10/04 10:32:38 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,7 @@
 
 #include <assert.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,53 +32,43 @@
 
 #define SOCKETPATH_LEN 104
 
+int	get_default_mdldir(char *);
 int	get_default_socketpath(char *, char *);
 int	handle_musicfiles_and_socket(char **, int, char *);
-int	make_and_get_mdlhome(char *);
 int	setup_server_socket(char *);
 
 static void __dead
 usage(void)
 {
-	extern char *__progname;
-
-	(void) fprintf(stderr,
-		       "usage: %s [-cd] [-s socketpath] [file ...]\n",
-		       __progname);
+	(void) fprintf(stderr, "usage: mdl [-cs] [-d mdldir] [file ...]\n");
 	exit(1);
 }
 
 int
 main(int argc, char *argv[])
 {
-	char mdlhome[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
+	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
 	int musicfile_count, ch, cflag, dflag, sflag;
 	size_t ret;
 
+	if (get_default_mdldir(mdldir) != 0)
+		errx(1, "could not get default mdl directory");
+
 	cflag = dflag = sflag = 0;
 
-	if (make_and_get_mdlhome(mdlhome) != 0)
-		errx(1, "could not make mdl directory");
-
-	if (get_default_socketpath(server_socketpath, mdlhome) != 0)
-		errx(1, "could not get default socketpath");
-
-	while ((ch = getopt(argc, argv, "cds:")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:s")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
 			break;
 		case 'd':
 			dflag = 1;
+			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
+				errx(1, "mdldir too long");
 			break;
 		case 's':
 			sflag = 1;
-			ret = strlcpy(server_socketpath,
-				      optarg,
-				      SOCKETPATH_LEN);
-			if (ret >= SOCKETPATH_LEN)
-				errx(1, "server socketpath too long");
 			break;
 		default:
 			usage();
@@ -87,17 +78,30 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	if ((mkdir(mdldir, 0755) == -1) && errno != EEXIST)
+		err(1, "error creating %s", mdldir);
+
+	/* open mdldir for exclusive lock, not needed for anything else
+	   (discard the file descriptor) */
+	if (open(mdldir, O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY) == -1) {
+		warn("could not open %s for exclusive lock", mdldir);
+		errx(1, "do you have another instance of mdl running?");
+	}
+
+	if (get_default_socketpath(server_socketpath, mdldir) != 0)
+		errx(1, "could not get default socketpath");
+
 	musicfiles = argv;
 	musicfile_count = argc;
 
-	if (cflag && dflag) {
-		warnx("-c and -d options are mutually exclusive");
+	if (cflag && sflag) {
+		warnx("-c and -s options are mutually exclusive");
 		usage();
 		/* NOTREACHED */
 	}
 
-	if (!dflag && musicfile_count == 0 ) {
-		warnx("no musicfiles given and not in daemon mode");
+	if (!sflag && musicfile_count == 0) {
+		warnx("no musicfiles given and not in server mode");
 		usage();
 		/* NOTREACHED */
 	}
@@ -105,12 +109,9 @@ main(int argc, char *argv[])
 	if (cflag && musicfile_count > 1)
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
-	if (!dflag && sflag)
-		warnx("socketpath set but not in daemon mode");
-
 	ret = handle_musicfiles_and_socket(musicfiles,
 					   musicfile_count,
-					   dflag ? server_socketpath : NULL);
+					   sflag ? server_socketpath : NULL);
 	if (ret)
 		return 1;
 
@@ -118,7 +119,7 @@ main(int argc, char *argv[])
 }
 
 int
-make_and_get_mdlhome(char *mdlhome)
+get_default_mdldir(char *mdldir)
 {
 	int ret;
 	char *home;
@@ -128,14 +129,9 @@ make_and_get_mdlhome(char *mdlhome)
 		return 1;
 	}
 
-	ret = snprintf(mdlhome, PATH_MAX, "%s/.mdl", home);
+	ret = snprintf(mdldir, PATH_MAX, "%s/.mdl", home);
 	if (ret == -1 || ret >= PATH_MAX) {
 		warnx("mdl home directory too long, check HOME");
-		return 1;
-	}
-
-	if ((mkdir(mdlhome, 0755) == -1) && (errno != EEXIST)) {
-		warn("error creating %s", mdlhome);
 		return 1;
 	}
 
@@ -143,14 +139,14 @@ make_and_get_mdlhome(char *mdlhome)
 }
 
 int
-get_default_socketpath(char *socketpath, char *mdlhome)
+get_default_socketpath(char *socketpath, char *mdldir)
 {
 	int ret;
 
-	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/socket", mdlhome);
+	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/socket", mdldir);
 	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("default server socketpath too long, mdl home is %s",
-		      mdlhome);
+		warnx("default server socketpath too long, mdldir is %s",
+		      mdldir);
 		return 1;
 	}
 
@@ -162,7 +158,7 @@ handle_musicfiles_and_socket(char **musicfiles,
 			     int musicfile_count,
 			     char *socketpath)
 {
-	int server_socket;
+	int server_socket, i;
 
 	server_socket = -1;
 	if (socketpath) {
@@ -189,15 +185,30 @@ setup_server_socket(char *socketpath)
 
 	if ((server_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		warn("could not open socket %s", socketpath);
-		return 1;
+		return -1;
+	}
+
+	/* exclusive flock() for mdldir should mean that
+	 * no other mdl process is using the socketpath */
+	if (unlink(socketpath) == -1 && errno != ENOENT) {
+		warn("could not remove %s", socketpath);
+		goto fail;
 	}
 
 	ret = bind(server_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
 	if (ret == -1) {
 		warn("could not bind socket %s", socketpath);
-		(void) close(server_socket);
-		return 1;
+		goto fail;
 	}
 
-	return 0;
+	if (listen(server_socket, 1) == -1) {
+		warn("could not listen on socket %s", socketpath);
+		goto fail;
+	}
+
+	return server_socket;
+
+fail:
+	(void) close(server_socket);
+	return -1;
 }

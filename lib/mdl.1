@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.5 2015/10/03 20:02:02 je Exp $
+.\"	$Id: mdl.1,v 1.6 2015/10/04 10:32:38 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: October 3 2015 $
+.Dd $Mdocdate: October 4 2015 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,8 +24,8 @@
 .Nd a music description language with a midi sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl cd
-.Op Fl s Ar socketpath
+.Op Fl cs
+.Op Fl d Ar mdl-directory
 .Op Ar
 .Sh DESCRIPTION
 .Nm
@@ -36,7 +36,7 @@ Syntax mimicks the
 syntax but is not compatible.
 .Pp
 When
-.Fl d
+.Fl s
 option is specified,
 .Nm
 is started in server mode,
