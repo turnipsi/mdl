@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.8 2015/10/04 10:40:23 je Exp $ */
+/* $Id: mdl.c,v 1.9 2015/10/04 13:17:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,13 +36,23 @@
 int	get_default_mdldir(char *);
 int	get_default_socketpath(char *, char *);
 int	handle_musicfiles_and_socket(char **, int, char *);
+void	handle_signal(int);
 int	setup_server_socket(char *);
+
+volatile sig_atomic_t do_shutdown = 0;	/* if set in signal handler, should
+					 * do shutdown */
 
 static void __dead
 usage(void)
 {
 	(void) fprintf(stderr, "usage: mdl [-cs] [-d mdldir] [file ...]\n");
 	exit(1);
+}
+
+void
+handle_signal(int signo)
+{
+	do_shutdown = 1;
 }
 
 int
@@ -51,6 +62,9 @@ main(int argc, char *argv[])
 	char **musicfiles;
 	int musicfile_count, ch, cflag, dflag, sflag;
 	size_t ret;
+
+	signal(SIGINT,  handle_signal);
+	signal(SIGTERM, handle_signal);
 
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
@@ -165,6 +179,10 @@ handle_musicfiles_and_socket(char **musicfiles,
 		if ((server_socket = setup_server_socket(socketpath)) < 0)
 			return 1;
 	}
+
+	/* XXX replace busy loop with something to do */
+	while (do_shutdown == 0)
+		;
 
 	if (close(server_socket) < 0)
 		warn("error closing server socket");
