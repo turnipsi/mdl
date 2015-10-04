@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.9 2015/10/04 13:17:59 je Exp $ */
+/* $Id: mdl.c,v 1.10 2015/10/04 13:28:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,8 +39,8 @@ int	handle_musicfiles_and_socket(char **, int, char *);
 void	handle_signal(int);
 int	setup_server_socket(char *);
 
-volatile sig_atomic_t do_shutdown = 0;	/* if set in signal handler, should
-					 * do shutdown */
+/* if set in signal handler, should do shutdown */
+volatile sig_atomic_t do_termshutdown = 0;
 
 static void __dead
 usage(void)
@@ -52,7 +52,7 @@ usage(void)
 void
 handle_signal(int signo)
 {
-	do_shutdown = 1;
+	do_termshutdown = 1;
 }
 
 int
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 	ret = handle_musicfiles_and_socket(musicfiles,
 					   musicfile_count,
 					   sflag ? server_socketpath : NULL);
-	if (ret)
+	if (ret || do_termshutdown)
 		return 1;
 
 	return 0;
@@ -181,7 +181,7 @@ handle_musicfiles_and_socket(char **musicfiles,
 	}
 
 	/* XXX replace busy loop with something to do */
-	while (do_shutdown == 0)
+	while (do_termshutdown == 0)
 		;
 
 	if (close(server_socket) < 0)
