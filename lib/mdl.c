@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.7 2015/10/04 10:32:38 je Exp $ */
+/* $Id: mdl.c,v 1.8 2015/10/04 10:40:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -166,8 +166,11 @@ handle_musicfiles_and_socket(char **musicfiles,
 			return 1;
 	}
 
-	/* XXX unlink() server_socket if done with */
-	/* XXX close()  server_socket if done with */
+	if (close(server_socket) < 0)
+		warn("error closing server socket");
+
+	if (unlink(socketpath) && errno != ENOENT)
+		warn("could not delete %s", socketpath);
 
 	return 0;
 }
@@ -209,6 +212,8 @@ setup_server_socket(char *socketpath)
 	return server_socket;
 
 fail:
-	(void) close(server_socket);
+	if (close(server_socket) < 0)
+		warn("error closing server socket");
+
 	return -1;
 }
