@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.10 2015/10/04 13:28:40 je Exp $ */
+/* $Id: mdl.c,v 1.11 2015/10/04 19:39:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,13 +31,16 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "sequencer.h"
+
 #define SOCKETPATH_LEN 104
 
-int	get_default_mdldir(char *);
-int	get_default_socketpath(char *, char *);
-int	handle_musicfiles_and_socket(char **, int, char *);
-void	handle_signal(int);
-int	setup_server_socket(char *);
+static int		get_default_mdldir(char *);
+static int		get_default_socketpath(char *, char *);
+static int		handle_musicfiles_and_socket(char **, int, char *);
+static void		handle_signal(int);
+static int		setup_server_socket(char *);
+static void __dead	usage(void);
 
 /* if set in signal handler, should do shutdown */
 volatile sig_atomic_t do_termshutdown = 0;
@@ -49,7 +52,7 @@ usage(void)
 	exit(1);
 }
 
-void
+static void
 handle_signal(int signo)
 {
 	do_termshutdown = 1;
@@ -132,7 +135,7 @@ main(int argc, char *argv[])
 	return 0;
 }
 
-int
+static int
 get_default_mdldir(char *mdldir)
 {
 	int ret;
@@ -152,7 +155,7 @@ get_default_mdldir(char *mdldir)
 	return 0;
 }
 
-int
+static int
 get_default_socketpath(char *socketpath, char *mdldir)
 {
 	int ret;
@@ -167,12 +170,12 @@ get_default_socketpath(char *socketpath, char *mdldir)
 	return 0;
 }
 
-int
+static int
 handle_musicfiles_and_socket(char **musicfiles,
 			     int musicfile_count,
 			     char *socketpath)
 {
-	int server_socket, i;
+	int server_socket;
 
 	server_socket = -1;
 	if (socketpath) {
@@ -180,9 +183,15 @@ handle_musicfiles_and_socket(char **musicfiles,
 			return 1;
 	}
 
-	/* XXX replace busy loop with something to do */
+	if (sequencer_init() != 0) {
+		warnx("error initializing sequencer");
+		return 1;
+	}
+
 	while (do_termshutdown == 0)
 		;
+
+	sequencer_close();
 
 	if (close(server_socket) < 0)
 		warn("error closing server socket");
@@ -193,7 +202,7 @@ handle_musicfiles_and_socket(char **musicfiles,
 	return 0;
 }
 
-int
+static int
 setup_server_socket(char *socketpath)
 {
 	struct sockaddr_un sun;
