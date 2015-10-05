@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.13 2015/10/05 09:41:35 je Exp $ */
+/* $Id: mdl.c,v 1.14 2015/10/05 10:37:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -45,7 +45,7 @@ static int		setup_server_socket(char *);
 static void __dead	usage(void);
 
 /* if set in signal handler, should do shutdown */
-volatile sig_atomic_t do_termshutdown = 0;
+volatile sig_atomic_t mdl_shutdown = 0;
 
 static void __dead
 usage(void)
@@ -57,7 +57,7 @@ usage(void)
 static void
 handle_signal(int signo)
 {
-	do_termshutdown = 1;
+	mdl_shutdown = 1;
 }
 
 int
@@ -125,7 +125,7 @@ main(int argc, char *argv[])
 	ret = setup_sequencer_for_sources(musicfiles,
 					  musicfilecount,
 					  sflag ? server_socketpath : NULL);
-	if (ret || do_termshutdown)
+	if (ret || mdl_shutdown)
 		return 1;
 
 	return 0;
@@ -221,6 +221,9 @@ handle_musicfile_and_socket(int file_fd, int server_socket)
 	/* XXX select/poll, accept connections on socket and stuff
          * XXX remember, server_socket maybe < 0, in which case it should
 	 * XXX be ignored... file_fd should always be at least stdin */
+
+	/* XXX should also check if mdl_shutdown is set (by signal handler),
+	 * XXX and return in that case */
 
 	return 0;
 }

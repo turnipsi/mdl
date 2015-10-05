@@ -103,5 +103,9 @@ sequencer_noteoff(int channel, int note, int velocity)
 void
 sequencer_close(void)
 {
+	/* XXX we should keep track of all notes we have sent and send off
+	 * XXX notes now (mdl may be terminating due to SIGTERM or some
+	 * XXX such) */
+
 	mio_close(mio);
 }
