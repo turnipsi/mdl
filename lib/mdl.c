@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.12 2015/10/05 08:57:10 je Exp $ */
+/* $Id: mdl.c,v 1.13 2015/10/05 09:41:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,8 +38,9 @@
 
 static int		get_default_mdldir(char *);
 static int		get_default_socketpath(char *, char *);
-static int		handle_musicfiles_and_socket(char **, int, char *);
+static int		handle_musicfile_and_socket(int, int);
 static void		handle_signal(int);
+static int		setup_sequencer_for_sources(char **, int, char *);
 static int		setup_server_socket(char *);
 static void __dead	usage(void);
 
@@ -64,7 +65,7 @@ main(int argc, char *argv[])
 {
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	int musicfile_count, ch, cflag, dflag, sflag;
+	int musicfilecount, ch, cflag, dflag, sflag;
 	size_t ret;
 
 	signal(SIGINT,  handle_signal);
@@ -109,8 +110,8 @@ main(int argc, char *argv[])
 	if (get_default_socketpath(server_socketpath, mdldir) != 0)
 		errx(1, "could not get default socketpath");
 
+	musicfilecount = argc;
 	musicfiles = argv;
-	musicfile_count = argc;
 
 	if (cflag && sflag) {
 		warnx("-c and -s options are mutually exclusive");
@@ -118,18 +119,12 @@ main(int argc, char *argv[])
 		/* NOTREACHED */
 	}
 
-	if (!sflag && musicfile_count == 0) {
-		warnx("no musicfiles given and not in server mode");
-		usage();
-		/* NOTREACHED */
-	}
-
-	if (cflag && musicfile_count > 1)
+	if (cflag && musicfilecount > 1)
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
-	ret = handle_musicfiles_and_socket(musicfiles,
-					   musicfile_count,
-					   sflag ? server_socketpath : NULL);
+	ret = setup_sequencer_for_sources(musicfiles,
+					  musicfilecount,
+					  sflag ? server_socketpath : NULL);
 	if (ret || do_termshutdown)
 		return 1;
 
@@ -172,11 +167,14 @@ get_default_socketpath(char *socketpath, char *mdldir)
 }
 
 static int
-handle_musicfiles_and_socket(char **musicfiles,
-			     int musicfile_count,
-			     char *socketpath)
+setup_sequencer_for_sources(char **files, int filecount, char *socketpath)
 {
-	int server_socket;
+	int server_socket, file_fd, i;
+
+	if (sequencer_init() != 0) {
+		warnx("error initializing sequencer");
+		return 1;
+	}
 
 	server_socket = -1;
 	if (socketpath) {
@@ -184,20 +182,45 @@ handle_musicfiles_and_socket(char **musicfiles,
 			return 1;
 	}
 
-	if (sequencer_init() != 0) {
-		warnx("error initializing sequencer");
-		return 1;
-	}
+	if (filecount == 0) {
+		file_fd = fileno(stdin);
+		handle_musicfile_and_socket(file_fd, server_socket);
+	} else {
+		for (i = 0; i < filecount; i++) {
+			if (strcmp(files[i], "-") == 0) {
+				file_fd = fileno(stdin);
+			} else {
+				file_fd = open(files[i], O_RDONLY);
+				if (file_fd < 0) {
+					warn("could not open %s", files[i]);
+					continue;
+				}
+			}
 
-	/* XXX do something sensible here */
+			handle_musicfile_and_socket(file_fd, server_socket);
+
+			if (close(file_fd) < 0)
+				warn("error closing %s", files[i]);
+		}
+	}
 
 	sequencer_close();
 
-	if (close(server_socket) < 0)
+	if (server_socket >= 0 && close(server_socket) < 0)
 		warn("error closing server socket");
 
-	if (unlink(socketpath) && errno != ENOENT)
+	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
+
+	return 0;
+}
+
+static int
+handle_musicfile_and_socket(int file_fd, int server_socket)
+{
+	/* XXX select/poll, accept connections on socket and stuff
+         * XXX remember, server_socket maybe < 0, in which case it should
+	 * XXX be ignored... file_fd should always be at least stdin */
 
 	return 0;
 }

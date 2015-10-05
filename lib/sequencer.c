@@ -75,7 +75,7 @@ sequencer_noteevent(int eventbase, int channel, int note, int velocity)
 	sequencer_assert_range(note,     0, 127);
 	sequencer_assert_range(velocity, 0, 127);
 
-	midievent[0] = (unsigned char) eventbase + (unsigned char) channel;
+	midievent[0] = (unsigned char) (eventbase + channel);
 	midievent[1] = (unsigned char) note;
 	midievent[2] = (unsigned char) velocity;
 
