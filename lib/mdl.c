@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.11 2015/10/04 19:39:42 je Exp $ */
+/* $Id: mdl.c,v 1.12 2015/10/05 08:57:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 #include <sys/un.h>
 
 #include <assert.h>
+#include <err.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <signal.h>
@@ -188,8 +189,7 @@ handle_musicfiles_and_socket(char **musicfiles,
 		return 1;
 	}
 
-	while (do_termshutdown == 0)
-		;
+	/* XXX do something sensible here */
 
 	sequencer_close();
 

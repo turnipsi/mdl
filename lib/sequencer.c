@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.1 2015/10/04 19:39:43 je Exp $
+/* $iD: Sequencer.c,v 1.1 2015/10/04 19:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,9 +16,20 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <assert.h>
+#include <err.h>
+
 #include "sequencer.h"
 
-static struct mio_hdl *mio;
+#define MIDIEVENT_SIZE		3
+#define SEQUENCER_NOTEOFF_BASE	0x80
+#define SEQUENCER_NOTEON_BASE	0x90
+
+static struct mio_hdl	*mio = NULL;
+
+static void	sequencer_assert_range(int, int, int);
+static int	sequencer_noteevent(int, int, int, int);
+static int	sequencer_send_midievent(unsigned char *);
 
 int
 sequencer_init(void)
@@ -29,6 +40,64 @@ sequencer_init(void)
 	}
 
 	return 0;
+}
+
+static void
+sequencer_assert_range(int channel, int min, int max)
+{
+	assert(min <= channel && channel <= max);
+}
+
+static int
+sequencer_send_midievent(unsigned char *midievent)
+{
+	int ret;
+
+	assert(mio != NULL);
+
+	ret = mio_write(mio, midievent, MIDIEVENT_SIZE);
+	if (ret != MIDIEVENT_SIZE) {
+		warnx("midi error, tried to write exactly %d bytes, wrote %d",
+		      MIDIEVENT_SIZE,
+		      ret);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
+sequencer_noteevent(int eventbase, int channel, int note, int velocity)
+{
+	unsigned char midievent[MIDIEVENT_SIZE];
+
+	sequencer_assert_range(channel,  0,  15);
+	sequencer_assert_range(note,     0, 127);
+	sequencer_assert_range(velocity, 0, 127);
+
+	midievent[0] = (unsigned char) eventbase + (unsigned char) channel;
+	midievent[1] = (unsigned char) note;
+	midievent[2] = (unsigned char) velocity;
+
+	return sequencer_send_midievent(midievent);
+}
+
+int
+sequencer_noteon(int channel, int note, int velocity)
+{
+	return sequencer_noteevent(SEQUENCER_NOTEON_BASE,
+				   channel,
+				   note,
+				   velocity);
+}
+
+int
+sequencer_noteoff(int channel, int note, int velocity)
+{
+	return sequencer_noteevent(SEQUENCER_NOTEOFF_BASE,
+				   channel,
+				   note,
+				   velocity);
 }
 
 void
