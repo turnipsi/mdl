@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.14 2015/10/05 10:37:35 je Exp $ */
+/* $Id: mdl.c,v 1.15 2015/10/06 19:02:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -60,12 +60,14 @@ handle_signal(int signo)
 	mdl_shutdown = 1;
 }
 
+	/* XXX should use const where applicable... */
+
 int
 main(int argc, char *argv[])
 {
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	int musicfilecount, ch, cflag, dflag, sflag;
+	int musicfilecount, ch, cflag, dflag, sflag, fileflags;
 	size_t ret;
 
 	signal(SIGINT,  handle_signal);
@@ -100,11 +102,16 @@ main(int argc, char *argv[])
 	if ((mkdir(mdldir, 0755) == -1) && errno != EEXIST)
 		err(1, "error creating %s", mdldir);
 
-	/* open mdldir for exclusive lock, not needed for anything else
-	   (discard the file descriptor) */
-	if (open(mdldir, O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY) == -1) {
-		warn("could not open %s for exclusive lock", mdldir);
-		errx(1, "do you have another instance of mdl running?");
+	if (sflag) {
+		/* when opening server socket, open mdldir for exclusive lock,
+		 * to get exclusive access to socket path, not needed for
+		 * anything else (discard the file descriptor) */
+		fileflags = O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY;
+		if (open(mdldir, fileflags) == -1) {
+			warn("could not open %s for exclusive lock", mdldir);
+			errx(1, "do you have another instance of" \
+				  " mdl running?");
+		}
 	}
 
 	if (get_default_socketpath(server_socketpath, mdldir) != 0)
