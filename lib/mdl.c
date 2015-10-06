@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.16 2015/10/06 19:03:29 je Exp $ */
+/* $Id: mdl.c,v 1.17 2015/10/06 20:08:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -176,7 +177,7 @@ get_default_socketpath(char *socketpath, char *mdldir)
 static int
 setup_sequencer_for_sources(char **files, int filecount, char *socketpath)
 {
-	int server_socket, file_fd, i;
+	int server_socket, file_fd, ret, using_stdin, i;
 
 	if (sequencer_init() != 0) {
 		warnx("error initializing sequencer");
@@ -193,27 +194,33 @@ setup_sequencer_for_sources(char **files, int filecount, char *socketpath)
 		file_fd = fileno(stdin);
 		handle_musicfile_and_socket(file_fd, server_socket);
 	} else {
-		for (i = 0; i < filecount; i++) {
+		for (i = 0; i < filecount && mdl_shutdown == 0; i++) {
 			if (strcmp(files[i], "-") == 0) {
 				file_fd = fileno(stdin);
+				using_stdin = 1;
 			} else {
+				using_stdin = 0;
 				file_fd = open(files[i], O_RDONLY);
-				if (file_fd < 0) {
+				if (file_fd == -1) {
 					warn("could not open %s", files[i]);
 					continue;
 				}
 			}
 
-			handle_musicfile_and_socket(file_fd, server_socket);
+			ret = handle_musicfile_and_socket(file_fd,
+							  server_socket);
+			if (ret != 0)
+				warnx("error in handling %s",
+				      using_stdin ? "stdin" : files[i]);
 
-			if (close(file_fd) < 0)
+			if (file_fd != fileno(stdin) && close(file_fd) == -1)
 				warn("error closing %s", files[i]);
 		}
 	}
 
 	sequencer_close();
 
-	if (server_socket >= 0 && close(server_socket) < 0)
+	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
 	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
@@ -225,12 +232,31 @@ setup_sequencer_for_sources(char **files, int filecount, char *socketpath)
 static int
 handle_musicfile_and_socket(int file_fd, int server_socket)
 {
-	/* XXX select/poll, accept connections on socket and stuff
-         * XXX remember, server_socket maybe < 0, in which case it should
-	 * XXX be ignored... file_fd should always be at least stdin */
+	fd_set readfds;
+	int ret;
 
-	/* XXX should also check if mdl_shutdown is set (by signal handler),
-	 * XXX and return in that case */
+	FD_ZERO(&readfds);
+	FD_SET(file_fd, &readfds);
+
+	if (server_socket >= 0)
+		FD_SET(server_socket, &readfds);
+
+	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
+		if (mdl_shutdown)
+			return 1;
+
+		if (FD_ISSET(file_fd, &readfds)) {
+			/* XXX */
+		}
+
+		if (server_socket >= 0 && FD_ISSET(server_socket, &readfds)) {
+			/* XXX */
+		}
+	}
+	if (ret == -1) {
+		warn("error in select");
+		return 1;
+	}
 
 	return 0;
 }
@@ -272,7 +298,7 @@ setup_server_socket(char *socketpath)
 	return server_socket;
 
 fail:
-	if (close(server_socket) < 0)
+	if (close(server_socket) == -1)
 		warn("error closing server socket");
 
 	return -1;
