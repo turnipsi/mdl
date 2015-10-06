@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.15 2015/10/06 19:02:43 je Exp $ */
+/* $Id: mdl.c,v 1.16 2015/10/06 19:03:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,7 +18,6 @@
 
 #include <sys/socket.h>
 #include <sys/stat.h>
-#include <sys/syslimits.h>
 #include <sys/types.h>
 #include <sys/un.h>
 
@@ -26,6 +25,7 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
