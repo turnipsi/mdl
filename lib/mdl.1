@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.6 2015/10/04 10:32:38 je Exp $
+.\"	$Id: mdl.1,v 1.7 2015/10/07 20:00:49 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: October 4 2015 $
+.Dd $Mdocdate: October 7 2015 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -49,10 +49,29 @@ If all files have been played,
 or no files were given as command line arguments,
 .Nm
 continues to run waiting for more music scripts on socket.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl c
+Send music description to server (act as client only).
+.It Fl d Ar mdl-directory
+Use
+.Ar mdl-directory
+as the directory to keep a listening socket.
+Setting this option allows running multiple instances of
+.Nm
+even when
+.Ar -s
+option is set.
+.It Fl s
+Open a listening socket to accept music descriptions (server-mode).
+.El
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh FILES
 .Bl -tag -width ~/.mdl/socket -compact
+.It Pa ~/.mdl
+the default mdl-directory
 .It Pa ~/.mdl/socket
 the default listening socket path
 .El
