@@ -22,8 +22,19 @@
 #include "sequencer.h"
 
 #define MIDIEVENT_SIZE		3
-#define SEQUENCER_NOTEOFF_BASE	0x80
-#define SEQUENCER_NOTEON_BASE	0x90
+#define SEQ_CHANNEL_MAX		15
+#define SEQ_NOTE_MAX		127
+#define SEQ_VELOCITY_MAX	127
+#define SEQ_NOTEOFF_BASE	0x80
+#define SEQ_NOTEON_BASE		0x90
+
+struct notestate {
+	unsigned int state    : 1;
+	unsigned int velocity : 7;
+};
+
+static struct notestate
+  sequencer_notestates[SEQ_CHANNEL_MAX+1][SEQ_NOTE_MAX+1];
 
 static struct mio_hdl	*mio = NULL;
 
@@ -67,45 +78,54 @@ sequencer_send_midievent(const unsigned char *midievent)
 }
 
 static int
-sequencer_noteevent(int eventbase, int channel, int note, int velocity)
+sequencer_noteevent(int note_on, int channel, int note, int velocity)
 {
 	unsigned char midievent[MIDIEVENT_SIZE];
+	int ret;
+	unsigned char eventbase;
 
-	sequencer_assert_range(channel,  0,  15);
-	sequencer_assert_range(note,     0, 127);
-	sequencer_assert_range(velocity, 0, 127);
+	sequencer_assert_range(channel,  0, SEQ_CHANNEL_MAX);
+	sequencer_assert_range(note,     0, SEQ_NOTE_MAX);
+	sequencer_assert_range(velocity, 0, SEQ_VELOCITY_MAX);
+
+	eventbase = note_on ? SEQ_NOTEON_BASE : SEQ_NOTEOFF_BASE;
 
 	midievent[0] = (unsigned char) (eventbase + channel);
 	midievent[1] = (unsigned char) note;
 	midievent[2] = (unsigned char) velocity;
 
-	return sequencer_send_midievent(midievent);
+	ret = sequencer_send_midievent(midievent);
+	if (ret == 0) {
+		sequencer_notestates[channel][note].state    = note_on ? 1 : 0;
+		sequencer_notestates[channel][note].velocity = velocity;
+	}
+
+	return ret;
 }
 
 int
 sequencer_noteon(int channel, int note, int velocity)
 {
-	return sequencer_noteevent(SEQUENCER_NOTEON_BASE,
-				   channel,
-				   note,
-				   velocity);
+	return sequencer_noteevent(1, channel, note, velocity);
 }
 
 int
-sequencer_noteoff(int channel, int note, int velocity)
+sequencer_noteoff(int channel, int note)
 {
-	return sequencer_noteevent(SEQUENCER_NOTEOFF_BASE,
-				   channel,
-				   note,
-				   velocity);
+	return sequencer_noteevent(0, channel, note, 0);
 }
 
 void
 sequencer_close(void)
 {
-	/* XXX we should keep track of all notes we have sent and send off
-	 * XXX notes now (mdl may be terminating due to SIGTERM or some
-	 * XXX such) */
+	int c, n;
+
+	for (c = 0; c < SEQ_CHANNEL_MAX; c++)
+		for (n = 0; n < SEQ_NOTE_MAX; n++)
+			if (sequencer_notestates[c][n].state)
+				if (sequencer_noteoff(c, n) != 0)
+					warnx("error in turning off note"
+						" %d on channel %d", n, c);
 
 	mio_close(mio);
 }

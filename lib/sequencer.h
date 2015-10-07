@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.2 2015/10/05 08:57:10 je Exp $ */
+/* $Id: sequencer.h,v 1.3 2015/10/07 19:47:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,7 +23,7 @@
 
 void	sequencer_close(void);
 int	sequencer_init(void);
-int	sequencer_noteoff(int, int, int);
+int	sequencer_noteoff(int, int);
 int	sequencer_noteon(int, int, int);
 
 #endif
