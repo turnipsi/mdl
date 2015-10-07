@@ -29,7 +29,7 @@ static struct mio_hdl	*mio = NULL;
 
 static void	sequencer_assert_range(int, int, int);
 static int	sequencer_noteevent(int, int, int, int);
-static int	sequencer_send_midievent(unsigned char *);
+static int	sequencer_send_midievent(const unsigned char *);
 
 int
 sequencer_init(void)
@@ -49,7 +49,7 @@ sequencer_assert_range(int channel, int min, int max)
 }
 
 static int
-sequencer_send_midievent(unsigned char *midievent)
+sequencer_send_midievent(const unsigned char *midievent)
 {
 	int ret;
 

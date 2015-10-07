@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.17 2015/10/06 20:08:04 je Exp $ */
+/* $Id: mdl.c,v 1.18 2015/10/07 19:13:17 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,11 +38,13 @@
 #define SOCKETPATH_LEN 104
 
 static int		get_default_mdldir(char *);
-static int		get_default_socketpath(char *, char *);
+static int		get_default_socketpath(char *, const char *);
 static int		handle_musicfile_and_socket(int, int);
 static void		handle_signal(int);
-static int		setup_sequencer_for_sources(char **, int, char *);
-static int		setup_server_socket(char *);
+static int		setup_sequencer_for_sources(char **,
+						    int,
+						    const char *);
+static int		setup_server_socket(const char *);
 static void __dead	usage(void);
 
 /* if set in signal handler, should do shutdown */
@@ -60,8 +62,6 @@ handle_signal(int signo)
 {
 	mdl_shutdown = 1;
 }
-
-	/* XXX should use const where applicable... */
 
 int
 main(int argc, char *argv[])
@@ -160,7 +160,7 @@ get_default_mdldir(char *mdldir)
 }
 
 static int
-get_default_socketpath(char *socketpath, char *mdldir)
+get_default_socketpath(char *socketpath, const char *mdldir)
 {
 	int ret;
 
@@ -175,7 +175,9 @@ get_default_socketpath(char *socketpath, char *mdldir)
 }
 
 static int
-setup_sequencer_for_sources(char **files, int filecount, char *socketpath)
+setup_sequencer_for_sources(char **files,
+			    int filecount,
+			    const char *socketpath)
 {
 	int server_socket, file_fd, ret, using_stdin, i;
 
@@ -262,7 +264,7 @@ handle_musicfile_and_socket(int file_fd, int server_socket)
 }
 
 static int
-setup_server_socket(char *socketpath)
+setup_server_socket(const char *socketpath)
 {
 	struct sockaddr_un sun;
 	int ret, server_socket;
