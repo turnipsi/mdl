@@ -1,4 +1,4 @@
-/* $iD: Sequencer.c,v 1.1 2015/10/04 19:39:43 je Exp $ */
+/* $Id: sequencer.c,v 1.7 2015/10/08 19:36:29 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,10 @@
 
 #include <assert.h>
 #include <err.h>
+
+/* XXX */
+#include <stdio.h>
+#include <unistd.h>
 
 #include "sequencer.h"
 
@@ -39,16 +43,38 @@ static struct notestate
 static struct mio_hdl	*mio = NULL;
 
 static void	sequencer_assert_range(int, int, int);
+static void	sequencer_close(void);
+static int	sequencer_init(void);
 static int	sequencer_noteevent(int, int, int, int);
+static int	sequencer_noteoff(int, int);
+static int	sequencer_noteon(int, int, int);
 static int	sequencer_send_midievent(const unsigned char *);
 
-int
+static int
 sequencer_init(void)
 {
 	if ((mio = mio_open(MIO_PORTANY, MIO_OUT, 0)) == NULL) {
 		warnx("could not open midi device");
 		return 1;
 	}
+
+	return 0;
+}
+
+int
+sequencer_loop(int input_socket)
+{
+	if (sequencer_init() != 0) {
+		warnx("problem initializing sequencer, exiting");
+		return 1;
+	}
+
+	/* XXX handle stuff, input socket should give us music to play */
+	printf("in sequencer\n");
+	fflush(stdout);
+	sleep(30);
+
+	sequencer_close();
 
 	return 0;
 }
@@ -103,19 +129,19 @@ sequencer_noteevent(int note_on, int channel, int note, int velocity)
 	return ret;
 }
 
-int
+static int
 sequencer_noteon(int channel, int note, int velocity)
 {
 	return sequencer_noteevent(1, channel, note, velocity);
 }
 
-int
+static int
 sequencer_noteoff(int channel, int note)
 {
 	return sequencer_noteevent(0, channel, note, 0);
 }
 
-void
+static void
 sequencer_close(void)
 {
 	int c, n;

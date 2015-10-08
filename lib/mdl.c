@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.18 2015/10/07 19:13:17 je Exp $ */
+/* $Id: mdl.c,v 1.19 2015/10/08 19:36:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,7 +16,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/select.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -33,13 +32,14 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "interpreter.h"
 #include "sequencer.h"
 
 #define SOCKETPATH_LEN 104
 
 static int		get_default_mdldir(char *);
 static int		get_default_socketpath(char *, const char *);
-static int		handle_musicfile_and_socket(int, int);
+static int		start_interpreter(int, int, int);
 static void		handle_signal(int);
 static int		setup_sequencer_for_sources(char **,
 						    int,
@@ -133,7 +133,7 @@ main(int argc, char *argv[])
 	ret = setup_sequencer_for_sources(musicfiles,
 					  musicfilecount,
 					  sflag ? server_socketpath : NULL);
-	if (ret || mdl_shutdown)
+	if (ret != 0 || mdl_shutdown == 1)
 		return 1;
 
 	return 0;
@@ -179,22 +179,52 @@ setup_sequencer_for_sources(char **files,
 			    int filecount,
 			    const char *socketpath)
 {
-	int server_socket, file_fd, ret, using_stdin, i;
+	int sp[2];
+	int server_socket, file_fd, ret, retvalue, using_stdin, i;
+	pid_t sequencer_pid;
 
-	if (sequencer_init() != 0) {
-		warnx("error initializing sequencer");
+	retvalue = 0;
+
+	/* setup socketpair for musicinterp_process <-> sequencer
+	 * communication */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sp) == -1) {
+		warn("could not setup socketpair for interp <-> sequencer");
 		return 1;
 	}
 
+	/* for the midi sequencer process */
+	if ((sequencer_pid = fork()) == -1) {
+		warn("could not fork sequencer process");
+		if (close(sp[0]) == -1)
+			warn("error closing first endpoint of socketpair");
+		if (close(sp[1]) == -1)
+			warn("error closing second endpoint of socketpair");
+		return 1;
+	}
+
+	if (sequencer_pid == 0) {
+		/* sequencer process, start sequencer loop */
+		if (close(sp[0]) == -1)
+			warn("error closing first endpoint of socketpair");
+		_exit( sequencer_loop(sp[1]) );
+	}
+
+	if (close(sp[1]) == -1)
+		warn("error closing second endpoint of socketpair");
+
 	server_socket = -1;
 	if (socketpath) {
-		if ((server_socket = setup_server_socket(socketpath)) < 0)
+		if ((server_socket = setup_server_socket(socketpath)) < 0) {
+			if (close(sp[0]) == -1)
+				warn("error closing first endpoint" \
+				       " of socketpair");
 			return 1;
+		}
 	}
 
 	if (filecount == 0) {
 		file_fd = fileno(stdin);
-		handle_musicfile_and_socket(file_fd, server_socket);
+		handle_musicfile_and_socket(file_fd, sp[0], server_socket);
 	} else {
 		for (i = 0; i < filecount && mdl_shutdown == 0; i++) {
 			if (strcmp(files[i], "-") == 0) {
@@ -209,18 +239,17 @@ setup_sequencer_for_sources(char **files,
 				}
 			}
 
-			ret = handle_musicfile_and_socket(file_fd,
-							  server_socket);
-			if (ret != 0)
+			ret = start_interpreter(file_fd, sp[0], server_socket);
+			if (ret != 0) {
+				/* XXX should you just exit with error? */
 				warnx("error in handling %s",
 				      using_stdin ? "stdin" : files[i]);
+			}
 
 			if (file_fd != fileno(stdin) && close(file_fd) == -1)
 				warn("error closing %s", files[i]);
 		}
 	}
-
-	sequencer_close();
 
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
@@ -232,33 +261,26 @@ setup_sequencer_for_sources(char **files,
 }
 
 static int
-handle_musicfile_and_socket(int file_fd, int server_socket)
+start_interpreter(int file_fd, int output_socket, int server_socket)
 {
-	fd_set readfds;
 	int ret;
+	pid_t interpreter_pid;
 
-	FD_ZERO(&readfds);
-	FD_SET(file_fd, &readfds);
-
-	if (server_socket >= 0)
-		FD_SET(server_socket, &readfds);
-
-	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
-		if (mdl_shutdown)
-			return 1;
-
-		if (FD_ISSET(file_fd, &readfds)) {
-			/* XXX */
-		}
-
-		if (server_socket >= 0 && FD_ISSET(server_socket, &readfds)) {
-			/* XXX */
-		}
-	}
-	if (ret == -1) {
-		warn("error in select");
+	if ((interpreter_pid = fork()) == -1) {
+		warn("could not fork interpreter pid");
 		return 1;
 	}
+
+	if (interpreter_pid == 0) {
+		/* interpreter process */
+		ret = handle_musicfile_and_socket(file_fd,
+					   	  output_socket,
+						  server_socket);
+		_exit(ret);
+	}
+
+	/* XXX probably wait for interpreter_pid?
+	 * XXX (let it handle listening socket and stuff?) */
 
 	return 0;
 }

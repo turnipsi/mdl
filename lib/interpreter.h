@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.4 2015/10/08 19:36:29 je Exp $ */
+/* $Id: interpreter.h,v 1.1 2015/10/08 19:36:29 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,11 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef SEQUENCER_H
-#define SEQUENCER_H
+#ifndef MUSICINTERP_H
+#define MUSICINTERP_H
 
-#include <sndio.h>
-
-int	sequencer_loop(int);
+int	handle_musicfile_and_socket(int, int, int);
 
 #endif

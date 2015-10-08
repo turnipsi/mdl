@@ -1,5 +1,5 @@
-/* $Id: sequencer.h,v 1.4 2015/10/08 19:36:29 je Exp $ */
-
+/* $Id: interpreter.c,v 1.1 2015/10/08 19:36:29 je Exp $
+ 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
@@ -16,11 +16,39 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef SEQUENCER_H
-#define SEQUENCER_H
+#include <sys/select.h>
 
-#include <sndio.h>
+int
+handle_musicfile_and_socket(int file_fd, int output_socket, int server_socket)
+{
+#if 0
+	fd_set readfds;
+	int ret;
+	pid_t musicinterp_pid;
 
-int	sequencer_loop(int);
+	FD_ZERO(&readfds);
+	FD_SET(file_fd, &readfds);
 
+	if (server_socket >= 0)
+		FD_SET(server_socket, &readfds);
+
+	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
+		if (mdl_shutdown)
+			return 1;
+
+		if (FD_ISSET(file_fd, &readfds)) {
+			/* XXX */
+		}
+
+		if (server_socket >= 0 && FD_ISSET(server_socket, &readfds)) {
+			/* XXX */
+		}
+	}
+	if (ret == -1) {
+		warn("error in select");
+		return 1;
+	}
 #endif
+
+	return 0;
+}
