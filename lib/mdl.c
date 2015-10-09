@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.19 2015/10/08 19:36:29 je Exp $ */
+/* $Id: mdl.c,v 1.20 2015/10/09 19:48:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
+#include <sys/wait.h>
 
 #include <assert.h>
 #include <err.h>
@@ -41,6 +42,7 @@ static int		get_default_mdldir(char *);
 static int		get_default_socketpath(char *, const char *);
 static int		start_interpreter(int, int, int);
 static void		handle_signal(int);
+static int		send_fd_through_socket(int, int);
 static int		setup_sequencer_for_sources(char **,
 						    int,
 						    const char *);
@@ -179,77 +181,84 @@ setup_sequencer_for_sources(char **files,
 			    int filecount,
 			    const char *socketpath)
 {
-	int sp[2];
+	int ms_sp[2];	/* main-sequencer socketpair */
+
 	int server_socket, file_fd, ret, retvalue, using_stdin, i;
 	pid_t sequencer_pid;
+	char *stdinfiles[] = { "-" };
 
 	retvalue = 0;
 
-	/* setup socketpair for musicinterp_process <-> sequencer
-	 * communication */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, sp) == -1) {
-		warn("could not setup socketpair for interp <-> sequencer");
+	/* setup socketpair for main <-> sequencer communication */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
+		warn("could not setup socketpair for main <-> sequencer");
 		return 1;
 	}
 
 	/* for the midi sequencer process */
 	if ((sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
-		if (close(sp[0]) == -1)
-			warn("error closing first endpoint of socketpair");
-		if (close(sp[1]) == -1)
-			warn("error closing second endpoint of socketpair");
+		if (close(ms_sp[0]) == -1)
+			warn("error closing first endpoint of ms_sp");
+		if (close(ms_sp[1]) == -1)
+			warn("error closing second endpoint of ms_sp");
 		return 1;
 	}
 
 	if (sequencer_pid == 0) {
 		/* sequencer process, start sequencer loop */
-		if (close(sp[0]) == -1)
-			warn("error closing first endpoint of socketpair");
-		_exit( sequencer_loop(sp[1]) );
+		if (close(ms_sp[0]) == -1)
+			warn("error closing first endpoint of ms_sp");
+		_exit( sequencer_loop(ms_sp[1]) );
 	}
 
-	if (close(sp[1]) == -1)
-		warn("error closing second endpoint of socketpair");
+	if (close(ms_sp[1]) == -1)
+		warn("error closing second endpoint of ms_sp");
 
 	server_socket = -1;
 	if (socketpath) {
 		if ((server_socket = setup_server_socket(socketpath)) < 0) {
-			if (close(sp[0]) == -1)
-				warn("error closing first endpoint" \
-				       " of socketpair");
-			return 1;
+			retvalue = 1;
+			goto finish;
 		}
 	}
 
 	if (filecount == 0) {
-		file_fd = fileno(stdin);
-		handle_musicfile_and_socket(file_fd, sp[0], server_socket);
-	} else {
-		for (i = 0; i < filecount && mdl_shutdown == 0; i++) {
-			if (strcmp(files[i], "-") == 0) {
-				file_fd = fileno(stdin);
-				using_stdin = 1;
-			} else {
-				using_stdin = 0;
-				file_fd = open(files[i], O_RDONLY);
-				if (file_fd == -1) {
-					warn("could not open %s", files[i]);
-					continue;
-				}
-			}
-
-			ret = start_interpreter(file_fd, sp[0], server_socket);
-			if (ret != 0) {
-				/* XXX should you just exit with error? */
-				warnx("error in handling %s",
-				      using_stdin ? "stdin" : files[i]);
-			}
-
-			if (file_fd != fileno(stdin) && close(file_fd) == -1)
-				warn("error closing %s", files[i]);
-		}
+		filecount = 1;
+		files = stdinfiles;
 	}
+
+	for (i = 0; i < filecount && mdl_shutdown == 0; i++) {
+		if (strcmp(files[i], "-") == 0) {
+			file_fd = fileno(stdin);
+			using_stdin = 1;
+		} else {
+			using_stdin = 0;
+			file_fd = open(files[i], O_RDONLY);
+			if (file_fd == -1) {
+				warn("could not open %s", files[i]);
+				continue;
+			}
+		}
+
+		ret = start_interpreter(file_fd, ms_sp[0], server_socket);
+		if (ret != 0) {
+			warnx("error in handling %s",
+			      using_stdin ? "stdin" : files[i]);
+			if (close(file_fd) == -1) {
+				warn("error closing %s", files[i]);
+			retvalue = 1;
+			goto finish;
+		}
+
+		if (file_fd != fileno(stdin) && close(file_fd) == -1)
+			warn("error closing %s", files[i]);
+	}
+}
+
+finish:
+	if (close(ms_sp[0]) == -1)
+		warn("error closing first endpoint of ms_sp");
 
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
@@ -257,30 +266,112 @@ setup_sequencer_for_sources(char **files,
 	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
-	return 0;
+	return retvalue;
 }
 
 static int
-start_interpreter(int file_fd, int output_socket, int server_socket)
+start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 {
+	int mi_sp[2];	/* main-interpreter socketpair */
+	int is_sp[2];	/* interpreter-sequencer socketpair */
+
 	int ret;
+	int status;
 	pid_t interpreter_pid;
+
+	/* setup socketpair for main <-> interpreter communication */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, mi_sp) == -1) {
+		warn("could not setup socketpair for main <-> interpreter");
+		return 1;
+	}
+
+	/* setup socketpair for interpreter <-> sequencer communication */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, is_sp) == -1) {
+		warn("could not setup socketpair for" \
+		       " interpreter <-> sequencer");
+		if (close(mi_sp[0]) == -1)
+			warn("error closing first endpoint of mi_sp");
+		if (close(mi_sp[1]) == -1)
+			warn("error closing second endpoint of mi_sp");
+		return 1;
+	}
+
 
 	if ((interpreter_pid = fork()) == -1) {
 		warn("could not fork interpreter pid");
+		if (close(mi_sp[0]) == -1)
+			warn("error closing first endpoint of mi_sp");
+		if (close(mi_sp[1]) == -1)
+			warn("error closing second endpoint of mi_sp");
+		if (close(is_sp[0]) == -1)
+			warn("error closing first endpoint of is_sp");
+		if (close(is_sp[1]) == -1)
+			warn("error closing second endpoint of is_sp");
 		return 1;
 	}
 
 	if (interpreter_pid == 0) {
 		/* interpreter process */
+		if (close(mi_sp[0]) == -1)
+			warn("error closing first endpoint of mi_sp");
+		if (close(is_sp[1]) == -1)
+			warn("error closing second endpoint of is_sp");
+
 		ret = handle_musicfile_and_socket(file_fd,
-					   	  output_socket,
+					   	  mi_sp[1],
+					   	  is_sp[0],
 						  server_socket);
 		_exit(ret);
 	}
 
-	/* XXX probably wait for interpreter_pid?
-	 * XXX (let it handle listening socket and stuff?) */
+	if (close(mi_sp[1]) == -1)
+		warn("error closing second endpoint of mi_sp");
+	if (close(is_sp[0]) == -1)
+		warn("error closing first endpoint of is_sp");
+
+	/* we can communicate to interpreter through mi_sp[0],
+	 * but to establish interpreter <-> sequencer communucation
+	 * we must send is_sp[1] to sequencer */
+
+	if (send_fd_through_socket(is_sp[1], sequencer_socket) != 0) {
+		/* XXX what to do in case of error?
+		 * XXX what should we clean up? */
+	}
+
+	/* XXX only one interpreter thread should be running at once,
+	 * XXX so we should wait specifically for that one to finish
+	 * XXX (we might do something interesting while waiting, though */
+	if (waitpid(interpreter_pid, &status, 0) == -1)
+		warn("error when wait for interpreter to finish");
+
+	return 0;
+}
+
+static int
+send_fd_through_socket(int fd, int socket)
+{
+	struct msghdr	msg;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr	hdr;
+		unsigned char	buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control    = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_len   = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type  = SCM_RIGHTS;
+
+	*(int *)CMSG_DATA(cmsg) = fd;
+
+	if (sendmsg(socket, &msg, 0) == -1) {
+		warn("sending fd through socket");
+		return 1;
+	}
 
 	return 0;
 }

@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.7 2015/10/08 19:36:29 je Exp $
+/* $Id: sequencer.c,v 1.8 2015/10/09 19:48:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,14 +62,16 @@ sequencer_init(void)
 }
 
 int
-sequencer_loop(int input_socket)
+sequencer_loop(int main_socket)
 {
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
 		return 1;
 	}
 
-	/* XXX handle stuff, input socket should give us music to play */
+	/* XXX Should wait to get interpreter socket through main_socket.
+	 * XXX From interpreter socket we should get some music to play. */
+
 	printf("in sequencer\n");
 	fflush(stdout);
 	sleep(30);

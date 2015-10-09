@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.1 2015/10/08 19:36:29 je Exp $
+/* $Id: interpreter.c,v 1.2 2015/10/09 19:48:13 je Exp $
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,7 +19,10 @@
 #include <sys/select.h>
 
 int
-handle_musicfile_and_socket(int file_fd, int output_socket, int server_socket)
+handle_musicfile_and_socket(int file_fd,
+			    int main_socket,
+			    int sequencer_socket,
+			    int server_socket)
 {
 #if 0
 	fd_set readfds;
