@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.8 2015/10/09 19:48:13 je Exp $ */
+/* $Id: sequencer.c,v 1.9 2015/10/09 20:27:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,10 +18,8 @@
 
 #include <assert.h>
 #include <err.h>
-
-/* XXX */
-#include <stdio.h>
-#include <unistd.h>
+#include <string.h>
+#include <sys/socket.h>
 
 #include "sequencer.h"
 
@@ -42,6 +40,7 @@ static struct notestate
 
 static struct mio_hdl	*mio = NULL;
 
+static int	receive_fd_through_socket(int);
 static void	sequencer_assert_range(int, int, int);
 static void	sequencer_close(void);
 static int	sequencer_init(void);
@@ -49,6 +48,45 @@ static int	sequencer_noteevent(int, int, int, int);
 static int	sequencer_noteoff(int, int);
 static int	sequencer_noteon(int, int, int);
 static int	sequencer_send_midievent(const unsigned char *);
+
+static int
+receive_fd_through_socket(int socket)
+{
+	struct msghdr	msg;
+	struct cmsghdr *cmsg;
+	union {                           
+		struct cmsghdr	hdr;
+		unsigned char	buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+	int fd;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control    = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	if (recvmsg(socket, &msg, 0) == -1) {
+		warn("receiving fd through socket, recvmsg");
+		return -1;
+	}
+
+	if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
+		warn("receiving fd through socket," \
+                       "  control message truncated");
+		return -1;
+	}
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	if (cmsg
+              && cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
+              && cmsg->cmsg_level == SOL_SOCKET
+              && cmsg->cmsg_type  == SCM_RIGHTS) {
+		fd = *(int *)CMSG_DATA(cmsg);
+		return fd;
+	}
+
+	warnx("did not receive fd while expecting for it");
+	return -1;
+}
 
 static int
 sequencer_init(void)
@@ -64,17 +102,22 @@ sequencer_init(void)
 int
 sequencer_loop(int main_socket)
 {
+	int interpreter_fd, nr;
+	char buffer[1024];
+
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
 		return 1;
 	}
 
-	/* XXX Should wait to get interpreter socket through main_socket.
-	 * XXX From interpreter socket we should get some music to play. */
+	if ((interpreter_fd = receive_fd_through_socket(main_socket)) == -1) {
+		warn("error receiving interpreter socket for sequencer");
+		return 1;
+	}
 
-	printf("in sequencer\n");
-	fflush(stdout);
-	sleep(30);
+	/* XXX */
+	nr = read(interpreter_fd, buffer, sizeof(buffer));
+	warnx("received %d bytes in sequencer", nr);
 
 	sequencer_close();
 
