@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.20 2015/10/09 19:48:13 je Exp $ */
+/* $Id: mdl.c,v 1.21 2015/10/11 19:33:24 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -207,6 +207,8 @@ setup_sequencer_for_sources(char **files,
 
 	if (sequencer_pid == 0) {
 		/* sequencer process, start sequencer loop */
+		/* XXX should close all file descriptors that sequencer
+		 * XXX does not need */
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first endpoint of ms_sp");
 		_exit( sequencer_loop(ms_sp[1]) );
@@ -312,6 +314,8 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 
 	if (interpreter_pid == 0) {
 		/* interpreter process */
+		/* XXX should close all file descriptors that interpreter
+		 * XXX does not need */
 		if (close(mi_sp[0]) == -1)
 			warn("error closing first endpoint of mi_sp");
 		if (close(is_sp[1]) == -1)

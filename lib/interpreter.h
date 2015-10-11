@@ -1,4 +1,4 @@
-/* $Id: interpreter.h,v 1.2 2015/10/09 19:48:13 je Exp $
+/* $Id: interpreter.h,v 1.3 2015/10/11 19:33:24 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>

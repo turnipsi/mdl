@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.9 2015/10/09 20:27:32 je Exp $ */
+/* $Id: sequencer.c,v 1.10 2015/10/11 19:33:24 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,10 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/socket.h>
+
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
+#include <unistd.h>
 
 #include "sequencer.h"
 
@@ -40,14 +46,16 @@ static struct notestate
 
 static struct mio_hdl	*mio = NULL;
 
+static int	play_music(char *, size_t);
+static ssize_t	read_to_buffer(int, char **, size_t *, size_t *);
 static int	receive_fd_through_socket(int);
-static void	sequencer_assert_range(int, int, int);
+static void	sequencer_assert_range(u_int8_t, u_int8_t, u_int8_t);
 static void	sequencer_close(void);
 static int	sequencer_init(void);
-static int	sequencer_noteevent(int, int, int, int);
-static int	sequencer_noteoff(int, int);
-static int	sequencer_noteon(int, int, int);
-static int	sequencer_send_midievent(const unsigned char *);
+static int	sequencer_noteevent(u_int8_t, u_int8_t, u_int8_t, u_int8_t);
+static int	sequencer_noteoff(u_int8_t, u_int8_t);
+static int	sequencer_noteon(u_int8_t, u_int8_t, u_int8_t);
+static int	sequencer_send_midievent(const u_int8_t *);
 
 static int
 receive_fd_through_socket(int socket)
@@ -102,36 +110,83 @@ sequencer_init(void)
 int
 sequencer_loop(int main_socket)
 {
-	int interpreter_fd, nr;
-	char buffer[1024];
+	int interp_fd, nr;
+	char *buffer;
+	size_t bufsize, readcount;
+
+	bufsize   = 1024;
+	readcount = 0;
 
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
 		return 1;
 	}
 
-	if ((interpreter_fd = receive_fd_through_socket(main_socket)) == -1) {
+	if ((interp_fd = receive_fd_through_socket(main_socket)) == -1) {
 		warn("error receiving interpreter socket for sequencer");
 		return 1;
 	}
 
-	/* XXX */
-	nr = read(interpreter_fd, buffer, sizeof(buffer));
-	warnx("received %d bytes in sequencer", nr);
+	if ((buffer = malloc(bufsize)) == NULL) {
+		warn("malloc failure");
+		return 1;
+	}
+
+	for (;;) {
+		nr = read_to_buffer(interp_fd, &buffer, &bufsize, &readcount);
+		if (nr == -1) {
+			warn("reading to buffer");
+			free(buffer);
+			if (close(interp_fd) == -1)
+				warn("closing interpreter fd");
+			return 1;
+		}
+		if (nr == 0)
+			break;
+	}
+
+	play_music(buffer, readcount);
 
 	sequencer_close();
 
 	return 0;
 }
 
+static int
+play_music(char *buffer, size_t bytecount)
+{
+	struct midievent *ev;
+	int evcount, i;
+
+	if ((bytecount % sizeof(struct midievent)) > 0) {
+		warnx("received music stream which is not complete,");
+		return 1;
+	}
+
+	evcount = bytecount / sizeof(struct midievent); 
+
+	ev = (struct midievent *) buffer;
+	for (i = 0; i < evcount; i++, ev++) {
+		printf("received %d %d %d %d %f\n",
+		       ev->eventtype,
+		       ev->channel,
+		       ev->note,
+		       ev->velocity,
+		       ev->time_as_measures);
+		fflush(stdout);
+	}
+
+	return 0;
+}
+
 static void
-sequencer_assert_range(int channel, int min, int max)
+sequencer_assert_range(u_int8_t channel, u_int8_t min, u_int8_t max)
 {
 	assert(min <= channel && channel <= max);
 }
 
 static int
-sequencer_send_midievent(const unsigned char *midievent)
+sequencer_send_midievent(const u_int8_t *midievent)
 {
 	int ret;
 
@@ -149,11 +204,14 @@ sequencer_send_midievent(const unsigned char *midievent)
 }
 
 static int
-sequencer_noteevent(int note_on, int channel, int note, int velocity)
+sequencer_noteevent(u_int8_t note_on,
+		    u_int8_t channel,
+		    u_int8_t note,
+		    u_int8_t velocity)
 {
-	unsigned char midievent[MIDIEVENT_SIZE];
+	u_int8_t midievent[MIDIEVENT_SIZE];
 	int ret;
-	unsigned char eventbase;
+	u_int8_t eventbase;
 
 	sequencer_assert_range(channel,  0, SEQ_CHANNEL_MAX);
 	sequencer_assert_range(note,     0, SEQ_NOTE_MAX);
@@ -161,9 +219,9 @@ sequencer_noteevent(int note_on, int channel, int note, int velocity)
 
 	eventbase = note_on ? SEQ_NOTEON_BASE : SEQ_NOTEOFF_BASE;
 
-	midievent[0] = (unsigned char) (eventbase + channel);
-	midievent[1] = (unsigned char) note;
-	midievent[2] = (unsigned char) velocity;
+	midievent[0] = (u_int8_t) (eventbase + channel);
+	midievent[1] = note;
+	midievent[2] = velocity;
 
 	ret = sequencer_send_midievent(midievent);
 	if (ret == 0) {
@@ -175,13 +233,13 @@ sequencer_noteevent(int note_on, int channel, int note, int velocity)
 }
 
 static int
-sequencer_noteon(int channel, int note, int velocity)
+sequencer_noteon(u_int8_t channel, u_int8_t note, u_int8_t velocity)
 {
 	return sequencer_noteevent(1, channel, note, velocity);
 }
 
 static int
-sequencer_noteoff(int channel, int note)
+sequencer_noteoff(u_int8_t channel, u_int8_t note)
 {
 	return sequencer_noteevent(0, channel, note, 0);
 }
@@ -199,4 +257,35 @@ sequencer_close(void)
 						" %d on channel %d", n, c);
 
 	mio_close(mio);
+}
+
+static ssize_t
+read_to_buffer(int d, char **buf, size_t *bsize, size_t *readcount)
+{
+	char *new_buf;
+	ssize_t nr;
+
+	assert(d >= 0);
+	assert(buf != NULL && *buf != NULL);
+	assert(*readcount <= *bsize);
+
+	if (*bsize == *readcount) {
+		if (*bsize == SIZE_MAX) {
+			errno = ENOMEM;
+			return -1;
+		}
+
+		*bsize = (*bsize < SIZE_MAX/2) ? (2 * *bsize) : SIZE_MAX;
+		if ((new_buf = realloc(*buf, *bsize)) == NULL)
+			return -1;
+		*buf = new_buf;
+	}
+
+	nr = read(d, *buf + *readcount, *bsize - *readcount);
+	if (nr == 0 || nr == -1)
+		return nr;
+
+	*readcount += nr;
+
+	return nr;
 }

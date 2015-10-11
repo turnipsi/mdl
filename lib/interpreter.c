@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.2 2015/10/09 19:48:13 je Exp $
+/* $Id: interpreter.c,v 1.3 2015/10/11 19:33:24 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,16 +18,22 @@
 
 #include <sys/select.h>
 
+#include <err.h>
+#include <stdio.h>
+#include <unistd.h>
+
+#include "sequencer.h"
+
+static int	testwrite(int);
+
 int
 handle_musicfile_and_socket(int file_fd,
 			    int main_socket,
 			    int sequencer_socket,
 			    int server_socket)
 {
-#if 0
 	fd_set readfds;
 	int ret;
-	pid_t musicinterp_pid;
 
 	FD_ZERO(&readfds);
 	FD_SET(file_fd, &readfds);
@@ -35,12 +41,14 @@ handle_musicfile_and_socket(int file_fd,
 	if (server_socket >= 0)
 		FD_SET(server_socket, &readfds);
 
-	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
-		if (mdl_shutdown)
-			return 1;
+	testwrite(sequencer_socket);
+	close(sequencer_socket);
 
+	return 0;
+
+	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
 		if (FD_ISSET(file_fd, &readfds)) {
-			/* XXX */
+			/* XXX use fgetln() or some such */
 		}
 
 		if (server_socket >= 0 && FD_ISSET(server_socket, &readfds)) {
@@ -51,7 +59,73 @@ handle_musicfile_and_socket(int file_fd,
 		warn("error in select");
 		return 1;
 	}
-#endif
+
+	return 0;
+}
+
+static int
+testwrite(int sequencer_socket)
+{
+	struct midievent events[8];
+	ssize_t nw;
+	char channel;
+
+	channel = 0;
+
+	events[0].eventtype        = NOTEON;
+	events[0].channel          = channel;
+	events[0].note             = 60;
+	events[0].velocity         = 127;
+	events[0].time_as_measures = 0;
+
+	events[1].eventtype        = NOTEOFF;
+	events[1].channel          = channel;
+	events[1].note             = 60;
+	events[1].velocity         = 0;
+	events[1].time_as_measures = 0.25;
+
+	events[2].eventtype        = NOTEON;
+	events[2].channel          = channel;
+	events[2].note             = 60;
+	events[2].velocity         = 127;
+	events[2].time_as_measures = 0.25;
+
+	events[3].eventtype        = NOTEOFF;
+	events[3].channel          = channel;
+	events[3].note             = 60;
+	events[3].velocity         = 0;
+	events[3].time_as_measures = 0.5;
+
+	events[4].eventtype        = NOTEON;
+	events[4].channel          = channel;
+	events[4].note             = 60;
+	events[4].velocity         = 127;
+	events[4].time_as_measures = 0.5;
+
+	events[5].eventtype        = NOTEOFF;
+	events[5].channel          = channel;
+	events[5].note             = 60;
+	events[5].velocity         = 0;
+	events[5].time_as_measures = 0.75;
+
+	events[6].eventtype        = NOTEON;
+	events[6].channel          = channel;
+	events[6].note             = 64;
+	events[6].velocity         = 127;
+	events[6].time_as_measures = 0.75;
+
+	events[7].eventtype        = NOTEOFF;
+	events[7].channel          = channel;
+	events[7].note             = 64;
+	events[7].velocity         = 0;
+	events[7].time_as_measures = 1.0;
+
+	/* XXX */
+	nw = write(sequencer_socket, events, sizeof(events));
+	if (nw == -1) {
+		warn("error writing to sequencer");
+		return 1;
+	}
 
 	return 0;
 }
