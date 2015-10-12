@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.10 2015/10/11 19:33:24 je Exp $ */
+/* $Id: sequencer.c,v 1.11 2015/10/12 20:34:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -36,6 +36,11 @@
 #define SEQ_NOTEOFF_BASE	0x80
 #define SEQ_NOTEON_BASE		0x90
 
+struct eventstream {
+	struct midievent *stream;
+	size_t bufsize, readcount;
+};
+
 struct notestate {
 	unsigned int state    : 1;
 	unsigned int velocity : 7;
@@ -44,10 +49,14 @@ struct notestate {
 static struct notestate
   sequencer_notestates[SEQ_CHANNEL_MAX+1][SEQ_NOTE_MAX+1];
 
-static struct mio_hdl	*mio = NULL;
+static struct mio_hdl  *mio = NULL;
+static float		tempo = 120;
 
-static int	play_music(char *, size_t);
-static ssize_t	read_to_buffer(int, char **, size_t *, size_t *);
+static int	init_evstream(struct eventstream *);
+static ssize_t	read_to_evstream(struct eventstream *, int);
+static void	free_evstream(struct eventstream *);
+
+static int	play_music(struct eventstream *);
 static int	receive_fd_through_socket(int);
 static void	sequencer_assert_range(u_int8_t, u_int8_t, u_int8_t);
 static void	sequencer_close(void);
@@ -111,41 +120,52 @@ int
 sequencer_loop(int main_socket)
 {
 	int interp_fd, nr;
-	char *buffer;
-	size_t bufsize, readcount;
+	struct eventstream evbuf1, evbuf2;
+	struct eventstream *playback_evbuf;
 
-	bufsize   = 1024;
-	readcount = 0;
+	if (init_evstream(&evbuf1) != 0) {
+		warnx("error initializing evbuf1");
+		return 1;
+	}
+	if (init_evstream(&evbuf2) != 0) {
+		warnx("error initializing evbuf1");
+		free_evstream(&evbuf2);
+		return 1;
+	}
+
+	playback_evbuf = &evbuf1;
 
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
+		free_evstream(&evbuf1);
+		free_evstream(&evbuf2);
 		return 1;
 	}
 
 	if ((interp_fd = receive_fd_through_socket(main_socket)) == -1) {
 		warn("error receiving interpreter socket for sequencer");
-		return 1;
-	}
-
-	if ((buffer = malloc(bufsize)) == NULL) {
-		warn("malloc failure");
+		free_evstream(&evbuf1);
+		free_evstream(&evbuf2);
+		sequencer_close();
 		return 1;
 	}
 
 	for (;;) {
-		nr = read_to_buffer(interp_fd, &buffer, &bufsize, &readcount);
+		nr = read_to_evstream(playback_evbuf, interp_fd);
 		if (nr == -1) {
-			warn("reading to buffer");
-			free(buffer);
+			warn("reading to playback_evbuf");
+			free_evstream(&evbuf1);
+			free_evstream(&evbuf2);
 			if (close(interp_fd) == -1)
 				warn("closing interpreter fd");
+			sequencer_close();
 			return 1;
 		}
 		if (nr == 0)
 			break;
 	}
 
-	play_music(buffer, readcount);
+	(void) play_music(playback_evbuf);
 
 	sequencer_close();
 
@@ -153,19 +173,19 @@ sequencer_loop(int main_socket)
 }
 
 static int
-play_music(char *buffer, size_t bytecount)
+play_music(struct eventstream *eb)
 {
 	struct midievent *ev;
 	int evcount, i;
 
-	if ((bytecount % sizeof(struct midievent)) > 0) {
-		warnx("received music stream which is not complete,");
+	if ((eb->readcount % sizeof(struct midievent)) > 0) {
+		warnx("received music stream which is not complete");
 		return 1;
 	}
 
-	evcount = bytecount / sizeof(struct midievent); 
+	evcount = eb->readcount / sizeof(struct midievent); 
 
-	ev = (struct midievent *) buffer;
+	ev = (struct midievent *) eb->stream;
 	for (i = 0; i < evcount; i++, ev++) {
 		printf("received %d %d %d %d %f\n",
 		       ev->eventtype,
@@ -259,33 +279,57 @@ sequencer_close(void)
 	mio_close(mio);
 }
 
-static ssize_t
-read_to_buffer(int d, char **buf, size_t *bsize, size_t *readcount)
+static int
+init_evstream(struct eventstream *eb)
 {
-	char *new_buf;
+	eb->bufsize = 1024;	/* XXX test with 30, problems here */
+	eb->readcount = 0;
+
+	if ((eb->stream = malloc(eb->bufsize)) == NULL) {
+		warn("malloc failure when initializing eventstream");
+		return 1;
+	}
+
+	return 0;
+}
+
+static ssize_t
+read_to_evstream(struct eventstream *eb, int fd)
+{
+	struct midievent *new_stream;
 	ssize_t nr;
 
-	assert(d >= 0);
-	assert(buf != NULL && *buf != NULL);
-	assert(*readcount <= *bsize);
+	assert(fd >= 0);
+	assert(eb != NULL && eb->stream != NULL);
+	assert(eb->readcount <= eb->bufsize);
 
-	if (*bsize == *readcount) {
-		if (*bsize == SIZE_MAX) {
+	printf("got %d %d %p\n", eb->readcount, eb->bufsize, eb->stream);
+
+	if (eb->bufsize == eb->readcount) {
+		if (eb->bufsize == SIZE_MAX) {
 			errno = ENOMEM;
 			return -1;
 		}
 
-		*bsize = (*bsize < SIZE_MAX/2) ? (2 * *bsize) : SIZE_MAX;
-		if ((new_buf = realloc(*buf, *bsize)) == NULL)
+		eb->bufsize = (eb->bufsize < SIZE_MAX/2)
+				 ? (2 * eb->bufsize)
+				 : SIZE_MAX;
+		if ((new_stream = realloc(eb->stream, eb->bufsize)) == NULL)
 			return -1;
-		*buf = new_buf;
+		eb->stream = new_stream;
 	}
 
-	nr = read(d, *buf + *readcount, *bsize - *readcount);
+	nr = read(fd, eb->stream + eb->readcount, eb->bufsize - eb->readcount);
 	if (nr == 0 || nr == -1)
 		return nr;
 
-	*readcount += nr;
+	eb->readcount += nr;
 
 	return nr;
+}
+
+static void
+free_evstream(struct eventstream *eb)
+{
+	free(eb->stream);
 }
