@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.11 2015/10/12 20:34:08 je Exp $ */
+/* $Id: sequencer.c,v 1.12 2015/10/13 19:02:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -282,7 +282,7 @@ sequencer_close(void)
 static int
 init_evstream(struct eventstream *eb)
 {
-	eb->bufsize = 1024;	/* XXX test with 30, problems here */
+	eb->bufsize = 1024;
 	eb->readcount = 0;
 
 	if ((eb->stream = malloc(eb->bufsize)) == NULL) {
@@ -319,7 +319,10 @@ read_to_evstream(struct eventstream *eb, int fd)
 		eb->stream = new_stream;
 	}
 
-	nr = read(fd, eb->stream + eb->readcount, eb->bufsize - eb->readcount);
+	nr = read(fd,
+		  (char *) eb->stream + eb->readcount,
+		  eb->bufsize - eb->readcount);
+
 	if (nr == 0 || nr == -1)
 		return nr;
 
