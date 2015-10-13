@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.12 2015/10/13 19:02:29 je Exp $ */
+/* $Id: sequencer.c,v 1.13 2015/10/13 20:12:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
 #include <sys/socket.h>
 
 #include <assert.h>
@@ -36,10 +37,12 @@
 #define SEQ_NOTEOFF_BASE	0x80
 #define SEQ_NOTEON_BASE		0x90
 
-struct eventstream {
-	struct midievent *stream;
-	size_t bufsize, readcount;
+struct eventblock {
+	SIMPLEQ_ENTRY(eventblock) entries;
+	struct midievent events[1024];
+	size_t readcount;
 };
+SIMPLEQ_HEAD(eventstream, eventblock);
 
 struct notestate {
 	unsigned int state    : 1;
@@ -52,9 +55,9 @@ static struct notestate
 static struct mio_hdl  *mio = NULL;
 static float		tempo = 120;
 
-static int	init_evstream(struct eventstream *);
-static ssize_t	read_to_evstream(struct eventstream *, int);
-static void	free_evstream(struct eventstream *);
+static ssize_t	read_to_eventstream(struct eventstream *,
+				    struct eventblock **,
+				    int);
 
 static int	play_music(struct eventstream *);
 static int	receive_fd_through_socket(int);
@@ -119,43 +122,34 @@ sequencer_init(void)
 int
 sequencer_loop(int main_socket)
 {
+	struct eventstream evstream1, evstream2;
+	struct eventstream *playback_eventstream;
+	struct eventblock *current_block;
 	int interp_fd, nr;
-	struct eventstream evbuf1, evbuf2;
-	struct eventstream *playback_evbuf;
 
-	if (init_evstream(&evbuf1) != 0) {
-		warnx("error initializing evbuf1");
-		return 1;
-	}
-	if (init_evstream(&evbuf2) != 0) {
-		warnx("error initializing evbuf1");
-		free_evstream(&evbuf2);
-		return 1;
-	}
+	SIMPLEQ_INIT(&evstream1);
+	SIMPLEQ_INIT(&evstream2);
 
-	playback_evbuf = &evbuf1;
+	playback_eventstream = &evstream1;
+	current_block = NULL;
 
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
-		free_evstream(&evbuf1);
-		free_evstream(&evbuf2);
 		return 1;
 	}
 
 	if ((interp_fd = receive_fd_through_socket(main_socket)) == -1) {
 		warn("error receiving interpreter socket for sequencer");
-		free_evstream(&evbuf1);
-		free_evstream(&evbuf2);
 		sequencer_close();
 		return 1;
 	}
 
 	for (;;) {
-		nr = read_to_evstream(playback_evbuf, interp_fd);
+		nr = read_to_eventstream(playback_eventstream,
+					 &current_block,
+					 interp_fd);
 		if (nr == -1) {
 			warn("reading to playback_evbuf");
-			free_evstream(&evbuf1);
-			free_evstream(&evbuf2);
 			if (close(interp_fd) == -1)
 				warn("closing interpreter fd");
 			sequencer_close();
@@ -165,7 +159,7 @@ sequencer_loop(int main_socket)
 			break;
 	}
 
-	(void) play_music(playback_evbuf);
+	(void) play_music(playback_eventstream);
 
 	sequencer_close();
 
@@ -173,27 +167,30 @@ sequencer_loop(int main_socket)
 }
 
 static int
-play_music(struct eventstream *eb)
+play_music(struct eventstream *es)
 {
+	struct eventblock *eb;
 	struct midievent *ev;
 	int evcount, i;
 
-	if ((eb->readcount % sizeof(struct midievent)) > 0) {
-		warnx("received music stream which is not complete");
-		return 1;
-	}
+	SIMPLEQ_FOREACH(eb, es, entries) {
+		if ((eb->readcount % sizeof(struct midievent)) > 0) {
+			warnx("received music stream which is not complete");
+			return 1;
+		}
 
-	evcount = eb->readcount / sizeof(struct midievent); 
+		evcount = eb->readcount / sizeof(struct midievent); 
 
-	ev = (struct midievent *) eb->stream;
-	for (i = 0; i < evcount; i++, ev++) {
-		printf("received %d %d %d %d %f\n",
-		       ev->eventtype,
-		       ev->channel,
-		       ev->note,
-		       ev->velocity,
-		       ev->time_as_measures);
-		fflush(stdout);
+		ev = (struct midievent *) eb->events;
+		for (i = 0; i < evcount; i++, ev++) {
+			printf("received %d %d %d %d %f\n",
+			       ev->eventtype,
+			       ev->channel,
+			       ev->note,
+			       ev->velocity,
+			       ev->time_as_measures);
+			fflush(stdout);
+		}
 	}
 
 	return 0;
@@ -279,60 +276,35 @@ sequencer_close(void)
 	mio_close(mio);
 }
 
-static int
-init_evstream(struct eventstream *eb)
-{
-	eb->bufsize = 1024;
-	eb->readcount = 0;
-
-	if ((eb->stream = malloc(eb->bufsize)) == NULL) {
-		warn("malloc failure when initializing eventstream");
-		return 1;
-	}
-
-	return 0;
-}
-
 static ssize_t
-read_to_evstream(struct eventstream *eb, int fd)
+read_to_eventstream(struct eventstream *es,
+                    struct eventblock **cur_eb,
+		    int fd)
 {
-	struct midievent *new_stream;
 	ssize_t nr;
 
 	assert(fd >= 0);
-	assert(eb != NULL && eb->stream != NULL);
-	assert(eb->readcount <= eb->bufsize);
+	assert(es != NULL);
 
-	printf("got %d %d %p\n", eb->readcount, eb->bufsize, eb->stream);
-
-	if (eb->bufsize == eb->readcount) {
-		if (eb->bufsize == SIZE_MAX) {
-			errno = ENOMEM;
+	if (cur_eb == NULL || *cur_eb == NULL
+	      || (*cur_eb)->readcount == sizeof((*cur_eb)->events)) {
+		*cur_eb = malloc(sizeof(struct eventblock));
+		if (*cur_eb == NULL) {
+			warn("malloc failure in read_to_eventstream");
 			return -1;
 		}
 
-		eb->bufsize = (eb->bufsize < SIZE_MAX/2)
-				 ? (2 * eb->bufsize)
-				 : SIZE_MAX;
-		if ((new_stream = realloc(eb->stream, eb->bufsize)) == NULL)
-			return -1;
-		eb->stream = new_stream;
+		(*cur_eb)->readcount = 0;
+		SIMPLEQ_INSERT_TAIL(es, *cur_eb, entries);
 	}
 
 	nr = read(fd,
-		  (char *) eb->stream + eb->readcount,
-		  eb->bufsize - eb->readcount);
-
+		  (char *) (*cur_eb)->events + (*cur_eb)->readcount,
+		  sizeof((*cur_eb)->events) - (*cur_eb)->readcount);
 	if (nr == 0 || nr == -1)
 		return nr;
 
-	eb->readcount += nr;
+	(*cur_eb)->readcount += nr;
 
 	return nr;
-}
-
-static void
-free_evstream(struct eventstream *eb)
-{
-	free(eb->stream);
 }
