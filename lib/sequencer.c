@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.13 2015/10/13 20:12:03 je Exp $ */
+/* $Id: sequencer.c,v 1.14 2015/10/14 19:44:24 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,6 +57,7 @@ static float		tempo = 120;
 
 static ssize_t	read_to_eventstream(struct eventstream *,
 				    struct eventblock **,
+				    float *,
 				    int);
 
 static int	play_music(struct eventstream *);
@@ -123,15 +124,18 @@ int
 sequencer_loop(int main_socket)
 {
 	struct eventstream evstream1, evstream2;
-	struct eventstream *playback_eventstream;
-	struct eventblock *current_block;
-	int interp_fd, nr;
+	struct eventstream *playback_eventstream, *reading_eventstream;
+	struct eventblock *current_block, *tmp_block;
+	float time_as_measures;
+	int retvalue, interp_fd, nr;
 
 	SIMPLEQ_INIT(&evstream1);
 	SIMPLEQ_INIT(&evstream2);
 
-	playback_eventstream = &evstream1;
+	playback_eventstream = NULL;
+	reading_eventstream = &evstream1;
 	current_block = NULL;
+	time_as_measures = 0;
 
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
@@ -140,30 +144,47 @@ sequencer_loop(int main_socket)
 
 	if ((interp_fd = receive_fd_through_socket(main_socket)) == -1) {
 		warn("error receiving interpreter socket for sequencer");
-		sequencer_close();
-		return 1;
+		retvalue = 1;
+		goto finish;
 	}
 
 	for (;;) {
-		nr = read_to_eventstream(playback_eventstream,
+		nr = read_to_eventstream(reading_eventstream,
 					 &current_block,
+					 &time_as_measures,
 					 interp_fd);
 		if (nr == -1) {
-			warn("reading to playback_evbuf");
+			warnx("error in reading to eventstream");
 			if (close(interp_fd) == -1)
 				warn("closing interpreter fd");
-			sequencer_close();
-			return 1;
+			retvalue = 1;
+			goto finish;
 		}
-		if (nr == 0)
+		if (nr == 0) {
+			if ((current_block->readcount
+			      % sizeof(struct midievent)) > 0) {
+				warnx("received music stream which is not" \
+					" complete");
+				retvalue = 1;
+				goto finish;
+			}
+
+			playback_eventstream = reading_eventstream;
 			break;
+		}
 	}
 
 	(void) play_music(playback_eventstream);
 
+finish:
+	SIMPLEQ_FOREACH_SAFE(current_block, &evstream1, entries, tmp_block)
+		free(current_block);
+	SIMPLEQ_FOREACH_SAFE(current_block, &evstream2, entries, tmp_block)
+		free(current_block);
+
 	sequencer_close();
 
-	return 0;
+	return retvalue;
 }
 
 static int
@@ -174,14 +195,9 @@ play_music(struct eventstream *es)
 	int evcount, i;
 
 	SIMPLEQ_FOREACH(eb, es, entries) {
-		if ((eb->readcount % sizeof(struct midievent)) > 0) {
-			warnx("received music stream which is not complete");
-			return 1;
-		}
-
 		evcount = eb->readcount / sizeof(struct midievent); 
-
 		ev = (struct midievent *) eb->events;
+
 		for (i = 0; i < evcount; i++, ev++) {
 			printf("received %d %d %d %d %f\n",
 			       ev->eventtype,
@@ -279,9 +295,11 @@ sequencer_close(void)
 static ssize_t
 read_to_eventstream(struct eventstream *es,
                     struct eventblock **cur_eb,
+		    float *time_as_measures,
 		    int fd)
 {
 	ssize_t nr;
+	int i;
 
 	assert(fd >= 0);
 	assert(es != NULL);
@@ -303,6 +321,20 @@ read_to_eventstream(struct eventstream *es,
 		  sizeof((*cur_eb)->events) - (*cur_eb)->readcount);
 	if (nr == 0 || nr == -1)
 		return nr;
+
+	/* XXX should do more input validation here?
+	 * XXX can floating point values be invalid, triggering SIGFPE? */
+
+	for (i = (*cur_eb)->readcount / sizeof(struct midievent);
+	     i < ((*cur_eb)->readcount + nr) / sizeof(struct midievent);
+	     i++) {
+		if ((*cur_eb)->events[i].time_as_measures
+		      < *time_as_measures) {
+			warnx("time is decreasing in eventstream");
+			return -1;
+		}
+		*time_as_measures = (*cur_eb)->events[i].time_as_measures;
+	}
 
 	(*cur_eb)->readcount += nr;
 
