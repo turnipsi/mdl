@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.15 2015/10/14 19:53:16 je Exp $ */
+/* $Id: sequencer.c,v 1.16 2015/10/14 20:09:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,6 +17,7 @@
  */
 
 #include <sys/queue.h>
+#include <sys/select.h>
 #include <sys/socket.h>
 
 #include <assert.h>
@@ -126,6 +127,7 @@ sequencer_loop(int main_socket)
 	struct eventstream evstream1, evstream2;
 	struct eventstream *playback_eventstream, *reading_eventstream;
 	struct eventblock *current_block, *tmp_block;
+	fd_set readfds;
 	float time_as_measures;
 	int retvalue, interp_fd, nr;
 
@@ -148,29 +150,42 @@ sequencer_loop(int main_socket)
 		goto finish;
 	}
 
+	FD_ZERO(&readfds);
+	FD_SET(interp_fd, &readfds);
 	for (;;) {
-		nr = read_to_eventstream(reading_eventstream,
-					 &current_block,
-					 &time_as_measures,
-					 interp_fd);
-		if (nr == -1) {
-			if (close(interp_fd) == -1)
-				warn("closing interpreter fd");
+		if (select(FD_SETSIZE, &readfds, NULL, NULL, NULL) == -1) {
+			warn("error in select");
 			retvalue = 1;
 			goto finish;
 		}
-		if (nr == 0) {
-			if ((current_block->readcount
-			      % sizeof(struct midievent)) > 0) {
-				warnx("received music stream which is not" \
-					" complete");
+
+		if (FD_ISSET(interp_fd, &readfds)) {
+			nr = read_to_eventstream(reading_eventstream,
+						 &current_block,
+						 &time_as_measures,
+						 interp_fd);
+			if (nr == -1) {
+				if (close(interp_fd) == -1)
+					warn("closing interpreter fd");
 				retvalue = 1;
 				goto finish;
 			}
+			if (nr == 0) {
+				if ((current_block->readcount
+				      % sizeof(struct midievent)) > 0) {
+					warnx("received music stream which" \
+						" is not complete");
+					retvalue = 1;
+					goto finish;
+				}
 
-			playback_eventstream = reading_eventstream;
-			break;
+				playback_eventstream = reading_eventstream;
+				break;
+			}
 		}
+
+		FD_ZERO(&readfds);
+		FD_SET(interp_fd, &readfds);
 	}
 
 	(void) play_music(playback_eventstream);
