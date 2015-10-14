@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.14 2015/10/14 19:44:24 je Exp $ */
+/* $Id: sequencer.c,v 1.15 2015/10/14 19:53:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -154,7 +154,6 @@ sequencer_loop(int main_socket)
 					 &time_as_measures,
 					 interp_fd);
 		if (nr == -1) {
-			warnx("error in reading to eventstream");
 			if (close(interp_fd) == -1)
 				warn("closing interpreter fd");
 			retvalue = 1;
@@ -319,8 +318,12 @@ read_to_eventstream(struct eventstream *es,
 	nr = read(fd,
 		  (char *) (*cur_eb)->events + (*cur_eb)->readcount,
 		  sizeof((*cur_eb)->events) - (*cur_eb)->readcount);
-	if (nr == 0 || nr == -1)
+	if (nr == 0)
 		return nr;
+	if (nr == -1) {
+		warn("error in reading to eventstream");
+		return nr;
+	}
 
 	/* XXX should do more input validation here?
 	 * XXX can floating point values be invalid, triggering SIGFPE? */
