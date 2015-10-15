@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.17 2015/10/15 19:26:12 je Exp $ */
+/* $Id: sequencer.c,v 1.18 2015/10/15 19:33:41 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -127,20 +127,10 @@ sequencer_loop(int main_socket)
 							   &time_as_measures,
 							   interp_fd);
 			if (nr == -1) {
-				if (close(interp_fd) == -1)
-					warn("closing interpreter fd");
 				retvalue = 1;
 				goto finish;
 			}
 			if (nr == 0) {
-				if ((current_block->readcount
-				      % sizeof(struct midievent)) > 0) {
-					warnx("received music stream which" \
-						" is not complete");
-					retvalue = 1;
-					goto finish;
-				}
-
 				playback_eventstream = reading_eventstream;
 				break;
 			}
@@ -153,6 +143,9 @@ sequencer_loop(int main_socket)
 	(void) sequencer_play_music(playback_eventstream);
 
 finish:
+	if (interp_fd >= 0 && close(interp_fd) == -1)
+		warn("closing interpreter fd");
+
 	SIMPLEQ_FOREACH_SAFE(current_block, &evstream1, entries, tmp_block)
 		free(current_block);
 	SIMPLEQ_FOREACH_SAFE(current_block, &evstream2, entries, tmp_block)
@@ -315,10 +308,19 @@ sequencer_read_to_eventstream(struct eventstream *es,
 	nr = read(fd,
 		  (char *) (*cur_eb)->events + (*cur_eb)->readcount,
 		  sizeof((*cur_eb)->events) - (*cur_eb)->readcount);
-	if (nr == 0)
-		return nr;
+
 	if (nr == -1) {
 		warn("error in reading to eventstream");
+		return nr;
+	}
+
+	if (nr == 0) {
+		if ((*cur_eb)->readcount % sizeof(struct midievent) > 0) {
+			warnx("received music stream which" \
+				" is not complete");
+			return -1;
+		}
+
 		return nr;
 	}
 
