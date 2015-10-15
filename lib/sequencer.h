@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.5 2015/10/11 19:33:24 je Exp $ */
+/* $Id: sequencer.h,v 1.6 2015/10/15 19:26:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,7 +23,7 @@
 
 int	sequencer_loop(int);
 
-enum eventtype_t { NOTEOFF, NOTEON, };
+enum eventtype_t { NOTEOFF, NOTEON, EVENTTYPE_COUNT };
 
 struct midievent {
 	enum eventtype_t	eventtype;
