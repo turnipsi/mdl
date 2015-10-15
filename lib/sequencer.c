@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.18 2015/10/15 19:33:41 je Exp $ */
+/* $Id: sequencer.c,v 1.19 2015/10/15 20:08:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,6 +26,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "sequencer.h"
@@ -68,6 +69,7 @@ static int	sequencer_noteevent(u_int8_t, u_int8_t, u_int8_t, u_int8_t);
 static int	sequencer_noteoff(u_int8_t, u_int8_t);
 static int	sequencer_noteon(u_int8_t, u_int8_t, u_int8_t);
 static int	sequencer_play_music(struct eventstream *);
+static int	sequencer_prepare_eventstream(struct eventstream *);
 static int	sequencer_send_midievent(const u_int8_t *);
 
 static int	receive_fd_through_socket(int);
@@ -87,18 +89,20 @@ int
 sequencer_loop(int main_socket)
 {
 	struct eventstream evstream1, evstream2;
-	struct eventstream *playback_eventstream, *reading_eventstream;
+	struct eventstream *playback_es, *reading_es;
 	struct eventblock *current_block, *tmp_block;
+	struct timeval nextnotewait;
 	fd_set readfds;
 	float time_as_measures;
-	int retvalue, interp_fd, nr;
+	int retvalue, interp_fd, prepare_eventstream, ret, nr;
 
 	SIMPLEQ_INIT(&evstream1);
 	SIMPLEQ_INIT(&evstream2);
 
-	playback_eventstream = NULL;
-	reading_eventstream = &evstream1;
+	playback_es = NULL;
+	reading_es = &evstream1;
 	current_block = NULL;
+	prepare_eventstream = 0;
 	time_as_measures = 0;
 
 	if (sequencer_init() != 0) {
@@ -112,17 +116,35 @@ sequencer_loop(int main_socket)
 		goto finish;
 	}
 
-	FD_ZERO(&readfds);
-	FD_SET(interp_fd, &readfds);
 	for (;;) {
-		if (select(FD_SETSIZE, &readfds, NULL, NULL, NULL) == -1) {
+		FD_ZERO(&readfds);
+
+		if (prepare_eventstream) {
+			if (sequencer_prepare_eventstream(reading_es)) {
+				FD_SET(interp_fd, &readfds);
+				prepare_eventstream = 0;
+			}
+		} else {
+			FD_SET(interp_fd, &readfds);
+		}
+
+		nextnotewait.tv_sec = 1;
+		nextnotewait.tv_usec = 0;
+
+		ret = select(FD_SETSIZE, &readfds, NULL, NULL, &nextnotewait);
+		if (ret == -1) {
 			warn("error in select");
 			retvalue = 1;
 			goto finish;
 		}
 
+		if (playback_es) {
+			/* XXX play all notes that should be played now */
+			(void) sequencer_play_music(playback_es);
+		}
+
 		if (FD_ISSET(interp_fd, &readfds)) {
-			nr = sequencer_read_to_eventstream(reading_eventstream,
+			nr = sequencer_read_to_eventstream(reading_es,
 							   &current_block,
 							   &time_as_measures,
 							   interp_fd);
@@ -131,16 +153,18 @@ sequencer_loop(int main_socket)
 				goto finish;
 			}
 			if (nr == 0) {
-				playback_eventstream = reading_eventstream;
+				playback_es = reading_es;
+				reading_es = (playback_es == &evstream1)
+					       ? &evstream2
+					       : &evstream1;
+				prepare_eventstream = 1;
 				break;
 			}
 		}
-
-		FD_ZERO(&readfds);
-		FD_SET(interp_fd, &readfds);
 	}
 
-	(void) sequencer_play_music(playback_eventstream);
+	/* XXX remove later */
+	(void) sequencer_play_music(playback_es);
 
 finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
@@ -179,6 +203,24 @@ sequencer_play_music(struct eventstream *es)
 	}
 
 	return 0;
+}
+
+static int
+sequencer_prepare_eventstream(struct eventstream *es)
+{
+	struct eventblock *b1, *b2;
+	int i;
+
+	SIMPLEQ_FOREACH_SAFE(b1, es, entries, b2) {
+		/* do not allow this to go on too long so that we could miss
+		 * our playback moment */
+		if (i++ >= 64)
+			return 0;
+		free(b1);
+	}
+
+	/* eventstream is empty, return true */
+	return 1;
 }
 
 static int
