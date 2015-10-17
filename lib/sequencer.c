@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.19 2015/10/15 20:08:12 je Exp $ */
+/* $Id: sequencer.c,v 1.20 2015/10/17 20:41:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -99,6 +99,7 @@ sequencer_loop(int main_socket)
 	SIMPLEQ_INIT(&evstream1);
 	SIMPLEQ_INIT(&evstream2);
 
+	interp_fd = -1;
 	playback_es = NULL;
 	reading_es = &evstream1;
 	current_block = NULL;
@@ -110,23 +111,16 @@ sequencer_loop(int main_socket)
 		return 1;
 	}
 
-	if ((interp_fd = receive_fd_through_socket(main_socket)) == -1) {
-		warn("error receiving interpreter socket for sequencer");
-		retvalue = 1;
-		goto finish;
-	}
-
 	for (;;) {
 		FD_ZERO(&readfds);
+		FD_SET(main_socket, &readfds);
 
-		if (prepare_eventstream) {
-			if (sequencer_prepare_eventstream(reading_es)) {
-				FD_SET(interp_fd, &readfds);
-				prepare_eventstream = 0;
-			}
-		} else {
+		if (prepare_eventstream
+		      && sequencer_prepare_eventstream(reading_es))
+			prepare_eventstream = 0;
+
+		if (!prepare_eventstream && interp_fd >= 0)
 			FD_SET(interp_fd, &readfds);
-		}
 
 		nextnotewait.tv_sec = 1;
 		nextnotewait.tv_usec = 0;
@@ -136,6 +130,19 @@ sequencer_loop(int main_socket)
 			warn("error in select");
 			retvalue = 1;
 			goto finish;
+		}
+
+		if (FD_ISSET(main_socket, &readfds)) {
+			if (interp_fd >= 0 && close(interp_fd) == -1)
+				warn("closing old interpreter fd");
+			interp_fd = receive_fd_through_socket(main_socket);
+			if (interp_fd == -1) {
+				warnx("error receiving pipe from interpreter" \
+				        " to sequencer");
+				retvalue = 1;
+				goto finish;
+			}
+			continue;
 		}
 
 		if (playback_es) {
@@ -153,18 +160,20 @@ sequencer_loop(int main_socket)
 				goto finish;
 			}
 			if (nr == 0) {
+				/* we have a new playback stream, great! */
 				playback_es = reading_es;
 				reading_es = (playback_es == &evstream1)
 					       ? &evstream2
 					       : &evstream1;
+				/* XXX synchronizing playback state should be
+				 * XXX done now (based on time_as_measures) */
 				prepare_eventstream = 1;
-				break;
+				if (close(interp_fd) == -1)
+					warn("closing interpreter fd");
+				interp_fd = -1;
 			}
 		}
 	}
-
-	/* XXX remove later */
-	(void) sequencer_play_music(playback_es);
 
 finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
@@ -415,8 +424,7 @@ receive_fd_through_socket(int socket)
 	}
 
 	if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
-		warn("receiving fd through socket," \
-                       "  control message truncated");
+		warn("receiving fd through socket, control message truncated");
 		return -1;
 	}
 

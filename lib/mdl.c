@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.22 2015/10/17 19:24:51 je Exp $ */
+/* $Id: mdl.c,v 1.23 2015/10/17 20:41:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -346,6 +346,9 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 	 * XXX (we might do something interesting while waiting, though */
 	if (waitpid(interpreter_pid, &status, 0) == -1)
 		warn("error when wait for interpreter to finish");
+
+	/* XXX */
+	sleep(2);
 
 	return 0;
 }
