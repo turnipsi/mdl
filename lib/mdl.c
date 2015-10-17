@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.21 2015/10/11 19:33:24 je Exp $ */
+/* $Id: mdl.c,v 1.22 2015/10/17 19:24:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -275,7 +275,7 @@ static int
 start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 {
 	int mi_sp[2];	/* main-interpreter socketpair */
-	int is_sp[2];	/* interpreter-sequencer socketpair */
+	int is_pipe[2];	/* interpreter-sequencer pipe */
 
 	int ret;
 	int status;
@@ -287,10 +287,9 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		return 1;
 	}
 
-	/* setup socketpair for interpreter <-> sequencer communication */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, is_sp) == -1) {
-		warn("could not setup socketpair for" \
-		       " interpreter <-> sequencer");
+	/* setup pipe for interpreter -> sequencer communication */
+	if (pipe(is_pipe) == -1) {
+		warn("could not setup pipe for interpreter -> sequencer");
 		if (close(mi_sp[0]) == -1)
 			warn("error closing first endpoint of mi_sp");
 		if (close(mi_sp[1]) == -1)
@@ -305,10 +304,10 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 			warn("error closing first endpoint of mi_sp");
 		if (close(mi_sp[1]) == -1)
 			warn("error closing second endpoint of mi_sp");
-		if (close(is_sp[0]) == -1)
-			warn("error closing first endpoint of is_sp");
-		if (close(is_sp[1]) == -1)
-			warn("error closing second endpoint of is_sp");
+		if (close(is_pipe[0]) == -1)
+			warn("error closing first endpoint of is_pipe");
+		if (close(is_pipe[1]) == -1)
+			warn("error closing second endpoint of is_pipe");
 		return 1;
 	}
 
@@ -318,26 +317,26 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		 * XXX does not need */
 		if (close(mi_sp[0]) == -1)
 			warn("error closing first endpoint of mi_sp");
-		if (close(is_sp[1]) == -1)
-			warn("error closing second endpoint of is_sp");
+		if (close(is_pipe[1]) == -1)
+			warn("error closing second endpoint of is_pipe");
 
 		ret = handle_musicfile_and_socket(file_fd,
 					   	  mi_sp[1],
-					   	  is_sp[0],
+					   	  is_pipe[0],
 						  server_socket);
 		_exit(ret);
 	}
 
 	if (close(mi_sp[1]) == -1)
 		warn("error closing second endpoint of mi_sp");
-	if (close(is_sp[0]) == -1)
-		warn("error closing first endpoint of is_sp");
+	if (close(is_pipe[0]) == -1)
+		warn("error closing first endpoint of is_pipe");
 
 	/* we can communicate to interpreter through mi_sp[0],
 	 * but to establish interpreter <-> sequencer communucation
-	 * we must send is_sp[1] to sequencer */
+	 * we must send is_pipe[1] to sequencer */
 
-	if (send_fd_through_socket(is_sp[1], sequencer_socket) != 0) {
+	if (send_fd_through_socket(is_pipe[1], sequencer_socket) != 0) {
 		/* XXX what to do in case of error?
 		 * XXX what should we clean up? */
 	}
