@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.3 2015/10/11 19:33:24 je Exp $ */
+/* $Id: interpreter.c,v 1.4 2015/10/18 20:04:42 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -66,7 +66,7 @@ handle_musicfile_and_socket(int file_fd,
 static int
 testwrite(int sequencer_socket)
 {
-	struct midievent events[8];
+	struct midievent events[9];
 	ssize_t nw;
 	char channel;
 
@@ -119,6 +119,12 @@ testwrite(int sequencer_socket)
 	events[7].note             = 64;
 	events[7].velocity         = 0;
 	events[7].time_as_measures = 1.0;
+
+	events[8].eventtype        = SONG_END;
+	events[8].channel          = 0;
+	events[8].note             = 0;
+	events[8].velocity         = 0;
+	events[8].time_as_measures = 0;
 
 	/* XXX */
 	nw = write(sequencer_socket, events, sizeof(events));
