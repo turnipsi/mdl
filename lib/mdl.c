@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.23 2015/10/17 20:41:35 je Exp $ */
+/* $Id: mdl.c,v 1.24 2015/10/18 14:39:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -182,8 +182,8 @@ setup_sequencer_for_sources(char **files,
 			    const char *socketpath)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-
-	int server_socket, file_fd, ret, retvalue, using_stdin, i;
+	int server_socket, file_fd, sequencer_status, ret, retvalue,
+	    using_stdin, i;
 	pid_t sequencer_pid;
 	char *stdinfiles[] = { "-" };
 
@@ -268,6 +268,9 @@ finish:
 	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
+	if (waitpid(sequencer_pid, &sequencer_status, 0) == -1)
+		warn("error when wait for sequencer to finish");
+
 	return retvalue;
 }
 
@@ -278,7 +281,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 
 	int ret;
-	int status;
+	int interpreter_status;
 	pid_t interpreter_pid;
 
 	/* setup socketpair for main <-> interpreter communication */
@@ -344,11 +347,8 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 	/* XXX only one interpreter thread should be running at once,
 	 * XXX so we should wait specifically for that one to finish
 	 * XXX (we might do something interesting while waiting, though */
-	if (waitpid(interpreter_pid, &status, 0) == -1)
+	if (waitpid(interpreter_pid, &interpreter_status, 0) == -1)
 		warn("error when wait for interpreter to finish");
-
-	/* XXX */
-	sleep(2);
 
 	return 0;
 }

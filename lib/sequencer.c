@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.20 2015/10/17 20:41:35 je Exp $ */
+/* $Id: sequencer.c,v 1.21 2015/10/18 14:39:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -72,7 +72,7 @@ static int	sequencer_play_music(struct eventstream *);
 static int	sequencer_prepare_eventstream(struct eventstream *);
 static int	sequencer_send_midievent(const u_int8_t *);
 
-static int	receive_fd_through_socket(int);
+static int	receive_fd_through_socket(int *, int);
 
 static int
 sequencer_init(void)
@@ -112,8 +112,15 @@ sequencer_loop(int main_socket)
 	}
 
 	for (;;) {
+		if (main_socket == -1 && interp_fd == -1 && 0) {
+			/* XXX AND no next note to wait? */
+			retvalue = 0;
+			goto finish;
+		}
+
 		FD_ZERO(&readfds);
-		FD_SET(main_socket, &readfds);
+		if (main_socket >= 0)
+			FD_SET(main_socket, &readfds);
 
 		if (prepare_eventstream
 		      && sequencer_prepare_eventstream(reading_es))
@@ -135,13 +142,22 @@ sequencer_loop(int main_socket)
 		if (FD_ISSET(main_socket, &readfds)) {
 			if (interp_fd >= 0 && close(interp_fd) == -1)
 				warn("closing old interpreter fd");
-			interp_fd = receive_fd_through_socket(main_socket);
-			if (interp_fd == -1) {
+			interp_fd = -1;
+			ret = receive_fd_through_socket(&interp_fd,
+							main_socket);
+			if (ret == 0) {
+				if (close(main_socket) == -1)
+					warn("closing main socket");
+				main_socket = -1;
+			}
+			if (ret == -1) {
 				warnx("error receiving pipe from interpreter" \
 				        " to sequencer");
 				retvalue = 1;
 				goto finish;
 			}
+			/* XXX new interp_fd, what about syncing state to
+			 * XXX new music? */
 			continue;
 		}
 
@@ -404,7 +420,7 @@ sequencer_close(void)
 }
 
 static int
-receive_fd_through_socket(int socket)
+receive_fd_through_socket(int *received_fd, int socket)
 {
 	struct msghdr	msg;
 	struct cmsghdr *cmsg;
@@ -412,7 +428,6 @@ receive_fd_through_socket(int socket)
 		struct cmsghdr	hdr;
 		unsigned char	buf[CMSG_SPACE(sizeof(int))];
 	} cmsgbuf;
-	int fd;
 
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_control    = &cmsgbuf.buf;
@@ -428,13 +443,16 @@ receive_fd_through_socket(int socket)
 		return -1;
 	}
 
+	if (cmsg == NULL);
+		return 0;
+
 	cmsg = CMSG_FIRSTHDR(&msg);
 	if (cmsg
               && cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
               && cmsg->cmsg_level == SOL_SOCKET
               && cmsg->cmsg_type  == SCM_RIGHTS) {
-		fd = *(int *)CMSG_DATA(cmsg);
-		return fd;
+		*received_fd = *(int *)CMSG_DATA(cmsg);
+		return 1;
 	}
 
 	warnx("did not receive fd while expecting for it");
