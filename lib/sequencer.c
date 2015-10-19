@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.22 2015/10/18 20:04:42 je Exp $ */
+/* $Id: sequencer.c,v 1.23 2015/10/19 19:10:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -60,13 +60,13 @@ struct songstate {
 		int index;
 	} cur_event;
 	struct timespec latest_tempo_change;
-	struct timeval next_event_wait, *next_event_wait_p;
+	struct timeval next_event_wait;
 };
 
 static struct mio_hdl  *mio = NULL;
 static float		tempo = 120;
 
-static int	sequencer_check_midievent(struct midievent, float *);
+static int	sequencer_check_midievent(struct midievent, float);
 static int	sequencer_check_range(u_int8_t, u_int8_t, u_int8_t);
 static void	sequencer_close(struct songstate *);
 static int	sequencer_init(void);
@@ -244,7 +244,6 @@ sequencer_init_songstate(struct songstate *ss, int freeing_eventstream)
 
 	ss->next_event_wait.tv_sec =0;
 	ss->next_event_wait.tv_usec = 0;
-	ss->next_event_wait_p = NULL;
 
 	if (freeing_eventstream)
 		ss->freeing_eventstream = freeing_eventstream;
@@ -304,7 +303,7 @@ sequencer_play_music(struct eventstream *es)
 }
 
 static int
-sequencer_check_midievent(struct midievent me, float *time_as_measures)
+sequencer_check_midievent(struct midievent me, float time_as_measures)
 {
 	if (!sequencer_check_range(me.eventtype, 0, EVENTTYPE_COUNT)) {
 		warnx("midievent eventtype is invalid: %d", me.eventtype);
@@ -334,12 +333,10 @@ sequencer_check_midievent(struct midievent me, float *time_as_measures)
 		return 0;
 	}
 
-	if (me.time_as_measures < *time_as_measures) {
+	if (me.time_as_measures < time_as_measures) {
 		warnx("time is decreasing in eventstream");
 		return 0;
 	}
-
-	*time_as_measures = me.time_as_measures;
 
 	return 1;
 }
@@ -412,32 +409,31 @@ sequencer_send_midievent(const u_int8_t *midievent)
 static ssize_t
 sequencer_read_to_eventstream(struct songstate *ss, int fd)
 {
-	struct eventblock **cur_eb;
+	struct eventblock *eb;
 	ssize_t nr;
 	int ret, i;
 
 	assert(fd >= 0);
 	assert(ss != NULL);
 
-	cur_eb = &ss->cur_event.block;
+	eb = ss->cur_event.block;
 
-	if (cur_eb == NULL || *cur_eb == NULL
-	      || (*cur_eb)->readcount == sizeof((*cur_eb)->events)) {
-		*cur_eb = malloc(sizeof(struct eventblock));
-		if (*cur_eb == NULL) {
+	if (eb == NULL || eb->readcount == sizeof(eb->events)) {
+		eb = malloc(sizeof(struct eventblock));
+		if (eb == NULL) {
 			warn("malloc failure in" \
 			       " sequencer_read_to_eventstream");
-
 			return -1;
 		}
 
-		(*cur_eb)->readcount = 0;
-		SIMPLEQ_INSERT_TAIL(&ss->es, *cur_eb, entries);
+		eb->readcount = 0;
+		SIMPLEQ_INSERT_TAIL(&ss->es, eb, entries);
+		ss->cur_event.block = eb;
 	}
 
 	nr = read(fd,
-		  (char *) (*cur_eb)->events + (*cur_eb)->readcount,
-		  sizeof((*cur_eb)->events) - (*cur_eb)->readcount);
+		  (char *) eb->events + eb->readcount,
+		  sizeof(eb->events) - eb->readcount);
 
 	if (nr == -1) {
 		warn("error in reading to eventstream");
@@ -445,14 +441,14 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	}
 
 	if (nr == 0) {
-		if ((*cur_eb)->readcount % sizeof(struct midievent) > 0) {
+		if (eb->readcount % sizeof(struct midievent) > 0) {
 			warnx("received music stream which" \
 				" is not complete (truncated event)");
 			return -1;
 		}
 
-		i = (*cur_eb)->readcount / sizeof(struct midievent);
-	        if ((*cur_eb)->events[i].eventtype != SONG_END) {
+		i = eb->readcount / sizeof(struct midievent);
+	        if (eb->events[i].eventtype != SONG_END) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
 			return -1;
@@ -461,15 +457,17 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		return nr;
 	}
 
-	for (i = (*cur_eb)->readcount / sizeof(struct midievent);
-	     i < ((*cur_eb)->readcount + nr) / sizeof(struct midievent);
+	for (i = eb->readcount / sizeof(struct midievent);
+	     i < (eb->readcount + nr) / sizeof(struct midievent);
 	     i++) {
-		if (!sequencer_check_midievent((*cur_eb)->events[i],
-					       &ss->time_as_measures))
+		if (!sequencer_check_midievent(eb->events[i],
+					       ss->time_as_measures))
 			return -1;
+		ss->cur_event.index = i;
+		ss->time_as_measures = eb->events[i].time_as_measures;
 	}
 
-	(*cur_eb)->readcount += nr;
+	eb->readcount += nr;
 
 	return nr;
 }
