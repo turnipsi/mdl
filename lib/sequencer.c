@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.28 2015/10/22 19:36:10 je Exp $ */
+/* $Id: sequencer.c,v 1.29 2015/10/22 20:03:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -121,7 +121,7 @@ sequencer_loop(int main_socket)
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
 	fd_set readfds;
-	int retvalue, interp_fd, ret, nr;
+	int retvalue, interp_fd, old_interp_fd, ret, nr;
 	struct timeval timeout, *timeout_p;
 
 	retvalue = 0;
@@ -172,23 +172,28 @@ sequencer_loop(int main_socket)
 			sequencer_play_music(playback_song);
 
 		if (FD_ISSET(main_socket, &readfds)) {
-			if (interp_fd >= 0 && close(interp_fd) == -1)
-				warn("closing old interpreter fd");
-			interp_fd = -1;
+			old_interp_fd = interp_fd;
 			ret = receive_fd_through_socket(&interp_fd,
 							main_socket);
-			if (ret == 0) {
-				if (close(main_socket) == -1)
-					warn("closing main socket");
-				main_socket = -1;
-			}
 			if (ret == -1) {
 				warnx("error receiving pipe from interpreter" \
 				        " to sequencer");
 				retvalue = 1;
 				goto finish;
 			}
-			continue;
+			if (ret == 0) {
+				if (close(main_socket) == -1)
+					warn("closing main socket");
+				main_socket = -1;
+			} else {
+				assert(old_interp_fd != interp_fd);
+				if (old_interp_fd >= 0
+				      && close(old_interp_fd) == -1)
+					warn("closing old interpreter fd");
+				/* we have new interp_fd, back to select() */
+				continue;
+			}
+
 		}
 
 		if (FD_ISSET(interp_fd, &readfds)) {
