@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.26 2015/10/22 19:03:22 je Exp $ */
+/* $Id: sequencer.c,v 1.27 2015/10/22 19:18:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -141,7 +141,7 @@ sequencer_loop(int main_socket)
 	for (;;) {
 		if (main_socket == -1
 		      && interp_fd == -1
-		      && playback_song == NULL) {
+		      && playback_song->playback_state != PLAYBACK) {
 			retvalue = 0;
 			goto finish;
 		}
@@ -158,7 +158,8 @@ sequencer_loop(int main_socket)
 			      ? &timeout
 			      : NULL;
 
-		/* self-pipe trick */
+		/* XXX do signal handling
+		 * XXX and use self-pipe trick or pselect() */
 
 		ret = select(FD_SETSIZE, &readfds, NULL, NULL, timeout_p);
 		if (ret == -1) {
@@ -167,7 +168,7 @@ sequencer_loop(int main_socket)
 			goto finish;
 		}
 
-		if (playback_song)
+		if (playback_song->playback_state == PLAYBACK)
 			sequencer_play_music(playback_song);
 
 		if (FD_ISSET(main_socket, &readfds)) {
@@ -222,13 +223,10 @@ finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
 		warn("closing interpreter fd");
 
-	if (playback_song) {
-		sequencer_close_songstate(playback_song);
-		sequencer_free_songstate(playback_song);
-	}
+	sequencer_close_songstate(playback_song);
 
-	if (reading_song)
-		sequencer_free_songstate(reading_song);
+	sequencer_free_songstate(playback_song);
+	sequencer_free_songstate(reading_song);
 
 	sequencer_close();
 
@@ -275,7 +273,7 @@ sequencer_calculate_timeout(struct songstate *ss, struct timeval *timeout)
 	      time_for_note_since_latest_tempo_change_in_us;
 	int ret;
 
-	if (ss == NULL)
+	if (ss->playback_state != PLAYBACK)
 		return 0;
 
 	assert(ss->latest_tempo_change_as_time.tv_sec > 0
