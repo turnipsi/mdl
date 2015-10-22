@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.27 2015/10/22 19:18:59 je Exp $ */
+/* $Id: sequencer.c,v 1.28 2015/10/22 19:36:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -662,14 +662,14 @@ receive_fd_through_socket(int *received_fd, int socket)
 		return -1;
 	}
 
-	if (cmsg == NULL);
+	cmsg = CMSG_FIRSTHDR(&msg);
+
+	if (cmsg == NULL)
 		return 0;
 
-	cmsg = CMSG_FIRSTHDR(&msg);
-	if (cmsg
-              && cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
-              && cmsg->cmsg_level == SOL_SOCKET
-              && cmsg->cmsg_type  == SCM_RIGHTS) {
+	if (   cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
+            && cmsg->cmsg_level == SOL_SOCKET
+            && cmsg->cmsg_type  == SCM_RIGHTS) {
 		*received_fd = *(int *)CMSG_DATA(cmsg);
 		return 1;
 	}
