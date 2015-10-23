@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.31 2015/10/23 18:50:19 je Exp $ */
+/* $Id: sequencer.c,v 1.32 2015/10/23 19:13:38 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -102,9 +102,6 @@ static void	sequencer_time_for_next_note(struct songstate *ss,
 					     struct timeval *notetime);
 
 static int	receive_fd_through_socket(int *, int);
-
-static struct midievent
-sequencer_get_next_event(struct songstate *);
 
 static int
 sequencer_init(void)
@@ -524,11 +521,38 @@ static int
 sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 {
 	struct notestate old, new;
+	struct eventpointer *ce;
+	struct midievent *me;
 	int c, n, ret;
 
-	/* rewind to the beginning */
-	ss->current_event.block = SIMPLEQ_FIRST(&ss->es);
-	ss->current_event.index = 0;
+	/* find the event where we should be at at new songstate,
+	 * and do a "shadow playback" to determine what our midi state
+	 * should be */
+	ce = &ss->current_event;
+	SIMPLEQ_FOREACH(ce->block, &ss->es, entries) {
+		for (ce->index = 0; ce->index < EVENTBLOCKCOUNT; ce->index++) {
+			me = &ce->block->events[ ce->index ];
+			if (me->eventtype == SONG_END)
+				break;
+			if (me->time_as_measures >= old_ss->time_as_measures)
+				break;
+
+			switch (me->eventtype) {
+			case NOTEON:
+				ss->notestates[me->channel][me->note]
+				    .state = 1;
+				ss->notestates[me->channel][me->note]
+				    .velocity = me->velocity;
+			case NOTEOFF:
+				ss->notestates[me->channel][me->note]
+				    .state = 0;
+				ss->notestates[me->channel][me->note]
+				    .velocity = 0;
+			default:
+				assert(0);
+			}
+		}
+	}
 
 	/* sync playback state
 	 *   (start or turn off notes according to new playback song) */
