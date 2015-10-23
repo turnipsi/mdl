@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.33 2015/10/23 19:23:24 je Exp $ */
+/* $Id: sequencer.c,v 1.34 2015/10/23 19:30:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -521,17 +521,17 @@ static int
 sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 {
 	struct notestate old, new;
-	struct eventpointer *ce;
+	struct eventpointer ce;
 	struct midievent *me;
 	int c, n, ret;
 
 	/* find the event where we should be at at new songstate,
 	 * and do a "shadow playback" to determine what our midi state
 	 * should be */
-	ce = &ss->current_event;
-	SIMPLEQ_FOREACH(ce->block, &ss->es, entries) {
-		for (ce->index = 0; ce->index < EVENTBLOCKCOUNT; ce->index++) {
-			me = &ce->block->events[ ce->index ];
+	ce = ss->current_event;
+	SIMPLEQ_FOREACH(ce.block, &ss->es, entries) {
+		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
+			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
 			if (me->time_as_measures >= old_ss->time_as_measures)
@@ -552,6 +552,8 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 				assert(0);
 			}
 		}
+		ss->current_event.block = ce.block;
+		ss->current_event.index = ce.index;
 	}
 
 	/* sync playback state
