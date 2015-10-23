@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.34 2015/10/23 19:30:46 je Exp $ */
+/* $Id: sequencer.c,v 1.35 2015/10/23 20:48:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -269,7 +269,12 @@ sequencer_calculate_timeout(struct songstate *ss, struct timeval *timeout)
 	ret = gettimeofday(&current_time, NULL);
 	assert(ret == 0);
 
-	timersub(&current_time, &notetime, timeout);
+	timersub(&notetime, &current_time, timeout);
+
+	if (timeout->tv_sec < 0) {
+		timeout->tv_sec  = 0;
+		timeout->tv_usec = 0;
+	}
 }
 
 static void
@@ -287,6 +292,47 @@ sequencer_free_songstate(struct songstate *ss)
 static int
 sequencer_play_music(struct songstate *ss)
 {
+	struct eventpointer *ce;
+	struct midievent *me;
+	struct timeval time_to_play;
+
+	ce = &ss->current_event;
+
+	while (ce->block) {
+		while (ce->index < EVENTBLOCKCOUNT) {
+			me = &ce->block->events[ ce->index ];
+			if (me->eventtype == SONG_END)
+				return 0;
+			sequencer_calculate_timeout(ss, &time_to_play);
+			/* if timeout has not been gone to zero, 
+			 * it is not our time to play yet */
+			if (time_to_play.tv_sec > 0
+			      || (time_to_play.tv_sec == 0
+				   && time_to_play.tv_usec > 0))
+				return 0;
+			switch(me->eventtype) {
+			case SONG_END:
+				ss->playback_state = IDLE;
+				return 0;
+			case NOTEOFF:
+				/* XXX error handling */
+				sequencer_noteoff(ss, me->channel, me->note);
+				break;
+			case NOTEON:
+				/* XXX error handling */
+				sequencer_noteon(ss, me->channel, me->note,
+						 me->velocity);
+				break;
+			default:
+				assert(0);
+			}
+
+			ce->index++;
+		}
+
+		ce->block = SIMPLEQ_NEXT(ce->block, entries);
+	}
+
 #if 0
 	struct timeval current_time;
 	struct eventblock *eb;
@@ -543,11 +589,13 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 				    .state = 1;
 				ss->notestates[me->channel][me->note]
 				    .velocity = me->velocity;
+				break;
 			case NOTEOFF:
 				ss->notestates[me->channel][me->note]
 				    .state = 0;
 				ss->notestates[me->channel][me->note]
 				    .velocity = 0;
+				break;
 			default:
 				assert(0);
 			}
