@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.30 2015/10/22 20:16:15 je Exp $ */
+/* $Id: sequencer.c,v 1.31 2015/10/23 18:50:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -149,7 +149,8 @@ sequencer_loop(int main_socket)
 		}
 
 		FD_ZERO(&readfds);
-		if (main_socket >= 0)
+		if (main_socket >= 0
+		      && playback_song->playback_state != PLAYING)
 			FD_SET(main_socket, &readfds);
 
 		if (sequencer_reset_songstate(reading_song) && interp_fd >= 0)
