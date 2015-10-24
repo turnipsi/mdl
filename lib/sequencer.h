@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.7 2015/10/18 20:04:42 je Exp $ */
+/* $Id: sequencer.h,v 1.8 2015/10/24 19:13:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,19 +16,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef SEQUENCER_H
-#define SEQUENCER_H
-
-#include <sndio.h>
+#ifndef MDL_SEQUENCER_H
+#define MDL_SEQUENCER_H
 
 int	sequencer_loop(int);
-
-enum eventtype_t { SONG_END, NOTEOFF, NOTEON, EVENTTYPE_COUNT };
-
-struct midievent {
-	enum eventtype_t	eventtype;
-	u_int8_t		channel, note, velocity;
-	float			time_as_measures;
-};
 
 #endif

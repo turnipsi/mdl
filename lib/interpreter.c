@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.4 2015/10/18 20:04:42 je Exp $ */
+/* $Id: interpreter.c,v 1.5 2015/10/24 19:13:29 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-#include "sequencer.h"
+#include "midi.h"
 
 static int	testwrite(int);
 

@@ -1,4 +1,4 @@
-/* $Id: interpreter.h,v 1.4 2015/10/24 19:13:29 je Exp $ */
+/* $Id: midi.h,v 1.1 2015/10/24 19:13:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,9 +16,23 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_MUSICINTERP_H
-#define MDL_MUSICINTERP_H
+#ifndef MDL_MIDI_H
+#define MDL_MIDI_H
 
-int	handle_musicfile_and_socket(int, int, int, int);
+#define MIDI_CHANNEL_MAX	15
+#define MIDI_NOTE_MAX		127
+
+enum eventtype_t { SONG_END, NOTEOFF, NOTEON, EVENTTYPE_COUNT };
+
+struct midievent {
+	enum eventtype_t        eventtype;
+	u_int8_t                channel, note, velocity;
+	float                   time_as_measures;
+};
+
+int	midi_open_device(void);
+int	midi_check_midievent(struct midievent, float);
+int	midi_send_midievent(struct midievent *);
+void	midi_close_device(void);
 
 #endif
