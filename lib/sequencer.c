@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.37 2015/10/24 12:27:10 je Exp $ */
+/* $Id: sequencer.c,v 1.38 2015/10/24 12:55:00 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,9 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
 #include <math.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -70,6 +72,8 @@ struct songstate {
 };
 
 static struct mio_hdl  *mio = NULL;
+static int		signal_pipe[2];
+
 
 static void	sequencer_calculate_timeout(struct songstate *,
 					    struct timeval *);
@@ -79,6 +83,7 @@ static void	sequencer_close(void);
 static void	sequencer_close_songstate(struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
 
+static void	sequencer_handle_signal(int);
 static int	sequencer_init(void);
 static void	sequencer_init_songstate(struct songstate *,
 					 enum playback_state_t);
@@ -114,6 +119,16 @@ sequencer_init(void)
 	return 0;
 }
 
+static void
+sequencer_handle_signal(int signo)
+{
+	int save_errno;
+
+	save_errno = errno;
+	(void) write(signal_pipe[0], "O", 1);
+	errno = save_errno;
+}
+
 int
 sequencer_loop(int main_socket)
 {
@@ -134,6 +149,15 @@ sequencer_loop(int main_socket)
 		return 1;
 	}
 
+	if (pipe(signal_pipe) == -1) {
+		warn("opening signal-pipe for select");
+		sequencer_close();
+		return 1;
+	}
+
+	signal(SIGINT,  sequencer_handle_signal);
+	signal(SIGTERM, sequencer_handle_signal);
+
 	sequencer_init_songstate(playback_song, IDLE);
 	sequencer_init_songstate(reading_song,  READING);
 
@@ -145,6 +169,8 @@ sequencer_loop(int main_socket)
 			      == FREEING_EVENTSTREAM);
 
 		FD_ZERO(&readfds);
+		FD_SET(signal_pipe[1], &readfds);
+
 		if (main_socket >= 0
 		      && playback_song->playback_state != PLAYING)
 			FD_SET(main_socket, &readfds);
@@ -167,12 +193,14 @@ sequencer_loop(int main_socket)
 			goto finish;
 		}
 
-		/* XXX do signal handling
-		 * XXX and use self-pipe trick or pselect() */
-
 		ret = select(FD_SETSIZE, &readfds, NULL, NULL, timeout_p);
-		if (ret == -1) {
+		if (ret == -1 && errno != EINTR) {
 			warn("error in select");
+			retvalue = 1;
+			goto finish;
+		}
+
+		if (FD_ISSET(signal_pipe[1], &readfds)) {
 			retvalue = 1;
 			goto finish;
 		}
