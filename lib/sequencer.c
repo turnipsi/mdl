@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.36 2015/10/24 11:22:09 je Exp $ */
+/* $Id: sequencer.c,v 1.37 2015/10/24 12:27:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -177,8 +177,13 @@ sequencer_loop(int main_socket)
 			goto finish;
 		}
 
-		if (playback_song->playback_state == PLAYING)
-			sequencer_play_music(playback_song);
+		if (playback_song->playback_state == PLAYING) {
+			if (sequencer_play_music(playback_song) != 0) {
+				warnx("error when playing music");
+				retvalue = 1;
+				goto finish;
+			}
+		}
 
 		if (main_socket >= 0 && FD_ISSET(main_socket, &readfds)) {
 			old_interp_fd = interp_fd;
@@ -302,6 +307,7 @@ sequencer_play_music(struct songstate *ss)
 	struct eventpointer *ce;
 	struct midievent *me;
 	struct timeval time_to_play;
+	int ret;
 
 	ce = &ss->current_event;
 
@@ -325,13 +331,19 @@ sequencer_play_music(struct songstate *ss)
 
 			switch(me->eventtype) {
 			case NOTEOFF:
-				/* XXX error handling */
-				sequencer_noteoff(ss, me->channel, me->note);
+				ret = sequencer_noteoff(ss,
+							me->channel,
+							me->note);
+				if (ret != 0)
+					return ret;
 				break;
 			case NOTEON:
-				/* XXX error handling */
-				sequencer_noteon(ss, me->channel, me->note,
-						 me->velocity);
+				ret = sequencer_noteon(ss,
+						       me->channel,
+						       me->note,
+						       me->velocity);
+				if (ret != 0)
+					return ret;
 				break;
 			default:
 				assert(0);
@@ -342,32 +354,6 @@ sequencer_play_music(struct songstate *ss)
 
 		ce->block = SIMPLEQ_NEXT(ce->block, entries);
 	}
-
-#if 0
-	struct timeval current_time;
-	struct eventblock *eb;
-	struct midievent *ev;
-	int eventindex;
-
-	/* XXX ss->time_as_measures should be updated from current time?
-	 * XXX (as well as ss->current_event.block and
-	 * XXX ss->current_event.index) */
-
-	SIMPLEQ_FOREACH(eb, &ss->es, entries) {
-		evcount = eb->readcount / sizeof(struct midievent); 
-		ev = (struct midievent *) eb->events;
-
-		for (i = 0; i < evcount; i++, ev++) {
-			printf("received %d %d %d %d %f\n",
-			       ev->eventtype,
-			       ev->channel,
-			       ev->note,
-			       ev->velocity,
-			       ev->time_as_measures);
-			fflush(stdout);
-		}
-	}
-#endif
 
 	return 0;
 }
