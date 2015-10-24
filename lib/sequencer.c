@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.35 2015/10/23 20:48:12 je Exp $ */
+/* $Id: sequencer.c,v 1.36 2015/10/24 11:22:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -138,12 +138,11 @@ sequencer_loop(int main_socket)
 	sequencer_init_songstate(reading_song,  READING);
 
 	for (;;) {
-		if (main_socket == -1
-		      && interp_fd == -1
-		      && playback_song->playback_state != PLAYING) {
-			retvalue = 0;
-			goto finish;
-		}
+		assert(playback_song->playback_state == IDLE
+			 || playback_song->playback_state == PLAYING);
+		assert(reading_song->playback_state == READING
+			 || reading_song->playback_state
+			      == FREEING_EVENTSTREAM);
 
 		FD_ZERO(&readfds);
 		if (main_socket >= 0
@@ -158,6 +157,14 @@ sequencer_loop(int main_socket)
 			timeout_p = &timeout;
 		} else {
 			timeout_p = NULL;
+		}
+
+		if (main_socket == -1
+		      && interp_fd == -1
+		      && timeout_p == NULL) {
+			/* nothing more to do! */
+			retvalue = 0;
+			goto finish;
 		}
 
 		/* XXX do signal handling
@@ -252,7 +259,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
 	ss->latest_tempo_change_as_measures = 0;
 	ss->latest_tempo_change_as_time.tv_sec = 0;
 	ss->latest_tempo_change_as_time.tv_usec = 0;
-	ss->measure_length = 4;
+	ss->measure_length = 1;
 	ss->playback_state = ps;
 	ss->tempo = 120;
 	ss->time_as_measures = 0;
@@ -301,19 +308,22 @@ sequencer_play_music(struct songstate *ss)
 	while (ce->block) {
 		while (ce->index < EVENTBLOCKCOUNT) {
 			me = &ce->block->events[ ce->index ];
-			if (me->eventtype == SONG_END)
+
+			if (me->eventtype == SONG_END) {
+				ss->playback_state = IDLE;
 				return 0;
+			}
+
 			sequencer_calculate_timeout(ss, &time_to_play);
+
 			/* if timeout has not been gone to zero, 
 			 * it is not our time to play yet */
 			if (time_to_play.tv_sec > 0
 			      || (time_to_play.tv_sec == 0
 				   && time_to_play.tv_usec > 0))
 				return 0;
+
 			switch(me->eventtype) {
-			case SONG_END:
-				ss->playback_state = IDLE;
-				return 0;
 			case NOTEOFF:
 				/* XXX error handling */
 				sequencer_noteoff(ss, me->channel, me->note);
