@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.25 2015/10/24 20:46:42 je Exp $ */
+/* $Id: mdl.c,v 1.26 2015/10/25 18:57:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,7 +76,7 @@ main(int argc, char *argv[])
 
 	/* XXX open with O_EXLOCK is allowed, even when flock is not
 	 * XXX specified... is this a bug? */
-	if (mdl_pledge("cpath flock proc rpath sendfd stdio unix wpath",
+	if (mdl_pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 	      NULL) == -1)
 		err(1, "pledge");
 
@@ -124,7 +124,8 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (mdl_pledge("cpath proc rpath sendfd stdio unix wpath", NULL) == -1)
+	if (mdl_pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
+	      == -1)
 		err(1, "pledge");
 
 	if (get_default_socketpath(server_socketpath, mdldir) != 0)

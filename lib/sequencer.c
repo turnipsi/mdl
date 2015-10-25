@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.39 2015/10/24 19:13:29 je Exp $ */
+/* $Id: sequencer.c,v 1.40 2015/10/25 18:57:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@
 
 #include "midi.h"
 #include "sequencer.h"
+#include "util.h"
 
 #define EVENTBLOCKCOUNT		1024
 
@@ -114,6 +115,13 @@ sequencer_loop(int main_socket)
 	int retvalue, interp_fd, old_interp_fd, ret, nr;
 	struct timeval timeout, *timeout_p;
 
+	/* XXX receiving fd works even if recvfd is not specified...
+	 * XXX is this a bug? */
+	if (mdl_pledge("rpath recvfd stdio unix wpath", NULL) != 0) {
+		warn("pledge");
+		return 1;
+	}
+
 	retvalue = 0;
 
 	interp_fd = -1;
@@ -122,6 +130,12 @@ sequencer_loop(int main_socket)
 
 	if (sequencer_init() != 0) {
 		warnx("problem initializing sequencer, exiting");
+		return 1;
+	}
+
+	if (mdl_pledge("recvfd stdio", NULL) != 0) {
+		warn("pledge");
+		sequencer_close();
 		return 1;
 	}
 
