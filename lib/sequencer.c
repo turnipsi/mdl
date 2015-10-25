@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.40 2015/10/25 18:57:48 je Exp $ */
+/* $Id: sequencer.c,v 1.41 2015/10/25 19:33:17 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -423,8 +423,11 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 			return -1;
 		}
 
-		i = eb->readcount / sizeof(struct midievent);
-	        if (eb->events[i].eventtype != SONG_END) {
+		/* XXX this check should work even if SONG_END is the
+		 * XXX last event in block (we should not allocate new buffer
+		 * XXX before checking that */
+		i = eb->readcount / sizeof(struct midievent) - 1;
+	        if (i >= 0 && eb->events[i].eventtype != SONG_END) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
 			return -1;

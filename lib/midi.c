@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.1 2015/10/24 19:13:29 je Exp $ */
+/* $Id: midi.c,v 1.2 2015/10/25 19:33:17 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -52,7 +52,7 @@ midi_close_device(void)
 }
 
 int
-midi_check_midievent(struct midievent me, float time_as_measures)
+midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 {
 	if (!midi_check_range(me.eventtype, 0, EVENTTYPE_COUNT)) {
 		warnx("midievent eventtype is invalid: %d", me.eventtype);
@@ -82,7 +82,7 @@ midi_check_midievent(struct midievent me, float time_as_measures)
 		return 0;
 	}
 
-	if (me.time_as_measures < time_as_measures) {
+	if (me.time_as_measures < minimum_time_as_measures) {
 		warnx("time is decreasing in eventstream");
 		return 0;
 	}

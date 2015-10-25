@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.26 2015/10/25 18:57:48 je Exp $ */
+/* $Id: mdl.c,v 1.27 2015/10/25 19:33:17 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,6 +39,10 @@
 
 #define SOCKETPATH_LEN 104
 
+#ifdef DEBUG
+extern char	*malloc_options;
+#endif
+
 static int		get_default_mdldir(char *);
 static int		get_default_socketpath(char *, const char *);
 static int		start_interpreter(int, int, int);
@@ -73,6 +77,10 @@ main(int argc, char *argv[])
 	char **musicfiles;
 	int musicfilecount, ch, cflag, dflag, sflag, fileflags;
 	size_t ret;
+
+#ifdef DEBUG
+	malloc_options = (char *) "AFGJPS";
+#endif
 
 	/* XXX open with O_EXLOCK is allowed, even when flock is not
 	 * XXX specified... is this a bug? */
