@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.42 2015/10/26 20:37:57 je Exp $ */
+/* $Id: sequencer.c,v 1.43 2015/10/26 20:58:00 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -390,8 +390,6 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	ssize_t nr;
 	int retvalue, i;
 
-	/* XXX re-evaluate this if this is correct */
-
 	assert(fd >= 0);
 	assert(ss != NULL);
 
@@ -419,17 +417,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 
 	if (nr == 0) {
 		/* the last event must be SONG_END */
-		assert(cur_b->readcount > 0);
-		if (cur_b->readcount % sizeof(struct midievent) > 0) {
-			warnx("received music stream which" \
-				" is not complete (truncated event)");
-			retvalue = -1;
-			goto finish;
-		}
-
-		i = cur_b->readcount / sizeof(struct midievent) - 1;
-		assert(i >= 0);
-	        if (cur_b->events[i].eventtype != SONG_END) {
+		if (!ss->got_song_end) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
 			retvalue = -1;
