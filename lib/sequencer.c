@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.41 2015/10/25 19:33:17 je Exp $ */
+/* $Id: sequencer.c,v 1.42 2015/10/26 20:37:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,7 +62,7 @@ struct songstate {
 	struct eventpointer current_event;
 	struct timeval latest_tempo_change_as_time;
 	float latest_tempo_change_as_measures, tempo, time_as_measures;
-	int measure_length;
+	int got_song_end, measure_length;
 	enum playback_state_t playback_state;
 };
 
@@ -279,6 +279,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
 
 	ss->current_event.block = NULL;
 	ss->current_event.index = 0;
+	ss->got_song_end = 0;
 	ss->latest_tempo_change_as_measures = 0;
 	ss->latest_tempo_change_as_time.tv_sec = 0;
 	ss->latest_tempo_change_as_time.tv_usec = 0;
@@ -385,69 +386,96 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me)
 static ssize_t
 sequencer_read_to_eventstream(struct songstate *ss, int fd)
 {
-	struct eventblock *eb;
+	struct eventblock *cur_b, *new_b;
 	ssize_t nr;
-	int i;
+	int retvalue, i;
+
+	/* XXX re-evaluate this if this is correct */
 
 	assert(fd >= 0);
 	assert(ss != NULL);
 
-	eb = ss->current_event.block;
+	new_b = cur_b = ss->current_event.block;
 
-	if (eb == NULL || eb->readcount == sizeof(eb->events)) {
-		eb = malloc(sizeof(struct eventblock));
-		if (eb == NULL) {
+	if (cur_b == NULL || cur_b->readcount == sizeof(cur_b->events)) {
+		if ((new_b = malloc(sizeof(struct eventblock))) == NULL) {
 			warn("malloc failure in" \
 			       " sequencer_read_to_eventstream");
 			return -1;
 		}
 
-		eb->readcount = 0;
-		SIMPLEQ_INSERT_TAIL(&ss->es, eb, entries);
-		ss->current_event.block = eb;
+		new_b->readcount = 0;
 	}
 
 	nr = read(fd,
-		  (char *) eb->events + eb->readcount,
-		  sizeof(eb->events) - eb->readcount);
+		  (char *) new_b->events + new_b->readcount,
+		  sizeof(new_b->events) - new_b->readcount);
 
 	if (nr == -1) {
 		warn("error in reading to eventstream");
-		return nr;
+		retvalue = -1;
+		goto finish;
 	}
 
 	if (nr == 0) {
-		if (eb->readcount % sizeof(struct midievent) > 0) {
+		/* the last event must be SONG_END */
+		assert(cur_b->readcount > 0);
+		if (cur_b->readcount % sizeof(struct midievent) > 0) {
 			warnx("received music stream which" \
 				" is not complete (truncated event)");
-			return -1;
+			retvalue = -1;
+			goto finish;
 		}
 
-		/* XXX this check should work even if SONG_END is the
-		 * XXX last event in block (we should not allocate new buffer
-		 * XXX before checking that */
-		i = eb->readcount / sizeof(struct midievent) - 1;
-	        if (i >= 0 && eb->events[i].eventtype != SONG_END) {
+		i = cur_b->readcount / sizeof(struct midievent) - 1;
+		assert(i >= 0);
+	        if (cur_b->events[i].eventtype != SONG_END) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
-			return -1;
+			retvalue = -1;
+			goto finish;
 		}
 
-		return nr;
+		retvalue = nr;
+		goto finish;
 	}
 
-	for (i = eb->readcount / sizeof(struct midievent);
-	     i < (eb->readcount + nr) / sizeof(struct midievent);
+	for (i = new_b->readcount / sizeof(struct midievent);
+	     i < (new_b->readcount + nr) / sizeof(struct midievent);
 	     i++) {
-		if (!midi_check_midievent(eb->events[i], ss->time_as_measures))
-			return -1;
+		/* song end must not come again */
+		if (ss->got_song_end) {
+			warnx("received music events after song end");
+			retvalue = -1;
+			goto finish;
+		}
+
+		if (new_b->events[i].eventtype == SONG_END)
+			ss->got_song_end = 1;
+
+		if (!midi_check_midievent(new_b->events[i],
+					  ss->time_as_measures)) {
+			retvalue = -1;
+			goto finish;
+		}
+
 		ss->current_event.index = i;
-		ss->time_as_measures = eb->events[i].time_as_measures;
+		ss->time_as_measures = new_b->events[i].time_as_measures;
 	}
 
-	eb->readcount += nr;
+	new_b->readcount += nr;
 
-	return nr;
+finish:
+	if (new_b != cur_b) {
+		if (new_b->readcount == 0) {
+			free(new_b);
+		} else {
+			SIMPLEQ_INSERT_TAIL(&ss->es, new_b, entries);
+			ss->current_event.block = new_b;
+		}
+	}
+
+	return retvalue;
 }
 
 static int
