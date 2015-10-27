@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.1 2015/10/02 12:20:23 je Exp $ */
+/* $Id: lex.l,v 1.2 2015/10/27 20:40:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,10 @@
 #define yywrap() 1
 %}
 
-%%
+NOTESYM	c|cis|des|d|dis|es|e|f|fis|ges|g|gis|aes|a|ais|bes|b
 
+%%
+{NOTESYM}	{ printf("Got notesym |%s|\n", yytext); }
+
+[ \t\n]+	/* eat up whitespace */
 %%

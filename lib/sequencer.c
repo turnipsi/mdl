@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.43 2015/10/26 20:58:00 je Exp $ */
+/* $Id: sequencer.c,v 1.44 2015/10/27 20:40:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -424,7 +424,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 			goto finish;
 		}
 
-		retvalue = nr;
+		retvalue = 0;
 		goto finish;
 	}
 

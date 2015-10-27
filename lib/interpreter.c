@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.6 2015/10/25 18:57:48 je Exp $ */
+/* $Id: interpreter.c,v 1.7 2015/10/27 20:40:35 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,8 @@
 
 #include "midi.h"
 
+extern FILE    *yyin;
+
 static int	testwrite(int);
 
 int
@@ -40,30 +42,15 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	FD_ZERO(&readfds);
-	FD_SET(file_fd, &readfds);
-
-	if (server_socket >= 0)
-		FD_SET(server_socket, &readfds);
-
-	testwrite(sequencer_socket);
-	close(sequencer_socket);
-
-	return 0;
-
-	while ((ret = select(FD_SETSIZE, &readfds, NULL, NULL, NULL)) > 0) {
-		if (FD_ISSET(file_fd, &readfds)) {
-			/* XXX use fgetln() or some such */
-		}
-
-		if (server_socket >= 0 && FD_ISSET(server_socket, &readfds)) {
-			/* XXX */
-		}
-	}
-	if (ret == -1) {
-		warn("error in select");
+	if ((yyin = fdopen(file_fd, "r")) == NULL) {
+		warn("could not setup input stream for lex");
 		return 1;
 	}
+
+	yylex();
+
+	/* XXX */
+	testwrite(sequencer_socket);
 
 	return 0;
 }
