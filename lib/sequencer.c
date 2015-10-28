@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.47 2015/10/28 21:18:48 je Exp $ */
+/* $Id: sequencer.c,v 1.48 2015/10/28 21:24:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <math.h>
 #include <signal.h>
 #include <stdio.h>
@@ -142,6 +143,13 @@ sequencer_loop(int main_socket)
 
 	if (pipe(signal_pipe) == -1) {
 		warn("opening signal-pipe for select");
+		sequencer_close();
+		return 1;
+	}
+
+	if (fcntl(signal_pipe[0], F_SETFL, O_NONBLOCK) == -1
+             || fcntl(signal_pipe[1], F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set signal pipe non-blocking");
 		sequencer_close();
 		return 1;
 	}
