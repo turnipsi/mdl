@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.45 2015/10/28 19:57:06 je Exp $ */
+/* $Id: sequencer.c,v 1.46 2015/10/28 21:17:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,7 +59,7 @@ struct songstate {
 	struct notestate notestates[MIDI_CHANNEL_MAX+1][MIDI_NOTE_MAX+1];
 	struct eventstream es;
 	struct eventpointer current_event;
-	struct timeval latest_tempo_change_as_time;
+	struct timespec latest_tempo_change_as_time;
 	float latest_tempo_change_as_measures, tempo, time_as_measures;
 	int got_song_end, measure_length;
 	enum playback_state_t playback_state;
@@ -68,9 +68,8 @@ struct songstate {
 static struct mio_hdl  *mio = NULL;
 static int		signal_pipe[2];
 
-
 static void	sequencer_calculate_timeout(struct songstate *,
-					    struct timeval *);
+					    struct timespec *);
 static void	sequencer_close(void);
 static void	sequencer_close_songstate(struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
@@ -85,7 +84,7 @@ static int	sequencer_reset_songstate(struct songstate *);
 static int	sequencer_start_playing(struct songstate *,
 					struct songstate *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
-					     struct timeval *notetime);
+					     struct timespec *notetime);
 
 static int	receive_fd_through_socket(int *, int);
 
@@ -112,7 +111,8 @@ sequencer_loop(int main_socket)
 	struct songstate *playback_song, *reading_song, *tmp_song;
 	fd_set readfds;
 	int retvalue, interp_fd, old_interp_fd, ret, nr;
-	struct timeval timeout, *timeout_p;
+	struct timespec timeout;
+	struct timeval timeoutval, *timeoutval_p;
 
 	/* XXX receiving fd works even if recvfd is not specified...
 	 * XXX is this a bug? */
@@ -169,20 +169,22 @@ sequencer_loop(int main_socket)
 
 		if (playback_song->playback_state == PLAYING) {
 			sequencer_calculate_timeout(playback_song, &timeout);
-			timeout_p = &timeout;
+			timeoutval.tv_sec = timeout.tv_sec;
+			timeoutval.tv_usec = timeout.tv_nsec / 1000;
+			timeoutval_p = &timeoutval;
 		} else {
-			timeout_p = NULL;
+			timeoutval_p = NULL;
 		}
 
 		if (main_socket == -1
 		      && interp_fd == -1
-		      && timeout_p == NULL) {
+		      && timeoutval_p == NULL) {
 			/* nothing more to do! */
 			retvalue = 0;
 			goto finish;
 		}
 
-		ret = select(FD_SETSIZE, &readfds, NULL, NULL, timeout_p);
+		ret = select(FD_SETSIZE, &readfds, NULL, NULL, timeoutval_p);
 		if (ret == -1 && errno != EINTR) {
 			warn("error in select");
 			retvalue = 1;
@@ -281,7 +283,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
 	ss->got_song_end = 0;
 	ss->latest_tempo_change_as_measures = 0;
 	ss->latest_tempo_change_as_time.tv_sec = 0;
-	ss->latest_tempo_change_as_time.tv_usec = 0;
+	ss->latest_tempo_change_as_time.tv_nsec = 0;
 	ss->measure_length = 1;
 	ss->playback_state = ps;
 	ss->tempo = 120;
@@ -289,21 +291,28 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
 }
 
 static void
-sequencer_calculate_timeout(struct songstate *ss, struct timeval *timeout)
+sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout)
 {
-	struct timeval current_time, notetime;
+	struct timespec current_time, notetime;
 	int ret;
 
 	sequencer_time_for_next_note(ss, &notetime);
 
-	ret = gettimeofday(&current_time, NULL);
+	ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
 	assert(ret == 0);
 
-	timersub(&notetime, &current_time, timeout);
+	timeout->tv_sec  = notetime.tv_sec  - current_time.tv_sec;
+	timeout->tv_nsec = notetime.tv_nsec - current_time.tv_nsec;
+
+	if (timeout->tv_nsec < 0) {
+		timeout->tv_nsec += 1000000000;
+		timeout->tv_sec -= 1;
+
+	}
 
 	if (timeout->tv_sec < 0) {
-		timeout->tv_sec  = 0;
-		timeout->tv_usec = 0;
+		timeout->tv_sec = 0;
+		timeout->tv_nsec = 0;
 	}
 }
 
@@ -324,7 +333,7 @@ sequencer_play_music(struct songstate *ss)
 {
 	struct eventpointer *ce;
 	struct midievent *me;
-	struct timeval time_to_play;
+	struct timespec time_to_play;
 	int ret;
 
 	ce = &ss->current_event;
@@ -344,7 +353,7 @@ sequencer_play_music(struct songstate *ss)
 			 * it is not our time to play yet */
 			if (time_to_play.tv_sec > 0
 			      || (time_to_play.tv_sec == 0
-				   && time_to_play.tv_usec > 0))
+				   && time_to_play.tv_nsec > 0))
 				return 0;
 
 			switch(me->eventtype) {
@@ -586,7 +595,8 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 		}
 	}
 
-	ret = gettimeofday(&ss->latest_tempo_change_as_time, NULL);
+	ret = clock_gettime(CLOCK_MONOTONIC,
+			    &ss->latest_tempo_change_as_time);
 	assert(ret == 0);
 
 	    ss->playback_state = PLAYING;
@@ -597,19 +607,19 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 
 static void
 sequencer_time_for_next_note(struct songstate *ss,
-			     struct timeval *notetime)
+			     struct timespec *notetime)
 {
 	struct midievent next_midievent;
-	struct timeval time_for_note_since_latest_tempo_change;
+	struct timespec time_for_note_since_latest_tempo_change;
 	float measures_for_note_since_latest_tempo_change,
-	      time_for_note_since_latest_tempo_change_in_us;
+	      time_for_note_since_latest_tempo_change_in_ns;
 
 	assert(ss != NULL);
 	assert(ss->current_event.block != NULL);
 	assert(0 <= ss->current_event.index
 		 && ss->current_event.index < EVENTBLOCKCOUNT);
 	assert(ss->latest_tempo_change_as_time.tv_sec > 0
-		 || ss->latest_tempo_change_as_time.tv_usec > 0);
+		 || ss->latest_tempo_change_as_time.tv_nsec > 0);
 	assert(ss->playback_state == PLAYING);
 	assert(ss->tempo > 0);
 
@@ -621,18 +631,24 @@ sequencer_time_for_next_note(struct songstate *ss,
 	    = next_midievent.time_as_measures
 		- ss->latest_tempo_change_as_measures;
 
-	time_for_note_since_latest_tempo_change_in_us
-	    = (1000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo))
+	time_for_note_since_latest_tempo_change_in_ns
+	    = (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo))
                 * measures_for_note_since_latest_tempo_change;
 
 	time_for_note_since_latest_tempo_change.tv_sec
-	    = time_for_note_since_latest_tempo_change_in_us / 1000000;
-	time_for_note_since_latest_tempo_change.tv_usec
-	    = fmodf(time_for_note_since_latest_tempo_change_in_us, 1000000);
+	    = time_for_note_since_latest_tempo_change_in_ns / 1000000000;
+	time_for_note_since_latest_tempo_change.tv_nsec
+	    = fmodf(time_for_note_since_latest_tempo_change_in_ns, 1000000000);
 
-	timeradd(&time_for_note_since_latest_tempo_change,
-		 &ss->latest_tempo_change_as_time,
-		 notetime);
+	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec
+                             + ss->latest_tempo_change_as_time.tv_sec;
+	notetime->tv_nsec = time_for_note_since_latest_tempo_change.tv_nsec
+                              + ss->latest_tempo_change_as_time.tv_nsec;
+
+	if (notetime->tv_nsec >= 1000000000) {
+		notetime->tv_nsec -= 1000000000;
+		notetime->tv_sec += 1;
+	}
 }
 
 static void
