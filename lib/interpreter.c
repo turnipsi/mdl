@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.7 2015/10/27 20:40:35 je Exp $ */
+/* $Id: interpreter.c,v 1.8 2015/10/28 19:57:06 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,7 +37,7 @@ handle_musicfile_and_socket(int file_fd,
 	fd_set readfds;
 	int ret;
 
-        if (mdl_pledge("stdio", NULL) != 0) {
+        if (pledge("stdio", NULL) != 0) {
 		warn("pledge");
 		return 1;
 	}

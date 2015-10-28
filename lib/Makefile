@@ -1,7 +1,7 @@
-# $Id: Makefile,v 1.10 2015/10/24 20:46:41 je Exp $
+# $Id: Makefile,v 1.11 2015/10/28 19:57:06 je Exp $
 
 PROG=	mdl
-SRCS=	lex.l interpreter.c mdl.c midi.c parse.y sequencer.c util.c
+SRCS=	lex.l interpreter.c mdl.c midi.c parse.y sequencer.c
 DPADD=	${LIBM} ${LIBSNDIO}
 LDADD=	-lm -lsndio
 

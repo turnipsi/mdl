@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.27 2015/10/25 19:33:17 je Exp $ */
+/* $Id: mdl.c,v 1.28 2015/10/28 19:57:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,7 +35,6 @@
 
 #include "interpreter.h"
 #include "sequencer.h"
-#include "util.h"
 
 #define SOCKETPATH_LEN 104
 
@@ -84,7 +83,7 @@ main(int argc, char *argv[])
 
 	/* XXX open with O_EXLOCK is allowed, even when flock is not
 	 * XXX specified... is this a bug? */
-	if (mdl_pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
+	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 	      NULL) == -1)
 		err(1, "pledge");
 
@@ -132,7 +131,7 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (mdl_pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
+	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
 	      == -1)
 		err(1, "pledge");
 
@@ -236,7 +235,7 @@ setup_sequencer_for_sources(char **files,
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second endpoint of ms_sp");
 
-	if (mdl_pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
+	if (pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
 		warn("pledge");
 		retvalue = 1;
 		goto finish;
@@ -250,7 +249,7 @@ setup_sequencer_for_sources(char **files,
 		}
 	}
 
-	if (mdl_pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
+	if (pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
 		warn("pledge");
 		retvalue = 1;
 		goto finish;
@@ -289,7 +288,7 @@ setup_sequencer_for_sources(char **files,
 	}
 
 finish:
-	if (mdl_pledge("cpath stdio", NULL) == -1) {
+	if (pledge("cpath stdio", NULL) == -1) {
 		warn("pledge");
 		return 1;
 	}
@@ -303,7 +302,7 @@ finish:
 	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
-	if (mdl_pledge("stdio", NULL) == -1) {
+	if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
 		return 1;
 	}
