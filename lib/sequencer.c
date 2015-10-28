@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.46 2015/10/28 21:17:08 je Exp $ */
+/* $Id: sequencer.c,v 1.47 2015/10/28 21:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -100,7 +100,9 @@ sequencer_handle_signal(int signo)
 	int save_errno;
 
 	save_errno = errno;
-	(void) write(signal_pipe[0], "O", 1);
+	if (write(signal_pipe[0], "O", 1) == -1)
+		_exit(EXIT_FAILURE);
+
 	errno = save_errno;
 }
 
