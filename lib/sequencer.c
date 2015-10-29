@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.49 2015/10/29 19:40:16 je Exp $ */
+/* $Id: sequencer.c,v 1.50 2015/10/29 19:47:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -141,6 +141,12 @@ sequencer_loop(int main_socket)
 		return 1;
 	}
 
+	if (fcntl(main_socket, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set main_socket non-blocking");
+		sequencer_close();
+		return 1;
+	}
+
 	if (pipe(signal_pipe) == -1) {
 		warn("opening signal-pipe for select");
 		sequencer_close();
@@ -233,7 +239,15 @@ sequencer_loop(int main_socket)
 				if (old_interp_fd >= 0
 				      && close(old_interp_fd) == -1)
 					warn("closing old interpreter fd");
-				/* we have new interp_fd, back to select() */
+				/* we have new interp_fd, make it non-blocking
+				 * and go back to select() */
+				if (fcntl(interp_fd, F_SETFL, O_NONBLOCK)
+				      == -1) {
+					warn("could not set interp_fd" \
+					       " non-blocking");
+					retvalue = 1;
+					goto finish;
+				}
 				continue;
 			}
 
