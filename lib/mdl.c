@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.28 2015/10/28 19:57:06 je Exp $ */
+/* $Id: mdl.c,v 1.29 2015/10/29 20:11:21 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,8 +81,6 @@ main(int argc, char *argv[])
 	malloc_options = (char *) "AFGJPS";
 #endif
 
-	/* XXX open with O_EXLOCK is allowed, even when flock is not
-	 * XXX specified... is this a bug? */
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 	      NULL) == -1)
 		err(1, "pledge");
