@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.2 2015/10/27 20:40:35 je Exp $ */
+/* $Id: lex.l,v 1.3 2015/10/30 21:07:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,12 +18,28 @@
  */
 
 #define yywrap() 1
+
+#include "y.tab.h"   
 %}
 
-NOTESYM	c|cis|des|d|dis|es|e|f|fis|ges|g|gis|aes|a|ais|bes|b
-
 %%
-{NOTESYM}	{ printf("Got notesym |%s|\n", yytext); }
+c	{ return NOTE_C;   }
+cis	{ return NOTE_CIS; }
+des	{ return NOTE_DES; }
+d	{ return NOTE_D;   }
+dis	{ return NOTE_DIS; }
+es	{ return NOTE_ES;  }
+e	{ return NOTE_E;   }
+f	{ return NOTE_F;   }
+fis	{ return NOTE_FIS; }
+ges	{ return NOTE_GES; }
+g	{ return NOTE_G;   }
+gis	{ return NOTE_GIS; }
+aes	{ return NOTE_AES; }
+a	{ return NOTE_A;   }
+ais	{ return NOTE_AIS; }
+bes	{ return NOTE_BES; }
+b	{ return NOTE_B;   }
 
 [ \t\n]+	/* eat up whitespace */
 %%

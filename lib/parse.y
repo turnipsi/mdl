@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.2 2015/10/02 12:20:23 je Exp $
+/* $Id: parse.y,v 1.3 2015/10/30 21:07:19 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,10 +20,33 @@
   /* XXX */
 %}
 
+%token	NOTE_C NOTE_CIS NOTE_DES NOTE_D NOTE_DIS NOTE_ES NOTE_E
+	NOTE_F NOTE_FIS NOTE_GES NOTE_G NOTE_GIS NOTE_AES
+	NOTE_A NOTE_AIS NOTE_BES NOTE_B
+
 %%
 
-grammar:	/* empty */
+grammar:	notesym
 		;
+
+notesym	: NOTE_C
+	| NOTE_CIS
+	| NOTE_DES
+	| NOTE_D
+	| NOTE_DIS
+	| NOTE_ES
+	| NOTE_E
+	| NOTE_F
+	| NOTE_FIS
+	| NOTE_GES
+	| NOTE_G
+	| NOTE_GIS
+	| NOTE_AES
+	| NOTE_A
+	| NOTE_AIS
+	| NOTE_BES
+	| NOTE_B
+	;
 
 %%
 

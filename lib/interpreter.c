@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.9 2015/10/28 21:17:08 je Exp $ */
+/* $Id: interpreter.c,v 1.10 2015/10/30 21:07:19 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,24 +35,23 @@ handle_musicfile_and_socket(int file_fd,
 			    int server_socket)
 {
 	fd_set readfds;
-	int ret;
 
         if (pledge("stdio", NULL) != 0) {
 		warn("pledge");
 		return 1;
 	}
 
-	/* XXX */
-	testwrite(sequencer_socket);
-
-	return 0;
-
 	if ((yyin = fdopen(file_fd, "r")) == NULL) {
 		warn("could not setup input stream for lex");
 		return 1;
 	}
 
-	/* yylex(); */
+	if (yyparse() != 0) {
+		warnx("yyparse returned error");
+		return 1;
+	}
+
+	testwrite(sequencer_socket);
 
 	return 0;
 }
