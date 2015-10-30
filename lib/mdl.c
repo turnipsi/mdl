@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.29 2015/10/29 20:11:21 je Exp $ */
+/* $Id: mdl.c,v 1.30 2015/10/30 20:37:14 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,7 +38,7 @@
 
 #define SOCKETPATH_LEN 104
 
-#ifdef DEBUG
+#ifndef NDEBUG
 extern char	*malloc_options;
 #endif
 
@@ -77,7 +77,7 @@ main(int argc, char *argv[])
 	int musicfilecount, ch, cflag, dflag, sflag, fileflags;
 	size_t ret;
 
-#ifdef DEBUG
+#ifndef NDEBUG
 	malloc_options = (char *) "AFGJPS";
 #endif
 
