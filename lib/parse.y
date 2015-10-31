@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.4 2015/10/31 21:06:34 je Exp $
+/* $Id: parse.y,v 1.5 2015/10/31 21:45:42 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,45 +17,46 @@
  */
 
 %{
-  /* XXX */
+#include "musicexpr.h"
 %}
 
-%token	NOTE_C NOTE_CIS NOTE_DES NOTE_D NOTE_DIS NOTE_ES NOTE_E
-	NOTE_F NOTE_FIS NOTE_GES NOTE_G NOTE_GIS NOTE_AES
-	NOTE_A NOTE_AIS NOTE_BES NOTE_B
+%token	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D   NOTETOKEN_DIS
+	NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F   NOTETOKEN_FIS NOTETOKEN_GES
+	NOTETOKEN_G   NOTETOKEN_GIS NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS
+	NOTETOKEN_BES NOTETOKEN_B
 %token	WHITESPACE
 
 %%
 
 grammar:	musicexprlist
-		| WHITESPACE musicexprlist
+		| WHITESPACE musicexprlist { $$ = $2; }
 		;
 
 musicexprlist:	musicexpr
-		| musicexpr WHITESPACE
-		| musicexpr WHITESPACE musicexprlist
+		| musicexpr WHITESPACE musicexprlist	 /* XXX */
+		| /* empty */
 		;
 
 musicexpr:	notesym
 		;
 
-notesym:	NOTE_C
-		| NOTE_CIS
-		| NOTE_DES
-		| NOTE_D
-		| NOTE_DIS
-		| NOTE_ES
-		| NOTE_E
-		| NOTE_F
-		| NOTE_FIS
-		| NOTE_GES
-		| NOTE_G
-		| NOTE_GIS
-		| NOTE_AES
-		| NOTE_A
-		| NOTE_AIS
-		| NOTE_BES
-		| NOTE_B
+notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
+		| NOTETOKEN_CIS { $$ = NOTE_CIS; }
+		| NOTETOKEN_DES { $$ = NOTE_DES; }
+		| NOTETOKEN_D   { $$ = NOTE_D;   }
+		| NOTETOKEN_DIS { $$ = NOTE_DIS; }
+		| NOTETOKEN_ES  { $$ = NOTE_ES;  }
+		| NOTETOKEN_E   { $$ = NOTE_E;   }
+		| NOTETOKEN_F   { $$ = NOTE_F;   }
+		| NOTETOKEN_FIS { $$ = NOTE_FIS; }
+		| NOTETOKEN_GES { $$ = NOTE_GES; }
+		| NOTETOKEN_G   { $$ = NOTE_G;   }
+		| NOTETOKEN_GIS { $$ = NOTE_GIS; }
+		| NOTETOKEN_AES { $$ = NOTE_AES; }
+		| NOTETOKEN_A   { $$ = NOTE_A;   }
+		| NOTETOKEN_AIS { $$ = NOTE_AIS; }
+		| NOTETOKEN_BES { $$ = NOTE_AES; }
+		| NOTETOKEN_B   { $$ = NOTE_B;   }
 		;
 
 %%

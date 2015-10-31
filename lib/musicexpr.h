@@ -1,5 +1,4 @@
-%{
-/* $Id: lex.l,v 1.5 2015/10/31 21:45:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.1 2015/10/31 21:45:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,29 +16,27 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define yywrap() 1
+#ifndef MDL_MUSICEXPR_H
+#define MDL_MUSICEXPR_H
 
-#include "y.tab.h"   
-%}
+enum notesym {
+	NOTE_C,
+	NOTE_CIS,
+	NOTE_DES,
+	NOTE_D,
+	NOTE_DIS,
+	NOTE_ES,
+	NOTE_E,
+	NOTE_F,
+	NOTE_FIS,
+	NOTE_GES,
+	NOTE_G,
+	NOTE_GIS,
+	NOTE_AES,
+	NOTE_A,
+	NOTE_AIS,
+	NOTE_BES,
+	NOTE_B,
+};
 
-%%
-c	{ return NOTETOKEN_C;   }
-cis	{ return NOTETOKEN_CIS; }
-des	{ return NOTETOKEN_DES; }
-d	{ return NOTETOKEN_D;   }
-dis	{ return NOTETOKEN_DIS; }
-es	{ return NOTETOKEN_ES;  }
-e	{ return NOTETOKEN_E;   }
-f	{ return NOTETOKEN_F;   }
-fis	{ return NOTETOKEN_FIS; }
-ges	{ return NOTETOKEN_GES; }
-g	{ return NOTETOKEN_G;   }
-gis	{ return NOTETOKEN_GIS; }
-aes	{ return NOTETOKEN_AES; }
-a	{ return NOTETOKEN_A;   }
-ais	{ return NOTETOKEN_AIS; }
-bes	{ return NOTETOKEN_BES; }
-b	{ return NOTETOKEN_B;   }
-
-[ \t\n]+	{ return WHITESPACE; }
-%%
+#endif
