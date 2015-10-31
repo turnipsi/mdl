@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.10 2015/10/30 21:07:19 je Exp $ */
+/* $Id: interpreter.c,v 1.11 2015/10/31 21:06:34 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -50,6 +50,8 @@ handle_musicfile_and_socket(int file_fd,
 		warnx("yyparse returned error");
 		return 1;
 	}
+
+	(void) printf("parse ok!\n");
 
 	testwrite(sequencer_socket);
 

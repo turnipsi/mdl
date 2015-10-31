@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.3 2015/10/30 21:07:19 je Exp $ */
+/* $Id: lex.l,v 1.4 2015/10/31 21:06:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,5 +41,5 @@ ais	{ return NOTE_AIS; }
 bes	{ return NOTE_BES; }
 b	{ return NOTE_B;   }
 
-[ \t\n]+	/* eat up whitespace */
+[ \t\n]+	{ return WHITESPACE; }
 %%
