@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.11 2015/10/31 21:06:34 je Exp $ */
+/* $Id: interpreter.c,v 1.12 2015/11/01 20:33:08 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include "midi.h"
+#include "util.h"
 
 extern FILE    *yyin;
 
@@ -36,8 +37,8 @@ handle_musicfile_and_socket(int file_fd,
 {
 	fd_set readfds;
 
-        if (pledge("stdio", NULL) != 0) {
-		warn("pledge");
+        if (mdl_sandbox("stdio") == -1) {
+		warnx("sandbox error");
 		return 1;
 	}
 
