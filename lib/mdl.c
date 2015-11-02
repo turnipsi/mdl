@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.31 2015/11/01 20:33:08 je Exp $ */
+/* $Id: mdl.c,v 1.32 2015/11/02 20:13:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -404,6 +404,8 @@ send_fd_through_socket(int fd, int socket)
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_control    = &cmsgbuf.buf;
 	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	bzero(&cmsgbuf, sizeof(cmsgbuf));
 
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_len   = CMSG_LEN(sizeof(int));

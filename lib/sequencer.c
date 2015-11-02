@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.51 2015/11/01 20:33:08 je Exp $ */
+/* $Id: sequencer.c,v 1.52 2015/11/02 20:13:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -421,7 +421,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 {
 	struct eventblock *cur_b, *new_b;
 	ssize_t nr;
-	int retvalue, i;
+	int i;
 
 	assert(fd >= 0);
 	assert(ss != NULL);
@@ -444,7 +444,6 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 
 	if (nr == -1) {
 		warn("error in reading to eventstream");
-		retvalue = -1;
 		goto finish;
 	}
 
@@ -453,11 +452,10 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		if (!ss->got_song_end) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
-			retvalue = -1;
+			nr = -1;
 			goto finish;
 		}
 
-		retvalue = 0;
 		goto finish;
 	}
 
@@ -467,7 +465,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		/* song end must not come again */
 		if (ss->got_song_end) {
 			warnx("received music events after song end");
-			retvalue = -1;
+			nr = -1;
 			goto finish;
 		}
 
@@ -476,7 +474,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 
 		if (!midi_check_midievent(new_b->events[i],
 					  ss->time_as_measures)) {
-			retvalue = -1;
+			nr = -1;
 			goto finish;
 		}
 
@@ -484,7 +482,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		ss->time_as_measures = new_b->events[i].time_as_measures;
 	}
 
-	new_b->readcount += nr;
+	if (nr > 0)
+		new_b->readcount += nr;
 
 finish:
 	if (new_b != cur_b) {
@@ -496,7 +495,7 @@ finish:
 		}
 	}
 
-	return retvalue;
+	return nr;
 }
 
 static int
@@ -714,6 +713,8 @@ receive_fd_through_socket(int *received_fd, int socket)
 	memset(&msg, 0, sizeof(msg));
 	msg.msg_control    = &cmsgbuf.buf;
 	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	bzero(&cmsgbuf, sizeof(cmsgbuf));
 
 	if (recvmsg(socket, &msg, 0) == -1) {
 		warn("receiving fd through socket, recvmsg");
