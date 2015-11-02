@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.12 2015/11/01 20:33:08 je Exp $ */
+/* $Id: interpreter.c,v 1.13 2015/11/02 19:25:39 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,11 +68,13 @@ testwrite(int sequencer_socket)
 
 	channel = 0;
 
+	bzero(events, sizeof(events));
+
 	events[0].eventtype        = NOTEON;
 	events[0].channel          = channel;
 	events[0].note             = 60;
 	events[0].velocity         = 127;
-	events[0].time_as_measures = 0;
+	events[0].time_as_measures = 0.0;
 
 	events[1].eventtype        = NOTEOFF;
 	events[1].channel          = channel;
@@ -120,7 +122,7 @@ testwrite(int sequencer_socket)
 	events[8].channel          = 0;
 	events[8].note             = 0;
 	events[8].velocity         = 0;
-	events[8].time_as_measures = 0;
+	events[8].time_as_measures = 0.0;
 
 	/* XXX */
 	nw = write(sequencer_socket, events, sizeof(events));
