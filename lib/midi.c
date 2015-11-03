@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.2 2015/10/25 19:33:17 je Exp $ */
+/* $Id: midi.c,v 1.3 2015/11/03 19:58:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+#include <err.h>
 #include <math.h>
 #include <sndio.h>
 

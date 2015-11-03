@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.13 2015/11/02 19:25:39 je Exp $ */
+/* $Id: interpreter.c,v 1.14 2015/11/03 19:58:09 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,7 @@
 
 #include <err.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "midi.h"
@@ -28,6 +29,7 @@
 extern FILE    *yyin;
 
 static int	testwrite(int);
+int		yyparse(void);
 
 int
 handle_musicfile_and_socket(int file_fd,
@@ -35,8 +37,6 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
-	fd_set readfds;
-
         if (mdl_sandbox("stdio") == -1) {
 		warnx("sandbox error");
 		return 1;

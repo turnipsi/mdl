@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.3 2015/11/01 20:33:08 je Exp $ */
+/* $Id: util.c,v 1.4 2015/11/03 19:58:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,11 +24,11 @@
 int
 mdl_sandbox(const char *request)
 {
-	int ret;
-
 #ifdef SANDBOX_NONE
 	return 0;
 #else
+	int ret;
+
 	ret = pledge(request, NULL);
 	if (ret == -1)
 		warn("pledge");

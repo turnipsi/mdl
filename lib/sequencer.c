@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.52 2015/11/02 20:13:57 je Exp $ */
+/* $Id: sequencer.c,v 1.53 2015/11/03 19:58:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,8 +67,7 @@ struct songstate {
 	enum playback_state_t playback_state;
 };
 
-static struct mio_hdl  *mio = NULL;
-static int		signal_pipe[2];
+static int	signal_pipe[2];
 
 static void	sequencer_calculate_timeout(struct songstate *,
 					    struct timespec *);

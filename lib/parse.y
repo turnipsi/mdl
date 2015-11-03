@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.5 2015/10/31 21:45:42 je Exp $
+/* $Id: parse.y,v 1.6 2015/11/03 19:58:09 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,8 @@
 
 %{
 #include "musicexpr.h"
+
+int	yylex(void);
 %}
 
 %token	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D   NOTETOKEN_DIS

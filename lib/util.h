@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.3 2015/11/01 20:33:08 je Exp $ */
+/* $Id: util.h,v 1.4 2015/11/03 19:58:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,6 @@
 #ifndef MDL_UTIL_H
 #define MDL_UTIL_H
 
-int sandbox(const char *);
+int mdl_sandbox(const char *);
 
 #endif
