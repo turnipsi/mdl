@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.32 2015/11/02 20:13:57 je Exp $ */
+/* $Id: mdl.c,v 1.33 2015/11/05 20:24:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -204,6 +204,7 @@ setup_sequencer_for_sources(char **files,
 	pid_t sequencer_pid;
 	char *stdinfiles[] = { "-" };
 
+	server_socket = -1;
 	retvalue = 0;
 
 	/* setup socketpair for main <-> sequencer communication */
@@ -240,7 +241,6 @@ setup_sequencer_for_sources(char **files,
 		goto finish;
 	}
 
-	server_socket = -1;
 	if (socketpath) {
 		if ((server_socket = setup_server_socket(socketpath)) == -1) {
 			retvalue = 1;

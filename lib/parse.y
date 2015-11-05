@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.6 2015/11/03 19:58:09 je Exp $
+/* $Id: parse.y,v 1.7 2015/11/05 20:24:51 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,29 +17,48 @@
  */
 
 %{
+#include <err.h>
+#include <stdarg.h>
+
 #include "musicexpr.h"
 
+int parse_errors = 0;
+enum notesym parsetree;
+
+void	yyerror(const char *fmt, ...);
 int	yylex(void);
+int	yyparse(void);
 %}
 
-%token	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D   NOTETOKEN_DIS
-	NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F   NOTETOKEN_FIS NOTETOKEN_GES
-	NOTETOKEN_G   NOTETOKEN_GIS NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS
-	NOTETOKEN_BES NOTETOKEN_B
+%union {
+	enum notesym note;
+}
+
+%token	<note>	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D
+		NOTETOKEN_DIS NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F
+		NOTETOKEN_FIS NOTETOKEN_GES NOTETOKEN_G   NOTETOKEN_GIS
+		NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS NOTETOKEN_BES
+		NOTETOKEN_B
 %token	WHITESPACE
+
+%type	<note>	grammar musicexpr musicexprlist notesym smusicexprlist
 
 %%
 
-grammar:	musicexprlist
-		| WHITESPACE musicexprlist { $$ = $2; }
+grammar:	musicexprlist { parsetree = $1; }
+
+musicexprlist:	smusicexprlist { $$ = $1; }
+		| WHITESPACE smusicexprlist { $$ = $2; }
 		;
 
-musicexprlist:	musicexpr
-		| musicexpr WHITESPACE musicexprlist	 /* XXX */
-		| /* empty */
+smusicexprlist:	musicexpr { $$ = $1; }
+		| musicexpr WHITESPACE musicexprlist {
+		    $$ = $1;	/* XXX */
+		  }
+		| {} /* empty */
 		;
 
-musicexpr:	notesym
+musicexpr:	notesym { $$ = $1; }
 		;
 
 notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
@@ -66,4 +85,11 @@ notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
 void
 yyerror(const char *fmt, ...)
 {
+	va_list va;
+
+	va_start(va, fmt);
+	vwarnx(fmt, va);
+	va_end(va);
+
+	parse_errors++;
 }

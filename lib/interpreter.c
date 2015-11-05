@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.14 2015/11/03 19:58:09 je Exp $ */
+/* $Id: interpreter.c,v 1.15 2015/11/05 20:24:51 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,9 +24,11 @@
 #include <unistd.h>
 
 #include "midi.h"
+#include "musicexpr.h"
 #include "util.h"
 
-extern FILE    *yyin;
+extern FILE	       *yyin;
+extern enum notesym	parsetree;
 
 static int	testwrite(int);
 int		yyparse(void);
@@ -52,7 +54,7 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	(void) printf("parse ok!\n");
+	(void) printf("parse ok, got parse result: %d\n", parsetree);
 
 	testwrite(sequencer_socket);
 

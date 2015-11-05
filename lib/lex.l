@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.5 2015/10/31 21:45:42 je Exp $ */
+/* $Id: lex.l,v 1.6 2015/11/05 20:24:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,7 @@
 
 #define yywrap() 1
 
+#include "musicexpr.h"
 #include "y.tab.h"   
 %}
 
