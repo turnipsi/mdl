@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.8 2015/11/06 20:40:46 je Exp $
+/* $Id: parse.y,v 1.9 2015/11/06 20:57:57 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 
 #include "musicexpr.h"
 
-struct musicexpr *parsetree;
+struct musicexpr_t *parsetree;
 
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
@@ -30,8 +30,9 @@ int	yyparse(void);
 %}
 
 %union {
-	enum notesym note;
-	struct musicexpr *notelist;
+	enum notesym_t		notesym;
+	struct relnote_t	relnote;
+	struct musicexpr_t     *musicexpr;
 }
 
 %token	<note>	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D
@@ -41,8 +42,9 @@ int	yyparse(void);
 		NOTETOKEN_B
 %token		WHITESPACE
 
-%type	<note>		notesym relnote
-%type	<notelist>	grammar musicexpr smusicexpr
+%type	<notesym>	notesym
+%type	<relnote>	relnote
+%type	<musicexpr>	grammar musicexpr smusicexpr
 
 %%
 
@@ -53,19 +55,21 @@ musicexpr:	smusicexpr { $$ = $1; }
 		;
 
 smusicexpr:	relnote {
-			if (($$ = malloc(sizeof(struct musicexpr))) == NULL) {
+			$$ = malloc(sizeof(struct musicexpr_t));
+			if ($$ == NULL) {
 				warn("%s", "malloc error");
 				YYERROR;
 			}
-			$$->note = $1;
+			$$->relnote = $1;
 			$$->next = NULL;
 		}
 		| relnote WHITESPACE smusicexpr {
-			if (($$ = malloc(sizeof(struct musicexpr))) == NULL) {
+			$$ = malloc(sizeof(struct musicexpr_t));
+			if ($$ == NULL) {
 				warn("%s", "malloc error");
 				YYERROR;
 			}
-			$$->note = $1;
+			$$->relnote = $1;
 			$$->next = $3;
 		  }
 		| {} /* empty */
@@ -73,7 +77,12 @@ smusicexpr:	relnote {
 
 
 
-relnote:	notesym { $$ = $1; }
+relnote:	notesym {
+			$$.notesym    = $1;
+			$$.dotcount   = 0;
+			$$.lengthbase = 0;
+			$$.updown_mod = 0;
+		}
 		;
 
 notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }

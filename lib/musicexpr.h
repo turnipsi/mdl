@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.2 2015/11/06 20:40:46 je Exp $ */
+/* $Id: musicexpr.h,v 1.3 2015/11/06 20:57:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,7 +19,7 @@
 #ifndef MDL_MUSICEXPR_H
 #define MDL_MUSICEXPR_H
 
-enum notesym {
+enum notesym_t {
 	NOTE_C,
 	NOTE_CIS,
 	NOTE_DES,
@@ -39,9 +39,14 @@ enum notesym {
 	NOTE_B,
 };
 
-struct musicexpr {
-	enum notesym note;
-	struct musicexpr *next;
+struct relnote_t {
+	enum notesym_t notesym;
+	int dotcount, lengthbase, updown_mod;
+};
+
+struct musicexpr_t {
+	struct relnote_t relnote;
+	struct musicexpr_t *next;
 };
 
 #endif
