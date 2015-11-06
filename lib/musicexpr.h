@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.1 2015/10/31 21:45:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.2 2015/11/06 20:40:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,6 +37,11 @@ enum notesym {
 	NOTE_AIS,
 	NOTE_BES,
 	NOTE_B,
+};
+
+struct musicexpr {
+	enum notesym note;
+	struct musicexpr *next;
 };
 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.15 2015/11/05 20:24:51 je Exp $ */
+/* $Id: interpreter.c,v 1.16 2015/11/06 20:40:46 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,8 +27,8 @@
 #include "musicexpr.h"
 #include "util.h"
 
-extern FILE	       *yyin;
-extern enum notesym	parsetree;
+extern FILE			*yyin;
+extern struct musicexpr		*parsetree;
 
 static int	testwrite(int);
 int		yyparse(void);
@@ -39,6 +39,8 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
+	struct musicexpr *me1, *me2;
+
         if (mdl_sandbox("stdio") == -1) {
 		warnx("sandbox error");
 		return 1;
@@ -54,7 +56,14 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	(void) printf("parse ok, got parse result: %d\n", parsetree);
+	(void) printf("parse ok, got parse result:\n");
+	me1 = parsetree;
+	for (me1 = parsetree; me1; me1 = me1->next) {
+		(void) printf("%d\n", me1->note);
+		me2 = me1;
+		me1 = me1->next;
+		free(me2);
+	}
 
 	testwrite(sequencer_socket);
 
