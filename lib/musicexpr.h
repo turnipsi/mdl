@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.3 2015/11/06 20:57:57 je Exp $ */
+/* $Id: musicexpr.h,v 1.4 2015/11/07 20:24:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,5 +48,7 @@ struct musicexpr_t {
 	struct relnote_t relnote;
 	struct musicexpr_t *next;
 };
+
+void	free_musicexpr(struct musicexpr_t *);
 
 #endif

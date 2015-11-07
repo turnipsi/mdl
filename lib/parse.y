@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.9 2015/11/06 20:57:57 je Exp $
+/* $Id: parse.y,v 1.10 2015/11/07 20:24:59 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,6 +67,7 @@ smusicexpr:	relnote {
 			$$ = malloc(sizeof(struct musicexpr_t));
 			if ($$ == NULL) {
 				warn("%s", "malloc error");
+				free_musicexpr($3);
 				YYERROR;
 			}
 			$$->relnote = $1;

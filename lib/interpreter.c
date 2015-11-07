@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.17 2015/11/06 20:57:57 je Exp $ */
+/* $Id: interpreter.c,v 1.18 2015/11/07 20:24:59 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,7 +39,7 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
-	struct musicexpr_t *me1, *me2;
+	struct musicexpr_t *me;
 
         if (mdl_sandbox("stdio") == -1) {
 		warnx("sandbox error");
@@ -57,13 +57,15 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	(void) printf("parse ok, got parse result:\n");
-	me1 = parsetree;
-	while (me1) {
-		(void) printf("%d\n", me1->relnote.notesym);
-		me2 = me1;
-		me1 = me1->next;
-		free(me2);
-	}
+	for (me = parsetree; me; me = me->next)
+		(void) printf("notesym=%d dotcount=%d"
+				" lengthbase=%d updown_mod=%d\n",
+			      me->relnote.notesym,
+			      me->relnote.dotcount,
+			      me->relnote.lengthbase,
+			      me->relnote.updown_mod);
+
+	free_musicexpr(parsetree);
 
 	testwrite(sequencer_socket);
 
