@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.6 2015/11/05 20:24:51 je Exp $ */
+/* $Id: lex.l,v 1.7 2015/11/08 20:57:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,9 @@
  */
 
 #define yywrap() 1
+
+#include <limits.h>
+#include <stdlib.h>
 
 #include "musicexpr.h"
 #include "y.tab.h"   
@@ -41,6 +44,15 @@ a	{ return NOTETOKEN_A;   }
 ais	{ return NOTETOKEN_AIS; }
 bes	{ return NOTETOKEN_BES; }
 b	{ return NOTETOKEN_B;   }
+
+"."		{ return LENGTHDOT; }
+[1-9][0-9]*	{
+			/* XXX error handling */
+			yylval.i = strtonum(yytext, 1, INT_MAX, NULL);
+			return LENGTHNUMBER;
+		}
+'		{ return OCTAVEUP; }
+,		{ return OCTAVEDOWN; }
 
 [ \t\n]+	{ return WHITESPACE; }
 %%

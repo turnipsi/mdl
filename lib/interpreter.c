@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.18 2015/11/07 20:24:59 je Exp $ */
+/* $Id: interpreter.c,v 1.19 2015/11/08 20:57:06 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -58,12 +58,10 @@ handle_musicfile_and_socket(int file_fd,
 
 	(void) printf("parse ok, got parse result:\n");
 	for (me = parsetree; me; me = me->next)
-		(void) printf("notesym=%d dotcount=%d"
-				" lengthbase=%d updown_mod=%d\n",
+		(void) printf("notesym=%d octavemods=%d length=%f\n",
 			      me->relnote.notesym,
-			      me->relnote.dotcount,
-			      me->relnote.lengthbase,
-			      me->relnote.updown_mod);
+			      me->relnote.octavemods,
+			      me->relnote.length);
 
 	free_musicexpr(parsetree);
 

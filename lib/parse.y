@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.10 2015/11/07 20:24:59 je Exp $
+/* $Id: parse.y,v 1.11 2015/11/08 20:57:06 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,21 +30,29 @@ int	yyparse(void);
 %}
 
 %union {
-	enum notesym_t		notesym;
-	struct relnote_t	relnote;
 	struct musicexpr_t     *musicexpr;
+	struct relnote_t	relnote;
+	enum notesym_t		notesym;
+	float			f;
+	int			i;
 }
 
-%token	<note>	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D
-		NOTETOKEN_DIS NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F
-		NOTETOKEN_FIS NOTETOKEN_GES NOTETOKEN_G   NOTETOKEN_GIS
-		NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS NOTETOKEN_BES
-		NOTETOKEN_B
-%token		WHITESPACE
+%token	<notesym>	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D
+			NOTETOKEN_DIS NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F
+			NOTETOKEN_FIS NOTETOKEN_GES NOTETOKEN_G   NOTETOKEN_GIS
+			NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS NOTETOKEN_BES
+			NOTETOKEN_B
+%token	<i>		LENGTHDOT
+%token	<i>		LENGTHNUMBER
+%token	<i>		OCTAVEUP
+%token	<i>		OCTAVEDOWN
+%token			WHITESPACE
 
-%type	<notesym>	notesym
-%type	<relnote>	relnote
 %type	<musicexpr>	grammar musicexpr smusicexpr
+%type	<relnote>	relnote
+%type	<notesym>	notesym
+%type	<i>		octavemods octaveupmods octavedownmods lengthdots
+%type	<f>		notelength
 
 %%
 
@@ -62,7 +70,7 @@ smusicexpr:	relnote {
 			}
 			$$->relnote = $1;
 			$$->next = NULL;
-		}
+		  }
 		| relnote WHITESPACE smusicexpr {
 			$$ = malloc(sizeof(struct musicexpr_t));
 			if ($$ == NULL) {
@@ -73,17 +81,14 @@ smusicexpr:	relnote {
 			$$->relnote = $1;
 			$$->next = $3;
 		  }
-		| {} /* empty */
+		| /* empty */ {}
 		;
 
-
-
-relnote:	notesym {
+relnote:	notesym octavemods notelength {
 			$$.notesym    = $1;
-			$$.dotcount   = 0;
-			$$.lengthbase = 0;
-			$$.updown_mod = 0;
-		}
+			$$.octavemods = $2;
+			$$.length     = $3;
+		  }
 		;
 
 notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
@@ -105,7 +110,46 @@ notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
 		| NOTETOKEN_B   { $$ = NOTE_B;   }
 		;
 
+octavemods:	octaveupmods { $$ = $1; }
+		| octavedownmods { $$ = $1; }
+		;
+
+octaveupmods:	OCTAVEUP octaveupmods { $$ = $2 + 1; }
+		| /* empty */ { $$ = 0; }
+		;
+
+octavedownmods:	OCTAVEDOWN octavedownmods { $$ = $2 - 1; }
+		| /* empty */ { $$ = 0; }
+		;
+
+notelength:	LENGTHNUMBER lengthdots {
+			$$ = countlength($1, $2);
+		  }
+		| /* empty */ { $$ = 0.0; }
+		;
+
+lengthdots:	LENGTHDOT lengthdots { $$ = $2 + 1; }
+		| /* empty */ { $$ = 0; }
+		;
+
 %%
+
+float
+countlength(int lengthbase, int dotcount)
+{
+	float length, lengthextender;
+	int i;
+	
+	length = 1.0 / lengthbase;
+	lengthextender = length;
+
+	for (i = 0; i < dotcount; i++) {
+		lengthextender /= 2;
+		length += lengthextender;
+	}
+
+	return length;
+}
 
 void
 yyerror(const char *fmt, ...)
