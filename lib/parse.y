@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.11 2015/11/08 20:57:06 je Exp $
+/* $Id: parse.y,v 1.12 2015/11/08 21:01:00 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -112,14 +112,15 @@ notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
 
 octavemods:	octaveupmods { $$ = $1; }
 		| octavedownmods { $$ = $1; }
+		| /* empty */ { $$ = 0; }
 		;
 
 octaveupmods:	OCTAVEUP octaveupmods { $$ = $2 + 1; }
-		| /* empty */ { $$ = 0; }
+		| OCTAVEUP { $$ = 1; }
 		;
 
 octavedownmods:	OCTAVEDOWN octavedownmods { $$ = $2 - 1; }
-		| /* empty */ { $$ = 0; }
+		| OCTAVEDOWN { $$ = -1; }
 		;
 
 notelength:	LENGTHNUMBER lengthdots {
