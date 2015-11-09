@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.19 2015/11/08 20:57:06 je Exp $ */
+/* $Id: interpreter.c,v 1.20 2015/11/09 20:15:07 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,9 +23,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "compat.h"
 #include "midi.h"
 #include "musicexpr.h"
-#include "util.h"
 
 extern FILE			*yyin;
 extern struct musicexpr_t	*parsetree;
@@ -41,8 +41,8 @@ handle_musicfile_and_socket(int file_fd,
 {
 	struct musicexpr_t *me;
 
-        if (mdl_sandbox("stdio") == -1) {
-		warnx("sandbox error");
+        if (pledge("stdio", NULL) == -1) {
+		warn("pledge");
 		return 1;
 	}
 

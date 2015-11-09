@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.33 2015/11/05 20:24:51 je Exp $ */
+/* $Id: mdl.c,v 1.34 2015/11/09 20:15:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,9 +33,9 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "compat.h"
 #include "interpreter.h"
 #include "sequencer.h"
-#include "util.h"
 
 #define SOCKETPATH_LEN 104
 
@@ -82,9 +82,9 @@ main(int argc, char *argv[])
 	malloc_options = (char *) "AFGJPS";
 #endif
 
-	if (mdl_sandbox(
-	      "cpath flock proc recvfd rpath sendfd stdio unix wpath") == -1)
-		errx(1, "sandbox error");
+	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
+		   NULL) == -1)
+		err(1, "pledge");
 
 	signal(SIGINT,  handle_signal);
 	signal(SIGTERM, handle_signal);
@@ -130,9 +130,9 @@ main(int argc, char *argv[])
 		}
 	}
 
-	if (mdl_sandbox("cpath proc recvfd rpath sendfd stdio unix wpath")
+	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
 	      == -1)
-		errx(1, "sandbox error");
+		err(1, "pledge");
 
 	if (get_default_socketpath(server_socketpath, mdldir) != 0)
 		errx(1, "could not get default socketpath");
@@ -235,8 +235,8 @@ setup_sequencer_for_sources(char **files,
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second endpoint of ms_sp");
 
-	if (mdl_sandbox("cpath proc rpath sendfd stdio unix") == -1) {
-		warnx("sandbox error");
+	if (pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
+		warn("pledge");
 		retvalue = 1;
 		goto finish;
 	}
@@ -248,8 +248,8 @@ setup_sequencer_for_sources(char **files,
 		}
 	}
 
-	if (mdl_sandbox("cpath proc rpath sendfd stdio") == -1) {
-		warnx("sandbox error");
+	if (pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
+		warn("pledge");
 		retvalue = 1;
 		goto finish;
 	}
@@ -287,8 +287,8 @@ setup_sequencer_for_sources(char **files,
 	}
 
 finish:
-	if (mdl_sandbox("cpath stdio") == -1) {
-		warnx("sandbox error");
+	if (pledge("cpath stdio", NULL) == -1) {
+		warn("pledge");
 		return 1;
 	}
 
@@ -301,8 +301,8 @@ finish:
 	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
-	if (mdl_sandbox("stdio") == -1) {
-		warnx("sandbox error");
+	if (pledge("stdio", NULL) == -1) {
+		warn("pledge");
 		return 1;
 	}
 

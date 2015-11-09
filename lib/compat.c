@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.4 2015/11/03 19:58:09 je Exp $ */
+/* $Id: compat.c,v 1.1 2015/11/09 20:15:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,23 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <err.h>
-#include <unistd.h>
+#include "compat.h"
 
-#include "util.h"
-
-int
-mdl_sandbox(const char *request)
-{
 #ifdef SANDBOX_NONE
+int
+pledge(const char *request, const char *paths[])
+{
 	return 0;
-#else
-	int ret;
-
-	ret = pledge(request, NULL);
-	if (ret == -1)
-		warn("pledge");
-
-	return ret;
-#endif
 }
+#endif

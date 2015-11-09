@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.53 2015/11/03 19:58:09 je Exp $ */
+/* $Id: sequencer.c,v 1.54 2015/11/09 20:15:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,9 +32,9 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "compat.h"
 #include "midi.h"
 #include "sequencer.h"
-#include "util.h"
 
 #define EVENTBLOCKCOUNT		1024
 
@@ -119,8 +119,8 @@ sequencer_loop(int main_socket)
 
 	/* XXX receiving fd works even if recvfd is not specified...
 	 * XXX is this a bug? */
-	if (mdl_sandbox("rpath recvfd stdio unix wpath") == -1) {
-		warnx("sandbox error");
+	if (pledge("rpath recvfd stdio unix wpath", NULL) == -1) {
+		warn("pledge");
 		return 1;
 	}
 
@@ -135,8 +135,8 @@ sequencer_loop(int main_socket)
 		return 1;
 	}
 
-	if (mdl_sandbox("recvfd stdio") == -1) {
-		warnx("sandbox error");
+	if (pledge("recvfd stdio", NULL) == -1) {
+		warn("pledge");
 		sequencer_close();
 		return 1;
 	}
