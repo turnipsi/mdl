@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.2 2015/11/10 20:23:49 je Exp $ */
+/* $Id: musicexpr.c,v 1.3 2015/11/10 20:57:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,21 +16,46 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <assert.h>
 #include <stdlib.h>
 
 #include "musicexpr.h"
 
 void
+print_musicexpr(struct musicexpr_t *me)
+{
+	/* XXX should handle possible types in a nice way */
+}
+
+void
 free_musicexpr(struct musicexpr_t *me)
+{
+	switch (me->me_type) {
+		case ME_TYPE_ABSNOTE:
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_SEQUENCE:
+			free_sequence(me->sequence);
+			break;
+		case ME_TYPE_WITHOFFSET:
+			free_musicexpr(me->offset_expr.me);
+			break;
+		default:
+			assert(0);
+	}
+
+	free(me);
+}
+
+void
+free_sequence(struct sequence_t *seq)
 {
 	struct sequence_t *p, *q;
 
-	/* XXX presumes things */
-
-	p = me->sequence;
+	p = seq;
 	while (p) {
 		q = p;
 		p = p->next;
-		free(q);
+		free_musicexpr(q->me);
 	}
 }

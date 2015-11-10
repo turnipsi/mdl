@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.6 2015/11/10 20:23:49 je Exp $ */
+/* $Id: musicexpr.h,v 1.7 2015/11/10 20:57:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -70,12 +70,14 @@ struct sequence_t {
 struct musicexpr_t {
 	enum musicexpr_type me_type;
 	union {
-		struct absnote_t	absnote;
-		struct relnote_t	relnote;
-		struct sequence_t      *sequence;
+		struct absnote_t		absnote;
+		struct relnote_t		relnote;
+		struct sequence_t	       *sequence;
+		struct musicexpr_with_offset_t	offset_expr;
 	};
 };
 
 void	free_musicexpr(struct musicexpr_t *);
+void	free_sequence(struct sequence_t *);
 
 #endif
