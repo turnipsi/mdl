@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.12 2015/11/08 21:01:00 je Exp $
+/* $Id: parse.y,v 1.13 2015/11/10 20:23:49 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 
 #include "musicexpr.h"
 
-struct musicexpr_t *parsetree;
+struct musicexpr_t *parsed_expr;
 
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
@@ -30,6 +30,7 @@ int	yyparse(void);
 %}
 
 %union {
+	struct sequence_t      *sequence;
 	struct musicexpr_t     *musicexpr;
 	struct relnote_t	relnote;
 	enum notesym_t		notesym;
@@ -48,7 +49,8 @@ int	yyparse(void);
 %token	<i>		OCTAVEDOWN
 %token			WHITESPACE
 
-%type	<musicexpr>	grammar musicexpr smusicexpr
+%type	<musicexpr>	grammar musicexpr musicexpr_sequence
+%type	<sequence>	sequence sp_sequence
 %type	<relnote>	relnote
 %type	<notesym>	notesym
 %type	<i>		octavemods octaveupmods octavedownmods lengthdots
@@ -56,32 +58,57 @@ int	yyparse(void);
 
 %%
 
-grammar:	musicexpr { parsetree = $1; }
+grammar:	musicexpr_sequence { parsed_expr = $1; }
 
-musicexpr:	smusicexpr { $$ = $1; }
-		| WHITESPACE smusicexpr { $$ = $2; }
+musicexpr_sequence:
+		sequence {
+			$$ = malloc(sizeof(struct musicexpr_t));
+			if ($$ == NULL) {
+				/* XXX what should be freed? */
+				warn("%s", "malloc error");
+				YYERROR;
+			}
+			$$->me_type = ME_TYPE_SEQUENCE;
+			$$->sequence = $1;
+		}
 		;
 
-smusicexpr:	relnote {
-			$$ = malloc(sizeof(struct musicexpr_t));
+sequence:	sp_sequence { $$ = $1; }
+		| WHITESPACE sp_sequence { $$ = $2; }
+		;
+
+sp_sequence:	musicexpr {
+			$$ = malloc(sizeof(struct sequence_t));
 			if ($$ == NULL) {
 				warn("%s", "malloc error");
 				YYERROR;
 			}
-			$$->relnote = $1;
+			$$->me = $1;
 			$$->next = NULL;
 		  }
-		| relnote WHITESPACE smusicexpr {
-			$$ = malloc(sizeof(struct musicexpr_t));
+		| musicexpr WHITESPACE sp_sequence {
+			$$ = malloc(sizeof(struct sequence_t));
 			if ($$ == NULL) {
+				/* XXX what should be freed? */
 				warn("%s", "malloc error");
-				free_musicexpr($3);
 				YYERROR;
 			}
-			$$->relnote = $1;
+			$$->me = $1;
 			$$->next = $3;
 		  }
 		| /* empty */ {}
+		;
+
+musicexpr:	relnote {
+			$$ = malloc(sizeof(struct musicexpr_t));
+			if ($$ == NULL) {
+				/* XXX what should be freed? */
+				warn("%s", "malloc error");
+				YYERROR;
+			}
+			$$->me_type = ME_TYPE_RELNOTE;
+			$$->relnote = $1;
+		}
 		;
 
 relnote:	notesym octavemods notelength {

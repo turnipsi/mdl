@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.1 2015/11/09 20:15:19 je Exp $ */
+/* $Id: musicexpr.c,v 1.2 2015/11/10 20:23:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,9 +23,11 @@
 void
 free_musicexpr(struct musicexpr_t *me)
 {
-	struct musicexpr_t *p, *q;
+	struct sequence_t *p, *q;
 
-	p = me;
+	/* XXX presumes things */
+
+	p = me->sequence;
 	while (p) {
 		q = p;
 		p = p->next;

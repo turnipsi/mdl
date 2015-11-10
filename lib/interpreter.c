@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.20 2015/11/09 20:15:07 je Exp $ */
+/* $Id: interpreter.c,v 1.21 2015/11/10 20:23:49 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,7 +28,7 @@
 #include "musicexpr.h"
 
 extern FILE			*yyin;
-extern struct musicexpr_t	*parsetree;
+extern struct musicexpr_t	*parsed_expr;
 
 static int	testwrite(int);
 int		yyparse(void);
@@ -40,6 +40,7 @@ handle_musicfile_and_socket(int file_fd,
 			    int server_socket)
 {
 	struct musicexpr_t *me;
+	struct sequence_t *seq;
 
         if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
@@ -57,13 +58,26 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	(void) printf("parse ok, got parse result:\n");
-	for (me = parsetree; me; me = me->next)
+	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
+		warnx("expected sequence");
+		return 1;
+	}
+
+	for (seq = parsed_expr->sequence; seq; seq = seq->next) {
+		me = seq->me;
+		if (me->me_type != ME_TYPE_RELNOTE) {
+			warnx("expected sequence");
+			free_musicexpr(parsed_expr);
+			return 1;
+		}
+
 		(void) printf("notesym=%d octavemods=%d length=%f\n",
 			      me->relnote.notesym,
 			      me->relnote.octavemods,
 			      me->relnote.length);
+	}
 
-	free_musicexpr(parsetree);
+	free_musicexpr(parsed_expr);
 
 	testwrite(sequencer_socket);
 

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.5 2015/11/08 20:57:06 je Exp $ */
+/* $Id: musicexpr.h,v 1.6 2015/11/10 20:23:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,13 @@
 
 #ifndef MDL_MUSICEXPR_H
 #define MDL_MUSICEXPR_H
+
+enum musicexpr_type {
+	ME_TYPE_ABSNOTE,
+	ME_TYPE_RELNOTE,
+	ME_TYPE_SEQUENCE,
+	ME_TYPE_WITHOFFSET,
+};
 
 enum notesym_t {
 	NOTE_C,
@@ -39,15 +46,34 @@ enum notesym_t {
 	NOTE_B,
 };
 
+struct absnote_t {
+	float length, time_as_measures;
+	u_int8_t note;
+};
+
 struct relnote_t {
 	enum notesym_t notesym;
 	float length;
 	int octavemods;
 };
 
+struct musicexpr_with_offset_t {
+	float			offset;
+	struct musicexpr_t     *me;
+};
+
+struct sequence_t {
+	struct musicexpr_t     *me;
+	struct sequence_t      *next;
+};
+
 struct musicexpr_t {
-	struct relnote_t relnote;
-	struct musicexpr_t *next;
+	enum musicexpr_type me_type;
+	union {
+		struct absnote_t	absnote;
+		struct relnote_t	relnote;
+		struct sequence_t      *sequence;
+	};
 };
 
 void	free_musicexpr(struct musicexpr_t *);
