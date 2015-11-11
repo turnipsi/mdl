@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.4 2015/11/11 20:02:53 je Exp $ */
+/* $Id: musicexpr.c,v 1.5 2015/11/11 20:14:44 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,10 +20,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "midi.h"
 #include "musicexpr.h"
 
 int
-print_musicexpr(int indentlevel, struct musicexpr_t *me)
+musicexpr_offsetize(struct musicexpr_t *me)
+{
+	/* XXX */
+
+	return 0;
+}
+
+int
+musicexpr_relative_to_absolute(struct musicexpr_t *me)
+{
+	/* XXX */
+
+	return 0;
+}
+
+int
+musicexpr_to_midievents(struct musicexpr_t *me)
+{
+	/* XXX */
+
+	return 0;
+}
+
+int
+musicexpr_print(int indentlevel, struct musicexpr_t *me)
 {
 	int i, ret;
 
@@ -48,14 +73,15 @@ print_musicexpr(int indentlevel, struct musicexpr_t *me)
 				     me->relnote.octavemods);
 			break;
 		case ME_TYPE_SEQUENCE:
-			ret = print_sequence(indentlevel + 2, me->sequence);
+			ret = musicexpr_print_sequence(indentlevel + 2,
+						       me->sequence);
 			break;
 		case ME_TYPE_WITHOFFSET:
 			ret = printf("offset_expr offset=%f\n",
 				     me->offset_expr.offset);
 			if (ret < 0)
 				break;
-			ret = print_musicexpr(indentlevel + 2,
+			ret = musicexpr_print(indentlevel + 2,
 					      me->offset_expr.me);
 			break;
 		default:
@@ -66,7 +92,7 @@ print_musicexpr(int indentlevel, struct musicexpr_t *me)
 }
 
 int
-print_sequence(int indentlevel, struct sequence_t *seq)
+musicexpr_print_sequence(int indentlevel, struct sequence_t *seq)
 {
 	struct sequence_t *p;
 	int ret;
@@ -74,7 +100,7 @@ print_sequence(int indentlevel, struct sequence_t *seq)
 	ret = 0;
 
 	for (p = seq; p != NULL; p = p->next) {
-		ret = print_musicexpr(indentlevel, p->me);
+		ret = musicexpr_print(indentlevel, p->me);
 		if (ret < 0)
 			break;
 	}
@@ -83,17 +109,17 @@ print_sequence(int indentlevel, struct sequence_t *seq)
 }
 
 void
-free_musicexpr(struct musicexpr_t *me)
+musicexpr_free(struct musicexpr_t *me)
 {
 	switch (me->me_type) {
 		case ME_TYPE_ABSNOTE:
 		case ME_TYPE_RELNOTE:
 			break;
 		case ME_TYPE_SEQUENCE:
-			free_sequence(me->sequence);
+			musicexpr_free_sequence(me->sequence);
 			break;
 		case ME_TYPE_WITHOFFSET:
-			free_musicexpr(me->offset_expr.me);
+			musicexpr_free(me->offset_expr.me);
 			break;
 		default:
 			assert(0);
@@ -103,7 +129,7 @@ free_musicexpr(struct musicexpr_t *me)
 }
 
 void
-free_sequence(struct sequence_t *seq)
+musicexpr_free_sequence(struct sequence_t *seq)
 {
 	struct sequence_t *p, *q;
 
@@ -111,6 +137,6 @@ free_sequence(struct sequence_t *seq)
 	while (p) {
 		q = p;
 		p = p->next;
-		free_musicexpr(q->me);
+		musicexpr_free(q->me);
 	}
 }

@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.14 2015/11/10 20:57:47 je Exp $
+/* $Id: parse.y,v 1.15 2015/11/11 20:14:44 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,7 +64,7 @@ musicexpr_sequence:
 		sequence {
 			$$ = malloc(sizeof(struct musicexpr_t));
 			if ($$ == NULL) {
-				free_sequence($1);
+				musicexpr_free_sequence($1);
 				warn("%s", "malloc error");
 				YYERROR;
 			}
@@ -89,8 +89,8 @@ sp_sequence:	musicexpr {
 		| musicexpr WHITESPACE sp_sequence {
 			$$ = malloc(sizeof(struct sequence_t));
 			if ($$ == NULL) {
-				free_musicexpr($1);
-				free_sequence($3);
+				musicexpr_free($1);
+				musicexpr_free_sequence($3);
 				warn("%s", "malloc error");
 				YYERROR;
 			}

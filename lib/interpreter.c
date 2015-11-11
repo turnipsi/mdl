@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.22 2015/11/11 20:02:53 je Exp $ */
+/* $Id: interpreter.c,v 1.23 2015/11/11 20:14:44 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -60,8 +60,8 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	print_musicexpr(0, parsed_expr);
-	free_musicexpr(parsed_expr);
+	musicexpr_print(0, parsed_expr);
+	musicexpr_free(parsed_expr);
 
 	testwrite(sequencer_socket);
 
