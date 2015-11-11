@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.21 2015/11/10 20:23:49 je Exp $ */
+/* $Id: interpreter.c,v 1.22 2015/11/11 20:02:53 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,9 +39,6 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
-	struct musicexpr_t *me;
-	struct sequence_t *seq;
-
         if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
 		return 1;
@@ -63,20 +60,7 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	for (seq = parsed_expr->sequence; seq; seq = seq->next) {
-		me = seq->me;
-		if (me->me_type != ME_TYPE_RELNOTE) {
-			warnx("expected sequence");
-			free_musicexpr(parsed_expr);
-			return 1;
-		}
-
-		(void) printf("notesym=%d octavemods=%d length=%f\n",
-			      me->relnote.notesym,
-			      me->relnote.octavemods,
-			      me->relnote.length);
-	}
-
+	print_musicexpr(0, parsed_expr);
 	free_musicexpr(parsed_expr);
 
 	testwrite(sequencer_socket);
