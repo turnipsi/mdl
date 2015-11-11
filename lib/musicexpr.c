@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.5 2015/11/11 20:14:44 je Exp $ */
+/* $Id: musicexpr.c,v 1.6 2015/11/11 20:26:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -73,6 +73,9 @@ musicexpr_print(int indentlevel, struct musicexpr_t *me)
 				     me->relnote.octavemods);
 			break;
 		case ME_TYPE_SEQUENCE:
+			ret = printf("sequence\n");
+			if (ret < 0)
+				break;
 			ret = musicexpr_print_sequence(indentlevel + 2,
 						       me->sequence);
 			break;
