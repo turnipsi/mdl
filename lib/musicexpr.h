@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.9 2015/11/11 20:14:44 je Exp $ */
+/* $Id: musicexpr.h,v 1.10 2015/11/12 20:26:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,7 @@ enum musicexpr_type {
 	ME_TYPE_RELNOTE,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_WITHOFFSET,
+	ME_TYPE_JOINEXPR,
 };
 
 enum notesym_t {

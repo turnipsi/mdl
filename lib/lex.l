@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.7 2015/11/08 20:57:06 je Exp $ */
+/* $Id: lex.l,v 1.8 2015/11/12 20:26:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,6 +53,8 @@ b	{ return NOTETOKEN_B;   }
 		}
 '		{ return OCTAVEUP; }
 ,		{ return OCTAVEDOWN; }
+
+~ 		{ return JOINEXPR; }
 
 [ \t\n]+	{ return WHITESPACE; }
 %%

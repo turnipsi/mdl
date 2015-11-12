@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.6 2015/11/11 20:26:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.7 2015/11/12 20:26:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -87,6 +87,9 @@ musicexpr_print(int indentlevel, struct musicexpr_t *me)
 			ret = musicexpr_print(indentlevel + 2,
 					      me->offset_expr.me);
 			break;
+		case ME_TYPE_JOINEXPR:
+			ret = printf("joinexpr\n");
+			break;
 		default:
 			assert(0);
 	}
@@ -117,6 +120,7 @@ musicexpr_free(struct musicexpr_t *me)
 	switch (me->me_type) {
 		case ME_TYPE_ABSNOTE:
 		case ME_TYPE_RELNOTE:
+		case ME_TYPE_JOINEXPR:
 			break;
 		case ME_TYPE_SEQUENCE:
 			musicexpr_free_sequence(me->sequence);

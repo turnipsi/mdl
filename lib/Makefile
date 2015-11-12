@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2015/11/09 20:15:07 je Exp $
+# $Id: Makefile,v 1.17 2015/11/12 20:26:57 je Exp $
 
 PROG=	mdl
 SRCS=	compat.c interpreter.c mdl.c midi.c musicexpr.c parse.y lex.l \
@@ -12,6 +12,6 @@ PREFIX ?= /usr/local
 BINDIR=	${PREFIX}/bin
 MANDIR=	${PREFIX}/man/man
 
-COPTS+=	-Wall
+COPTS+=	-g -Wall
 
 .include <bsd.prog.mk>

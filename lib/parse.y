@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.15 2015/11/11 20:14:44 je Exp $
+/* $Id: parse.y,v 1.16 2015/11/12 20:26:57 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,6 +43,7 @@ int	yyparse(void);
 			NOTETOKEN_FIS NOTETOKEN_GES NOTETOKEN_G   NOTETOKEN_GIS
 			NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS NOTETOKEN_BES
 			NOTETOKEN_B
+%token			JOINEXPR
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
@@ -109,6 +110,14 @@ musicexpr:	relnote {
 			$$->me_type = ME_TYPE_RELNOTE;
 			$$->relnote = $1;
 		}
+		| JOINEXPR {
+			$$ = malloc(sizeof(struct musicexpr_t));
+			if ($$ == NULL) {
+				warn("%s", "malloc error");
+				YYERROR;
+			}
+			$$->me_type = ME_TYPE_JOINEXPR;
+		  }
 		;
 
 relnote:	notesym octavemods notelength {
