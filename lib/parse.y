@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.16 2015/11/12 20:26:57 je Exp $
+/* $Id: parse.y,v 1.17 2015/11/15 20:02:09 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,11 +38,11 @@ int	yyparse(void);
 	int			i;
 }
 
-%token	<notesym>	NOTETOKEN_C   NOTETOKEN_CIS NOTETOKEN_DES NOTETOKEN_D
-			NOTETOKEN_DIS NOTETOKEN_ES  NOTETOKEN_E   NOTETOKEN_F
-			NOTETOKEN_FIS NOTETOKEN_GES NOTETOKEN_G   NOTETOKEN_GIS
-			NOTETOKEN_AES NOTETOKEN_A   NOTETOKEN_AIS NOTETOKEN_BES
+%token	<notesym>	NOTETOKEN_C	NOTETOKEN_D	NOTETOKEN_E
+			NOTETOKEN_F	NOTETOKEN_G	NOTETOKEN_A
 			NOTETOKEN_B
+%token	<i>		NOTETOKEN_ES	NOTETOKEN_IS
+			
 %token			JOINEXPR
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
@@ -54,7 +54,7 @@ int	yyparse(void);
 %type	<sequence>	sequence sp_sequence
 %type	<relnote>	relnote
 %type	<notesym>	notesym
-%type	<i>		octavemods octaveupmods octavedownmods lengthdots
+%type	<i>		notemods octavemods lengthdots
 %type	<f>		notelength
 
 %%
@@ -120,43 +120,38 @@ musicexpr:	relnote {
 		  }
 		;
 
-relnote:	notesym octavemods notelength {
+relnote:	notesym notemods octavemods notelength {
 			$$.notesym    = $1;
+			$$.notemods   = $2;
+			$$.octavemods = $3;
+			$$.length     = $4;
+		  }
+		| NOTETOKEN_ES octavemods notelength {
+			/* "es" is a special case */
+			$$.notesym    = NOTE_E;
+			$$.notemods   = - $1;
 			$$.octavemods = $2;
 			$$.length     = $3;
-		  }
+		}
 		;
 
-notesym:	NOTETOKEN_C	{ $$ = NOTE_C;   }
-		| NOTETOKEN_CIS { $$ = NOTE_CIS; }
-		| NOTETOKEN_DES { $$ = NOTE_DES; }
-		| NOTETOKEN_D   { $$ = NOTE_D;   }
-		| NOTETOKEN_DIS { $$ = NOTE_DIS; }
-		| NOTETOKEN_ES  { $$ = NOTE_ES;  }
-		| NOTETOKEN_E   { $$ = NOTE_E;   }
-		| NOTETOKEN_F   { $$ = NOTE_F;   }
-		| NOTETOKEN_FIS { $$ = NOTE_FIS; }
-		| NOTETOKEN_GES { $$ = NOTE_GES; }
-		| NOTETOKEN_G   { $$ = NOTE_G;   }
-		| NOTETOKEN_GIS { $$ = NOTE_GIS; }
-		| NOTETOKEN_AES { $$ = NOTE_AES; }
-		| NOTETOKEN_A   { $$ = NOTE_A;   }
-		| NOTETOKEN_AIS { $$ = NOTE_AIS; }
-		| NOTETOKEN_BES { $$ = NOTE_AES; }
-		| NOTETOKEN_B   { $$ = NOTE_B;   }
+notesym:	NOTETOKEN_C   { $$ = NOTE_C; }
+		| NOTETOKEN_D { $$ = NOTE_D; }
+		| NOTETOKEN_E { $$ = NOTE_E; }
+		| NOTETOKEN_F { $$ = NOTE_F; }
+		| NOTETOKEN_G { $$ = NOTE_G; }
+		| NOTETOKEN_A { $$ = NOTE_A; }
+		| NOTETOKEN_B { $$ = NOTE_B; }
 		;
 
-octavemods:	octaveupmods { $$ = $1; }
-		| octavedownmods { $$ = $1; }
+notemods:	NOTETOKEN_IS   { $$ = + $1; }
+		| NOTETOKEN_ES { $$ = - $1; }
+		| /* empty */  { $$ = 0;    }
+		;
+
+octavemods:	OCTAVEUP { $$ = + $1; }
+		| OCTAVEDOWN { $$ = - $1; }
 		| /* empty */ { $$ = 0; }
-		;
-
-octaveupmods:	OCTAVEUP octaveupmods { $$ = $2 + 1; }
-		| OCTAVEUP { $$ = 1; }
-		;
-
-octavedownmods:	OCTAVEDOWN octavedownmods { $$ = $2 - 1; }
-		| OCTAVEDOWN { $$ = -1; }
 		;
 
 notelength:	LENGTHNUMBER lengthdots {
@@ -165,7 +160,7 @@ notelength:	LENGTHNUMBER lengthdots {
 		| /* empty */ { $$ = 0.0; }
 		;
 
-lengthdots:	LENGTHDOT lengthdots { $$ = $2 + 1; }
+lengthdots:	LENGTHDOT { $$ = $1; }
 		| /* empty */ { $$ = 0; }
 		;
 

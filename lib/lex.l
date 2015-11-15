@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.8 2015/11/12 20:26:57 je Exp $ */
+/* $Id: lex.l,v 1.9 2015/11/15 20:02:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,38 +21,32 @@
 
 #include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "musicexpr.h"
 #include "y.tab.h"   
 %}
 
 %%
-c	{ return NOTETOKEN_C;   }
-cis	{ return NOTETOKEN_CIS; }
-des	{ return NOTETOKEN_DES; }
-d	{ return NOTETOKEN_D;   }
-dis	{ return NOTETOKEN_DIS; }
-es	{ return NOTETOKEN_ES;  }
-e	{ return NOTETOKEN_E;   }
-f	{ return NOTETOKEN_F;   }
-fis	{ return NOTETOKEN_FIS; }
-ges	{ return NOTETOKEN_GES; }
-g	{ return NOTETOKEN_G;   }
-gis	{ return NOTETOKEN_GIS; }
-aes	{ return NOTETOKEN_AES; }
-a	{ return NOTETOKEN_A;   }
-ais	{ return NOTETOKEN_AIS; }
-bes	{ return NOTETOKEN_BES; }
-b	{ return NOTETOKEN_B;   }
+(es)+	{ yylval.i = strlen(yytext) / 2; return NOTETOKEN_ES; }
+(is)+	{ yylval.i = strlen(yytext) / 2; return NOTETOKEN_IS; }
 
-"."		{ return LENGTHDOT; }
+c	{ return NOTETOKEN_C; }
+d	{ return NOTETOKEN_D; }
+e	{ return NOTETOKEN_E; }
+f	{ return NOTETOKEN_F; }
+g	{ return NOTETOKEN_G; }
+a	{ return NOTETOKEN_A; }
+b	{ return NOTETOKEN_B; }
+
+\.+		{ yylval.i = strlen(yytext); return LENGTHDOT; }
 [1-9][0-9]*	{
 			/* XXX error handling */
 			yylval.i = strtonum(yytext, 1, INT_MAX, NULL);
 			return LENGTHNUMBER;
 		}
-'		{ return OCTAVEUP; }
-,		{ return OCTAVEDOWN; }
+'+		{ yylval.i = strlen(yytext); return OCTAVEUP; }
+,+		{ yylval.i = strlen(yytext); return OCTAVEDOWN; }
 
 ~ 		{ return JOINEXPR; }
 

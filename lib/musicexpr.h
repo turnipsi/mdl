@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.11 2015/11/12 21:30:57 je Exp $ */
+/* $Id: musicexpr.h,v 1.12 2015/11/15 20:02:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,25 +27,8 @@ enum musicexpr_type {
 	ME_TYPE_JOINEXPR,
 };
 
-enum notesym_t {
-	NOTE_C,
-	NOTE_CIS,
-	NOTE_DES,
-	NOTE_D,
-	NOTE_DIS,
-	NOTE_ES,
-	NOTE_E,
-	NOTE_F,
-	NOTE_FIS,
-	NOTE_GES,
-	NOTE_G,
-	NOTE_GIS,
-	NOTE_AES,
-	NOTE_A,
-	NOTE_AIS,
-	NOTE_BES,
-	NOTE_B,
-};
+enum notesym_t { NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, };
+enum notemod_t { NOTEMOD_ES, NOTEMOD_IS, };
 
 struct absnote_t {
 	float length, time_as_measures;
@@ -55,7 +38,7 @@ struct absnote_t {
 struct relnote_t {
 	enum notesym_t notesym;
 	float length;
-	int octavemods;
+	int notemods, octavemods;
 };
 
 struct musicexpr_with_offset_t {

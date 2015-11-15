@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.8 2015/11/12 21:30:57 je Exp $ */
+/* $Id: musicexpr.c,v 1.9 2015/11/15 20:02:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -150,8 +150,10 @@ musicexpr_print(int indentlevel, struct musicexpr_t *me)
 			     me->absnote.time_as_measures);
 		break;
 	case ME_TYPE_RELNOTE:
-		ret = printf("relnote notesym=%d length=%f octavemods=%d\n",
+		ret = printf("relnote notesym=%d notemods=%d" \
+			       " length=%f octavemods=%d\n",
 			     me->relnote.notesym,
+			     me->relnote.notemods,
 			     me->relnote.length,
 			     me->relnote.octavemods);
 		break;
