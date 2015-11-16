@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.17 2015/11/15 20:02:09 je Exp $
+/* $Id: parse.y,v 1.18 2015/11/16 21:05:12 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -149,9 +149,9 @@ notemods:	NOTETOKEN_IS   { $$ = + $1; }
 		| /* empty */  { $$ = 0;    }
 		;
 
-octavemods:	OCTAVEUP { $$ = + $1; }
-		| OCTAVEDOWN { $$ = - $1; }
-		| /* empty */ { $$ = 0; }
+octavemods:	OCTAVEUP      { $$ = + $1; }
+		| OCTAVEDOWN  { $$ = - $1; }
+		| /* empty */ { $$ = 0;    }
 		;
 
 notelength:	LENGTHNUMBER lengthdots {
@@ -160,8 +160,8 @@ notelength:	LENGTHNUMBER lengthdots {
 		| /* empty */ { $$ = 0.0; }
 		;
 
-lengthdots:	LENGTHDOT { $$ = $1; }
-		| /* empty */ { $$ = 0; }
+lengthdots:	LENGTHDOT     { $$ = $1; }
+		| /* empty */ { $$ = 0;  }
 		;
 
 %%

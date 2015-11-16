@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.12 2015/11/15 20:02:09 je Exp $ */
+/* $Id: musicexpr.h,v 1.13 2015/11/16 21:05:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,11 +27,14 @@ enum musicexpr_type {
 	ME_TYPE_JOINEXPR,
 };
 
-enum notesym_t { NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, };
+enum notesym_t {
+  NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX
+};
+
 enum notemod_t { NOTEMOD_ES, NOTEMOD_IS, };
 
 struct absnote_t {
-	float length, time_as_measures;
+	float length;
 	u_int8_t note;
 };
 
