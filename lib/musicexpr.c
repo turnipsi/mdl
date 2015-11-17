@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.10 2015/11/16 21:05:12 je Exp $ */
+/* $Id: musicexpr.c,v 1.11 2015/11/17 21:13:05 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,10 +27,7 @@
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
 
-static void	relative_to_absolute(struct musicexpr_t *,
-				     float *,
-				     int *,
-				     enum notesym_t *);
+static void	relative_to_absolute(struct musicexpr_t *, struct absnote_t *);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
@@ -124,28 +121,23 @@ struct musicexpr_t *
 musicexpr_relative_to_absolute(struct musicexpr_t *rel_me)
 {
 	struct musicexpr_t *abs_me;
-	float prev_length;
-	int prev_note;
-	enum notesym_t prev_notesym;
+	struct absnote_t prev_absnote;
 
 	if ((abs_me = musicexpr_clone(rel_me)) == NULL)
 		return NULL;
 
-	/* set default values for the first relative note */
-	prev_length = 0.25;
-	prev_note = 60;
-	prev_notesym = NOTE_C;
+	/* set default values for the first absolute note */
+	prev_absnote.length = 0.25;
+	prev_absnote.notesym = NOTE_C;
+	prev_absnote.note = 60;
 
-	relative_to_absolute(abs_me, &prev_length, &prev_note, &prev_notesym);
+	relative_to_absolute(abs_me, &prev_absnote);
 
 	return abs_me;
 }
 
 static void
-relative_to_absolute(struct musicexpr_t *me,
-		     float *prev_length,
-		     int *prev_note,
-		     enum notesym_t *prev_notesym)
+relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 {
 	struct sequence_t *seq;
 	struct absnote_t absnote;
@@ -156,54 +148,51 @@ relative_to_absolute(struct musicexpr_t *me,
 	};
 	int note, c;
 
-	assert(me->me_type != ME_TYPE_ABSNOTE);
-	assert(me->me_type != ME_TYPE_JOINEXPR);
-
 	switch (me->me_type) {
+	case ME_TYPE_ABSNOTE:
+		/* pass as is, but this affects previous absnote */
+		*prev_absnote = me->absnote;
+		break;
 	case ME_TYPE_RELNOTE:
 		relnote = me->relnote;
 
 		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
 		assert(relnote.length >= 0);
 
-		note = 12 * (*prev_note / 12)
+		note = 12 * (prev_absnote->note / 12)
 			 + notevalues[relnote.notesym]
 			 + relnote.notemods;
 
-		c = compare_notesyms(*prev_notesym, me->relnote.notesym);
-		if (c > 0 && *prev_note > note) {
+		c = compare_notesyms(prev_absnote->notesym, relnote.notesym);
+		if (c > 0 && prev_absnote->note > note) {
 			note += 12;
-		} else if (c < 0 && *prev_note < note) {
+		} else if (c < 0 && prev_absnote->note < note) {
 			note -= 12;
 		}
 
 		note += 12 * relnote.octavemods;
 
-		/* XXX relnote should be converted to rest instead of
-		 * XXX an absolute note in case our range is exhausted */
-		assert(0 <= note && note <= MIDI_NOTE_MAX);
-
+		absnote.notesym = relnote.notesym;
+		absnote.length  = relnote.length;
+		if (absnote.length == 0)
+			absnote.length = prev_absnote->length;
 		absnote.note = note;
-		*prev_note = note;
 
-		if (relnote.length > 0)
-			*prev_length = relnote.length;
-		absnote.length = *prev_length;
+		me->me_type = ME_TYPE_ABSNOTE;
+		me->absnote = absnote;
+
+		*prev_absnote = absnote;
 
 		break;
 	case ME_TYPE_SEQUENCE:
-		for (seq = me->sequence; seq != NULL; seq = seq->next) {
-			relative_to_absolute(seq->me,
-					     prev_length,
-					     prev_note,
-					     prev_notesym);
-		}
+		for (seq = me->sequence; seq != NULL; seq = seq->next)
+			relative_to_absolute(seq->me, prev_absnote);
 		break;
 	case ME_TYPE_WITHOFFSET:
-		relative_to_absolute(me->offset_expr.me,
-				     prev_length,
-				     prev_note,
-				     prev_notesym);
+		relative_to_absolute(me->offset_expr.me, prev_absnote);
+		break;
+	case ME_TYPE_JOINEXPR:
+		/* just pass as is */
 		break;
 	default:
 		assert(0);

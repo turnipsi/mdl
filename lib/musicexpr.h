@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.13 2015/11/16 21:05:12 je Exp $ */
+/* $Id: musicexpr.h,v 1.14 2015/11/17 21:13:05 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,8 +34,9 @@ enum notesym_t {
 enum notemod_t { NOTEMOD_ES, NOTEMOD_IS, };
 
 struct absnote_t {
+	enum notesym_t notesym;
 	float length;
-	u_int8_t note;
+	int note;
 };
 
 struct relnote_t {
