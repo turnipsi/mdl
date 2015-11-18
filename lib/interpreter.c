@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.24 2015/11/12 20:26:57 je Exp $ */
+/* $Id: interpreter.c,v 1.25 2015/11/18 20:18:45 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,6 +26,7 @@
 #include "compat.h"
 #include "midi.h"
 #include "musicexpr.h"
+#include "util.h"
 
 extern FILE			*yyin;
 extern struct musicexpr_t	*parsed_expr;
@@ -39,6 +40,8 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
+	struct musicexpr_t *abs_me;
+
         if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
 		return 1;
@@ -54,14 +57,27 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	(void) printf("parse ok, got parse result:\n");
 	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
 		warnx("expected sequence");
+		musicexpr_free(parsed_expr);
 		return 1;
 	}
 
-	(void) musicexpr_print(0, parsed_expr);
+	(void) mdl_log(1, "parse ok, got parse result:\n");
+	(void) musicexpr_log(0, parsed_expr);
+
+	abs_me = musicexpr_relative_to_absolute(parsed_expr);
+	if (abs_me == NULL) {
+		warn("could not convert relative musicexpr to absolute");
+		musicexpr_free(parsed_expr);
+		return 1;
+	}
+
+	(void) printf("music expression as an absolute expression:\n");
+	(void) musicexpr_log(0, abs_me);
+
 	musicexpr_free(parsed_expr);
+	musicexpr_free(abs_me);
 
 	testwrite(sequencer_socket);
 

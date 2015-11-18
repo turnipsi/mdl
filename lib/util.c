@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.2 2015/11/18 20:18:45 je Exp $ */
+/* $Id: util.c,v 1.6 2015/11/18 20:18:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,11 +16,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_COMPAT_H
-#define MDL_COMPAT_H
+#include <stdarg.h>
+#include <stdio.h>
 
-#ifdef SANDBOX_NONE
-int pledge(const char *, const char *[]);
-#endif
+#include "util.h"
 
-#endif
+static int debuglevel = 1;
+
+int
+mdl_log(int loglevel, const char *fmt, ...)
+{
+	va_list va;
+	int ret;
+
+	if (debuglevel < loglevel)
+		return 0;
+
+	va_start(va, fmt);
+	ret = vprintf(fmt, va);
+	va_end(va);
+
+	return ret;
+}

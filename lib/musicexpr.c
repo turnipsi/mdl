@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.11 2015/11/17 21:13:05 je Exp $ */
+/* $Id: musicexpr.c,v 1.12 2015/11/18 20:18:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 
 #include "midi.h"
 #include "musicexpr.h"
+#include "util.h"
 
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
@@ -233,46 +234,49 @@ musicexpr_to_midievents(struct musicexpr_t *me)
 }
 
 int
-musicexpr_print(int indentlevel, struct musicexpr_t *me)
+musicexpr_log(int indentlevel, struct musicexpr_t *me)
 {
 	int i, ret;
 
 	for (i = 0; i < indentlevel; i++) {
-		ret = printf(" ");
+		ret = mdl_log(1, " ");
 		if (ret < 0)
 			return ret;
 	}
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		ret = printf("absnote note=%d length=%f\n",
-			     me->absnote.note,
-			     me->absnote.length);
+		ret = mdl_log(1,
+			      "absnote notesym=%d note=%d length=%f\n",
+			      me->absnote.notesym,
+			      me->absnote.note,
+			      me->absnote.length);
 		break;
 	case ME_TYPE_RELNOTE:
-		ret = printf("relnote notesym=%d notemods=%d" \
-			       " length=%f octavemods=%d\n",
-			     me->relnote.notesym,
-			     me->relnote.notemods,
-			     me->relnote.length,
-			     me->relnote.octavemods);
+		ret = mdl_log(1,
+			      "relnote notesym=%d notemods=%d" \
+			        " length=%f octavemods=%d\n",
+			      me->relnote.notesym,
+			      me->relnote.notemods,
+			      me->relnote.length,
+			      me->relnote.octavemods);
 		break;
 	case ME_TYPE_SEQUENCE:
-		ret = printf("sequence\n");
+		ret = mdl_log(1, "sequence\n");
 		if (ret < 0)
 			break;
-		ret = musicexpr_print_sequence(indentlevel + 2,
-					       me->sequence);
+		ret = musicexpr_log_sequence(indentlevel + 2, me->sequence);
 		break;
 	case ME_TYPE_WITHOFFSET:
-		ret = printf("offset_expr offset=%f\n",
-			     me->offset_expr.offset);
+		ret = mdl_log(1,
+			      "offset_expr offset=%f\n",
+			      me->offset_expr.offset);
 		if (ret < 0)
 			break;
-		ret = musicexpr_print(indentlevel + 2, me->offset_expr.me);
+		ret = musicexpr_log(indentlevel + 2, me->offset_expr.me);
 		break;
 	case ME_TYPE_JOINEXPR:
-		ret = printf("joinexpr\n");
+		ret = mdl_log(1, "joinexpr\n");
 		break;
 	default:
 		assert(0);
@@ -282,7 +286,7 @@ musicexpr_print(int indentlevel, struct musicexpr_t *me)
 }
 
 int
-musicexpr_print_sequence(int indentlevel, struct sequence_t *seq)
+musicexpr_log_sequence(int indentlevel, struct sequence_t *seq)
 {
 	struct sequence_t *p;
 	int ret;
@@ -290,7 +294,7 @@ musicexpr_print_sequence(int indentlevel, struct sequence_t *seq)
 	ret = 0;
 
 	for (p = seq; p != NULL; p = p->next) {
-		ret = musicexpr_print(indentlevel, p->me);
+		ret = musicexpr_log(indentlevel, p->me);
 		if (ret < 0)
 			break;
 	}
