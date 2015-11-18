@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.25 2015/11/18 20:18:45 je Exp $ */
+/* $Id: interpreter.c,v 1.26 2015/11/18 21:15:59 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,6 +64,7 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	(void) mdl_log(1, "parse ok, got parse result:\n");
+
 	(void) musicexpr_log(0, parsed_expr);
 
 	abs_me = musicexpr_relative_to_absolute(parsed_expr);

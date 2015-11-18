@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.6 2015/11/18 20:18:45 je Exp $ */
+/* $Id: util.c,v 1.7 2015/11/18 21:15:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,7 +21,7 @@
 
 #include "util.h"
 
-static int debuglevel = 1;
+static int debuglevel = 2;
 
 int
 mdl_log(int loglevel, const char *fmt, ...)
@@ -29,7 +29,7 @@ mdl_log(int loglevel, const char *fmt, ...)
 	va_list va;
 	int ret;
 
-	if (debuglevel < loglevel)
+	if (loglevel > debuglevel)
 		return 0;
 
 	va_start(va, fmt);

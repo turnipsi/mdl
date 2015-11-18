@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.12 2015/11/18 20:18:45 je Exp $ */
+/* $Id: musicexpr.c,v 1.13 2015/11/18 21:15:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,10 +64,16 @@ musicexpr_clone(struct musicexpr_t *me)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+		mdl_log(2, "cloning expression %p (absnote)\n");
+		break;
 	case ME_TYPE_RELNOTE:
+		mdl_log(2, "cloning expression %p (relnote)\n");
+		break;
 	case ME_TYPE_JOINEXPR:
+		mdl_log(2, "cloning expression %p (joinexpr)\n");
 		break;
 	case ME_TYPE_SEQUENCE:
+		mdl_log(2, "cloning expression %p (sequence)\n");
 		cloned->sequence = musicexpr_clone_sequence(me->sequence);
 		if (cloned->sequence == NULL) {
 			free(cloned);
@@ -75,10 +81,11 @@ musicexpr_clone(struct musicexpr_t *me)
 		}
 		break;
 	case ME_TYPE_WITHOFFSET:
+		mdl_log(2, "cloning expression %p (withoffset)\n");
 		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me);
 		if (cloned->offset_expr.me == NULL) {
 			warn("malloc failure when cloning musicexpr" \
-			       " with offset");
+			      " with offset");
 			free(cloned);
 			cloned = NULL;
 		}
@@ -100,6 +107,11 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 		warn("malloc failure when cloning sequence");
 		return NULL;
 	}
+	new->me = musicexpr_clone(seq->me);
+	if (new->me == NULL) {
+		free(new);
+		return NULL;
+	}
 	prev_q = new;
 
 	for (p = seq; p != NULL; p = p->next) {
@@ -110,6 +122,10 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 			return NULL;
 		}
 		q->me = musicexpr_clone(p->me);
+		if (q->me == NULL) {
+			musicexpr_free_sequence(new);
+			return NULL;
+		}
 		q->next = NULL;
 		prev_q->next = q;
 		prev_q = q;
@@ -124,8 +140,12 @@ musicexpr_relative_to_absolute(struct musicexpr_t *rel_me)
 	struct musicexpr_t *abs_me;
 	struct absnote_t prev_absnote;
 
+	mdl_log(2, "converting relative expression to absolute\n");
+
 	if ((abs_me = musicexpr_clone(rel_me)) == NULL)
 		return NULL;
+
+	(void) musicexpr_log(0, abs_me);
 
 	/* set default values for the first absolute note */
 	prev_absnote.length = 0.25;
@@ -151,10 +171,12 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+		mdl_log(2, "rel->abs expression (absnote)\n");
 		/* pass as is, but this affects previous absnote */
 		*prev_absnote = me->absnote;
 		break;
 	case ME_TYPE_RELNOTE:
+		mdl_log(2, "rel->abs expression (relnote)\n");
 		relnote = me->relnote;
 
 		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
@@ -186,13 +208,17 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 		break;
 	case ME_TYPE_SEQUENCE:
-		for (seq = me->sequence; seq != NULL; seq = seq->next)
+		mdl_log(2, "rel->abs expression (sequence)\n");
+		for (seq = me->sequence; seq != NULL; seq = seq->next) {
 			relative_to_absolute(seq->me, prev_absnote);
+		}
 		break;
 	case ME_TYPE_WITHOFFSET:
+		mdl_log(2, "rel->abs expression (withoffset)\n");
 		relative_to_absolute(me->offset_expr.me, prev_absnote);
 		break;
 	case ME_TYPE_JOINEXPR:
+		mdl_log(2, "rel->abs expression (joinexpr)\n");
 		/* just pass as is */
 		break;
 	default:
