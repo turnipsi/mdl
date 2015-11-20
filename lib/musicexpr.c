@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.14 2015/11/20 13:24:46 je Exp $ */
+/* $Id: musicexpr.c,v 1.15 2015/11/20 21:30:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,7 @@
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "midi.h"
 #include "musicexpr.h"
@@ -27,6 +28,7 @@
 
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
+static struct midieventstream	*musicexpr_midieventstream_init(size_t);
 
 static void	relative_to_absolute(struct musicexpr_t *, struct absnote_t *);
 
@@ -243,15 +245,98 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 	return (diff < 4) ? -1 : 1;
 }
 
-struct midievent *
+static struct midieventstream *
+musicexpr_midieventstream_init(size_t size)
+{
+	struct midieventstream *eventstream;
+	int i;
+
+	eventstream = malloc(sizeof(struct midieventstream));
+	if (eventstream == NULL) {
+		warn("malloc failure when creating midievent stream");
+		return NULL;
+	}
+
+	eventstream->eventcount = size;
+	eventstream->events = calloc(size, sizeof(struct midievent));
+	if (eventstream->events == NULL) {
+		warn("malloc failure when creating midievent stream events");
+		free(eventstream);
+		return NULL;
+	}
+
+	for (i = 0; i < size; i++)
+		bzero(&eventstream->events[i], sizeof(struct midievent));
+
+	return eventstream;
+}
+
+struct midieventstream *
 musicexpr_to_midievents(struct musicexpr_t *me)
 {
-	struct midievent *events;
+	struct midieventstream *es;
+	int channel;
 
-	/* XXX */
-	events = NULL;
+	if ((es = musicexpr_midieventstream_init(9)) == NULL)
+		return NULL;
 
-	return events; 
+	channel = 0;
+
+	es->events[0].eventtype        = NOTEON;
+	es->events[0].channel          = channel;
+	es->events[0].note             = 60;
+	es->events[0].velocity         = 127;
+	es->events[0].time_as_measures = 0.0;
+
+	es->events[1].eventtype        = NOTEOFF;
+	es->events[1].channel          = channel;
+	es->events[1].note             = 60;
+	es->events[1].velocity         = 0;
+	es->events[1].time_as_measures = 0.25;
+
+	es->events[2].eventtype        = NOTEON;
+	es->events[2].channel          = channel;
+	es->events[2].note             = 60;
+	es->events[2].velocity         = 127;
+	es->events[2].time_as_measures = 0.25;
+
+	es->events[3].eventtype        = NOTEOFF;
+	es->events[3].channel          = channel;
+	es->events[3].note             = 60;
+	es->events[3].velocity         = 0;
+	es->events[3].time_as_measures = 0.5;
+
+	es->events[4].eventtype        = NOTEON;
+	es->events[4].channel          = channel;
+	es->events[4].note             = 60;
+	es->events[4].velocity         = 127;
+	es->events[4].time_as_measures = 0.5;
+
+	es->events[5].eventtype        = NOTEOFF;
+	es->events[5].channel          = channel;
+	es->events[5].note             = 60;
+	es->events[5].velocity         = 0;
+	es->events[5].time_as_measures = 0.75;
+
+	es->events[6].eventtype        = NOTEON;
+	es->events[6].channel          = channel;
+	es->events[6].note             = 64;
+	es->events[6].velocity         = 127;
+	es->events[6].time_as_measures = 0.75;
+
+	es->events[7].eventtype        = NOTEOFF;
+	es->events[7].channel          = channel;
+	es->events[7].note             = 64;
+	es->events[7].velocity         = 0;
+	es->events[7].time_as_measures = 1.0;
+
+	es->events[8].eventtype        = SONG_END;
+	es->events[8].channel          = 0;
+	es->events[8].note             = 0;
+	es->events[8].velocity         = 0;
+	es->events[8].time_as_measures = 0.0;
+
+	return es;
 }
 
 int

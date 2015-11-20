@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.26 2015/11/18 21:15:59 je Exp $ */
+/* $Id: interpreter.c,v 1.27 2015/11/20 21:30:39 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,7 @@
 #include <sys/select.h>
 
 #include <err.h>
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,8 +32,8 @@
 extern FILE			*yyin;
 extern struct musicexpr_t	*parsed_expr;
 
-static int	testwrite(int);
 int		yyparse(void);
+static ssize_t	write_midistream_to_sequencer(int, struct midieventstream *);
 
 int
 handle_musicfile_and_socket(int file_fd,
@@ -41,6 +42,7 @@ handle_musicfile_and_socket(int file_fd,
 			    int server_socket)
 {
 	struct musicexpr_t *abs_me;
+	struct midieventstream *eventstream;
 
         if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
@@ -64,7 +66,6 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	(void) mdl_log(1, "parse ok, got parse result:\n");
-
 	(void) musicexpr_log(0, parsed_expr);
 
 	abs_me = musicexpr_relative_to_absolute(parsed_expr);
@@ -74,88 +75,48 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	(void) printf("music expression as an absolute expression:\n");
+	(void) mdl_log(1, "\n");
+	(void) mdl_log(1, "music expression as an absolute expression:\n");
 	(void) musicexpr_log(0, abs_me);
 
+	(void) mdl_log(1, "converting to midi stream\n");
+	if ((eventstream = musicexpr_to_midievents(abs_me)) == NULL) {
+		warnx("error converting music expression to midi stream");
+		goto finish;
+	}
+
+	(void) mdl_log(1, "writing midi stream to sequencer\n");
+	(void) write_midistream_to_sequencer(sequencer_socket, eventstream);
+
+finish:
 	musicexpr_free(parsed_expr);
 	musicexpr_free(abs_me);
 
-	testwrite(sequencer_socket);
-
 	return 0;
 }
 
-static int
-testwrite(int sequencer_socket)
+static ssize_t
+write_midistream_to_sequencer(int sequencer_socket, struct midieventstream *es)
 {
-	struct midievent events[9];
-	ssize_t nw;
-	char channel;
+	size_t wsize;
+	ssize_t nw, total_wcount;
 
-	channel = 0;
+	total_wcount = 0;
+	wsize = es->eventcount * sizeof(struct midievent); /* XXX overflow? */
 
-	bzero(events, sizeof(events));
-
-	events[0].eventtype        = NOTEON;
-	events[0].channel          = channel;
-	events[0].note             = 60;
-	events[0].velocity         = 127;
-	events[0].time_as_measures = 0.0;
-
-	events[1].eventtype        = NOTEOFF;
-	events[1].channel          = channel;
-	events[1].note             = 60;
-	events[1].velocity         = 0;
-	events[1].time_as_measures = 0.25;
-
-	events[2].eventtype        = NOTEON;
-	events[2].channel          = channel;
-	events[2].note             = 60;
-	events[2].velocity         = 127;
-	events[2].time_as_measures = 0.25;
-
-	events[3].eventtype        = NOTEOFF;
-	events[3].channel          = channel;
-	events[3].note             = 60;
-	events[3].velocity         = 0;
-	events[3].time_as_measures = 0.5;
-
-	events[4].eventtype        = NOTEON;
-	events[4].channel          = channel;
-	events[4].note             = 60;
-	events[4].velocity         = 127;
-	events[4].time_as_measures = 0.5;
-
-	events[5].eventtype        = NOTEOFF;
-	events[5].channel          = channel;
-	events[5].note             = 60;
-	events[5].velocity         = 0;
-	events[5].time_as_measures = 0.75;
-
-	events[6].eventtype        = NOTEON;
-	events[6].channel          = channel;
-	events[6].note             = 64;
-	events[6].velocity         = 127;
-	events[6].time_as_measures = 0.75;
-
-	events[7].eventtype        = NOTEOFF;
-	events[7].channel          = channel;
-	events[7].note             = 64;
-	events[7].velocity         = 0;
-	events[7].time_as_measures = 1.0;
-
-	events[8].eventtype        = SONG_END;
-	events[8].channel          = 0;
-	events[8].note             = 0;
-	events[8].velocity         = 0;
-	events[8].time_as_measures = 0.0;
-
-	/* XXX */
-	nw = write(sequencer_socket, events, sizeof(events));
-	if (nw == -1) {
-		warn("error writing to sequencer");
-		return 1;
+	while (total_wcount < wsize) {
+		nw = write(sequencer_socket,
+			   (char *) es->events + total_wcount,
+			   wsize - total_wcount);
+		if (nw == -1) {
+			if (errno == EAGAIN)
+				continue;
+			warn("error writing to sequencer");
+			return -1;
+		}
+		mdl_log(2, "wrote %ld bytes to sequencer\n", nw);
+		total_wcount += nw;
 	}
 
-	return 0;
-}
+	return total_wcount;
+

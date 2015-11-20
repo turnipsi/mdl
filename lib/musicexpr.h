@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.15 2015/11/18 20:18:45 je Exp $ */
+/* $Id: musicexpr.h,v 1.16 2015/11/20 21:30:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -73,6 +73,7 @@ int	musicexpr_log_sequence(int, struct sequence_t *);
 struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
 struct musicexpr_t	*musicexpr_offsetize(struct musicexpr_t *);
 struct musicexpr_t	*musicexpr_relative_to_absolute(struct musicexpr_t *);
-struct midievent	*musicexpr_to_midievents(struct musicexpr_t *);
+
+struct midieventstream	*musicexpr_to_midievents(struct musicexpr_t *);
 
 #endif

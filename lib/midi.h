@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.1 2015/10/24 19:13:29 je Exp $ */
+/* $Id: midi.h,v 1.2 2015/11/20 21:30:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,6 +28,11 @@ struct midievent {
 	enum eventtype_t        eventtype;
 	u_int8_t                channel, note, velocity;
 	float                   time_as_measures;
+};
+
+struct midieventstream {
+	struct midievent *events;
+	size_t eventcount;
 };
 
 int	midi_open_device(void);
