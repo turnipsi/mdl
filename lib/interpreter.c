@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.27 2015/11/20 21:30:39 je Exp $ */
+/* $Id: interpreter.c,v 1.28 2015/11/20 21:47:33 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -119,4 +119,4 @@ write_midistream_to_sequencer(int sequencer_socket, struct midieventstream *es)
 	}
 
 	return total_wcount;
-
+}
