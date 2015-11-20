@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.13 2015/11/18 21:15:59 je Exp $ */
+/* $Id: musicexpr.c,v 1.14 2015/11/20 13:24:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -84,8 +84,6 @@ musicexpr_clone(struct musicexpr_t *me)
 		mdl_log(2, "cloning expression %p (withoffset)\n");
 		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me);
 		if (cloned->offset_expr.me == NULL) {
-			warn("malloc failure when cloning musicexpr" \
-			      " with offset");
 			free(cloned);
 			cloned = NULL;
 		}
@@ -102,32 +100,29 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 {
 	struct sequence_t *p, *q, *prev_q, *new;
 
-	new = malloc(sizeof(struct sequence_t));
-	if (new == NULL) {
-		warn("malloc failure when cloning sequence");
-		return NULL;
-	}
-	new->me = musicexpr_clone(seq->me);
-	if (new->me == NULL) {
-		free(new);
-		return NULL;
-	}
-	prev_q = new;
+	new = NULL;
+	prev_q = NULL;
 
 	for (p = seq; p != NULL; p = p->next) {
 		q = malloc(sizeof(struct sequence_t));
 		if (q == NULL) {
 			warn("malloc failure when cloning sequence");
-			musicexpr_free_sequence(new);
+			if (new != NULL)
+				musicexpr_free_sequence(new);
 			return NULL;
 		}
 		q->me = musicexpr_clone(p->me);
 		if (q->me == NULL) {
-			musicexpr_free_sequence(new);
+			free(q);
+			if (new != NULL)
+				musicexpr_free_sequence(new);
 			return NULL;
 		}
 		q->next = NULL;
-		prev_q->next = q;
+		if (new == NULL)
+			new = q;
+		if (prev_q != NULL)
+			prev_q->next = q;
 		prev_q = q;
 	}
 
