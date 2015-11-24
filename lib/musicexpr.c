@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.15 2015/11/20 21:30:39 je Exp $ */
+/* $Id: musicexpr.c,v 1.16 2015/11/24 20:23:05 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,8 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -26,11 +28,21 @@
 #include "musicexpr.h"
 #include "util.h"
 
+#define DEFAULT_SLOTCOUNT 1024
+
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
 static struct midieventstream	*musicexpr_midieventstream_init(size_t);
 
 static void	relative_to_absolute(struct musicexpr_t *, struct absnote_t *);
+static int	musicexpr_flatten(struct offsetexprstream_t *,
+				  struct musicexpr_t *);
+static int	offset_expressions(struct offsetexprstream_t *,
+				   struct musicexpr_t *,
+				   float *);
+static int	add_new_offset_expression(struct offsetexprstream_t *,
+					  struct musicexpr_t *,
+					  float offset);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
@@ -43,12 +55,121 @@ musicexpr_do_joining(struct musicexpr_t *me)
 	return me;
 }
 
-struct musicexpr_t *
-musicexpr_offsetize(struct musicexpr_t *me)
+static int
+musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
 {
-	/* XXX */
+	float offset;
 
-	return me;
+	(void) mdl_log(1, "flattening music expression\n");
+
+	offset = 0.0;
+	(void) mdl_log(2, "initialize offset to %f\n", offset);
+
+	oes->mexprs = malloc(DEFAULT_SLOTCOUNT
+			       * sizeof(struct musicexpr_with_offset_t));
+	if (oes->mexprs == NULL) {
+		warn("malloc failure in creating flat musicexpression stream");
+		return 1;
+	}
+
+	oes->count = 0;
+	oes->slotcount = DEFAULT_SLOTCOUNT;
+
+	if (offset_expressions(oes, me, &offset) != 0) {
+		free(oes->mexprs);
+		return 1;
+	}
+
+	return 0;
+}
+
+static int
+offset_expressions(struct offsetexprstream_t *oes,
+		   struct musicexpr_t *me,
+		   float *offset)
+{
+	struct sequence_t *seq;
+	float old_offset;
+	int ret;
+
+	old_offset = *offset;
+
+	switch (me->me_type) {
+	case ME_TYPE_ABSNOTE:
+		(void) mdl_log(2, "finding offset expression for absnote\n");
+		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
+			return ret;
+		*offset += me->absnote.length;
+		break;
+	case ME_TYPE_RELNOTE:
+		(void) mdl_log(2, "finding offset expression for relnote\n");
+		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
+			return ret;
+		*offset += me->relnote.length;
+		break;
+	case ME_TYPE_JOINEXPR:
+		(void) mdl_log(2, "finding offset expression for joinexpr\n");
+		/* just pass */
+		break;
+	case ME_TYPE_SEQUENCE:
+		(void) mdl_log(2, "finding offset expression for sequence\n");
+		for (seq = me->sequence; seq != NULL; seq = seq->next) {
+			ret = offset_expressions(oes,
+						 me->sequence->me,
+						 offset);
+			if (ret != 0)
+				return ret;
+		}
+		break;
+	case ME_TYPE_WITHOFFSET:
+		(void) mdl_log(2, "finding offset expression for" \
+				    " offset expression\n");
+		*offset += me->offset_expr.offset;
+		ret = offset_expressions(oes, me->offset_expr.me, offset);
+		if (ret != 0)
+			return ret;
+		break;
+	default:
+		assert(0);
+	}
+
+	if (old_offset != *offset)
+		(void) mdl_log(2,
+			       "offset changed from %f to %f\n",
+			       old_offset,
+			       *offset);
+
+	return 0;
+}
+
+static int
+add_new_offset_expression(struct offsetexprstream_t *oes,
+			  struct musicexpr_t *me,
+			  float offset)
+{			
+	struct musicexpr_with_offset_t *mexprs;
+
+	oes->mexprs[ oes->count ].me = me;
+	oes->mexprs[ oes->count ].offset = offset;
+
+	oes->count++;
+	if (oes->count == oes->slotcount) {
+		(void) mdl_log(2,
+			       "offset stream array now contains" \
+				 " %d expressions\n",
+			       oes->count);
+		oes->slotcount *= 2;
+		mexprs = reallocarray(oes->mexprs,
+				      oes->slotcount,
+				      sizeof(struct musicexpr_with_offset_t));
+		if (mexprs == NULL) {
+			warn("reallocarray in add_new_offset_expression");
+			return 1;
+		}
+		oes->mexprs = mexprs;
+	}
+
+	return 0;
 }
 
 static struct musicexpr_t *
@@ -66,16 +187,16 @@ musicexpr_clone(struct musicexpr_t *me)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		mdl_log(2, "cloning expression %p (absnote)\n");
+		(void) mdl_log(2, "cloning expression %p (absnote)\n");
 		break;
 	case ME_TYPE_RELNOTE:
-		mdl_log(2, "cloning expression %p (relnote)\n");
+		(void) mdl_log(2, "cloning expression %p (relnote)\n");
 		break;
 	case ME_TYPE_JOINEXPR:
-		mdl_log(2, "cloning expression %p (joinexpr)\n");
+		(void) mdl_log(2, "cloning expression %p (joinexpr)\n");
 		break;
 	case ME_TYPE_SEQUENCE:
-		mdl_log(2, "cloning expression %p (sequence)\n");
+		(void) mdl_log(2, "cloning expression %p (sequence)\n");
 		cloned->sequence = musicexpr_clone_sequence(me->sequence);
 		if (cloned->sequence == NULL) {
 			free(cloned);
@@ -83,7 +204,7 @@ musicexpr_clone(struct musicexpr_t *me)
 		}
 		break;
 	case ME_TYPE_WITHOFFSET:
-		mdl_log(2, "cloning expression %p (withoffset)\n");
+		(void) mdl_log(2, "cloning expression %p (withoffset)\n");
 		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me);
 		if (cloned->offset_expr.me == NULL) {
 			free(cloned);
@@ -137,7 +258,7 @@ musicexpr_relative_to_absolute(struct musicexpr_t *rel_me)
 	struct musicexpr_t *abs_me;
 	struct absnote_t prev_absnote;
 
-	mdl_log(2, "converting relative expression to absolute\n");
+	(void) mdl_log(2, "converting relative expression to absolute\n");
 
 	if ((abs_me = musicexpr_clone(rel_me)) == NULL)
 		return NULL;
@@ -168,12 +289,12 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		mdl_log(2, "rel->abs expression (absnote)\n");
+		(void) mdl_log(2, "rel->abs expression (absnote)\n");
 		/* pass as is, but this affects previous absnote */
 		*prev_absnote = me->absnote;
 		break;
 	case ME_TYPE_RELNOTE:
-		mdl_log(2, "rel->abs expression (relnote)\n");
+		(void) mdl_log(2, "rel->abs expression (relnote)\n");
 		relnote = me->relnote;
 
 		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
@@ -205,17 +326,16 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 		break;
 	case ME_TYPE_SEQUENCE:
-		mdl_log(2, "rel->abs expression (sequence)\n");
-		for (seq = me->sequence; seq != NULL; seq = seq->next) {
+		(void) mdl_log(2, "rel->abs expression (sequence)\n");
+		for (seq = me->sequence; seq != NULL; seq = seq->next)
 			relative_to_absolute(seq->me, prev_absnote);
-		}
 		break;
 	case ME_TYPE_WITHOFFSET:
-		mdl_log(2, "rel->abs expression (withoffset)\n");
+		(void) mdl_log(2, "rel->abs expression (withoffset)\n");
 		relative_to_absolute(me->offset_expr.me, prev_absnote);
 		break;
 	case ME_TYPE_JOINEXPR:
-		mdl_log(2, "rel->abs expression (joinexpr)\n");
+		(void) mdl_log(2, "rel->abs expression (joinexpr)\n");
 		/* just pass as is */
 		break;
 	default:
@@ -274,69 +394,78 @@ musicexpr_midieventstream_init(size_t size)
 struct midieventstream *
 musicexpr_to_midievents(struct musicexpr_t *me)
 {
-	struct midieventstream *es;
+	struct offsetexprstream_t offset_es;
+	struct midieventstream *midi_es;
 	int channel;
 
-	if ((es = musicexpr_midieventstream_init(9)) == NULL)
+	if (musicexpr_flatten(&offset_es, me) != 0) {
+		warnx("could not flatten music expression"
+			" to offset-expression-stream");
+		return NULL;
+	}
+
+	/* XXX this is just test stuff, should use offset_es instead */
+
+	if ((midi_es = musicexpr_midieventstream_init(9)) == NULL)
 		return NULL;
 
 	channel = 0;
 
-	es->events[0].eventtype        = NOTEON;
-	es->events[0].channel          = channel;
-	es->events[0].note             = 60;
-	es->events[0].velocity         = 127;
-	es->events[0].time_as_measures = 0.0;
+	midi_es->events[0].eventtype        = NOTEON;
+	midi_es->events[0].channel          = channel;
+	midi_es->events[0].note             = 60;
+	midi_es->events[0].velocity         = 127;
+	midi_es->events[0].time_as_measures = 0.0;
 
-	es->events[1].eventtype        = NOTEOFF;
-	es->events[1].channel          = channel;
-	es->events[1].note             = 60;
-	es->events[1].velocity         = 0;
-	es->events[1].time_as_measures = 0.25;
+	midi_es->events[1].eventtype        = NOTEOFF;
+	midi_es->events[1].channel          = channel;
+	midi_es->events[1].note             = 60;
+	midi_es->events[1].velocity         = 0;
+	midi_es->events[1].time_as_measures = 0.25;
 
-	es->events[2].eventtype        = NOTEON;
-	es->events[2].channel          = channel;
-	es->events[2].note             = 60;
-	es->events[2].velocity         = 127;
-	es->events[2].time_as_measures = 0.25;
+	midi_es->events[2].eventtype        = NOTEON;
+	midi_es->events[2].channel          = channel;
+	midi_es->events[2].note             = 60;
+	midi_es->events[2].velocity         = 127;
+	midi_es->events[2].time_as_measures = 0.25;
 
-	es->events[3].eventtype        = NOTEOFF;
-	es->events[3].channel          = channel;
-	es->events[3].note             = 60;
-	es->events[3].velocity         = 0;
-	es->events[3].time_as_measures = 0.5;
+	midi_es->events[3].eventtype        = NOTEOFF;
+	midi_es->events[3].channel          = channel;
+	midi_es->events[3].note             = 60;
+	midi_es->events[3].velocity         = 0;
+	midi_es->events[3].time_as_measures = 0.5;
 
-	es->events[4].eventtype        = NOTEON;
-	es->events[4].channel          = channel;
-	es->events[4].note             = 60;
-	es->events[4].velocity         = 127;
-	es->events[4].time_as_measures = 0.5;
+	midi_es->events[4].eventtype        = NOTEON;
+	midi_es->events[4].channel          = channel;
+	midi_es->events[4].note             = 60;
+	midi_es->events[4].velocity         = 127;
+	midi_es->events[4].time_as_measures = 0.5;
 
-	es->events[5].eventtype        = NOTEOFF;
-	es->events[5].channel          = channel;
-	es->events[5].note             = 60;
-	es->events[5].velocity         = 0;
-	es->events[5].time_as_measures = 0.75;
+	midi_es->events[5].eventtype        = NOTEOFF;
+	midi_es->events[5].channel          = channel;
+	midi_es->events[5].note             = 60;
+	midi_es->events[5].velocity         = 0;
+	midi_es->events[5].time_as_measures = 0.75;
 
-	es->events[6].eventtype        = NOTEON;
-	es->events[6].channel          = channel;
-	es->events[6].note             = 64;
-	es->events[6].velocity         = 127;
-	es->events[6].time_as_measures = 0.75;
+	midi_es->events[6].eventtype        = NOTEON;
+	midi_es->events[6].channel          = channel;
+	midi_es->events[6].note             = 64;
+	midi_es->events[6].velocity         = 127;
+	midi_es->events[6].time_as_measures = 0.75;
 
-	es->events[7].eventtype        = NOTEOFF;
-	es->events[7].channel          = channel;
-	es->events[7].note             = 64;
-	es->events[7].velocity         = 0;
-	es->events[7].time_as_measures = 1.0;
+	midi_es->events[7].eventtype        = NOTEOFF;
+	midi_es->events[7].channel          = channel;
+	midi_es->events[7].note             = 64;
+	midi_es->events[7].velocity         = 0;
+	midi_es->events[7].time_as_measures = 1.0;
 
-	es->events[8].eventtype        = SONG_END;
-	es->events[8].channel          = 0;
-	es->events[8].note             = 0;
-	es->events[8].velocity         = 0;
-	es->events[8].time_as_measures = 0.0;
+	midi_es->events[8].eventtype        = SONG_END;
+	midi_es->events[8].channel          = 0;
+	midi_es->events[8].note             = 0;
+	midi_es->events[8].velocity         = 0;
+	midi_es->events[8].time_as_measures = 0.0;
 
-	return es;
+	return midi_es;
 }
 
 int

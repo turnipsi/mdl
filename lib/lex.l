@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.9 2015/11/15 20:02:09 je Exp $ */
+/* $Id: lex.l,v 1.10 2015/11/24 20:23:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,14 +17,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#define yywrap() 1
-
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "musicexpr.h"
 #include "y.tab.h"   
+
+int	yywrap(void);
 %}
 
 %%
@@ -52,3 +52,10 @@ b	{ return NOTETOKEN_B; }
 
 [ \t\n]+	{ return WHITESPACE; }
 %%
+
+/* XXX I do not know why I need this */
+int
+yywrap(void)
+{
+	return 1;
+}
