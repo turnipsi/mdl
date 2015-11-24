@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.28 2015/11/20 21:47:33 je Exp $ */
+/* $Id: interpreter.c,v 1.29 2015/11/24 20:35:15 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,8 +41,10 @@ handle_musicfile_and_socket(int file_fd,
 			    int sequencer_socket,
 			    int server_socket)
 {
-	struct musicexpr_t *abs_me;
 	struct midieventstream *eventstream;
+	int ret;
+
+	ret = 0;
 
         if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
@@ -59,29 +61,22 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
+	/* if yyparse() returned ok, we should have parsed_expr available
+	 * for us now */
+
 	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
 		warnx("expected sequence");
-		musicexpr_free(parsed_expr);
-		return 1;
+		ret = 1;
+		goto finish;
 	}
 
 	(void) mdl_log(1, "parse ok, got parse result:\n");
 	(void) musicexpr_log(0, parsed_expr);
 
-	abs_me = musicexpr_relative_to_absolute(parsed_expr);
-	if (abs_me == NULL) {
-		warn("could not convert relative musicexpr to absolute");
-		musicexpr_free(parsed_expr);
-		return 1;
-	}
-
-	(void) mdl_log(1, "\n");
-	(void) mdl_log(1, "music expression as an absolute expression:\n");
-	(void) musicexpr_log(0, abs_me);
-
 	(void) mdl_log(1, "converting to midi stream\n");
-	if ((eventstream = musicexpr_to_midievents(abs_me)) == NULL) {
+	if ((eventstream = musicexpr_to_midievents(parsed_expr)) == NULL) {
 		warnx("error converting music expression to midi stream");
+		ret = 1;
 		goto finish;
 	}
 
@@ -90,9 +85,8 @@ handle_musicfile_and_socket(int file_fd,
 
 finish:
 	musicexpr_free(parsed_expr);
-	musicexpr_free(abs_me);
 
-	return 0;
+	return ret;
 }
 
 static ssize_t

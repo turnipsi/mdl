@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.16 2015/11/24 20:23:05 je Exp $ */
+/* $Id: musicexpr.c,v 1.17 2015/11/24 20:35:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,6 +34,10 @@ static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
 static struct midieventstream	*musicexpr_midieventstream_init(size_t);
 
+static struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
+static struct musicexpr_t
+	*musicexpr_relative_to_absolute(struct musicexpr_t *);
+
 static void	relative_to_absolute(struct musicexpr_t *, struct absnote_t *);
 static int	musicexpr_flatten(struct offsetexprstream_t *,
 				  struct musicexpr_t *);
@@ -47,7 +51,7 @@ static int	add_new_offset_expression(struct offsetexprstream_t *,
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
 
-struct musicexpr_t *
+static struct musicexpr_t *
 musicexpr_do_joining(struct musicexpr_t *me)
 {
 	/* XXX */
@@ -252,7 +256,7 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 	return new;
 }
 
-struct musicexpr_t *
+static struct musicexpr_t *
 musicexpr_relative_to_absolute(struct musicexpr_t *rel_me)
 {
 	struct musicexpr_t *abs_me;
@@ -394,20 +398,32 @@ musicexpr_midieventstream_init(size_t size)
 struct midieventstream *
 musicexpr_to_midievents(struct musicexpr_t *me)
 {
+	struct musicexpr_t *abs_me;
 	struct offsetexprstream_t offset_es;
 	struct midieventstream *midi_es;
 	int channel;
 
-	if (musicexpr_flatten(&offset_es, me) != 0) {
+	abs_me = musicexpr_relative_to_absolute(me);
+	if (abs_me == NULL) {
+		warnx("could not convert relative musicexpr to absolute");
+		return NULL;
+	}
+
+	if (musicexpr_flatten(&offset_es, abs_me) != 0) {
 		warnx("could not flatten music expression"
 			" to offset-expression-stream");
+		musicexpr_free(abs_me);
 		return NULL;
 	}
 
 	/* XXX this is just test stuff, should use offset_es instead */
 
-	if ((midi_es = musicexpr_midieventstream_init(9)) == NULL)
+	if ((midi_es = musicexpr_midieventstream_init(9)) == NULL) {
+		musicexpr_free(abs_me);
 		return NULL;
+	}
+
+	musicexpr_free(abs_me);
 
 	channel = 0;
 
