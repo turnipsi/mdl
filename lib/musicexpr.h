@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.18 2015/11/24 20:35:15 je Exp $ */
+/* $Id: musicexpr.h,v 1.19 2015/11/27 19:21:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,8 @@
 
 #ifndef MDL_MUSICEXPR_H
 #define MDL_MUSICEXPR_H
+
+#include "util.h"
 
 enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
@@ -66,9 +68,10 @@ struct musicexpr_t {
 };
 
 struct offsetexprstream_t {
-	struct musicexpr_with_offset_t	*mexprs;
-	int count, slotcount;
+	struct musicexpr_with_offset_t *mexprs;
+	struct streamparams		params;
 };
+
 
 void	musicexpr_free(struct musicexpr_t *);
 void	musicexpr_free_sequence(struct sequence_t *);

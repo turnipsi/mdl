@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.7 2015/11/18 21:15:59 je Exp $ */
+/* $Id: util.c,v 1.8 2015/11/27 19:21:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,10 +16,14 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "util.h"
+
+#define DEFAULT_SLOTCOUNT 1024
 
 static int debuglevel = 2;
 
@@ -37,4 +41,46 @@ mdl_log(int loglevel, const char *fmt, ...)
 	va_end(va);
 
 	return ret;
+}
+
+void *
+mdl_init_stream(struct streamparams *params, size_t itemsize)
+{
+	void *items;
+
+	params->count = 0;
+	params->itemsize = itemsize;
+	params->slotcount = DEFAULT_SLOTCOUNT;
+
+	items = calloc(params->slotcount, params->itemsize);
+	if (items == NULL) {
+		warn("malloc failure in mdl_init_stream");
+		return NULL;
+	}
+
+	return items;
+}
+
+int
+mdl_increment_stream(struct streamparams *params, void **items)
+{
+	void *new_items;
+
+	params->count += 1;
+	if (params->count == params->slotcount) {
+		(void) mdl_log(2,
+			       "mdl_buffer now contains %d items\n",
+			       params->count);
+		params->slotcount *= 2;
+		new_items = reallocarray(*items,
+					 params->slotcount,
+					 params->itemsize);
+		if (new_items == NULL) {
+			warn("reallocarray in mdl_increment_buffer");
+			return 1;
+		}
+		*items = new_items;
+	}
+
+	return 0;
 }

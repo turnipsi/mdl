@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.29 2015/11/24 20:35:15 je Exp $ */
+/* $Id: interpreter.c,v 1.30 2015/11/27 19:21:45 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -96,7 +96,9 @@ write_midistream_to_sequencer(int sequencer_socket, struct midieventstream *es)
 	ssize_t nw, total_wcount;
 
 	total_wcount = 0;
-	wsize = es->eventcount * sizeof(struct midievent); /* XXX overflow? */
+
+	/* XXX overflow? */
+	wsize = es->params.count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
 		nw = write(sequencer_socket,

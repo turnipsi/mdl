@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.2 2015/11/20 21:30:39 je Exp $ */
+/* $Id: midi.h,v 1.3 2015/11/27 19:21:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,8 @@
 #ifndef MDL_MIDI_H
 #define MDL_MIDI_H
 
+#include "util.h"
+
 #define MIDI_CHANNEL_MAX	15
 #define MIDI_NOTE_MAX		127
 
@@ -32,7 +34,7 @@ struct midievent {
 
 struct midieventstream {
 	struct midievent *events;
-	size_t eventcount;
+	struct streamparams params;
 };
 
 int	midi_open_device(void);
