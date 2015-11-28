@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.4 2015/11/28 14:58:20 je Exp $ */
+/* $Id: midi.c,v 1.5 2015/11/28 16:07:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -187,7 +187,7 @@ midi_write_midistream(int sequencer_socket, struct midieventstream *es)
 			warn("error writing to sequencer");
 			return -1;
 		}
-		mdl_log(2, "wrote %ld bytes to sequencer\n", nw);
+		(void) mdl_log(2, "wrote %ld bytes to sequencer\n", nw);
 		total_wcount += nw;
 	}
 

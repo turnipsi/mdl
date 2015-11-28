@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.37 2015/11/28 14:58:20 je Exp $ */
+/* $Id: mdl.c,v 1.38 2015/11/28 16:07:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -60,6 +60,8 @@ volatile sig_atomic_t mdl_shutdown_main = 0;
 
 extern int debuglevel;
 
+char *mdl_process_type;
+
 static void __dead
 usage(void)
 {
@@ -85,6 +87,8 @@ main(int argc, char *argv[])
 #ifndef NDEBUG
 	malloc_options = (char *) "AFGJPS";
 #endif
+
+	mdl_process_type = "main";
 
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 		   NULL) == -1)
@@ -237,6 +241,7 @@ setup_sequencer_for_sources(char **files,
 
 	if (sequencer_pid == 0) {
 		/* sequencer process, start sequencer loop */
+		mdl_process_type = "seq";
 		/* XXX should close all file descriptors that sequencer
 		 * XXX does not need */
 		if (close(ms_sp[0]) == -1)
@@ -366,6 +371,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 
 	if (interpreter_pid == 0) {
 		/* interpreter process */
+		mdl_process_type = "interp";
 		/* XXX should close all file descriptors that interpreter
 		 * XXX does not need */
 		if (close(mi_sp[0]) == -1)

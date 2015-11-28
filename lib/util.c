@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.10 2015/11/28 14:58:20 je Exp $ */
+/* $Id: util.c,v 1.11 2015/11/28 16:07:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,6 +25,9 @@
 
 #define DEFAULT_SLOTCOUNT 1024
 
+extern char *mdl_process_type;
+extern char *__progname;
+
 int debuglevel = 0;
 
 int
@@ -35,6 +38,10 @@ mdl_log(int loglevel, const char *fmt, ...)
 
 	if (loglevel > debuglevel)
 		return 0;
+
+	ret = printf("%s/%s: ", __progname, mdl_process_type);
+	if (ret < 0)
+		return ret;
 
 	va_start(va, fmt);
 	ret = vprintf(fmt, va);
