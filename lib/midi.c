@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.3 2015/11/03 19:58:09 je Exp $ */
+/* $Id: midi.c,v 1.4 2015/11/28 14:58:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,10 +18,14 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <math.h>
 #include <sndio.h>
+#include <unistd.h>
 
 #include "midi.h"
+#include "util.h"
 
 #define MIDI_EVENT_SIZE		3
 #define MIDI_VELOCITY_MAX	127
@@ -132,4 +136,60 @@ static int
 midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 {
 	return (min <= value && value <= max);
+}
+
+struct midieventstream *
+midi_eventstream_new(void)
+{
+	struct midieventstream *midi_es;
+
+        midi_es = malloc(sizeof(struct midieventstream));
+        if (midi_es == NULL) {
+                warn("malloc failure when creating midievent stream");
+                return NULL;
+        }
+
+        midi_es->events = mdl_stream_init(&midi_es->params,
+                                          sizeof(struct midievent));
+        if (midi_es->events == NULL) {
+		free(midi_es);
+		return NULL;
+	}
+
+	return midi_es;
+}
+
+void
+midi_eventstream_free(struct midieventstream *midi_es)
+{
+	mdl_stream_free(&midi_es->params, (void **) &midi_es->events);
+	free(midi_es);
+}
+
+ssize_t
+midi_write_midistream(int sequencer_socket, struct midieventstream *es)
+{
+	size_t wsize;
+	ssize_t nw, total_wcount;
+
+	total_wcount = 0;
+
+	/* XXX overflow? */
+	wsize = es->params.count * sizeof(struct midievent);
+
+	while (total_wcount < wsize) {
+		nw = write(sequencer_socket,
+			   (char *) es->events + total_wcount,
+			   wsize - total_wcount);
+		if (nw == -1) {
+			if (errno == EAGAIN)
+				continue;
+			warn("error writing to sequencer");
+			return -1;
+		}
+		mdl_log(2, "wrote %ld bytes to sequencer\n", nw);
+		total_wcount += nw;
+	}
+
+	return total_wcount;
 }

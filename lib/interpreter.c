@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.31 2015/11/28 08:14:37 je Exp $ */
+/* $Id: interpreter.c,v 1.32 2015/11/28 14:58:19 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,8 +30,7 @@
 extern FILE			*yyin;
 extern struct musicexpr_t	*parsed_expr;
 
-int		yyparse(void);
-static ssize_t	write_midistream_to_sequencer(int, struct midieventstream *);
+int	yyparse(void);
 
 int
 handle_musicfile_and_socket(int file_fd,
@@ -42,6 +41,7 @@ handle_musicfile_and_socket(int file_fd,
 	struct midieventstream *eventstream;
 	int ret;
 
+	eventstream = NULL;
 	ret = 0;
 
         if (pledge("stdio", NULL) == -1) {
@@ -59,8 +59,8 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	/* if yyparse() returned ok, we should have parsed_expr available
-	 * for us now */
+	/* if yyparse() returned ok, we should have parsed_expr != NULL
+	 * and available for us now */
 
 	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
 		warnx("expected sequence");
@@ -79,38 +79,13 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	(void) mdl_log(1, "writing midi stream to sequencer\n");
-	(void) write_midistream_to_sequencer(sequencer_socket, eventstream);
+	(void) midi_write_midistream(sequencer_socket, eventstream);
 
 finish:
-	musicexpr_free(parsed_expr);
+	if (eventstream)
+		midi_eventstream_free(eventstream);
+	if (parsed_expr)
+		musicexpr_free(parsed_expr);
 
 	return ret;
-}
-
-static ssize_t
-write_midistream_to_sequencer(int sequencer_socket, struct midieventstream *es)
-{
-	size_t wsize;
-	ssize_t nw, total_wcount;
-
-	total_wcount = 0;
-
-	/* XXX overflow? */
-	wsize = es->params.count * sizeof(struct midievent);
-
-	while (total_wcount < wsize) {
-		nw = write(sequencer_socket,
-			   (char *) es->events + total_wcount,
-			   wsize - total_wcount);
-		if (nw == -1) {
-			if (errno == EAGAIN)
-				continue;
-			warn("error writing to sequencer");
-			return -1;
-		}
-		mdl_log(2, "wrote %ld bytes to sequencer\n", nw);
-		total_wcount += nw;
-	}
-
-	return total_wcount;
 }

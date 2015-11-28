@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.36 2015/11/28 08:46:23 je Exp $ */
+/* $Id: mdl.c,v 1.37 2015/11/28 14:58:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -396,7 +396,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 
 	/* XXX only one interpreter thread should be running at once,
 	 * XXX so we should wait specifically for that one to finish
-	 * XXX (we might do something interesting while waiting, though */
+	 * XXX (we might do something interesting while waiting, though) */
 	if (waitpid(interpreter_pid, &interpreter_status, 0) == -1)
 		warn("error when wait for interpreter to finish");
 

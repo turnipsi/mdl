@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.18 2015/11/16 21:05:12 je Exp $
+/* $Id: parse.y,v 1.19 2015/11/28 14:58:20 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 
 #include "musicexpr.h"
 
-struct musicexpr_t *parsed_expr;
+struct musicexpr_t *parsed_expr = NULL;
 
 void	yyerror(const char *fmt, ...);
 int	yylex(void);

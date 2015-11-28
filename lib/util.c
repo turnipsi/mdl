@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.9 2015/11/28 08:46:23 je Exp $ */
+/* $Id: util.c,v 1.10 2015/11/28 14:58:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,25 +44,27 @@ mdl_log(int loglevel, const char *fmt, ...)
 }
 
 void *
-mdl_init_stream(struct streamparams *params, size_t itemsize)
+mdl_stream_init(struct streamparams *params, size_t itemsize)
 {
 	void *items;
 
 	params->count = 0;
 	params->itemsize = itemsize;
-	params->slotcount = DEFAULT_SLOTCOUNT;
+	params->slotcount = 0;
 
-	items = calloc(params->slotcount, params->itemsize);
+	items = calloc(DEFAULT_SLOTCOUNT, params->itemsize);
 	if (items == NULL) {
-		warn("malloc failure in mdl_init_stream");
+		warn("malloc failure in mdl_stream_init");
 		return NULL;
 	}
+
+	params->slotcount = DEFAULT_SLOTCOUNT;
 
 	return items;
 }
 
 int
-mdl_increment_stream(struct streamparams *params, void **items)
+mdl_stream_increment(struct streamparams *params, void **items)
 {
 	void *new_items;
 
@@ -83,4 +85,14 @@ mdl_increment_stream(struct streamparams *params, void **items)
 	}
 
 	return 0;
+}
+
+void
+mdl_stream_free(struct streamparams *params, void **items)
+{
+	free(*items);
+	*items = NULL;
+
+	params->count = 0;
+	params->slotcount = 0;
 }
