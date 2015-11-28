@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.33 2015/11/28 18:03:18 je Exp $ */
+/* $Id: interpreter.c,v 1.34 2015/11/28 21:55:32 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -40,6 +40,8 @@ handle_musicfile_and_socket(int file_fd,
 {
 	struct midieventstream *eventstream;
 	int level, ret;
+
+	/* XXX main_socket not yet used for anything */
 
 	eventstream = NULL;
 	level = 0;

@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.40 2015/11/28 20:14:15 je Exp $ */
+/* $Id: mdl.c,v 1.41 2015/11/28 21:55:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,7 +46,7 @@ extern char	*malloc_options;
 
 static int		get_default_mdldir(char *);
 static int		get_default_socketpath(char *, const char *);
-static int		start_interpreter(int, int, int);
+static int		start_interpreter(int, int, int, int);
 static void		handle_signal(int);
 static int		send_fd_through_socket(int, int);
 static int		setup_sequencer_for_sources(char **,
@@ -306,7 +306,10 @@ setup_sequencer_for_sources(char **files,
 			}
 		}
 
-		ret = start_interpreter(file_fd, ms_sp[0], server_socket);
+		ret = start_interpreter(file_fd,
+					ms_sp[0],
+					server_socket,
+					lockfd);
 		if (ret != 0) {
 			warnx("error in handling %s",
 			      using_stdin ? "stdin" : files[i]);
@@ -347,7 +350,10 @@ finish:
 }
 
 static int
-start_interpreter(int file_fd, int sequencer_socket, int server_socket)
+start_interpreter(int file_fd,
+		  int sequencer_socket,
+		  int server_socket,
+		  int lockfd)
 {
 	int mi_sp[2];	/* main-interpreter socketpair */
 	int is_pipe[2];	/* interpreter-sequencer pipe */
@@ -390,17 +396,39 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		/* interpreter process */
 		mdl_process_type = "interp";
 		mdl_log(1, 0, "new interpreter process, pid %d\n", getpid());
-		/* XXX should close all file descriptors that interpreter
-		 * XXX does not need */
-		if (close(mi_sp[0]) == -1)
+
+		/* be strict here when closing file descriptors so that we
+		 * do not leak file descriptors to interpreter process */
+		if (lockfd >= 0 && close(lockfd) == -1) {
+			warn("error closing lock file descriptor");
+			_exit(1);
+		}
+		if (close(sequencer_socket) == -1) {
+			warn("error closing sequencer socket");
+			_exit(1);
+		}
+		if (close(mi_sp[0]) == -1) {
 			warn("error closing first endpoint of mi_sp");
-		if (close(is_pipe[1]) == -1)
+			_exit(1);
+		}
+		if (close(is_pipe[1]) == -1) {
 			warn("error closing second endpoint of is_pipe");
+			_exit(1);
+		}
 
 		ret = handle_musicfile_and_socket(file_fd,
 					   	  mi_sp[1],
 					   	  is_pipe[0],
 						  server_socket);
+
+		if (file_fd != fileno(stdin) && close(file_fd) == -1)
+			warn("error closing music file");
+
+		if (close(is_pipe[0]) == -1)
+			warn("error closing first endpoint of is_pipe");
+		if (close(mi_sp[1]) == -1)
+			warn("error closing second endpoint of mi_sp");
+
 		_exit(ret);
 	}
 
@@ -410,13 +438,20 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		warn("error closing first endpoint of is_pipe");
 
 	/* we can communicate to interpreter through mi_sp[0],
-	 * but to establish interpreter <-> sequencer communucation
+	 * but to establish interpreter <-> sequencer communication
 	 * we must send is_pipe[1] to sequencer */
 
 	if (send_fd_through_socket(is_pipe[1], sequencer_socket) != 0) {
 		/* XXX what to do in case of error?
 		 * XXX what should we clean up? */
 	}
+
+	/* XXX mi_sp[0] not yet used for anything */
+
+	if (close(mi_sp[0]) == -1)
+		warn("error closing first endpoint of mi_sp");
+	if (close(is_pipe[1]) == -1)
+		warn("error closing second endpoint of is_pipe");
 
 	/* XXX only one interpreter thread should be running at once,
 	 * XXX so we should wait specifically for that one to finish

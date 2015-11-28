@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.57 2015/11/28 20:14:15 je Exp $ */
+/* $Id: sequencer.c,v 1.58 2015/11/28 21:55:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -321,7 +321,6 @@ sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout)
 	if (timeout->tv_nsec < 0) {
 		timeout->tv_nsec += 1000000000;
 		timeout->tv_sec -= 1;
-
 	}
 
 	if (timeout->tv_sec < 0) {
