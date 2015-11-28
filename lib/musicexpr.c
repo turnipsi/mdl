@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.18 2015/11/27 19:21:45 je Exp $ */
+/* $Id: musicexpr.c,v 1.19 2015/11/28 08:46:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,7 +34,10 @@
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
 
+#if 0
 static struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
+#endif
+
 static struct musicexpr_t
 	*musicexpr_relative_to_absolute(struct musicexpr_t *);
 
@@ -54,6 +57,7 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *);
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
 
+#if 0
 static struct musicexpr_t *
 musicexpr_do_joining(struct musicexpr_t *me)
 {
@@ -61,6 +65,7 @@ musicexpr_do_joining(struct musicexpr_t *me)
 
 	return me;
 }
+#endif
 
 static int
 musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
@@ -150,8 +155,6 @@ add_new_offset_expression(struct offsetexprstream_t *oes,
 			  struct musicexpr_t *me,
 			  float offset)
 {			
-	int ret;
-
 	oes->mexprs[ oes->params.count ].me = me;
 	oes->mexprs[ oes->params.count ].offset = offset;
 

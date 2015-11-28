@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.7 2015/10/07 20:00:49 je Exp $
+.\"	$Id: mdl.1,v 1.8 2015/11/28 08:46:23 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: October 7 2015 $
+.Dd $Mdocdate: November 28 2015 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -25,7 +25,8 @@
 .Sh SYNOPSIS
 .Nm mdl
 .Op Fl cs
-.Op Fl d Ar mdl-directory
+.Op Fl d Ar debuglevel
+.Op Fl D Ar mdl-directory
 .Op Ar
 .Sh DESCRIPTION
 .Nm
@@ -54,7 +55,14 @@ The options are as follows:
 .Bl -tag -width Ds
 .It Fl c
 Send music description to server (act as client only).
-.It Fl d Ar mdl-directory
+.It Fl d Ar debuglevel
+Set
+.Ar debuglevel
+to some value.
+Supported values are from 0 to 2,
+where a bigger number means
+more detailed debugging messages are printed.
+.It Fl D Ar mdl-directory
 Use
 .Ar mdl-directory
 as the directory to keep a listening socket.

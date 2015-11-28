@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.8 2015/11/27 19:21:45 je Exp $ */
+/* $Id: util.c,v 1.9 2015/11/28 08:46:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,7 @@
 
 #define DEFAULT_SLOTCOUNT 1024
 
-static int debuglevel = 2;
+int debuglevel = 0;
 
 int
 mdl_log(int loglevel, const char *fmt, ...)

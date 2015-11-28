@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.35 2015/11/28 08:14:37 je Exp $ */
+/* $Id: mdl.c,v 1.36 2015/11/28 08:46:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -36,6 +36,7 @@
 #include "compat.h"
 #include "interpreter.h"
 #include "sequencer.h"
+#include "util.h"
 
 #define SOCKETPATH_LEN 104
 
@@ -57,10 +58,12 @@ static void __dead	usage(void);
 /* if set in signal handler, should do shutdown */
 volatile sig_atomic_t mdl_shutdown_main = 0;
 
+extern int debuglevel;
+
 static void __dead
 usage(void)
 {
-	(void) fprintf(stderr, "usage: mdl [-cs] [-d mdldir] [file ...]\n");
+	(void) fprintf(stderr, "usage: mdl [-cs] [-D mdldir] [file ...]\n");
 	exit(1);
 }
 
@@ -75,7 +78,8 @@ main(int argc, char *argv[])
 {
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	int musicfilecount, ch, cflag, dflag, sflag, fileflags;
+	const char *errstr;
+	int musicfilecount, ch, cflag, sflag, fileflags;
 	size_t ret;
 
 #ifndef NDEBUG
@@ -92,15 +96,23 @@ main(int argc, char *argv[])
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
-	cflag = dflag = sflag = 0;
+	cflag = sflag = 0;
 
-	while ((ch = getopt(argc, argv, "cd:s")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:D:s")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
 			break;
 		case 'd':
-			dflag = 1;
+			debuglevel = strtonum(optarg, 0, 2, &errstr);
+			if (errstr) {
+				errx(1,
+				     "debuglevel %s is not supported: %s\n",
+				     optarg,
+				     errstr);
+			}
+			break;
+		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
 				errx(1, "mdldir too long");
 			break;
