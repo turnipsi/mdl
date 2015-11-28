@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.56 2015/11/28 18:03:18 je Exp $ */
+/* $Id: sequencer.c,v 1.57 2015/11/28 20:14:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -223,8 +223,6 @@ sequencer_loop(int main_socket)
 				goto finish;
 			}
 			if (ret == 0) {
-				if (close(main_socket) == -1)
-					warn("closing main socket");
 				main_socket = -1;
 			} else {
 				assert(old_interp_fd != interp_fd);

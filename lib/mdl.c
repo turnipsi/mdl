@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.39 2015/11/28 18:03:18 je Exp $ */
+/* $Id: mdl.c,v 1.40 2015/11/28 20:14:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,7 +51,8 @@ static void		handle_signal(int);
 static int		send_fd_through_socket(int, int);
 static int		setup_sequencer_for_sources(char **,
 						    int,
-						    const char *);
+						    const char *,
+						    int);
 static int		setup_server_socket(const char *);
 static void __dead	usage(void);
 
@@ -81,7 +82,7 @@ main(int argc, char *argv[])
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
 	const char *errstr;
-	int musicfilecount, ch, cflag, sflag, fileflags;
+	int musicfilecount, ch, cflag, sflag, fileflags, lockfd;
 	size_t ret;
 
 #ifndef NDEBUG
@@ -89,6 +90,9 @@ main(int argc, char *argv[])
 #endif
 
 	mdl_process_type = "main";
+
+	cflag = sflag = 0;
+	lockfd = -1;
 
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 		   NULL) == -1)
@@ -99,8 +103,6 @@ main(int argc, char *argv[])
 
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
-
-	cflag = sflag = 0;
 
 	while ((ch = getopt(argc, argv, "cd:D:s")) != -1) {
 		switch (ch) {
@@ -131,15 +133,17 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	mdl_log(1, 0, "new main process, pid %d\n", getpid());
+
 	if ((mkdir(mdldir, 0755) == -1) && errno != EEXIST)
 		err(1, "error creating %s", mdldir);
 
 	if (sflag) {
 		/* when opening server socket, open mdldir for exclusive lock,
 		 * to get exclusive access to socket path, not needed for
-		 * anything else (discard the file descriptor) */
+		 * anything else */
 		fileflags = O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY;
-		if (open(mdldir, fileflags) == -1) {
+		if ((lockfd = open(mdldir, fileflags)) == -1) {
 			warn("could not open %s for exclusive lock", mdldir);
 			errx(1, "do you have another instance of" \
 				  " mdl running?");
@@ -167,9 +171,13 @@ main(int argc, char *argv[])
 
 	ret = setup_sequencer_for_sources(musicfiles,
 					  musicfilecount,
-					  sflag ? server_socketpath : NULL);
+					  sflag ? server_socketpath : NULL,
+					  lockfd);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
+
+	if (lockfd >= 0 && close(lockfd) == -1)
+		warn("error closing lockfd");
 
 	return 0;
 }
@@ -212,13 +220,15 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 static int
 setup_sequencer_for_sources(char **files,
 			    int filecount,
-			    const char *socketpath)
+			    const char *socketpath,
+			    int lockfd)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
 	int server_socket, file_fd, sequencer_status, ret, retvalue,
 	    using_stdin, i;
 	pid_t sequencer_pid;
 	char *stdinfiles[] = { "-" };
+	int sequencer_retvalue;
 
 	server_socket = -1;
 	retvalue = 0;
@@ -242,11 +252,18 @@ setup_sequencer_for_sources(char **files,
 	if (sequencer_pid == 0) {
 		/* sequencer process, start sequencer loop */
 		mdl_process_type = "seq";
+		mdl_log(1, 0, "new sequencer process, pid %d\n", getpid());
 		/* XXX should close all file descriptors that sequencer
 		 * XXX does not need */
+		if (lockfd >= 0 && close(lockfd) == -1)
+			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first endpoint of ms_sp");
-		_exit( sequencer_loop(ms_sp[1]) );
+		sequencer_retvalue = sequencer_loop(ms_sp[1]);
+		if (close(ms_sp[1]) == -1)
+			warn("closing main socket");
+		_exit(sequencer_retvalue);
+
 	}
 
 	if (close(ms_sp[1]) == -1)
@@ -372,6 +389,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 	if (interpreter_pid == 0) {
 		/* interpreter process */
 		mdl_process_type = "interp";
+		mdl_log(1, 0, "new interpreter process, pid %d\n", getpid());
 		/* XXX should close all file descriptors that interpreter
 		 * XXX does not need */
 		if (close(mi_sp[0]) == -1)
