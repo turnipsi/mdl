@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.34 2015/11/09 20:15:07 je Exp $ */
+/* $Id: mdl.c,v 1.35 2015/11/28 08:14:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -55,7 +55,7 @@ static int		setup_server_socket(const char *);
 static void __dead	usage(void);
 
 /* if set in signal handler, should do shutdown */
-volatile sig_atomic_t mdl_shutdown = 0;
+volatile sig_atomic_t mdl_shutdown_main = 0;
 
 static void __dead
 usage(void)
@@ -67,7 +67,7 @@ usage(void)
 static void
 handle_signal(int signo)
 {
-	mdl_shutdown = 1;
+	mdl_shutdown_main = 1;
 }
 
 int
@@ -152,7 +152,7 @@ main(int argc, char *argv[])
 	ret = setup_sequencer_for_sources(musicfiles,
 					  musicfilecount,
 					  sflag ? server_socketpath : NULL);
-	if (ret != 0 || mdl_shutdown == 1)
+	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
 	return 0;
@@ -259,7 +259,7 @@ setup_sequencer_for_sources(char **files,
 		files = stdinfiles;
 	}
 
-	for (i = 0; i < filecount && mdl_shutdown == 0; i++) {
+	for (i = 0; i < filecount && mdl_shutdown_main == 0; i++) {
 		if (strcmp(files[i], "-") == 0) {
 			file_fd = fileno(stdin);
 			using_stdin = 1;

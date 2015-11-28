@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.30 2015/11/27 19:21:45 je Exp $ */
+/* $Id: interpreter.c,v 1.31 2015/11/28 08:14:37 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -15,8 +15,6 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
-#include <sys/select.h>
 
 #include <err.h>
 #include <errno.h>

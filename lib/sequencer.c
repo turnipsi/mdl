@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.54 2015/11/09 20:15:07 je Exp $ */
+/* $Id: sequencer.c,v 1.55 2015/11/28 08:14:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,7 +67,8 @@ struct songstate {
 	enum playback_state_t playback_state;
 };
 
-static int	signal_pipe[2];
+/* if set in signal handler, should do shutdown */
+volatile sig_atomic_t mdl_shutdown_sequencer = 0;
 
 static void	sequencer_calculate_timeout(struct songstate *,
 					    struct timespec *);
@@ -98,13 +99,7 @@ sequencer_init(void)
 static void
 sequencer_handle_signal(int signo)
 {
-	int save_errno;
-
-	save_errno = errno;
-	if (write(signal_pipe[0], "O", 1) == -1 && errno != EAGAIN)
-		_exit(EXIT_FAILURE);
-
-	errno = save_errno;
+	mdl_shutdown_sequencer = 1;
 }
 
 int
@@ -114,8 +109,8 @@ sequencer_loop(int main_socket)
 	struct songstate *playback_song, *reading_song, *tmp_song;
 	fd_set readfds;
 	int retvalue, interp_fd, old_interp_fd, ret, nr;
-	struct timespec timeout;
-	struct timeval timeoutval, *timeoutval_p;
+	struct timespec timeout, *timeout_p;
+	sigset_t loop_sigmask, select_sigmask;
 
 	/* XXX receiving fd works even if recvfd is not specified...
 	 * XXX is this a bug? */
@@ -147,21 +142,15 @@ sequencer_loop(int main_socket)
 		return 1;
 	}
 
-	if (pipe(signal_pipe) == -1) {
-		warn("opening signal-pipe for select");
-		sequencer_close();
-		return 1;
-	}
-
-	if (fcntl(signal_pipe[0], F_SETFL, O_NONBLOCK) == -1
-             || fcntl(signal_pipe[1], F_SETFL, O_NONBLOCK) == -1) {
-		warn("could not set signal pipe non-blocking");
-		sequencer_close();
-		return 1;
-	}
-
 	signal(SIGINT,  sequencer_handle_signal);
 	signal(SIGTERM, sequencer_handle_signal);
+
+	(void) sigemptyset(&loop_sigmask);
+	(void) sigaddset(&loop_sigmask, SIGINT);
+	(void) sigaddset(&loop_sigmask, SIGTERM);
+	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
+
+	(void) sigemptyset(&select_sigmask);
 
 	sequencer_init_songstate(playback_song, IDLE);
 	sequencer_init_songstate(reading_song,  READING);
@@ -174,7 +163,6 @@ sequencer_loop(int main_socket)
 			      == FREEING_EVENTSTREAM);
 
 		FD_ZERO(&readfds);
-		FD_SET(signal_pipe[1], &readfds);
 
 		if (main_socket >= 0
 		      && playback_song->playback_state != PLAYING)
@@ -185,29 +173,34 @@ sequencer_loop(int main_socket)
 
 		if (playback_song->playback_state == PLAYING) {
 			sequencer_calculate_timeout(playback_song, &timeout);
-			timeoutval.tv_sec = timeout.tv_sec;
-			timeoutval.tv_usec = timeout.tv_nsec / 1000;
-			timeoutval_p = &timeoutval;
+			timeout_p = &timeout;
 		} else {
-			timeoutval_p = NULL;
+			timeout_p = NULL;
 		}
 
 		if (main_socket == -1
 		      && interp_fd == -1
-		      && timeoutval_p == NULL) {
+		      && timeout_p == NULL) {
 			/* nothing more to do! */
 			retvalue = 0;
 			goto finish;
 		}
 
-		ret = select(FD_SETSIZE, &readfds, NULL, NULL, timeoutval_p);
+		ret = pselect(FD_SETSIZE,
+			      &readfds,
+			      NULL,
+			      NULL,
+			      timeout_p,
+			      &select_sigmask);
 		if (ret == -1 && errno != EINTR) {
 			warn("error in select");
 			retvalue = 1;
 			goto finish;
 		}
 
-		if (FD_ISSET(signal_pipe[1], &readfds)) {
+		if (mdl_shutdown_sequencer) {
+			(void) mdl_log(1, "sequencer received" \
+					    " shutdown signal\n");
 			retvalue = 1;
 			goto finish;
 		}
