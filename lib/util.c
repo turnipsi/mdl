@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.11 2015/11/28 16:07:31 je Exp $ */
+/* $Id: util.c,v 1.12 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,10 +16,12 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <assert.h>
 #include <err.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 #include "util.h"
 
@@ -28,26 +30,36 @@
 extern char *mdl_process_type;
 extern char *__progname;
 
-int debuglevel = 0;
+int loglevel = 0;
 
-int
-mdl_log(int loglevel, const char *fmt, ...)
+void
+mdl_log(int msgloglevel, int indentlevel, const char *fmt, ...)
 {
 	va_list va;
-	int ret;
+	int ret, i;
 
-	if (loglevel > debuglevel)
-		return 0;
+	assert(msgloglevel >= 0);
+	assert(indentlevel >= 0);
 
-	ret = printf("%s/%s: ", __progname, mdl_process_type);
+	if (msgloglevel > loglevel)
+		return;
+
+	ret = printf("%s/%s(%d): ",
+		     __progname,
+		     mdl_process_type,
+		     msgloglevel);
 	if (ret < 0)
-		return ret;
+		return;
+
+	for (i = 0; i < indentlevel; i++) {
+		ret = printf("  ");
+		if (ret < 0)
+			return;
+	}
 
 	va_start(va, fmt);
-	ret = vprintf(fmt, va);
+	(void) vprintf(fmt, va);
 	va_end(va);
-
-	return ret;
 }
 
 void *
@@ -77,9 +89,10 @@ mdl_stream_increment(struct streamparams *params, void **items)
 
 	params->count += 1;
 	if (params->count == params->slotcount) {
-		(void) mdl_log(2,
-			       "mdl_buffer now contains %d items\n",
-			       params->count);
+		mdl_log(2,
+			0,
+			"mdl_buffer now contains %d items\n",
+			params->count);
 		params->slotcount *= 2;
 		new_items = reallocarray(*items,
 					 params->slotcount,

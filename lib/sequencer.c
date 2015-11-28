@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.55 2015/11/28 08:14:37 je Exp $ */
+/* $Id: sequencer.c,v 1.56 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -199,8 +199,7 @@ sequencer_loop(int main_socket)
 		}
 
 		if (mdl_shutdown_sequencer) {
-			(void) mdl_log(1, "sequencer received" \
-					    " shutdown signal\n");
+			mdl_log(1, 0, "sequencer received shutdown signal\n");
 			retvalue = 1;
 			goto finish;
 		}

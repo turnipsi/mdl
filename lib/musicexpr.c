@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.20 2015/11/28 14:58:20 je Exp $ */
+/* $Id: musicexpr.c,v 1.21 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,8 +30,9 @@
 #define DEFAULT_MIDICHANNEL	0
 #define DEFAULT_VELOCITY	80
 
-static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *);
-static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *);
+static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
+static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *,
+							  int);
 
 #if 0
 static struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
@@ -41,14 +42,18 @@ static struct offsetexprstream_t *offsetexprstream_new(void);
 void offsetexprstream_free(struct offsetexprstream_t *);
 
 static struct musicexpr_t
-	*musicexpr_relative_to_absolute(struct musicexpr_t *);
+	*musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 
-static void	relative_to_absolute(struct musicexpr_t *, struct absnote_t *);
+static void	relative_to_absolute(struct musicexpr_t *,
+				     struct absnote_t *,
+				     int);
 static int	musicexpr_flatten(struct offsetexprstream_t *,
 				  struct musicexpr_t *);
 static int	offset_expressions(struct offsetexprstream_t *,
 				   struct musicexpr_t *,
-				   float *);
+				   float *,
+				   int);
+
 static int	add_new_offset_expression(struct offsetexprstream_t *,
 					  struct musicexpr_t *,
 					  float offset);
@@ -74,11 +79,11 @@ musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
 {
 	float offset;
 
-	(void) mdl_log(1, "flattening music expression\n");
-	(void) mdl_log(2, "initializing offset to %f\n", offset);
+	mdl_log(1, 0, "flattening music expression\n");
+	mdl_log(2, 1, "initializing offset to %.3f\n", offset);
 	offset = 0.0;
 
-	if (offset_expressions(oes, me, &offset) != 0)
+	if (offset_expressions(oes, me, &offset, 1) != 0)
 		return 1;
 
 	return 0;
@@ -87,7 +92,8 @@ musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
 static int
 offset_expressions(struct offsetexprstream_t *oes,
 		   struct musicexpr_t *me,
-		   float *offset)
+		   float *offset,
+		   int level)
 {
 	struct sequence_t *seq;
 	float old_offset;
@@ -97,34 +103,40 @@ offset_expressions(struct offsetexprstream_t *oes,
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		(void) mdl_log(2, "finding offset expression for absnote\n");
+		mdl_log(3, level, "finding offset expression for absnote\n");
 		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
 			return ret;
 		*offset += me->absnote.length;
 		break;
 	case ME_TYPE_RELNOTE:
-		(void) mdl_log(2, "finding offset expression for relnote\n");
+		mdl_log(3, level, "finding offset expression for relnote\n");
 		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
 			return ret;
 		*offset += me->relnote.length;
 		break;
 	case ME_TYPE_JOINEXPR:
-		(void) mdl_log(2, "finding offset expression for joinexpr\n");
+		mdl_log(3, level, "finding offset expression for joinexpr\n");
 		/* just pass */
 		break;
 	case ME_TYPE_SEQUENCE:
-		(void) mdl_log(2, "finding offset expression for sequence\n");
+		mdl_log(3, level, "finding offset expression for sequence\n");
 		for (seq = me->sequence; seq != NULL; seq = seq->next) {
-			ret = offset_expressions(oes, seq->me, offset);
+			ret = offset_expressions(oes,
+						 seq->me,
+						 offset,
+						 level + 1);
 			if (ret != 0)
 				return ret;
 		}
 		break;
 	case ME_TYPE_WITHOFFSET:
-		(void) mdl_log(2, "finding offset expression for" \
+		mdl_log(3, level, "finding offset expression for" \
 				    " offset expression\n");
 		*offset += me->offset_expr.offset;
-		ret = offset_expressions(oes, me->offset_expr.me, offset);
+		ret = offset_expressions(oes,
+					 me->offset_expr.me,
+					 offset,
+					 level + 1);
 		if (ret != 0)
 			return ret;
 		break;
@@ -133,10 +145,11 @@ offset_expressions(struct offsetexprstream_t *oes,
 	}
 
 	if (old_offset != *offset) {
-		(void) mdl_log(2,
-			       "offset changed from %f to %f\n",
-			       old_offset,
-			       *offset);
+		mdl_log(3,
+			level,
+			"offset changed from %.3f to %.3f\n",
+			old_offset,
+			*offset);
 	}
 
 	return 0;
@@ -154,7 +167,7 @@ add_new_offset_expression(struct offsetexprstream_t *oes,
 }
 
 static struct musicexpr_t *
-musicexpr_clone(struct musicexpr_t *me)
+musicexpr_clone(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *cloned;
 
@@ -168,25 +181,30 @@ musicexpr_clone(struct musicexpr_t *me)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		(void) mdl_log(2, "cloning expression %p (absnote)\n");
+		mdl_log(4, level, "cloning expression %p (absnote)\n", me);
+		musicexpr_log(me, 4, level + 1);
 		break;
 	case ME_TYPE_RELNOTE:
-		(void) mdl_log(2, "cloning expression %p (relnote)\n");
+		mdl_log(4, level, "cloning expression %p (relnote)\n", me);
+		musicexpr_log(me, 4, level + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
-		(void) mdl_log(2, "cloning expression %p (joinexpr)\n");
+		mdl_log(4, level, "cloning expression %p (joinexpr)\n", me);
 		break;
 	case ME_TYPE_SEQUENCE:
-		(void) mdl_log(2, "cloning expression %p (sequence)\n");
-		cloned->sequence = musicexpr_clone_sequence(me->sequence);
+		mdl_log(4, level, "cloning expression %p (sequence)\n", me);
+		cloned->sequence = musicexpr_clone_sequence(me->sequence,
+							    level + 1);
 		if (cloned->sequence == NULL) {
 			free(cloned);
 			cloned = NULL;
 		}
 		break;
 	case ME_TYPE_WITHOFFSET:
-		(void) mdl_log(2, "cloning expression %p (withoffset)\n");
-		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me);
+		mdl_log(4, level, "cloning expression %p (withoffset)\n", me);
+		musicexpr_log(me, 4, level + 1);
+		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me,
+							 level + 1);
 		if (cloned->offset_expr.me == NULL) {
 			free(cloned);
 			cloned = NULL;
@@ -200,7 +218,7 @@ musicexpr_clone(struct musicexpr_t *me)
 }
 
 static struct sequence_t *
-musicexpr_clone_sequence(struct sequence_t *seq)
+musicexpr_clone_sequence(struct sequence_t *seq, int level)
 {
 	struct sequence_t *p, *q, *prev_q, *new;
 
@@ -215,7 +233,7 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 				musicexpr_free_sequence(new);
 			return NULL;
 		}
-		q->me = musicexpr_clone(p->me);
+		q->me = musicexpr_clone(p->me, level);
 		if (q->me == NULL) {
 			free(q);
 			if (new != NULL)
@@ -234,30 +252,29 @@ musicexpr_clone_sequence(struct sequence_t *seq)
 }
 
 static struct musicexpr_t *
-musicexpr_relative_to_absolute(struct musicexpr_t *rel_me)
+musicexpr_relative_to_absolute(struct musicexpr_t *rel_me, int level)
 {
 	struct musicexpr_t *abs_me;
 	struct absnote_t prev_absnote;
 
-	(void) mdl_log(2, "converting relative expression to absolute\n");
+	mdl_log(2, level, "converting relative expression to absolute\n");
 
-	if ((abs_me = musicexpr_clone(rel_me)) == NULL)
+	if ((abs_me = musicexpr_clone(rel_me, level + 1)) == NULL)
 		return NULL;
-
-	(void) musicexpr_log(0, abs_me);
 
 	/* set default values for the first absolute note */
 	prev_absnote.length = 0.25;
 	prev_absnote.notesym = NOTE_C;
 	prev_absnote.note = 60;
 
-	relative_to_absolute(abs_me, &prev_absnote);
+	relative_to_absolute(abs_me, &prev_absnote, level + 1);
 
 	return abs_me;
 }
 
 static void
-relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
+relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
+		     int level)
 {
 	struct sequence_t *seq;
 	struct absnote_t absnote;
@@ -270,12 +287,13 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		(void) mdl_log(2, "rel->abs expression (absnote)\n");
+		mdl_log(3, level, "rel->abs expression (absnote)\n");
 		/* pass as is, but this affects previous absnote */
 		*prev_absnote = me->absnote;
 		break;
 	case ME_TYPE_RELNOTE:
-		(void) mdl_log(2, "rel->abs expression (relnote)\n");
+		mdl_log(3, level, "rel->abs expression (relnote)\n");
+		musicexpr_log(me, 3, level + 1);
 		relnote = me->relnote;
 
 		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
@@ -307,22 +325,29 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote)
 
 		break;
 	case ME_TYPE_SEQUENCE:
-		(void) mdl_log(2, "rel->abs expression (sequence)\n");
+		mdl_log(3, level, "rel->abs expression (sequence)\n");
 		for (seq = me->sequence; seq != NULL; seq = seq->next)
-			relative_to_absolute(seq->me, prev_absnote);
+			relative_to_absolute(seq->me,
+					     prev_absnote,
+					     level + 1);
 		break;
 	case ME_TYPE_WITHOFFSET:
-		(void) mdl_log(2, "rel->abs expression (withoffset)\n");
-		relative_to_absolute(me->offset_expr.me, prev_absnote);
+		mdl_log(3, level, "rel->abs expression (withoffset)\n");
+		relative_to_absolute(me->offset_expr.me,
+				     prev_absnote,
+				     level + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
-		(void) mdl_log(2, "rel->abs expression (joinexpr)\n");
+		mdl_log(3, level, "rel->abs expression (joinexpr)\n");
 		/* just pass as is */
 		break;
 	default:
 		assert(0);
 		break;
 	}
+
+	if (me->me_type == ME_TYPE_ABSNOTE)
+		musicexpr_log(me, 3, level + 1);
 }
 
 /* if equal                            -->  0
@@ -347,18 +372,20 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 }
 
 struct midieventstream *
-musicexpr_to_midievents(struct musicexpr_t *me)
+musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *abs_me;
 	struct offsetexprstream_t *offset_es;
 	struct midieventstream *midi_es;
+
+	mdl_log(1, level, "converting music expression to midi stream\n");
 
 	midi_es = NULL;
 
 	if ((offset_es = offsetexprstream_new()) == NULL)
 		return NULL;
 
-	abs_me = musicexpr_relative_to_absolute(me);
+	abs_me = musicexpr_relative_to_absolute(me, level + 1);
 	if (abs_me == NULL) {
 		warnx("could not convert relative musicexpr to absolute");
 		offsetexprstream_free(offset_es);
@@ -408,7 +435,7 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 		}
 
 		if (me->absnote.length < 0) {
-			warnx("skipping note with length %f",
+			warnx("skipping note with length %.3f",
 			      me->absnote.length);
 			continue;
 		}
@@ -460,73 +487,53 @@ error:
 	return NULL;
 }
 
-int
-musicexpr_log(int indentlevel, struct musicexpr_t *me)
+void
+musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 {
-	int i, ret;
-
-	for (i = 0; i < indentlevel; i++) {
-		ret = mdl_log(1, " ");
-		if (ret < 0)
-			return ret;
-	}
-
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		ret = mdl_log(1,
-			      "absnote notesym=%d note=%d length=%f\n",
-			      me->absnote.notesym,
-			      me->absnote.note,
-			      me->absnote.length);
+		mdl_log(loglevel,
+			indentlevel,
+			"absnote notesym=%d note=%d length=%.3f\n",
+			me->absnote.notesym,
+		        me->absnote.note,
+		        me->absnote.length);
 		break;
 	case ME_TYPE_RELNOTE:
-		ret = mdl_log(1,
-			      "relnote notesym=%d notemods=%d" \
-			        " length=%f octavemods=%d\n",
-			      me->relnote.notesym,
-			      me->relnote.notemods,
-			      me->relnote.length,
-			      me->relnote.octavemods);
+		mdl_log(loglevel,
+			indentlevel,
+			"relnote notesym=%d notemods=%d" \
+			  " length=%.3f octavemods=%d\n",
+			me->relnote.notesym,
+			me->relnote.notemods,
+			me->relnote.length,
+			me->relnote.octavemods);
 		break;
 	case ME_TYPE_SEQUENCE:
-		ret = mdl_log(1, "sequence\n");
-		if (ret < 0)
-			break;
-		ret = musicexpr_log_sequence(indentlevel + 2, me->sequence);
+		mdl_log(loglevel, indentlevel, "sequence\n");
+		musicexpr_log_sequence(me->sequence, loglevel, indentlevel);
 		break;
 	case ME_TYPE_WITHOFFSET:
-		ret = mdl_log(1,
-			      "offset_expr offset=%f\n",
-			      me->offset_expr.offset);
-		if (ret < 0)
-			break;
-		ret = musicexpr_log(indentlevel + 2, me->offset_expr.me);
+		mdl_log(loglevel,
+			indentlevel,
+			"offset_expr offset=%.3f\n", me->offset_expr.offset);
+		musicexpr_log(me->offset_expr.me, loglevel, indentlevel + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
-		ret = mdl_log(1, "joinexpr\n");
+		mdl_log(loglevel, indentlevel, "joinexpr\n");
 		break;
 	default:
 		assert(0);
 	}
-
-	return ret;
 }
 
-int
-musicexpr_log_sequence(int indentlevel, struct sequence_t *seq)
+void
+musicexpr_log_sequence(struct sequence_t *seq, int loglevel, int indentlevel)
 {
 	struct sequence_t *p;
-	int ret;
 
-	ret = 0;
-
-	for (p = seq; p != NULL; p = p->next) {
-		ret = musicexpr_log(indentlevel, p->me);
-		if (ret < 0)
-			break;
-	}
-
-	return ret;
+	for (p = seq; p != NULL; p = p->next)
+		musicexpr_log(p->me, loglevel, indentlevel + 1);
 }
 
 void

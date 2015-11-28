@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.38 2015/11/28 16:07:31 je Exp $ */
+/* $Id: mdl.c,v 1.39 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -58,7 +58,7 @@ static void __dead	usage(void);
 /* if set in signal handler, should do shutdown */
 volatile sig_atomic_t mdl_shutdown_main = 0;
 
-extern int debuglevel;
+extern int loglevel;
 
 char *mdl_process_type;
 
@@ -108,10 +108,10 @@ main(int argc, char *argv[])
 			cflag = 1;
 			break;
 		case 'd':
-			debuglevel = strtonum(optarg, 0, 2, &errstr);
+			loglevel = strtonum(optarg, 0, 4, &errstr);
 			if (errstr) {
 				errx(1,
-				     "debuglevel %s is not supported: %s\n",
+				     "loglevel %s is not supported: %s\n",
 				     optarg,
 				     errstr);
 			}

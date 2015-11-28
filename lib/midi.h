@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.4 2015/11/28 14:58:20 je Exp $ */
+/* $Id: midi.h,v 1.5 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -45,6 +45,6 @@ void	midi_close_device(void);
 struct midieventstream *midi_eventstream_new(void);
 void			midi_eventstream_free(struct midieventstream *);
 
-ssize_t	midi_write_midistream(int, struct midieventstream *);
+ssize_t	midi_write_midistream(int, struct midieventstream *, int);
 
 #endif

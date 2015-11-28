@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.32 2015/11/28 14:58:19 je Exp $ */
+/* $Id: interpreter.c,v 1.33 2015/11/28 18:03:18 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,9 +39,10 @@ handle_musicfile_and_socket(int file_fd,
 			    int server_socket)
 {
 	struct midieventstream *eventstream;
-	int ret;
+	int level, ret;
 
 	eventstream = NULL;
+	level = 0;
 	ret = 0;
 
         if (pledge("stdio", NULL) == -1) {
@@ -68,18 +69,21 @@ handle_musicfile_and_socket(int file_fd,
 		goto finish;
 	}
 
-	(void) mdl_log(1, "parse ok, got parse result:\n");
-	(void) musicexpr_log(0, parsed_expr);
+	mdl_log(1, level, "parse ok, got parse result:\n");
+	musicexpr_log(parsed_expr, 2, level + 1);
 
-	(void) mdl_log(1, "converting to midi stream\n");
-	if ((eventstream = musicexpr_to_midievents(parsed_expr)) == NULL) {
+	eventstream = musicexpr_to_midievents(parsed_expr, level);
+	if (eventstream == NULL) {
 		warnx("error converting music expression to midi stream");
 		ret = 1;
 		goto finish;
 	}
 
-	(void) mdl_log(1, "writing midi stream to sequencer\n");
-	(void) midi_write_midistream(sequencer_socket, eventstream);
+	mdl_log(1, level, "writing midi stream to sequencer\n");
+	/* XXX */
+	(void) midi_write_midistream(sequencer_socket,
+				     eventstream,
+				     level + 1);
 
 finish:
 	if (eventstream)

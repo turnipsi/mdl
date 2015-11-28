@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.8 2015/11/28 14:58:20 je Exp $ */
+/* $Id: util.h,v 1.9 2015/11/28 18:03:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,6 +26,7 @@ struct streamparams {
 void   *mdl_stream_init(struct streamparams *, size_t);
 void	mdl_stream_free(struct streamparams *, void **);
 int	mdl_stream_increment(struct streamparams *, void **itemarray);
-int	mdl_log(int loglevel, const char *fmt, ...);
+
+void	mdl_log(int, int, const char *, ...);
 
 #endif
