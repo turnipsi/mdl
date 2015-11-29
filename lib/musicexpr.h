@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.20 2015/11/28 18:03:18 je Exp $ */
+/* $Id: musicexpr.h,v 1.21 2015/11/29 16:24:38 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,7 @@
 enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
 	ME_TYPE_RELNOTE,
+	ME_TYPE_REST,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_WITHOFFSET,
 	ME_TYPE_JOINEXPR,
@@ -47,6 +48,10 @@ struct relnote_t {
 	int notemods, octavemods;
 };
 
+struct rest_t {
+	float length;
+};
+
 struct musicexpr_with_offset_t {
 	float			offset;
 	struct musicexpr_t     *me;
@@ -62,6 +67,7 @@ struct musicexpr_t {
 	union {
 		struct absnote_t		absnote;
 		struct relnote_t		relnote;
+		struct rest_t			rest;
 		struct sequence_t	       *sequence;
 		struct musicexpr_with_offset_t	offset_expr;
 	};

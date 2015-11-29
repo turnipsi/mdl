@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.22 2015/11/29 07:49:43 je Exp $ */
+/* $Id: musicexpr.c,v 1.23 2015/11/29 16:24:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -115,6 +115,10 @@ offset_expressions(struct offsetexprstream_t *oes,
 			return ret;
 		*offset += me->relnote.length;
 		break;
+	case ME_TYPE_REST:
+		mdl_log(3, level, "finding offset expression for rest\n");
+		*offset += me->rest.length;
+		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(3, level, "finding offset expression for joinexpr\n");
 		/* just pass */
@@ -187,6 +191,10 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(4, level, "cloning expression %p (relnote)\n", me);
+		musicexpr_log(me, 4, level + 1);
+		break;
+	case ME_TYPE_REST:
+		mdl_log(4, level, "cloning expression %p (rest)\n", me);
 		musicexpr_log(me, 4, level + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
@@ -325,6 +333,16 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		*prev_absnote = absnote;
 
 		break;
+	case ME_TYPE_REST:
+		mdl_log(3, level, "rel->abs expression (rest)\n");
+		musicexpr_log(me, 3, level + 1);
+
+		if (me->rest.length == 0) {
+			me->rest.length = prev_absnote->length;
+		} else {
+			prev_absnote->length = me->rest.length;
+		}
+		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
 		for (seq = me->sequence; seq != NULL; seq = seq->next)
@@ -347,7 +365,7 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		break;
 	}
 
-	if (me->me_type == ME_TYPE_ABSNOTE)
+	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)
 		musicexpr_log(me, 3, level + 1);
 }
 
@@ -510,6 +528,12 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 			me->relnote.length,
 			me->relnote.octavemods);
 		break;
+	case ME_TYPE_REST:
+		mdl_log(loglevel,
+			indentlevel,
+			"rest length=%.3f\n",
+			me->rest.length);
+		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(loglevel, indentlevel, "sequence\n");
 		musicexpr_log_sequence(me->sequence, loglevel, indentlevel);
@@ -543,6 +567,7 @@ musicexpr_free(struct musicexpr_t *me)
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_RELNOTE:
+	case ME_TYPE_REST:
 	case ME_TYPE_JOINEXPR:
 		break;
 	case ME_TYPE_SEQUENCE:

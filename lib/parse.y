@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.19 2015/11/28 14:58:20 je Exp $
+/* $Id: parse.y,v 1.20 2015/11/29 16:24:38 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,12 +27,17 @@ struct musicexpr_t *parsed_expr = NULL;
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
 int	yyparse(void);
+
+static float	countlength(int, int);
+static void    *malloc_musicexpr(void);
+
 %}
 
 %union {
 	struct sequence_t      *sequence;
 	struct musicexpr_t     *musicexpr;
 	struct relnote_t	relnote;
+	struct rest_t		rest;
 	enum notesym_t		notesym;
 	float			f;
 	int			i;
@@ -44,6 +49,7 @@ int	yyparse(void);
 %token	<i>		NOTETOKEN_ES	NOTETOKEN_IS
 			
 %token			JOINEXPR
+%token			RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
@@ -53,6 +59,7 @@ int	yyparse(void);
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
 %type	<sequence>	sequence sp_sequence
 %type	<relnote>	relnote
+%type	<rest>		rest
 %type	<notesym>	notesym
 %type	<i>		notemods octavemods lengthdots
 %type	<f>		notelength
@@ -102,22 +109,22 @@ sp_sequence:	musicexpr {
 		;
 
 musicexpr:	relnote {
-			$$ = malloc(sizeof(struct musicexpr_t));
-			if ($$ == NULL) {
-				warn("%s", "malloc error");
+			if (($$ = malloc_musicexpr()) == NULL)
 				YYERROR;
-			}
 			$$->me_type = ME_TYPE_RELNOTE;
 			$$->relnote = $1;
 		}
 		| JOINEXPR {
-			$$ = malloc(sizeof(struct musicexpr_t));
-			if ($$ == NULL) {
-				warn("%s", "malloc error");
+			if (($$ = malloc_musicexpr()) == NULL)
 				YYERROR;
-			}
 			$$->me_type = ME_TYPE_JOINEXPR;
 		  }
+		| rest {
+			if (($$ = malloc_musicexpr()) == NULL)
+				YYERROR;
+			$$->me_type = ME_TYPE_REST;
+			$$->rest = $1;
+		}
 		;
 
 relnote:	notesym notemods octavemods notelength {
@@ -134,6 +141,10 @@ relnote:	notesym notemods octavemods notelength {
 			$$.length     = $3;
 		}
 		;
+
+rest:		RESTTOKEN notelength {
+			$$.length = $2;
+		};
 
 notesym:	NOTETOKEN_C   { $$ = NOTE_C; }
 		| NOTETOKEN_D { $$ = NOTE_D; }
@@ -166,7 +177,7 @@ lengthdots:	LENGTHDOT     { $$ = $1; }
 
 %%
 
-float
+static float
 countlength(int lengthbase, int dotcount)
 {
 	float length, lengthextender;
@@ -181,6 +192,17 @@ countlength(int lengthbase, int dotcount)
 	}
 
 	return length;
+}
+
+static void *
+malloc_musicexpr(void)
+{
+	void *me;
+
+	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL)
+		warn("%s", "malloc error");
+
+	return me;
 }
 
 void
