@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.21 2015/11/29 20:19:27 je Exp $
+/* $Id: parse.y,v 1.22 2015/11/29 20:19:54 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -66,7 +66,8 @@ static void    *malloc_musicexpr(void);
 
 %%
 
-grammar:	musicexpr_sequence { parsed_expr = $1; }
+grammar:
+	musicexpr_sequence { parsed_expr = $1; }
 
 musicexpr_sequence:
 	sequence {
