@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.22 2015/11/29 20:19:54 je Exp $
+/* $Id: parse.y,v 1.23 2015/11/29 20:22:17 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -75,6 +75,8 @@ musicexpr_sequence:
 		if ($$ == NULL) {
 			musicexpr_free_sequence($1);
 			warn("%s", "malloc error");
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_SEQUENCE;
@@ -92,6 +94,8 @@ sp_sequence:
 		$$ = malloc(sizeof(struct sequence_t));
 		if ($$ == NULL) {
 			warn("%s", "malloc error");
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me = $1;
@@ -103,6 +107,8 @@ sp_sequence:
 			musicexpr_free($1);
 			musicexpr_free_sequence($3);
 			warn("%s", "malloc error");
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me = $1;
@@ -113,19 +119,28 @@ sp_sequence:
 
 musicexpr:
 	relnote {
-		if (($$ = malloc_musicexpr()) == NULL)
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
+		}
 		$$->me_type = ME_TYPE_RELNOTE;
 		$$->relnote = $1;
 	}
 	| JOINEXPR {
-		if (($$ = malloc_musicexpr()) == NULL)
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
+		}
 		$$->me_type = ME_TYPE_JOINEXPR;
 	  }
 	| rest {
-		if (($$ = malloc_musicexpr()) == NULL)
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
+		}
 		$$->me_type = ME_TYPE_REST;
 		$$->rest = $1;
 	}
