@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.21 2015/11/28 18:03:18 je Exp $ */
+/* $Id: musicexpr.c,v 1.22 2015/11/29 07:49:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -79,9 +79,10 @@ musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
 {
 	float offset;
 
+	offset = 0.0;
+
 	mdl_log(1, 0, "flattening music expression\n");
 	mdl_log(2, 1, "initializing offset to %.3f\n", offset);
-	offset = 0.0;
 
 	if (offset_expressions(oes, me, &offset, 1) != 0)
 		return 1;
