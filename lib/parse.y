@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.20 2015/11/29 16:24:38 je Exp $
+/* $Id: parse.y,v 1.21 2015/11/29 20:19:27 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -69,111 +69,121 @@ static void    *malloc_musicexpr(void);
 grammar:	musicexpr_sequence { parsed_expr = $1; }
 
 musicexpr_sequence:
-		sequence {
-			$$ = malloc(sizeof(struct musicexpr_t));
-			if ($$ == NULL) {
-				musicexpr_free_sequence($1);
-				warn("%s", "malloc error");
-				YYERROR;
-			}
-			$$->me_type = ME_TYPE_SEQUENCE;
-			$$->sequence = $1;
+	sequence {
+		$$ = malloc(sizeof(struct musicexpr_t));
+		if ($$ == NULL) {
+			musicexpr_free_sequence($1);
+			warn("%s", "malloc error");
+			YYERROR;
 		}
-		;
+		$$->me_type = ME_TYPE_SEQUENCE;
+		$$->sequence = $1;
+	}
+	;
 
-sequence:	sp_sequence { $$ = $1; }
-		| WHITESPACE sp_sequence { $$ = $2; }
-		;
+sequence:
+	sp_sequence { $$ = $1; }
+	| WHITESPACE sp_sequence { $$ = $2; }
+	;
 
-sp_sequence:	musicexpr {
-			$$ = malloc(sizeof(struct sequence_t));
-			if ($$ == NULL) {
-				warn("%s", "malloc error");
-				YYERROR;
-			}
-			$$->me = $1;
-			$$->next = NULL;
-		  }
-		| musicexpr WHITESPACE sp_sequence {
-			$$ = malloc(sizeof(struct sequence_t));
-			if ($$ == NULL) {
-				musicexpr_free($1);
-				musicexpr_free_sequence($3);
-				warn("%s", "malloc error");
-				YYERROR;
-			}
-			$$->me = $1;
-			$$->next = $3;
-		  }
-		| /* empty */ {}
-		;
-
-musicexpr:	relnote {
-			if (($$ = malloc_musicexpr()) == NULL)
-				YYERROR;
-			$$->me_type = ME_TYPE_RELNOTE;
-			$$->relnote = $1;
+sp_sequence:
+	musicexpr {
+		$$ = malloc(sizeof(struct sequence_t));
+		if ($$ == NULL) {
+			warn("%s", "malloc error");
+			YYERROR;
 		}
-		| JOINEXPR {
-			if (($$ = malloc_musicexpr()) == NULL)
-				YYERROR;
-			$$->me_type = ME_TYPE_JOINEXPR;
-		  }
-		| rest {
-			if (($$ = malloc_musicexpr()) == NULL)
-				YYERROR;
-			$$->me_type = ME_TYPE_REST;
-			$$->rest = $1;
+		$$->me = $1;
+		$$->next = NULL;
+	  }
+	| musicexpr WHITESPACE sp_sequence {
+		$$ = malloc(sizeof(struct sequence_t));
+		if ($$ == NULL) {
+			musicexpr_free($1);
+			musicexpr_free_sequence($3);
+			warn("%s", "malloc error");
+			YYERROR;
 		}
-		;
+		$$->me = $1;
+		$$->next = $3;
+	  }
+	| /* empty */ {}
+	;
 
-relnote:	notesym notemods octavemods notelength {
-			$$.notesym    = $1;
-			$$.notemods   = $2;
-			$$.octavemods = $3;
-			$$.length     = $4;
-		  }
-		| NOTETOKEN_ES octavemods notelength {
-			/* "es" is a special case */
-			$$.notesym    = NOTE_E;
-			$$.notemods   = - $1;
-			$$.octavemods = $2;
-			$$.length     = $3;
-		}
-		;
+musicexpr:
+	relnote {
+		if (($$ = malloc_musicexpr()) == NULL)
+			YYERROR;
+		$$->me_type = ME_TYPE_RELNOTE;
+		$$->relnote = $1;
+	}
+	| JOINEXPR {
+		if (($$ = malloc_musicexpr()) == NULL)
+			YYERROR;
+		$$->me_type = ME_TYPE_JOINEXPR;
+	  }
+	| rest {
+		if (($$ = malloc_musicexpr()) == NULL)
+			YYERROR;
+		$$->me_type = ME_TYPE_REST;
+		$$->rest = $1;
+	}
+	;
 
-rest:		RESTTOKEN notelength {
-			$$.length = $2;
-		};
+relnote:
+	notesym notemods octavemods notelength {
+		$$.notesym    = $1;
+		$$.notemods   = $2;
+		$$.octavemods = $3;
+		$$.length     = $4;
+	  }
+	| NOTETOKEN_ES octavemods notelength {
+		/* "es" is a special case */
+		$$.notesym    = NOTE_E;
+		$$.notemods   = - $1;
+		$$.octavemods = $2;
+		$$.length     = $3;
+	}
+	;
 
-notesym:	NOTETOKEN_C   { $$ = NOTE_C; }
-		| NOTETOKEN_D { $$ = NOTE_D; }
-		| NOTETOKEN_E { $$ = NOTE_E; }
-		| NOTETOKEN_F { $$ = NOTE_F; }
-		| NOTETOKEN_G { $$ = NOTE_G; }
-		| NOTETOKEN_A { $$ = NOTE_A; }
-		| NOTETOKEN_B { $$ = NOTE_B; }
-		;
+rest:
+	RESTTOKEN notelength {
+		$$.length = $2;
+	};
 
-notemods:	NOTETOKEN_IS   { $$ = + $1; }
-		| NOTETOKEN_ES { $$ = - $1; }
-		| /* empty */  { $$ = 0;    }
-		;
+notesym:
+	NOTETOKEN_C   { $$ = NOTE_C; }
+	| NOTETOKEN_D { $$ = NOTE_D; }
+	| NOTETOKEN_E { $$ = NOTE_E; }
+	| NOTETOKEN_F { $$ = NOTE_F; }
+	| NOTETOKEN_G { $$ = NOTE_G; }
+	| NOTETOKEN_A { $$ = NOTE_A; }
+	| NOTETOKEN_B { $$ = NOTE_B; }
+	;
 
-octavemods:	OCTAVEUP      { $$ = + $1; }
-		| OCTAVEDOWN  { $$ = - $1; }
-		| /* empty */ { $$ = 0;    }
-		;
+notemods:
+	NOTETOKEN_IS   { $$ = + $1; }
+	| NOTETOKEN_ES { $$ = - $1; }
+	| /* empty */  { $$ = 0;    }
+	;
 
-notelength:	LENGTHNUMBER lengthdots {
-			$$ = countlength($1, $2);
-		  }
-		| /* empty */ { $$ = 0.0; }
-		;
+octavemods:
+	OCTAVEUP      { $$ = + $1; }
+	| OCTAVEDOWN  { $$ = - $1; }
+	| /* empty */ { $$ = 0;    }
+	;
 
-lengthdots:	LENGTHDOT     { $$ = $1; }
-		| /* empty */ { $$ = 0;  }
-		;
+notelength:
+	LENGTHNUMBER lengthdots {
+		$$ = countlength($1, $2);
+	  }
+	| /* empty */ { $$ = 0.0; }
+	;
+
+lengthdots:
+	LENGTHDOT     { $$ = $1; }
+	| /* empty */ { $$ = 0;  }
+	;
 
 %%
 
