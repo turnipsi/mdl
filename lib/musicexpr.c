@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.23 2015/11/29 16:24:37 je Exp $ */
+/* $Id: musicexpr.c,v 1.24 2015/12/03 20:46:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,8 +38,7 @@ static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *,
 static struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
 #endif
 
-static struct offsetexprstream_t *offsetexprstream_new(void);
-void offsetexprstream_free(struct offsetexprstream_t *);
+static struct mdl_stream *offsetexprstream_new(void);
 
 static struct musicexpr_t
 	*musicexpr_relative_to_absolute(struct musicexpr_t *, int);
@@ -47,19 +46,18 @@ static struct musicexpr_t
 static void	relative_to_absolute(struct musicexpr_t *,
 				     struct absnote_t *,
 				     int);
-static int	musicexpr_flatten(struct offsetexprstream_t *,
-				  struct musicexpr_t *);
-static int	offset_expressions(struct offsetexprstream_t *,
+static int	musicexpr_flatten(struct mdl_stream *, struct musicexpr_t *);
+static int	offset_expressions(struct mdl_stream *,
 				   struct musicexpr_t *,
 				   float *,
 				   int);
 
-static int	add_new_offset_expression(struct offsetexprstream_t *,
+static int	add_new_offset_expression(struct mdl_stream *,
 					  struct musicexpr_t *,
 					  float offset);
 
-static struct midieventstream *
-offsetexprstream_to_midievents(const struct offsetexprstream_t *);
+static struct mdl_stream *
+offsetexprstream_to_midievents(const struct mdl_stream *);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
@@ -75,7 +73,7 @@ musicexpr_do_joining(struct musicexpr_t *me)
 #endif
 
 static int
-musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
+musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
 {
 	float offset;
 
@@ -91,7 +89,7 @@ musicexpr_flatten(struct offsetexprstream_t *oes, struct musicexpr_t *me)
 }
 
 static int
-offset_expressions(struct offsetexprstream_t *oes,
+offset_expressions(struct mdl_stream *oes,
 		   struct musicexpr_t *me,
 		   float *offset,
 		   int level)
@@ -161,14 +159,16 @@ offset_expressions(struct offsetexprstream_t *oes,
 }
 
 static int
-add_new_offset_expression(struct offsetexprstream_t *oes,
+add_new_offset_expression(struct mdl_stream *oes,
 			  struct musicexpr_t *me,
 			  float offset)
 {			
-	oes->mexprs[ oes->params.count ].me = me;
-	oes->mexprs[ oes->params.count ].offset = offset;
+	assert(oes->s_type == OFFSETEXPRSTREAM);
 
-	return mdl_stream_increment(&oes->params, (void **) &oes->mexprs);
+	oes->mexprs[ oes->count ].me = me;
+	oes->mexprs[ oes->count ].offset = offset;
+
+	return mdl_stream_increment(oes);
 }
 
 static struct musicexpr_t *
@@ -390,12 +390,11 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 	return (diff < 4) ? -1 : 1;
 }
 
-struct midieventstream *
+struct mdl_stream *
 musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *abs_me;
-	struct offsetexprstream_t *offset_es;
-	struct midieventstream *midi_es;
+	struct mdl_stream *offset_es, *midi_es;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
@@ -407,7 +406,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 	abs_me = musicexpr_relative_to_absolute(me, level + 1);
 	if (abs_me == NULL) {
 		warnx("could not convert relative musicexpr to absolute");
-		offsetexprstream_free(offset_es);
+		mdl_stream_free(offset_es);
 		return NULL;
 	}
 
@@ -422,16 +421,16 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 			" to midistream");
 
 finish:
-	offsetexprstream_free(offset_es);
+	mdl_stream_free(offset_es);
 	musicexpr_free(abs_me);
 
 	return midi_es;
 }
 
-struct midieventstream *
-offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
+struct mdl_stream *
+offsetexprstream_to_midievents(const struct mdl_stream *offset_es)
 {
-	struct midieventstream *midi_es;
+	struct mdl_stream *midi_es;
 	struct midievent *midievent;
 	struct musicexpr_with_offset_t offset_expr;
 	struct musicexpr_t *me;
@@ -441,7 +440,7 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 	if ((midi_es = midi_eventstream_new()) == NULL)
 		goto error;
 
-	for (i = 0; i < offset_es->params.count; i++) {
+	for (i = 0; i < offset_es->count; i++) {
 		offset_expr = offset_es->mexprs[i];
 		me = offset_expr.me;
 		offset = offset_expr.offset;
@@ -459,7 +458,7 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 			continue;
 		}
 
-		midievent = &midi_es->events[ midi_es->params.count ];
+		midievent = &midi_es->midievents[ midi_es->count ];
 		bzero(midievent, sizeof(struct midievent));
 		midievent->eventtype = NOTEON;
 		midievent->channel = DEFAULT_MIDICHANNEL;
@@ -467,12 +466,11 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 		midievent->time_as_measures = offset;
 		midievent->velocity = DEFAULT_VELOCITY;
 
-		ret = mdl_stream_increment(&midi_es->params,
-					   (void **) &midi_es->events);
+		ret = mdl_stream_increment(midi_es);
 		if (ret != 0)
 			goto error;
 
-		midievent = &midi_es->events[ midi_es->params.count ];
+		midievent = &midi_es->midievents[ midi_es->count ];
 		bzero(midievent, sizeof(struct midievent));
 		midievent->eventtype = NOTEOFF;
 		midievent->channel = DEFAULT_MIDICHANNEL;
@@ -480,19 +478,17 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 		midievent->time_as_measures = offset + me->absnote.length;
 		midievent->velocity = 0;
 
-		ret = mdl_stream_increment(&midi_es->params,
-					   (void **) &midi_es->events);
+		ret = mdl_stream_increment(midi_es);
 		if (ret != 0)
 			goto error;
 	}
 
 	/* add SONG_END midievent */
-	midievent = &midi_es->events[ midi_es->params.count ];
+	midievent = &midi_es->midievents[ midi_es->count ];
 	bzero(midievent, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;
 
-	ret = mdl_stream_increment(&midi_es->params,
-				   (void **) &midi_es->events);
+	ret = mdl_stream_increment(midi_es);
 	if (ret != 0)
 		goto error;
 
@@ -501,7 +497,7 @@ offsetexprstream_to_midievents(const struct offsetexprstream_t *offset_es)
 error:
 	warnx("could not convert offset-expression-stream to midi stream");
 	if (midi_es)
-		midi_eventstream_free(midi_es);
+		mdl_stream_free(midi_es);
 
 	return NULL;
 }
@@ -596,34 +592,8 @@ musicexpr_free_sequence(struct sequence_t *seq)
 	}
 }
 
-/* XXX very similar to midi_eventstream_new() */
-static struct offsetexprstream_t *
+static struct mdl_stream *
 offsetexprstream_new(void)
 {
-	struct offsetexprstream_t *offset_es;
-
-	offset_es = malloc(sizeof(struct offsetexprstream_t));
-	if (offset_es == NULL) {
-		warn("malloc failure when creating offset-expression-stream");
-		return NULL;
-	}
-
-	offset_es->mexprs
-	    = mdl_stream_init(&offset_es->params,
-			      sizeof(struct musicexpr_with_offset_t));
-	if (offset_es->mexprs == NULL) {
-		free(offset_es);
-		return NULL;
-	}
-
-	return offset_es;
+	return mdl_stream_new(OFFSETEXPRSTREAM);
 }
-
-/* XXX very similar to midi_eventstream_free() */
-void
-offsetexprstream_free(struct offsetexprstream_t *offset_es)
-{
-	mdl_stream_free(&offset_es->params, (void **) &offset_es->mexprs);
-	free(offset_es);
-}
-

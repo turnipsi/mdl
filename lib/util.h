@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.9 2015/11/28 18:03:18 je Exp $ */
+/* $Id: util.h,v 1.10 2015/12/03 20:46:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,14 +19,19 @@
 #ifndef MDL_UTIL_H
 #define MDL_UTIL_H
 
-struct streamparams {
-	size_t count, itemsize, slotcount;
+struct mdl_stream {
+	size_t count, slotcount;
+	enum streamtype { OFFSETEXPRSTREAM, MIDIEVENTSTREAM } s_type;
+	union {
+		struct musicexpr_with_offset_t *mexprs;
+		struct midievent	       *midievents;
+	};
 };
 
-void   *mdl_stream_init(struct streamparams *, size_t);
-void	mdl_stream_free(struct streamparams *, void **);
-int	mdl_stream_increment(struct streamparams *, void **itemarray);
-
 void	mdl_log(int, int, const char *, ...);
+
+struct mdl_stream      *mdl_stream_new(enum streamtype);
+int			mdl_stream_increment(struct mdl_stream *);
+void			mdl_stream_free(struct mdl_stream *);
 
 #endif

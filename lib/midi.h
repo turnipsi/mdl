@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.5 2015/11/28 18:03:18 je Exp $ */
+/* $Id: midi.h,v 1.6 2015/12/03 20:46:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,19 +32,13 @@ struct midievent {
 	float                   time_as_measures;
 };
 
-struct midieventstream {
-	struct midievent *events;
-	struct streamparams params;
-};
-
 int	midi_open_device(void);
 int	midi_check_midievent(struct midievent, float);
 int	midi_send_midievent(struct midievent *);
 void	midi_close_device(void);
 
-struct midieventstream *midi_eventstream_new(void);
-void			midi_eventstream_free(struct midieventstream *);
+struct mdl_stream      *midi_eventstream_new(void);
 
-ssize_t	midi_write_midistream(int, struct midieventstream *, int);
+ssize_t	midi_write_midistream(int, struct mdl_stream *, int);
 
 #endif

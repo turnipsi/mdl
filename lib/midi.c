@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.6 2015/11/28 18:03:18 je Exp $ */
+/* $Id: midi.c,v 1.7 2015/12/03 20:46:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -138,37 +138,15 @@ midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 	return (min <= value && value <= max);
 }
 
-struct midieventstream *
+struct mdl_stream *
 midi_eventstream_new(void)
 {
-	struct midieventstream *midi_es;
-
-        midi_es = malloc(sizeof(struct midieventstream));
-        if (midi_es == NULL) {
-                warn("malloc failure when creating midievent stream");
-                return NULL;
-        }
-
-        midi_es->events = mdl_stream_init(&midi_es->params,
-                                          sizeof(struct midievent));
-        if (midi_es->events == NULL) {
-		free(midi_es);
-		return NULL;
-	}
-
-	return midi_es;
-}
-
-void
-midi_eventstream_free(struct midieventstream *midi_es)
-{
-	mdl_stream_free(&midi_es->params, (void **) &midi_es->events);
-	free(midi_es);
+	return mdl_stream_new(MIDIEVENTSTREAM);
 }
 
 ssize_t
 midi_write_midistream(int sequencer_socket,
-		      struct midieventstream *es,
+		      struct mdl_stream *s,
 		      int level)
 {
 	size_t wsize;
@@ -177,11 +155,11 @@ midi_write_midistream(int sequencer_socket,
 	total_wcount = 0;
 
 	/* XXX overflow? */
-	wsize = es->params.count * sizeof(struct midievent);
+	wsize = s->count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
 		nw = write(sequencer_socket,
-			   (char *) es->events + total_wcount,
+			   (char *) s->midievents + total_wcount,
 			   wsize - total_wcount);
 		if (nw == -1) {
 			if (errno == EAGAIN)
