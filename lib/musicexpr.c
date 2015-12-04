@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.24 2015/12/03 20:46:25 je Exp $ */
+/* $Id: musicexpr.c,v 1.25 2015/12/04 20:45:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,14 +34,13 @@ static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *,
 							  int);
 
-#if 0
-static struct musicexpr_t	*musicexpr_do_joining(struct musicexpr_t *);
-#endif
+static void	musicexpr_do_joining(struct musicexpr_t *, int);
+static void	join_exprs_in_sequence(struct sequence_t *, int);
+static void	join_expressions(struct musicexpr_t *, struct musicexpr_t *, int);
 
 static struct mdl_stream *offsetexprstream_new(void);
 
-static struct musicexpr_t
-	*musicexpr_relative_to_absolute(struct musicexpr_t *, int);
+static void	musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 
 static void	relative_to_absolute(struct musicexpr_t *,
 				     struct absnote_t *,
@@ -62,15 +61,137 @@ offsetexprstream_to_midievents(const struct mdl_stream *);
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
 
-#if 0
-static struct musicexpr_t *
-musicexpr_do_joining(struct musicexpr_t *me)
+static void
+musicexpr_do_joining(struct musicexpr_t *me, int level)
 {
 	/* XXX */
 
-	return me;
+	switch (me->me_type) {
+	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_JOINEXPR:
+	case ME_TYPE_RELNOTE:
+	case ME_TYPE_REST:
+		break;
+	case ME_TYPE_SEQUENCE:
+		join_exprs_in_sequence(me->sequence, level + 1);
+		break;
+	case ME_TYPE_WITHOFFSET:
+		musicexpr_do_joining(me->offset_expr.me, level + 1);
+		break;
+	default:
+		assert(0);
+	}
 }
-#endif
+
+static void
+join_exprs_in_sequence(struct sequence_t *seq, int level)
+{
+	/* XXX call join_expressions appropriately
+	 * XXX this function handles the binary operator ~
+	 * XXX and calls join_expressions() */
+}
+
+static void
+join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+{
+	assert(a->me_type != ME_TYPE_JOINEXPR);
+	assert(b->me_type != ME_TYPE_JOINEXPR);
+
+	switch (a->me_type) {
+	case ME_TYPE_ABSNOTE:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			break;
+		case ME_TYPE_JOINEXPR:
+			break;
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_REST:
+			break;
+		case ME_TYPE_SEQUENCE:
+			break;
+		case ME_TYPE_WITHOFFSET:
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	case ME_TYPE_RELNOTE:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			break;
+		case ME_TYPE_JOINEXPR:
+			break;
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_REST:
+			break;
+		case ME_TYPE_SEQUENCE:
+			break;
+		case ME_TYPE_WITHOFFSET:
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	case ME_TYPE_REST:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			break;
+		case ME_TYPE_JOINEXPR:
+			break;
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_REST:
+			break;
+		case ME_TYPE_SEQUENCE:
+			break;
+		case ME_TYPE_WITHOFFSET:
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	case ME_TYPE_SEQUENCE:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			break;
+		case ME_TYPE_JOINEXPR:
+			break;
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_REST:
+			break;
+		case ME_TYPE_SEQUENCE:
+			break;
+		case ME_TYPE_WITHOFFSET:
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	case ME_TYPE_WITHOFFSET:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			break;
+		case ME_TYPE_JOINEXPR:
+			break;
+		case ME_TYPE_RELNOTE:
+			break;
+		case ME_TYPE_REST:
+			break;
+		case ME_TYPE_SEQUENCE:
+			break;
+		case ME_TYPE_WITHOFFSET:
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	default:
+		assert(0);
+	}
+}
 
 static int
 musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
@@ -260,25 +381,19 @@ musicexpr_clone_sequence(struct sequence_t *seq, int level)
 	return new;
 }
 
-static struct musicexpr_t *
-musicexpr_relative_to_absolute(struct musicexpr_t *rel_me, int level)
+static void
+musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
 {
-	struct musicexpr_t *abs_me;
 	struct absnote_t prev_absnote;
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
-
-	if ((abs_me = musicexpr_clone(rel_me, level + 1)) == NULL)
-		return NULL;
 
 	/* set default values for the first absolute note */
 	prev_absnote.length = 0.25;
 	prev_absnote.notesym = NOTE_C;
 	prev_absnote.note = 60;
 
-	relative_to_absolute(abs_me, &prev_absnote, level + 1);
-
-	return abs_me;
+	relative_to_absolute(me, &prev_absnote, level + 1);
 }
 
 static void
@@ -393,24 +508,28 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 struct mdl_stream *
 musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
-	struct musicexpr_t *abs_me;
+	struct musicexpr_t *me_workcopy;
 	struct mdl_stream *offset_es, *midi_es;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
 	midi_es = NULL;
 
-	if ((offset_es = offsetexprstream_new()) == NULL)
+	if ((offset_es = offsetexprstream_new()) == NULL) {
+		warnx("could not setup new offsetexprstream");
 		return NULL;
+	}
 
-	abs_me = musicexpr_relative_to_absolute(me, level + 1);
-	if (abs_me == NULL) {
-		warnx("could not convert relative musicexpr to absolute");
+	if ((me_workcopy = musicexpr_clone(me, level + 1)) == NULL) {
+		warnx("could not clone music expressions");
 		mdl_stream_free(offset_es);
 		return NULL;
 	}
 
-	if (musicexpr_flatten(offset_es, abs_me) != 0) {
+	musicexpr_relative_to_absolute(me_workcopy, level + 1);
+	musicexpr_do_joining(me_workcopy, level + 1);
+
+	if (musicexpr_flatten(offset_es, me_workcopy) != 0) {
 		warnx("could not flatten music expression"
 			" to offset-expression-stream");
 		goto finish;
@@ -422,7 +541,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 
 finish:
 	mdl_stream_free(offset_es);
-	musicexpr_free(abs_me);
+	musicexpr_free(me_workcopy);
 
 	return midi_es;
 }
