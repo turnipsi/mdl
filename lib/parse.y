@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.24 2015/12/06 20:41:48 je Exp $
+/* $Id: parse.y,v 1.25 2015/12/06 20:59:20 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,14 +49,14 @@ static void    *malloc_musicexpr(void);
 			NOTETOKEN_B
 %token	<i>		NOTETOKEN_ES	NOTETOKEN_IS
 			
-%left			JOINEXPR
-
 %token			RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
 %token	<i>		OCTAVEDOWN
-%token			WHITESPACE
+
+%left			JOINEXPR
+%left			WHITESPACE
 
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
 %type	<sequence>	sequence sp_sequence
@@ -121,16 +121,7 @@ sp_sequence:
 	;
 
 musicexpr:
-	relnote {
-		if (($$ = malloc_musicexpr()) == NULL) {
-			/* XXX YYERROR and memory leaks?
-			 * XXX return NULL and handle on upper layer? */
-			YYERROR;
-		}
-		$$->me_type = ME_TYPE_RELNOTE;
-		$$->relnote = $1;
-	}
-	| joinexpr {
+	joinexpr {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -140,6 +131,15 @@ musicexpr:
 		$$->joinexpr = $1;
 
 	  }
+	| relnote {
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_RELNOTE;
+		$$->relnote = $1;
+	  }
 	| rest {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
@@ -148,6 +148,13 @@ musicexpr:
 		}
 		$$->me_type = ME_TYPE_REST;
 		$$->rest = $1;
+	}
+	;
+
+joinexpr:
+	musicexpr WHITESPACE JOINEXPR WHITESPACE musicexpr {
+		$$.a = $1;
+		$$.b = $5;
 	}
 	;
 
@@ -164,13 +171,6 @@ relnote:
 		$$.notemods   = - $1;
 		$$.octavemods = $2;
 		$$.length     = $3;
-	}
-	;
-
-joinexpr:
-	musicexpr JOINEXPR musicexpr {
-		$$.a = $1;
-		$$.b = $3;
 	}
 	;
 
