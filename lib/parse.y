@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.23 2015/11/29 20:22:17 je Exp $
+/* $Id: parse.y,v 1.24 2015/12/06 20:41:48 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,6 +35,7 @@ static void    *malloc_musicexpr(void);
 
 %union {
 	struct sequence_t      *sequence;
+	struct joinexpr_t	joinexpr;
 	struct musicexpr_t     *musicexpr;
 	struct relnote_t	relnote;
 	struct rest_t		rest;
@@ -48,7 +49,8 @@ static void    *malloc_musicexpr(void);
 			NOTETOKEN_B
 %token	<i>		NOTETOKEN_ES	NOTETOKEN_IS
 			
-%token			JOINEXPR
+%left			JOINEXPR
+
 %token			RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
@@ -58,6 +60,7 @@ static void    *malloc_musicexpr(void);
 
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
 %type	<sequence>	sequence sp_sequence
+%type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<rest>		rest
 %type	<notesym>	notesym
@@ -127,13 +130,15 @@ musicexpr:
 		$$->me_type = ME_TYPE_RELNOTE;
 		$$->relnote = $1;
 	}
-	| JOINEXPR {
+	| joinexpr {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_JOINEXPR;
+		$$->joinexpr = $1;
+
 	  }
 	| rest {
 		if (($$ = malloc_musicexpr()) == NULL) {
@@ -159,6 +164,13 @@ relnote:
 		$$.notemods   = - $1;
 		$$.octavemods = $2;
 		$$.length     = $3;
+	}
+	;
+
+joinexpr:
+	musicexpr JOINEXPR musicexpr {
+		$$.a = $1;
+		$$.b = $3;
 	}
 	;
 

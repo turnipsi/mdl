@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.25 2015/12/04 20:45:31 je Exp $ */
+/* $Id: musicexpr.c,v 1.26 2015/12/06 20:41:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "joinexpr.h"
 #include "midi.h"
 #include "musicexpr.h"
 #include "util.h"
@@ -33,10 +34,6 @@
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
 static struct sequence_t	*musicexpr_clone_sequence(struct sequence_t *,
 							  int);
-
-static void	musicexpr_do_joining(struct musicexpr_t *, int);
-static void	join_exprs_in_sequence(struct sequence_t *, int);
-static void	join_expressions(struct musicexpr_t *, struct musicexpr_t *, int);
 
 static struct mdl_stream *offsetexprstream_new(void);
 
@@ -60,138 +57,6 @@ offsetexprstream_to_midievents(const struct mdl_stream *);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
-
-static void
-musicexpr_do_joining(struct musicexpr_t *me, int level)
-{
-	/* XXX */
-
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_JOINEXPR:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_REST:
-		break;
-	case ME_TYPE_SEQUENCE:
-		join_exprs_in_sequence(me->sequence, level + 1);
-		break;
-	case ME_TYPE_WITHOFFSET:
-		musicexpr_do_joining(me->offset_expr.me, level + 1);
-		break;
-	default:
-		assert(0);
-	}
-}
-
-static void
-join_exprs_in_sequence(struct sequence_t *seq, int level)
-{
-	/* XXX call join_expressions appropriately
-	 * XXX this function handles the binary operator ~
-	 * XXX and calls join_expressions() */
-}
-
-static void
-join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
-{
-	assert(a->me_type != ME_TYPE_JOINEXPR);
-	assert(b->me_type != ME_TYPE_JOINEXPR);
-
-	switch (a->me_type) {
-	case ME_TYPE_ABSNOTE:
-		switch (b->me_type) {
-		case ME_TYPE_ABSNOTE:
-			break;
-		case ME_TYPE_JOINEXPR:
-			break;
-		case ME_TYPE_RELNOTE:
-			break;
-		case ME_TYPE_REST:
-			break;
-		case ME_TYPE_SEQUENCE:
-			break;
-		case ME_TYPE_WITHOFFSET:
-			break;
-		default:
-			assert(0);
-		}
-		break;
-	case ME_TYPE_RELNOTE:
-		switch (b->me_type) {
-		case ME_TYPE_ABSNOTE:
-			break;
-		case ME_TYPE_JOINEXPR:
-			break;
-		case ME_TYPE_RELNOTE:
-			break;
-		case ME_TYPE_REST:
-			break;
-		case ME_TYPE_SEQUENCE:
-			break;
-		case ME_TYPE_WITHOFFSET:
-			break;
-		default:
-			assert(0);
-		}
-		break;
-	case ME_TYPE_REST:
-		switch (b->me_type) {
-		case ME_TYPE_ABSNOTE:
-			break;
-		case ME_TYPE_JOINEXPR:
-			break;
-		case ME_TYPE_RELNOTE:
-			break;
-		case ME_TYPE_REST:
-			break;
-		case ME_TYPE_SEQUENCE:
-			break;
-		case ME_TYPE_WITHOFFSET:
-			break;
-		default:
-			assert(0);
-		}
-		break;
-	case ME_TYPE_SEQUENCE:
-		switch (b->me_type) {
-		case ME_TYPE_ABSNOTE:
-			break;
-		case ME_TYPE_JOINEXPR:
-			break;
-		case ME_TYPE_RELNOTE:
-			break;
-		case ME_TYPE_REST:
-			break;
-		case ME_TYPE_SEQUENCE:
-			break;
-		case ME_TYPE_WITHOFFSET:
-			break;
-		default:
-			assert(0);
-		}
-		break;
-	case ME_TYPE_WITHOFFSET:
-		switch (b->me_type) {
-		case ME_TYPE_ABSNOTE:
-			break;
-		case ME_TYPE_JOINEXPR:
-			break;
-		case ME_TYPE_RELNOTE:
-			break;
-		case ME_TYPE_REST:
-			break;
-		case ME_TYPE_SEQUENCE:
-			break;
-		case ME_TYPE_WITHOFFSET:
-			break;
-		default:
-			assert(0);
-		}
-		break;
-	default:
-		assert(0);
-	}
-}
 
 static int
 musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
@@ -527,7 +392,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 	}
 
 	musicexpr_relative_to_absolute(me_workcopy, level + 1);
-	musicexpr_do_joining(me_workcopy, level + 1);
+	joinexpr_musicexpr(me_workcopy, level + 1);
 
 	if (musicexpr_flatten(offset_es, me_workcopy) != 0) {
 		warnx("could not flatten music expression"

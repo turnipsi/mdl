@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.11 2015/12/06 20:41:48 je Exp $ */
+/* $Id: joinexpr.h,v 1.1 2015/12/06 20:41:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,24 +16,11 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_UTIL_H
-#define MDL_UTIL_H
+#ifndef MDL_JOINEXPR_H
+#define MDL_JOINEXPR_H
 
-#include <unistd.h>
+#include "musicexpr.h"
 
-struct mdl_stream {
-	size_t count, slotcount;
-	enum streamtype { OFFSETEXPRSTREAM, MIDIEVENTSTREAM } s_type;
-	union {
-		struct musicexpr_with_offset_t *mexprs;
-		struct midievent	       *midievents;
-	};
-};
-
-void	mdl_log(int, int, const char *, ...);
-
-struct mdl_stream      *mdl_stream_new(enum streamtype);
-int			mdl_stream_increment(struct mdl_stream *);
-void			mdl_stream_free(struct mdl_stream *);
+void	joinexpr_musicexpr(struct musicexpr_t *, int);
 
 #endif
