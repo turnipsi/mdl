@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.13 2015/12/03 20:46:25 je Exp $ */
+/* $Id: util.c,v 1.14 2015/12/09 19:56:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -158,4 +158,11 @@ mdl_stream_free(struct mdl_stream *s)
 	}
 
 	free(s);
+}
+
+void __dead
+unimplemented(void)
+{
+	warnx("unimplemented functionality triggered");
+	exit(1);
 }

@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.1 2015/12/06 20:41:48 je Exp $ */
+/* $Id: joinexpr.c,v 1.2 2015/12/09 19:56:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,68 +17,102 @@
  */
 
 #include <assert.h>
+#include <err.h>
+#include <stdlib.h>
 
 #include "joinexpr.h"
 #include "musicexpr.h"
 
-static void	join_exprs_in_sequence(struct sequence_t *, int);
-static void	join_expressions(struct musicexpr_t *,
-				 struct musicexpr_t *,
-				 int);
+static int	join_joinexpr(struct musicexpr_t *, int);
+static int	make_sequence_of_two(struct musicexpr_t *,
+				     struct musicexpr_t *,
+				     struct musicexpr_t *);
 
-void
+int
 joinexpr_musicexpr(struct musicexpr_t *me, int level)
 {
-	/* XXX */
+	struct sequence_t *seq;
+	int ret;
+
+	ret = 0;
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_JOINEXPR:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 		break;
+	case ME_TYPE_JOINEXPR:
+		ret = join_joinexpr(me, level + 1);
+		break;
 	case ME_TYPE_SEQUENCE:
-		join_exprs_in_sequence(me->sequence, level + 1);
+		for (seq = me->sequence; seq != NULL; seq = seq->next)
+			ret = joinexpr_musicexpr(seq->me, level + 1);
+			if (ret != 0)
+				break;
 		break;
 	case ME_TYPE_WITHOFFSET:
-		joinexpr_musicexpr(me->offset_expr.me, level + 1);
+		ret = joinexpr_musicexpr(me->offset_expr.me, level + 1);
 		break;
 	default:
 		assert(0);
 	}
+
+	return ret;
 }
 
-static void
-join_exprs_in_sequence(struct sequence_t *seq, int level)
+static int
+join_joinexpr(struct musicexpr_t *me, int level)
 {
-	/* XXX call join_expressions appropriately
-	 * XXX this function handles the binary operator ~
-	 * XXX and calls join_expressions() */
-}
+	struct musicexpr_t *a, *b;
+	int ret;
 
-static void
-join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
-{
-	/* this function evaluates joins */
-	assert(a->me_type != ME_TYPE_JOINEXPR);
-	assert(b->me_type != ME_TYPE_JOINEXPR);
+	assert(me->me_type == ME_TYPE_JOINEXPR);
 
-	/* relative notes can not be joined
-	 * (think of case "cis ~ des g"... if "des" disappears then
-	 * (absolute note) "g" gets resolved differently) */
+	ret = 0;
+
+	a = me->joinexpr.a;
+	b = me->joinexpr.b;
+
+	/* Relative notes can not be joined (think of case "cis ~ des g"...
+	 * if "des" disappears then (absolute note) "g" gets resolved
+	 * differently).  Thus it is callers responsibility to call
+	 * musicexpr_relative_to_absolute() for both a and b before calling
+	 * this. */
 	assert(a->me_type != ME_TYPE_RELNOTE);
 	assert(b->me_type != ME_TYPE_RELNOTE);
+
+	/* handle join expressions so they are turn into something different
+	 * than join expressions */
+	if (a->me_type == ME_TYPE_JOINEXPR)
+		join_joinexpr(a, level + 1);
+
+	if (b->me_type == ME_TYPE_JOINEXPR)
+		join_joinexpr(b, level + 1);
+
+	assert(a->me_type != ME_TYPE_JOINEXPR);
+	assert(b->me_type != ME_TYPE_JOINEXPR);
 
 	switch (a->me_type) {
 	case ME_TYPE_ABSNOTE:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
+			if (a->absnote.note == b->absnote.note) {
+				a->absnote.length += b->absnote.length;
+				musicexpr_free(b);
+				me->me_type = ME_TYPE_ABSNOTE;
+				me->absnote = a->absnote;
+			} else {
+				ret = make_sequence_of_two(me, a, b);
+			}
 			break;
 		case ME_TYPE_REST:
+			ret = make_sequence_of_two(me, a, b);
 			break;
 		case ME_TYPE_SEQUENCE:
+			unimplemented();
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
 			break;
 		default:
 			assert(0);
@@ -87,12 +121,19 @@ join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	case ME_TYPE_REST:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
+			ret = make_sequence_of_two(me, a, b);
 			break;
 		case ME_TYPE_REST:
+			a->rest.length += b->rest.length;
+			musicexpr_free(b);
+			me->me_type = ME_TYPE_REST;
+			me->rest = a->rest;
 			break;
 		case ME_TYPE_SEQUENCE:
+			unimplemented();
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
 			break;
 		default:
 			assert(0);
@@ -101,12 +142,16 @@ join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	case ME_TYPE_SEQUENCE:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
+			unimplemented();
 			break;
 		case ME_TYPE_REST:
+			unimplemented();
 			break;
 		case ME_TYPE_SEQUENCE:
+			unimplemented();
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
 			break;
 		default:
 			assert(0);
@@ -115,12 +160,16 @@ join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	case ME_TYPE_WITHOFFSET:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
+			unimplemented();
 			break;
 		case ME_TYPE_REST:
+			unimplemented();
 			break;
 		case ME_TYPE_SEQUENCE:
+			unimplemented();
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
 			break;
 		default:
 			assert(0);
@@ -129,4 +178,34 @@ join_expressions(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	default:
 		assert(0);
 	}
+
+	return ret;
+}
+
+static int
+make_sequence_of_two(struct musicexpr_t *me,
+		     struct musicexpr_t *a,
+		     struct musicexpr_t *b)
+{
+	struct sequence_t *p, *q;
+
+	if ((p = malloc(sizeof(struct sequence_t))) == NULL) {
+		warnx("malloc in make_sequence_of_two");
+		return 1;
+	}
+	if ((q = malloc(sizeof(struct sequence_t))) == NULL) {
+		warnx("malloc in make_sequence_of_two");
+		free(p);
+		return 1;
+	}
+
+	p->me = a;
+	p->next = q;
+	q->me = b;
+	q->next = NULL;
+
+	me->me_type = ME_TYPE_SEQUENCE;
+	me->sequence = p;
+
+	return 0;
 }

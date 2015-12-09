@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.26 2015/12/06 20:41:48 je Exp $ */
+/* $Id: musicexpr.c,v 1.27 2015/12/09 19:56:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -84,6 +84,9 @@ offset_expressions(struct mdl_stream *oes,
 	float old_offset;
 	int ret;
 
+	assert(me->me_type != ME_TYPE_RELNOTE
+		 && me->me_type != ME_TYPE_JOINEXPR);
+
 	old_offset = *offset;
 
 	switch (me->me_type) {
@@ -93,19 +96,9 @@ offset_expressions(struct mdl_stream *oes,
 			return ret;
 		*offset += me->absnote.length;
 		break;
-	case ME_TYPE_RELNOTE:
-		mdl_log(3, level, "finding offset expression for relnote\n");
-		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
-			return ret;
-		*offset += me->relnote.length;
-		break;
 	case ME_TYPE_REST:
 		mdl_log(3, level, "finding offset expression for rest\n");
 		*offset += me->rest.length;
-		break;
-	case ME_TYPE_JOINEXPR:
-		mdl_log(3, level, "finding offset expression for joinexpr\n");
-		/* just pass */
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "finding offset expression for sequence\n");
@@ -185,6 +178,20 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(4, level, "cloning expression %p (joinexpr)\n", me);
+		cloned->joinexpr.a = musicexpr_clone(me->joinexpr.a,
+						     level + 1);
+		if (cloned->joinexpr.a == NULL) {
+			free(cloned);
+			cloned = NULL;
+			break;
+		}
+		cloned->joinexpr.b = musicexpr_clone(me->joinexpr.b,
+						     level + 1);
+		if (cloned->joinexpr.b == NULL) {
+			musicexpr_free(cloned->joinexpr.a);
+			free(cloned);
+			cloned = NULL;
+		}
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(4, level, "cloning expression %p (sequence)\n", me);
@@ -323,6 +330,11 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 			prev_absnote->length = me->rest.length;
 		}
 		break;
+	case ME_TYPE_JOINEXPR:
+		mdl_log(3, level, "rel->abs expression (joinexpr)\n");
+		relative_to_absolute(me->joinexpr.a, prev_absnote, level + 1);
+		relative_to_absolute(me->joinexpr.b, prev_absnote, level + 1);
+		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
 		for (seq = me->sequence; seq != NULL; seq = seq->next)
@@ -335,10 +347,6 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		relative_to_absolute(me->offset_expr.me,
 				     prev_absnote,
 				     level + 1);
-		break;
-	case ME_TYPE_JOINEXPR:
-		mdl_log(3, level, "rel->abs expression (joinexpr)\n");
-		/* just pass as is */
 		break;
 	default:
 		assert(0);
@@ -391,8 +399,14 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		return NULL;
 	}
 
+	/* first convert relative->absolute,
+	 * joinexpr_musicexpr() can not handle relative expressions */
 	musicexpr_relative_to_absolute(me_workcopy, level + 1);
-	joinexpr_musicexpr(me_workcopy, level + 1);
+
+	if (joinexpr_musicexpr(me_workcopy, level + 1) != 0) {
+		warnx("error occurred in joining music expressions");
+		goto finish;
+	}
 
 	if (musicexpr_flatten(offset_es, me_workcopy) != 0) {
 		warnx("could not flatten music expression"
@@ -526,6 +540,8 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(loglevel, indentlevel, "joinexpr\n");
+		musicexpr_log(me->joinexpr.a, loglevel, indentlevel + 1);
+		musicexpr_log(me->joinexpr.b, loglevel, indentlevel + 1);
 		break;
 	default:
 		assert(0);
@@ -548,7 +564,10 @@ musicexpr_free(struct musicexpr_t *me)
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
+		break;
 	case ME_TYPE_JOINEXPR:
+		musicexpr_free(me->joinexpr.a);
+		musicexpr_free(me->joinexpr.b);
 		break;
 	case ME_TYPE_SEQUENCE:
 		musicexpr_free_sequence(me->sequence);
