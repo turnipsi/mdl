@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.2 2015/12/09 19:56:10 je Exp $ */
+/* $Id: joinexpr.c,v 1.3 2015/12/10 19:40:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,6 +42,13 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 	case ME_TYPE_REST:
 		break;
 	case ME_TYPE_JOINEXPR:
+		ret = joinexpr_musicexpr(me->joinexpr.a, level + 1);
+		if (ret != 0)
+			break;
+		ret = joinexpr_musicexpr(me->joinexpr.b, level + 1);
+		if (ret != 0)
+			break;
+
 		ret = join_joinexpr(me, level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
@@ -81,16 +88,12 @@ join_joinexpr(struct musicexpr_t *me, int level)
 	assert(a->me_type != ME_TYPE_RELNOTE);
 	assert(b->me_type != ME_TYPE_RELNOTE);
 
-	/* handle join expressions so they are turn into something different
-	 * than join expressions */
-	if (a->me_type == ME_TYPE_JOINEXPR)
-		join_joinexpr(a, level + 1);
-
-	if (b->me_type == ME_TYPE_JOINEXPR)
-		join_joinexpr(b, level + 1);
-
+	/* we should have handled the subexpressions before entering here */
 	assert(a->me_type != ME_TYPE_JOINEXPR);
 	assert(b->me_type != ME_TYPE_JOINEXPR);
+
+	/* XXX take the first or last of sequences and do joining to those */
+	/* XXX withoffset gets joined only if offset == 0 ??? */
 
 	switch (a->me_type) {
 	case ME_TYPE_ABSNOTE:
