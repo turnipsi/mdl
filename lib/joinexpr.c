@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.3 2015/12/10 19:40:04 je Exp $ */
+/* $Id: joinexpr.c,v 1.4 2015/12/10 20:43:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,7 +31,7 @@ static int	make_sequence_of_two(struct musicexpr_t *,
 int
 joinexpr_musicexpr(struct musicexpr_t *me, int level)
 {
-	struct sequence_t *seq;
+	struct seqitem *s;
 	int ret;
 
 	ret = 0;
@@ -52,10 +52,11 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		ret = join_joinexpr(me, level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
-		for (seq = me->sequence; seq != NULL; seq = seq->next)
-			ret = joinexpr_musicexpr(seq->me, level + 1);
+		TAILQ_FOREACH(s, &me->sequence, tq) {
+			ret = joinexpr_musicexpr(s->me, level + 1);
 			if (ret != 0)
 				break;
+		}
 		break;
 	case ME_TYPE_WITHOFFSET:
 		ret = joinexpr_musicexpr(me->offset_expr.me, level + 1);
@@ -190,25 +191,27 @@ make_sequence_of_two(struct musicexpr_t *me,
 		     struct musicexpr_t *a,
 		     struct musicexpr_t *b)
 {
-	struct sequence_t *p, *q;
+	struct sequence_t seq;
+	struct seqitem *p, *q;
 
-	if ((p = malloc(sizeof(struct sequence_t))) == NULL) {
+	if ((p = malloc(sizeof(struct seqitem))) == NULL) {
 		warnx("malloc in make_sequence_of_two");
 		return 1;
 	}
-	if ((q = malloc(sizeof(struct sequence_t))) == NULL) {
+	if ((q = malloc(sizeof(struct seqitem))) == NULL) {
 		warnx("malloc in make_sequence_of_two");
 		free(p);
 		return 1;
 	}
 
+	TAILQ_INIT(&seq);
 	p->me = a;
-	p->next = q;
+	TAILQ_INSERT_TAIL(&seq, p, tq);
 	q->me = b;
-	q->next = NULL;
+	TAILQ_INSERT_TAIL(&seq, q, tq);
 
 	me->me_type = ME_TYPE_SEQUENCE;
-	me->sequence = p;
+	me->sequence = seq;
 
 	return 0;
 }

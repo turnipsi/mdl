@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.23 2015/12/06 20:41:48 je Exp $ */
+/* $Id: musicexpr.h,v 1.24 2015/12/10 20:43:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,8 @@
 
 #ifndef MDL_MUSICEXPR_H
 #define MDL_MUSICEXPR_H
+
+#include <sys/queue.h>
 
 #include "util.h"
 
@@ -57,9 +59,10 @@ struct musicexpr_with_offset_t {
 	struct musicexpr_t     *me;
 };
 
-struct sequence_t {
+TAILQ_HEAD(sequence_t, seqitem);
+struct seqitem {
 	struct musicexpr_t     *me;
-	struct sequence_t      *next;
+	TAILQ_ENTRY(seqitem)	tq;
 };
 
 struct joinexpr_t {
@@ -73,7 +76,7 @@ struct musicexpr_t {
 		struct joinexpr_t		joinexpr;
 		struct relnote_t		relnote;
 		struct rest_t			rest;
-		struct sequence_t	       *sequence;
+		struct sequence_t		sequence;
 		struct musicexpr_with_offset_t	offset_expr;
 	};
 };
