@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.26 2015/12/10 20:43:15 je Exp $
+/* $Id: parse.y,v 1.27 2015/12/10 20:47:25 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,7 +76,7 @@ musicexpr_sequence:
 	sequence {
 		$$ = malloc(sizeof(struct musicexpr_t));
 		if ($$ == NULL) {
-			musicexpr_free_sequence(&$1);
+			musicexpr_free_sequence($1);
 			warn("%s", "malloc error");
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -111,7 +111,7 @@ sp_sequence:
 		s = malloc(sizeof(struct seqitem));
 		if (s == NULL) {
 			musicexpr_free($1);
-			musicexpr_free_sequence(&$3);
+			musicexpr_free_sequence($3);
 			warn("%s", "malloc error");
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */

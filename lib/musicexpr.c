@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.28 2015/12/10 20:43:15 je Exp $ */
+/* $Id: musicexpr.c,v 1.29 2015/12/10 20:47:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,7 +33,7 @@
 
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
 static int			 musicexpr_clone_sequence(struct sequence_t *,
-			 				  struct sequence_t *,
+			 				  struct sequence_t,
 							  int);
 
 static struct mdl_stream *offsetexprstream_new(void);
@@ -198,7 +198,7 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 	case ME_TYPE_SEQUENCE:
 		mdl_log(4, level, "cloning expression %p (sequence)\n", me);
 		ret = musicexpr_clone_sequence(&cloned->sequence,
-					       &me->sequence,
+					       me->sequence,
 					       level + 1);
 		if (ret != 0) {
 			free(cloned);
@@ -224,24 +224,24 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 
 static int
 musicexpr_clone_sequence(struct sequence_t *cloned_seq,
-			 struct sequence_t *seq,
+			 struct sequence_t seq,
 			 int level)
 {
 	struct seqitem *p, *q;
 
 	TAILQ_INIT(cloned_seq);
 
-	TAILQ_FOREACH(p, seq, tq) {
+	TAILQ_FOREACH(p, &seq, tq) {
 		q = malloc(sizeof(struct seqitem));
 		if (q == NULL) {
 			warn("malloc failure when cloning sequence");
-			musicexpr_free_sequence(cloned_seq);
+			musicexpr_free_sequence(*cloned_seq);
 			return 1;
 		}
 		q->me = musicexpr_clone(p->me, level);
 		if (q->me == NULL) {
 			free(q);
-			musicexpr_free_sequence(cloned_seq);
+			musicexpr_free_sequence(*cloned_seq);
 			return 1;
 		}
 		TAILQ_INSERT_TAIL(cloned_seq, q, tq);
@@ -525,7 +525,7 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(loglevel, indentlevel, "sequence\n");
-		musicexpr_log_sequence(&me->sequence, loglevel, indentlevel);
+		musicexpr_log_sequence(me->sequence, loglevel, indentlevel);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(loglevel,
@@ -544,11 +544,11 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 }
 
 void
-musicexpr_log_sequence(struct sequence_t *seq, int loglevel, int indentlevel)
+musicexpr_log_sequence(struct sequence_t seq, int loglevel, int indentlevel)
 {
 	struct seqitem *p;
 
-	TAILQ_FOREACH(p, seq, tq)
+	TAILQ_FOREACH(p, &seq, tq)
 		musicexpr_log(p->me, loglevel, indentlevel + 1);
 }
 
@@ -565,7 +565,7 @@ musicexpr_free(struct musicexpr_t *me)
 		musicexpr_free(me->joinexpr.b);
 		break;
 	case ME_TYPE_SEQUENCE:
-		musicexpr_free_sequence(&me->sequence);
+		musicexpr_free_sequence(me->sequence);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		musicexpr_free(me->offset_expr.me);
@@ -578,12 +578,12 @@ musicexpr_free(struct musicexpr_t *me)
 }
 
 void
-musicexpr_free_sequence(struct sequence_t *seq)
+musicexpr_free_sequence(struct sequence_t seq)
 {
 	struct seqitem *p;
 
-	while ((p = TAILQ_FIRST(seq)) != NULL) {
-		TAILQ_REMOVE(seq, p, tq);
+	while ((p = TAILQ_FIRST(&seq)) != NULL) {
+		TAILQ_REMOVE(&seq, p, tq);
 		musicexpr_free(p->me);
 		free(p);
 	}
