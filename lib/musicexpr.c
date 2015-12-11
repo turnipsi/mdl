@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.29 2015/12/10 20:47:25 je Exp $ */
+/* $Id: musicexpr.c,v 1.30 2015/12/11 21:26:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -54,7 +54,7 @@ static int	add_new_offset_expression(struct mdl_stream *,
 					  float offset);
 
 static struct mdl_stream *
-offsetexprstream_to_midievents(const struct mdl_stream *);
+offsetexprstream_to_midievents(const struct mdl_stream *, int);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
@@ -66,10 +66,10 @@ musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
 
 	offset = 0.0;
 
-	mdl_log(1, 0, "flattening music expression\n");
-	mdl_log(2, 1, "initializing offset to %.3f\n", offset);
+	mdl_log(1, 1, "flattening music expression\n");
+	mdl_log(2, 2, "initializing offset to %.3f\n", offset);
 
-	if (offset_expressions(oes, me, &offset, 1) != 0)
+	if (offset_expressions(oes, me, &offset, 2) != 0)
 		return 1;
 
 	return 0;
@@ -409,7 +409,8 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		goto finish;
 	}
 
-	if ((midi_es = offsetexprstream_to_midievents(offset_es)) == NULL)
+	midi_es = offsetexprstream_to_midievents(offset_es, level + 1);
+	if (midi_es == NULL)
 		warnx("could not convert offset-expression-stream" \
 			" to midistream");
 
@@ -421,7 +422,7 @@ finish:
 }
 
 struct mdl_stream *
-offsetexprstream_to_midievents(const struct mdl_stream *offset_es)
+offsetexprstream_to_midievents(const struct mdl_stream *offset_es, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
@@ -429,6 +430,8 @@ offsetexprstream_to_midievents(const struct mdl_stream *offset_es)
 	struct musicexpr_t *me;
 	float offset;
 	int i, ret;
+
+	mdl_log(2, level, "offset expression stream to midi events\n");
 
 	if ((midi_es = midi_eventstream_new()) == NULL)
 		goto error;
@@ -438,6 +441,12 @@ offsetexprstream_to_midievents(const struct mdl_stream *offset_es)
 		me = offset_expr.me;
 		offset = offset_expr.offset;
 
+		mdl_log(4,
+			level + 1,
+			"handling expression with offset %.3f\n",
+			offset);
+		musicexpr_log(me, 4, level + 2);
+
 		assert(me->me_type == ME_TYPE_ABSNOTE);
 
 		if (me->absnote.note < 0 || MIDI_NOTE_MAX < me->absnote.note) {
@@ -445,6 +454,7 @@ offsetexprstream_to_midievents(const struct mdl_stream *offset_es)
 			continue;
 		}
 
+		/* XXX should this be assert instead? */
 		if (me->absnote.length < 0) {
 			warnx("skipping note with length %.3f",
 			      me->absnote.length);
@@ -580,9 +590,9 @@ musicexpr_free(struct musicexpr_t *me)
 void
 musicexpr_free_sequence(struct sequence_t seq)
 {
-	struct seqitem *p;
+	struct seqitem *p, *q;
 
-	while ((p = TAILQ_FIRST(&seq)) != NULL) {
+	TAILQ_FOREACH_SAFE(p, &seq, tq, q) {
 		TAILQ_REMOVE(&seq, p, tq);
 		musicexpr_free(p->me);
 		free(p);
