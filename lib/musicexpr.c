@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.30 2015/12/11 21:26:06 je Exp $ */
+/* $Id: musicexpr.c,v 1.31 2015/12/13 20:55:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <err.h>
+#include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -93,16 +94,19 @@ offset_expressions(struct mdl_stream *oes,
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 		mdl_log(3, level, "finding offset expression for absnote\n");
+		musicexpr_log(me, 4, level + 1);
 		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
 			return ret;
 		*offset += me->absnote.length;
 		break;
 	case ME_TYPE_REST:
 		mdl_log(3, level, "finding offset expression for rest\n");
+		musicexpr_log(me, 4, level + 1);
 		*offset += me->rest.length;
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "finding offset expression for sequence\n");
+		musicexpr_log(me, 4, level + 1);
 		TAILQ_FOREACH(s, &me->sequence, tq) {
 			ret = offset_expressions(oes,
 						 s->me,
@@ -115,6 +119,7 @@ offset_expressions(struct mdl_stream *oes,
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(3, level, "finding offset expression for" \
 				    " offset expression\n");
+		musicexpr_log(me, 4, level + 1);
 		*offset += me->offset_expr.offset;
 		ret = offset_expressions(oes,
 					 me->offset_expr.me,
@@ -503,6 +508,43 @@ error:
 		mdl_stream_free(midi_es);
 
 	return NULL;
+}
+
+struct musicexpr_t *
+musicexpr_sequence(struct musicexpr_t *next_me, ...)
+{
+	va_list va;
+	struct musicexpr_t *me;
+	struct seqitem *s;
+
+	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
+		warnx("malloc in musicexpr_sequence");
+		return NULL;
+	}
+
+	me->me_type = ME_TYPE_SEQUENCE;
+	TAILQ_INIT(&me->sequence);
+
+	va_start(va, next_me);
+
+	while (next_me != NULL) {
+		if ((s = malloc(sizeof(struct seqitem))) == NULL) {
+			warnx("malloc in musicexpr_sequence");
+			musicexpr_free(me);
+			me = NULL;
+			goto finish;
+		}
+
+		s->me = next_me;
+		TAILQ_INSERT_TAIL(&me->sequence, s, tq);
+
+		next_me = va_arg(va, struct musicexpr_t *);
+	}
+
+finish:
+	va_end(va);
+
+	return me;
 }
 
 void
