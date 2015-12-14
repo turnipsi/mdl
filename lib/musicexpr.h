@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.26 2015/12/13 20:55:19 je Exp $ */
+/* $Id: musicexpr.h,v 1.27 2015/12/14 21:11:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,13 +30,45 @@ enum musicexpr_type {
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_WITHOFFSET,
 	ME_TYPE_JOINEXPR,
+	ME_TYPE_CHORD,
 };
 
 enum notesym_t {
-  NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX
+	NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX,
 };
 
 enum notemod_t { NOTEMOD_ES, NOTEMOD_IS, };
+
+enum chordtype_t {
+	CHORDTYPE_NONE,
+	CHORDTYPE_MAJ,
+	CHORDTYPE_MIN,
+	CHORDTYPE_AUG,
+	CHORDTYPE_DIM,
+	CHORDTYPE_7,
+	CHORDTYPE_MAJ7,
+	CHORDTYPE_MIN7,
+	CHORDTYPE_DIM7,
+	CHORDTYPE_AUG7,
+	CHORDTYPE_DIM5MIN7,
+	CHORDTYPE_MIN5MAJ7,
+	CHORDTYPE_MAJ6,
+	CHORDTYPE_MIN6,
+	CHORDTYPE_9,
+	CHORDTYPE_MAJ9,
+	CHORDTYPE_MIN9,
+	CHORDTYPE_11,
+	CHORDTYPE_MAJ11,
+	CHORDTYPE_MIN11,
+	CHORDTYPE_13,
+	CHORDTYPE_13_11,
+	CHORDTYPE_MAJ13_11,
+	CHORDTYPE_MIN13_11,
+	CHORDTYPE_SUS2,
+	CHORDTYPE_SUS4,
+	CHORDTYPE_5,
+	CHORDTYPE_5_8,
+};
 
 struct absnote_t {
 	enum notesym_t notesym;
@@ -52,6 +84,11 @@ struct relnote_t {
 
 struct rest_t {
 	float length;
+};
+
+struct chord_t {
+	struct relnote_t relnote;
+	enum chordtype_t chordtype;
 };
 
 struct musicexpr_with_offset_t {
@@ -75,6 +112,7 @@ struct musicexpr_t {
 		struct absnote_t		absnote;
 		struct joinexpr_t		joinexpr;
 		struct relnote_t		relnote;
+		struct chord_t			chord;
 		struct rest_t			rest;
 		struct sequence_t		sequence;
 		struct musicexpr_with_offset_t	offset_expr;

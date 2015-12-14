@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.11 2015/11/29 16:24:37 je Exp $ */
+/* $Id: lex.l,v 1.12 2015/12/14 21:11:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,6 +51,37 @@ r	{ return RESTTOKEN; }
 ,+		{ yylval.i = strlen(yytext); return OCTAVEDOWN; }
 
 ~ 		{ return JOINEXPR; }
+
+:5		{ return CHORDTOKEN_MAJ;      }
+:m		{ return CHORDTOKEN_MIN;      }
+:m5		{ return CHORDTOKEN_MIN;      }
+:aug		{ return CHORDTOKEN_AUG;      }
+:dim		{ return CHORDTOKEN_DIM;      }
+:7		{ return CHORDTOKEN_7;        }
+:maj7		{ return CHORDTOKEN_MAJ7;     }
+:maj		{ return CHORDTOKEN_MAJ7;     }
+:m7		{ return CHORDTOKEN_MIN7;     }
+:dim7		{ return CHORDTOKEN_DIM7;     }
+:aug7		{ return CHORDTOKEN_AUG7;     }
+:m7\.5-		{ return CHORDTOKEN_DIM5MIN7; }
+:m7\+		{ return CHORDTOKEN_MIN5MAJ7; }
+:6		{ return CHORDTOKEN_MAJ6;     }
+:m6		{ return CHORDTOKEN_MIN6;     }
+:9		{ return CHORDTOKEN_9;        }
+:maj9		{ return CHORDTOKEN_MAJ9;     }
+:m9		{ return CHORDTOKEN_MIN9;     }
+:11		{ return CHORDTOKEN_11;       }
+:maj11		{ return CHORDTOKEN_MAJ11;    }
+:m11		{ return CHORDTOKEN_MIN11;    }
+:13		{ return CHORDTOKEN_13;       }
+:13\.11		{ return CHORDTOKEN_13_11;    }
+:maj13\.11	{ return CHORDTOKEN_MAJ13_11; }
+:m13\.11	{ return CHORDTOKEN_MIN13_11; }
+:sus2		{ return CHORDTOKEN_SUS2;     }
+:sus4		{ return CHORDTOKEN_SUS4;     }
+:1\.5		{ return CHORDTOKEN_5;        }
+:1\.5\.8	{ return CHORDTOKEN_5_8;      }
+:		{ return CHORDTOKEN_NONE;     }
 
 [ \t\n]+	{ return WHITESPACE; }
 %%

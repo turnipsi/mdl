@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.27 2015/12/10 20:47:25 je Exp $
+/* $Id: parse.y,v 1.28 2015/12/14 21:11:45 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,22 +38,59 @@ static void    *malloc_musicexpr(void);
 	struct joinexpr_t	joinexpr;
 	struct musicexpr_t     *musicexpr;
 	struct relnote_t	relnote;
+	struct chord_t		chord;
 	struct rest_t		rest;
 	enum notesym_t		notesym;
+	enum chordtype_t	chordtype;
 	float			f;
 	int			i;
 }
 
-%token	<notesym>	NOTETOKEN_C	NOTETOKEN_D	NOTETOKEN_E
-			NOTETOKEN_F	NOTETOKEN_G	NOTETOKEN_A
+%token	<notesym>	NOTETOKEN_C
+			NOTETOKEN_D
+			NOTETOKEN_E
+			NOTETOKEN_F
+			NOTETOKEN_G
+			NOTETOKEN_A
 			NOTETOKEN_B
-%token	<i>		NOTETOKEN_ES	NOTETOKEN_IS
+
+%token	<i>		NOTETOKEN_ES
+			NOTETOKEN_IS
 			
 %token			RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
 %token	<i>		OCTAVEDOWN
+
+%token	<chordtype>	CHORDTOKEN_NONE
+			CHORDTOKEN_MAJ
+			CHORDTOKEN_MIN
+			CHORDTOKEN_AUG
+			CHORDTOKEN_DIM
+			CHORDTOKEN_7
+			CHORDTOKEN_MAJ7
+			CHORDTOKEN_MIN7
+			CHORDTOKEN_DIM7
+			CHORDTOKEN_AUG7
+			CHORDTOKEN_DIM5MIN7
+			CHORDTOKEN_MIN5MAJ7
+			CHORDTOKEN_MAJ6
+			CHORDTOKEN_MIN6
+			CHORDTOKEN_9
+			CHORDTOKEN_MAJ9
+			CHORDTOKEN_MIN9
+			CHORDTOKEN_11
+			CHORDTOKEN_MAJ11
+			CHORDTOKEN_MIN11
+			CHORDTOKEN_13
+			CHORDTOKEN_13_11
+			CHORDTOKEN_MAJ13_11
+			CHORDTOKEN_MIN13_11
+			CHORDTOKEN_SUS2
+			CHORDTOKEN_SUS4
+			CHORDTOKEN_5
+			CHORDTOKEN_5_8
 
 %left			JOINEXPR
 %left			WHITESPACE
@@ -62,6 +99,8 @@ static void    *malloc_musicexpr(void);
 %type	<sequence>	sequence sp_sequence
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
+%type	<chord>		chord
+%type	<chordtype>	chordtype
 %type	<rest>		rest
 %type	<notesym>	notesym
 %type	<i>		notemods octavemods lengthdots
@@ -144,6 +183,15 @@ musicexpr:
 		$$->me_type = ME_TYPE_RELNOTE;
 		$$->relnote = $1;
 	  }
+	| chord {
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_CHORD;
+		$$->chord = $1;
+	  }
 	| rest {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
@@ -183,6 +231,12 @@ rest:
 		$$.length = $2;
 	};
 
+chord:
+	relnote chordtype {
+		$$.relnote = $1;
+		$$.chordtype = $2;
+	};
+
 notesym:
 	NOTETOKEN_C   { $$ = NOTE_C; }
 	| NOTETOKEN_D { $$ = NOTE_D; }
@@ -215,6 +269,37 @@ notelength:
 lengthdots:
 	LENGTHDOT     { $$ = $1; }
 	| /* empty */ { $$ = 0;  }
+	;
+
+chordtype:
+	CHORDTOKEN_NONE		{ $$ = CHORDTYPE_NONE;     }
+	| CHORDTOKEN_MAJ	{ $$ = CHORDTYPE_MAJ;      }
+	| CHORDTOKEN_MIN	{ $$ = CHORDTYPE_MIN;      }
+	| CHORDTOKEN_AUG	{ $$ = CHORDTYPE_AUG;      }
+	| CHORDTOKEN_DIM	{ $$ = CHORDTYPE_DIM;      }
+	| CHORDTOKEN_7		{ $$ = CHORDTYPE_7;        }
+	| CHORDTOKEN_MAJ7	{ $$ = CHORDTYPE_MAJ7;     }
+	| CHORDTOKEN_MIN7	{ $$ = CHORDTYPE_MIN7;     }
+	| CHORDTOKEN_DIM7	{ $$ = CHORDTYPE_DIM7;     }
+	| CHORDTOKEN_AUG7	{ $$ = CHORDTYPE_AUG7;     }
+	| CHORDTOKEN_DIM5MIN7	{ $$ = CHORDTYPE_DIM5MIN7; }
+	| CHORDTOKEN_MIN5MAJ7	{ $$ = CHORDTYPE_MIN5MAJ7; }
+	| CHORDTOKEN_MAJ6	{ $$ = CHORDTYPE_MAJ6;     }
+	| CHORDTOKEN_MIN6	{ $$ = CHORDTYPE_MIN6;     }
+	| CHORDTOKEN_9		{ $$ = CHORDTYPE_9;        }
+	| CHORDTOKEN_MAJ9	{ $$ = CHORDTYPE_MAJ9;     }
+	| CHORDTOKEN_MIN9	{ $$ = CHORDTYPE_MIN9;     }
+	| CHORDTOKEN_11		{ $$ = CHORDTYPE_11;       }
+	| CHORDTOKEN_MAJ11	{ $$ = CHORDTYPE_MAJ11;    }
+	| CHORDTOKEN_MIN11	{ $$ = CHORDTYPE_MIN11;    }
+	| CHORDTOKEN_13		{ $$ = CHORDTYPE_13;       }
+	| CHORDTOKEN_13_11	{ $$ = CHORDTYPE_13_11;    }
+	| CHORDTOKEN_MAJ13_11	{ $$ = CHORDTYPE_MAJ13_11; }
+	| CHORDTOKEN_MIN13_11	{ $$ = CHORDTYPE_MIN13_11; }
+	| CHORDTOKEN_SUS2	{ $$ = CHORDTYPE_SUS2;     }
+	| CHORDTOKEN_SUS4	{ $$ = CHORDTYPE_SUS4;     }
+	| CHORDTOKEN_5		{ $$ = CHORDTYPE_5;        }
+	| CHORDTOKEN_5_8	{ $$ = CHORDTYPE_5_8;      }
 	;
 
 %%

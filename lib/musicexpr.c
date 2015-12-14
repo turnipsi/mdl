@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.31 2015/12/13 20:55:19 je Exp $ */
+/* $Id: musicexpr.c,v 1.32 2015/12/14 21:11:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -589,6 +589,10 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 		mdl_log(loglevel, indentlevel, "joinexpr\n");
 		musicexpr_log(me->joinexpr.a, loglevel, indentlevel + 1);
 		musicexpr_log(me->joinexpr.b, loglevel, indentlevel + 1);
+		break;
+	case ME_TYPE_CHORD:
+		mdl_log(loglevel, indentlevel, "chord\n");
+		/* XXX */
 		break;
 	default:
 		assert(0);
