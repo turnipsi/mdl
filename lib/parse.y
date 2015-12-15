@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.28 2015/12/14 21:11:45 je Exp $
+/* $Id: parse.y,v 1.29 2015/12/15 21:12:03 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -233,8 +233,14 @@ rest:
 
 chord:
 	relnote chordtype {
-		$$.relnote = $1;
 		$$.chordtype = $2;
+		if (($$.me = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$.me->me_type = ME_TYPE_RELNOTE;
+		$$.me->relnote = $1;
 	};
 
 notesym:

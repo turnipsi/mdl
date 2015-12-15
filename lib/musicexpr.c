@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.33 2015/12/15 20:31:02 je Exp $ */
+/* $Id: musicexpr.c,v 1.34 2015/12/15 21:12:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -54,8 +54,8 @@ static int	add_new_offset_expression(struct mdl_stream *,
 					  struct musicexpr_t *,
 					  float offset);
 
+static float	musicexpr_length(struct musicexpr_t *);
 static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
-static void	musicexpr_log_relnote(struct relnote_t, int, int);
 static void	musicexpr_log_sequence(struct sequence_t, int, int);
 
 static struct mdl_stream *
@@ -101,12 +101,12 @@ offset_expressions(struct mdl_stream *oes,
 		musicexpr_log(me, 4, level + 1);
 		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
 			return ret;
-		*offset += me->absnote.length;
+		*offset += musicexpr_length(me);
 		break;
 	case ME_TYPE_REST:
 		mdl_log(3, level, "finding offset expression for rest\n");
 		musicexpr_log(me, 4, level + 1);
-		*offset += me->rest.length;
+		*offset += musicexpr_length(me);
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "finding offset expression for sequence\n");
@@ -131,6 +131,13 @@ offset_expressions(struct mdl_stream *oes,
 					 level + 1);
 		if (ret != 0)
 			return ret;
+		break;
+	case ME_TYPE_CHORD:
+		mdl_log(3, level, "finding offset expression for chord\n");
+		musicexpr_log(me, 4, level + 1);
+		if ((ret = add_new_offset_expression(oes, me, *offset)) != 0)
+			return ret;
+		*offset += musicexpr_length(me->chord.me);
 		break;
 	default:
 		assert(0);
@@ -224,6 +231,15 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 			cloned = NULL;
 		}
 		break;
+	case ME_TYPE_CHORD:
+		mdl_log(4, level, "cloning expression %p (chord)\n", me);
+		musicexpr_log(me, 4, level + 1);
+		cloned->chord.me = musicexpr_clone(me->chord.me, level + 1);
+		if (cloned->chord.me == NULL) {
+			free(cloned);
+			cloned = NULL;
+		}
+		break;
 	default:
 		assert(0);
 	}
@@ -272,6 +288,28 @@ musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
 	prev_absnote.note = 60;
 
 	relative_to_absolute(me, &prev_absnote, level + 1);
+}
+
+static float
+musicexpr_length(struct musicexpr_t *me)
+{
+	float length;
+
+	switch (me->me_type) {
+	case ME_TYPE_ABSNOTE:
+		length = me->absnote.length;
+		break;
+	case ME_TYPE_RELNOTE:
+		length = me->relnote.length;
+		break;
+	case ME_TYPE_REST:
+		length = me->rest.length;
+		break;
+	default:
+		assert(0);
+	}
+
+	return length;
 }
 
 static void
@@ -351,6 +389,10 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		relative_to_absolute(me->offset_expr.me,
 				     prev_absnote,
 				     level + 1);
+		break;
+	case ME_TYPE_CHORD:
+		mdl_log(3, level, "rel->abs expression (chord)\n");
+		relative_to_absolute(me->chord.me, prev_absnote, level + 1);
 		break;
 	default:
 		assert(0);
@@ -560,11 +602,18 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 			indentlevel,
 			"absnote notesym=%d note=%d length=%.3f\n",
 			me->absnote.notesym,
-		        me->absnote.note,
-		        me->absnote.length);
+			me->absnote.note,
+			me->absnote.length);
 		break;
 	case ME_TYPE_RELNOTE:
-		musicexpr_log_relnote(me->relnote, loglevel, indentlevel);
+		mdl_log(loglevel,
+			indentlevel,
+			"relnote notesym=%d notemods=%d length=%.3f" \
+			  " octavemods=%d\n",
+			me->relnote.notesym,
+			me->relnote.notemods,
+			me->relnote.length,
+			me->relnote.octavemods);
 		break;
 	case ME_TYPE_REST:
 		mdl_log(loglevel,
@@ -589,12 +638,10 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 		break;
 	case ME_TYPE_CHORD:
 		mdl_log(loglevel, indentlevel, "chord\n");
-		musicexpr_log_relnote(me->chord.relnote,
-				      loglevel,
-				      indentlevel + 1);
 		musicexpr_log_chordtype(me->chord.chordtype,
 					loglevel,
 					indentlevel + 1);
+		musicexpr_log(me->chord.me, loglevel, indentlevel + 1);
 		break;
 	default:
 		assert(0);
@@ -643,20 +690,6 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 		indentlevel,
 		"chordtype %s\n",
 		chordnames[chordtype]);
-}
-
-static void
-musicexpr_log_relnote(struct relnote_t relnote,
-		      int loglevel,
-		      int indentlevel)
-{
-	mdl_log(loglevel,
-		indentlevel,
-		"relnote notesym=%d notemods=%d length=%.3f octavemods=%d\n",
-		relnote.notesym,
-		relnote.notemods,
-		relnote.length,
-		relnote.octavemods);
 }
 
 static void

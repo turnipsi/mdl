@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.5 2015/12/13 20:55:19 je Exp $ */
+/* $Id: joinexpr.c,v 1.6 2015/12/15 21:12:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,6 +62,12 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		break;
 	case ME_TYPE_WITHOFFSET:
 		ret = joinexpr_musicexpr(me->offset_expr.me, level + 1);
+		break;
+	case ME_TYPE_CHORD:
+		/* the possibly subexpressions of chords
+		 * are such that do not need joining */
+		assert(me->chord.me->me_type == ME_TYPE_ABSNOTE
+			 || me->chord.me->me_type == ME_TYPE_RELNOTE);
 		break;
 	default:
 		assert(0);
