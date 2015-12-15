@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.32 2015/12/14 21:11:45 je Exp $ */
+/* $Id: musicexpr.c,v 1.33 2015/12/15 20:31:02 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,6 +53,10 @@ static int	offset_expressions(struct mdl_stream *,
 static int	add_new_offset_expression(struct mdl_stream *,
 					  struct musicexpr_t *,
 					  float offset);
+
+static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
+static void	musicexpr_log_relnote(struct relnote_t, int, int);
+static void	musicexpr_log_sequence(struct sequence_t, int, int);
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(const struct mdl_stream *, int);
@@ -548,7 +552,7 @@ finish:
 }
 
 void
-musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
+musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 {
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -560,14 +564,7 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 		        me->absnote.length);
 		break;
 	case ME_TYPE_RELNOTE:
-		mdl_log(loglevel,
-			indentlevel,
-			"relnote notesym=%d notemods=%d" \
-			  " length=%.3f octavemods=%d\n",
-			me->relnote.notesym,
-			me->relnote.notemods,
-			me->relnote.length,
-			me->relnote.octavemods);
+		musicexpr_log_relnote(me->relnote, loglevel, indentlevel);
 		break;
 	case ME_TYPE_REST:
 		mdl_log(loglevel,
@@ -592,15 +589,80 @@ musicexpr_log(struct musicexpr_t *me, int loglevel, int indentlevel)
 		break;
 	case ME_TYPE_CHORD:
 		mdl_log(loglevel, indentlevel, "chord\n");
-		/* XXX */
+		musicexpr_log_relnote(me->chord.relnote,
+				      loglevel,
+				      indentlevel + 1);
+		musicexpr_log_chordtype(me->chord.chordtype,
+					loglevel,
+					indentlevel + 1);
 		break;
 	default:
 		assert(0);
 	}
 }
 
-void
-musicexpr_log_sequence(struct sequence_t seq, int loglevel, int indentlevel)
+static void
+musicexpr_log_chordtype(enum chordtype_t chordtype,
+			int loglevel,
+			int indentlevel)
+{
+	const char *chordnames[] = {
+		"none",		/* CHORDTYPE_NONE     */
+		"5",		/* CHORDTYPE_MAJ      */
+		"m",		/* CHORDTYPE_MIN      */
+		"aug",		/* CHORDTYPE_AUG      */
+		"dim",		/* CHORDTYPE_DIM      */
+		"7",		/* CHORDTYPE_7        */
+		"maj7",		/* CHORDTYPE_MAJ7     */
+		"m7",		/* CHORDTYPE_MIN7     */
+		"dim7",		/* CHORDTYPE_DIM7     */
+		"aug7",		/* CHORDTYPE_AUG7     */
+		"m7.5-",	/* CHORDTYPE_DIM5MIN7 */
+		"m7+",		/* CHORDTYPE_MIN5MAJ7 */
+		"6",		/* CHORDTYPE_MAJ6     */
+		"m6",		/* CHORDTYPE_MIN6     */
+		"9",		/* CHORDTYPE_9        */
+		"maj9",		/* CHORDTYPE_MAJ9     */
+		"m9",		/* CHORDTYPE_MIN9     */
+		"11",		/* CHORDTYPE_11       */
+		"maj11",	/* CHORDTYPE_MAJ11    */
+		"m11",		/* CHORDTYPE_MIN11    */
+		"13",		/* CHORDTYPE_13       */
+		"13.11",	/* CHORDTYPE_13_11    */
+		"maj13.11",	/* CHORDTYPE_MAJ13_11 */
+		"m13.11",	/* CHORDTYPE_MIN13_11 */
+		"sus2",		/* CHORDTYPE_SUS2     */
+		"sus4",		/* CHORDTYPE_SUS4     */
+		"1.5",		/* CHORDTYPE_5        */
+		"1.5.8",	/* CHORDTYPE_5_8      */
+	};
+
+	assert(CHORDTYPE_NONE <= chordtype && chordtype <= CHORDTYPE_5_8);
+
+	mdl_log(loglevel,
+		indentlevel,
+		"chordtype %s\n",
+		chordnames[chordtype]);
+}
+
+static void
+musicexpr_log_relnote(struct relnote_t relnote,
+		      int loglevel,
+		      int indentlevel)
+{
+	mdl_log(loglevel,
+		indentlevel,
+		"relnote notesym=%d notemods=%d length=%.3f octavemods=%d\n",
+		relnote.notesym,
+		relnote.notemods,
+		relnote.length,
+		relnote.octavemods);
+}
+
+static void
+musicexpr_log_sequence(struct sequence_t seq,
+		       int loglevel,
+		       int indentlevel)
 {
 	struct seqitem *p;
 
