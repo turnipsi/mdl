@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.34 2015/12/15 21:12:03 je Exp $ */
+/* $Id: musicexpr.c,v 1.35 2015/12/16 21:08:54 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,10 +59,47 @@ static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
 static void	musicexpr_log_sequence(struct sequence_t, int, int);
 
 static struct mdl_stream *
-offsetexprstream_to_midievents(const struct mdl_stream *, int);
+offsetexprstream_to_midievents(struct mdl_stream *, int);
+
+static int
+add_musicexpr_to_midievents(struct mdl_stream *,
+			    const struct musicexpr_t *,
+			    float,
+			    int);
 
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b);
+
+int chord_noteoffsets[][8] = {
+	{ 0,                       0 }, /* CHORDTYPE_NONE     */
+	{ 0, 4, 7,                 0 }, /* CHORDTYPE_MAJ      */
+	{ 0, 3, 7,                 0 }, /* CHORDTYPE_MIN      */
+	{ 0, 4, 8,                 0 }, /* CHORDTYPE_AUG      */
+	{ 0, 3, 6,                 0 }, /* CHORDTYPE_DIM      */
+	{ 0, 4, 7, 10,             0 }, /* CHORDTYPE_7        */
+	{ 0, 4, 7, 11,             0 }, /* CHORDTYPE_MAJ7     */
+	{ 0, 3, 7, 10,             0 }, /* CHORDTYPE_MIN7     */
+	{ 0, 3, 6, 9,              0 }, /* CHORDTYPE_DIM7     */
+	{ 0, 4, 8, 10,             0 }, /* CHORDTYPE_AUG7     */
+	{ 0, 3, 5, 10,             0 }, /* CHORDTYPE_DIM5MIN7 */
+	{ 0, 3, 7, 11,             0 }, /* CHORDTYPE_MIN5MAJ7 */
+	{ 0, 4, 7, 9,              0 }, /* CHORDTYPE_MAJ6     */
+	{ 0, 3, 7, 9,              0 }, /* CHORDTYPE_MIN6     */
+	{ 0, 4, 7, 10, 14,         0 }, /* CHORDTYPE_9        */
+	{ 0, 4, 7, 11, 14,         0 }, /* CHORDTYPE_MAJ9     */
+	{ 0, 3, 7, 10, 14,         0 }, /* CHORDTYPE_MIN9     */
+	{ 0, 4, 7, 10, 14, 17,     0 }, /* CHORDTYPE_11       */
+	{ 0, 4, 7, 11, 14, 17,     0 }, /* CHORDTYPE_MAJ11    */
+	{ 0, 3, 7, 10, 14, 17,     0 }, /* CHORDTYPE_MIN11    */
+	{ 0, 4, 7, 10, 14,     21, 0 }, /* CHORDTYPE_13       */
+	{ 0, 4, 7, 10, 14, 17, 21, 0 }, /* CHORDTYPE_13_11    */
+	{ 0, 4, 7, 11, 14, 17, 21, 0 }, /* CHORDTYPE_MAJ13_11 */
+	{ 0, 3, 7, 10, 14, 17, 21, 0 }, /* CHORDTYPE_MIN13_11 */
+	{ 0, 2, 7,                 0 }, /* CHORDTYPE_SUS2     */
+	{ 0, 5, 7,                 0 }, /* CHORDTYPE_SUS4     */
+	{ 0,    7,                 0 }, /* CHORDTYPE_5        */
+	{ 0,    7, 12,             0 }, /* CHORDTYPE_5_8      */
+};
 
 static int
 musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
@@ -391,6 +428,8 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 				     level + 1);
 		break;
 	case ME_TYPE_CHORD:
+		/* XXX chord type should also be previous in case
+		 * XXX chord ":" is used? */
 		mdl_log(3, level, "rel->abs expression (chord)\n");
 		relative_to_absolute(me->chord.me, prev_absnote, level + 1);
 		break;
@@ -472,8 +511,8 @@ finish:
 	return midi_es;
 }
 
-struct mdl_stream *
-offsetexprstream_to_midievents(const struct mdl_stream *offset_es, int level)
+static struct mdl_stream *
+offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
@@ -498,41 +537,10 @@ offsetexprstream_to_midievents(const struct mdl_stream *offset_es, int level)
 			offset);
 		musicexpr_log(me, 4, level + 2);
 
-		assert(me->me_type == ME_TYPE_ABSNOTE);
-
-		if (me->absnote.note < 0 || MIDI_NOTE_MAX < me->absnote.note) {
-			warnx("skipping note with value %d", me->absnote.note);
-			continue;
-		}
-
-		/* XXX should this be assert instead? */
-		if (me->absnote.length < 0) {
-			warnx("skipping note with length %.3f",
-			      me->absnote.length);
-			continue;
-		}
-
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEON;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = me->absnote.note;
-		midievent->time_as_measures = offset;
-		midievent->velocity = DEFAULT_VELOCITY;
-
-		ret = mdl_stream_increment(midi_es);
-		if (ret != 0)
-			goto error;
-
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEOFF;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = me->absnote.note;
-		midievent->time_as_measures = offset + me->absnote.length;
-		midievent->velocity = 0;
-
-		ret = mdl_stream_increment(midi_es);
+		ret = add_musicexpr_to_midievents(midi_es,
+						  me,
+						  offset,
+						  level + 1);
 		if (ret != 0)
 			goto error;
 	}
@@ -554,6 +562,70 @@ error:
 		mdl_stream_free(midi_es);
 
 	return NULL;
+}
+
+static int
+add_musicexpr_to_midievents(struct mdl_stream *midi_es,
+			    const struct musicexpr_t *me,
+			    float offset,
+			    int level)
+{
+	struct midievent *midievent;
+	struct musicexpr_t *me_subexpr;
+	int ret;
+
+	switch (me->me_type) {
+	case ME_TYPE_ABSNOTE:
+		/* we accept and ignore notes that are out-of-range */
+		if (me->absnote.note < 0
+		      || MIDI_NOTE_MAX < me->absnote.note) {
+			mdl_log(2,
+				level,
+				"skipping note with value %d",
+				me->absnote.note);
+			return 0;
+		}
+		/* length can never be non-positive, that is a bug */
+		assert(me->absnote.length > 0);
+
+		midievent = &midi_es->midievents[ midi_es->count ];
+		bzero(midievent, sizeof(struct midievent));
+		midievent->eventtype = NOTEON;
+		midievent->channel = DEFAULT_MIDICHANNEL;
+		midievent->note = me->absnote.note;
+		midievent->time_as_measures = offset;
+		midievent->velocity = DEFAULT_VELOCITY;
+
+		ret = mdl_stream_increment(midi_es);
+		if (ret != 0)
+			return ret;
+
+		midievent = &midi_es->midievents[ midi_es->count ];
+		bzero(midievent, sizeof(struct midievent));
+		midievent->eventtype = NOTEOFF;
+		midievent->channel = DEFAULT_MIDICHANNEL;
+		midievent->note = me->absnote.note;
+		midievent->time_as_measures = offset + me->absnote.length;
+		midievent->velocity = 0;
+
+		ret = mdl_stream_increment(midi_es);
+		if (ret != 0)
+			return ret;
+		break;
+
+
+		break;
+	case ME_TYPE_CHORD:
+		me_subexpr = me->chord.me;
+		assert(me_subexpr->me_type == ME_TYPE_ABSNOTE);
+
+		/* XXX use chord_noteoffsets */
+	default:
+		assert(0);
+		break;
+	}
+
+	return 0;
 }
 
 struct musicexpr_t *
@@ -684,7 +756,7 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 		"1.5.8",	/* CHORDTYPE_5_8      */
 	};
 
-	assert(CHORDTYPE_NONE <= chordtype && chordtype <= CHORDTYPE_5_8);
+	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
 
 	mdl_log(loglevel,
 		indentlevel,

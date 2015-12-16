@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.29 2015/12/15 21:12:03 je Exp $ */
+/* $Id: musicexpr.h,v 1.30 2015/12/16 21:08:54 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,6 +68,7 @@ enum chordtype_t {
 	CHORDTYPE_SUS4,
 	CHORDTYPE_5,
 	CHORDTYPE_5_8,
+	CHORDTYPE_MAX,	/* not a chord */
 };
 
 struct absnote_t {
