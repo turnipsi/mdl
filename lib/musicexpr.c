@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.36 2015/12/17 20:01:29 je Exp $ */
+/* $Id: musicexpr.c,v 1.37 2015/12/17 20:43:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,6 +68,7 @@ add_musicexpr_to_midievents(struct mdl_stream *,
 			    int);
 
 static int	compare_notesyms(enum notesym_t, enum notesym_t);
+static int	compare_midievents(const void *, const void *);
 
 static struct noteoffsets_t	get_noteoffsets_for_chord(enum chordtype_t);
 
@@ -516,6 +517,21 @@ finish:
 	return midi_es;
 }
 
+static int
+compare_midievents(const void *a, const void *b)
+{
+	const struct midievent *ma, *mb;
+
+	ma = a;
+	mb = b;
+
+	return (ma->time_as_measures < mb->time_as_measures)          ? -1 : 
+	       (ma->time_as_measures > mb->time_as_measures)          ?  1 :
+	       (ma->eventtype == NOTEOFF && mb->eventtype == NOTEON)  ? -1 :
+	       (ma->eventtype == NOTEON  && mb->eventtype == NOTEOFF) ?  1 :
+	       0;
+}
+
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 {
@@ -548,6 +564,15 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 						  level + 1);
 		if (ret != 0)
 			goto error;
+	}
+
+	ret = heapsort(midi_es->midievents,
+		       midi_es->count,
+		       sizeof(struct midievent),
+		       compare_midievents);
+	if (ret == -1) {
+		warnx("could not sort midieventstream");
+		goto error;
 	}
 
 	/* add SONG_END midievent */
