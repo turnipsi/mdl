@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.30 2015/12/16 21:08:54 je Exp $ */
+/* $Id: musicexpr.h,v 1.31 2015/12/17 20:01:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -90,6 +90,11 @@ struct rest_t {
 struct chord_t {
 	enum chordtype_t chordtype;
 	struct musicexpr_t *me;
+};
+
+struct noteoffsets_t {
+	int *offsets;
+	size_t count;
 };
 
 struct musicexpr_with_offset_t {

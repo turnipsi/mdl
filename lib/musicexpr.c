@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.35 2015/12/16 21:08:54 je Exp $ */
+/* $Id: musicexpr.c,v 1.36 2015/12/17 20:01:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,39 +67,44 @@ add_musicexpr_to_midievents(struct mdl_stream *,
 			    float,
 			    int);
 
-static int
-compare_notesyms(enum notesym_t a, enum notesym_t b);
+static int	compare_notesyms(enum notesym_t, enum notesym_t);
 
-int chord_noteoffsets[][8] = {
-	{ 0,                       0 }, /* CHORDTYPE_NONE     */
-	{ 0, 4, 7,                 0 }, /* CHORDTYPE_MAJ      */
-	{ 0, 3, 7,                 0 }, /* CHORDTYPE_MIN      */
-	{ 0, 4, 8,                 0 }, /* CHORDTYPE_AUG      */
-	{ 0, 3, 6,                 0 }, /* CHORDTYPE_DIM      */
-	{ 0, 4, 7, 10,             0 }, /* CHORDTYPE_7        */
-	{ 0, 4, 7, 11,             0 }, /* CHORDTYPE_MAJ7     */
-	{ 0, 3, 7, 10,             0 }, /* CHORDTYPE_MIN7     */
-	{ 0, 3, 6, 9,              0 }, /* CHORDTYPE_DIM7     */
-	{ 0, 4, 8, 10,             0 }, /* CHORDTYPE_AUG7     */
-	{ 0, 3, 5, 10,             0 }, /* CHORDTYPE_DIM5MIN7 */
-	{ 0, 3, 7, 11,             0 }, /* CHORDTYPE_MIN5MAJ7 */
-	{ 0, 4, 7, 9,              0 }, /* CHORDTYPE_MAJ6     */
-	{ 0, 3, 7, 9,              0 }, /* CHORDTYPE_MIN6     */
-	{ 0, 4, 7, 10, 14,         0 }, /* CHORDTYPE_9        */
-	{ 0, 4, 7, 11, 14,         0 }, /* CHORDTYPE_MAJ9     */
-	{ 0, 3, 7, 10, 14,         0 }, /* CHORDTYPE_MIN9     */
-	{ 0, 4, 7, 10, 14, 17,     0 }, /* CHORDTYPE_11       */
-	{ 0, 4, 7, 11, 14, 17,     0 }, /* CHORDTYPE_MAJ11    */
-	{ 0, 3, 7, 10, 14, 17,     0 }, /* CHORDTYPE_MIN11    */
-	{ 0, 4, 7, 10, 14,     21, 0 }, /* CHORDTYPE_13       */
-	{ 0, 4, 7, 10, 14, 17, 21, 0 }, /* CHORDTYPE_13_11    */
-	{ 0, 4, 7, 11, 14, 17, 21, 0 }, /* CHORDTYPE_MAJ13_11 */
-	{ 0, 3, 7, 10, 14, 17, 21, 0 }, /* CHORDTYPE_MIN13_11 */
-	{ 0, 2, 7,                 0 }, /* CHORDTYPE_SUS2     */
-	{ 0, 5, 7,                 0 }, /* CHORDTYPE_SUS4     */
-	{ 0,    7,                 0 }, /* CHORDTYPE_5        */
-	{ 0,    7, 12,             0 }, /* CHORDTYPE_5_8      */
+static struct noteoffsets_t	get_noteoffsets_for_chord(enum chordtype_t);
+
+struct {
+	size_t count;
+	int offsets[7];
+} chord_noteoffsets[] = {
+	{ 0                              }, /* CHORDTYPE_NONE     */
+	{ 3, { 0, 4, 7                 } }, /* CHORDTYPE_MAJ      */
+	{ 3, { 0, 3, 7                 } }, /* CHORDTYPE_MIN      */
+	{ 3, { 0, 4, 8                 } }, /* CHORDTYPE_AUG      */
+	{ 3, { 0, 3, 6                 } }, /* CHORDTYPE_DIM      */
+	{ 4, { 0, 4, 7, 10             } }, /* CHORDTYPE_7        */
+	{ 4, { 0, 4, 7, 11             } }, /* CHORDTYPE_MAJ7     */
+	{ 4, { 0, 3, 7, 10             } }, /* CHORDTYPE_MIN7     */
+	{ 4, { 0, 3, 6,  9             } }, /* CHORDTYPE_DIM7     */
+	{ 4, { 0, 4, 8, 10             } }, /* CHORDTYPE_AUG7     */
+	{ 4, { 0, 3, 5, 10             } }, /* CHORDTYPE_DIM5MIN7 */
+	{ 4, { 0, 3, 7, 11             } }, /* CHORDTYPE_MIN5MAJ7 */
+	{ 4, { 0, 4, 7,  9             } }, /* CHORDTYPE_MAJ6     */
+	{ 4, { 0, 3, 7,  9             } }, /* CHORDTYPE_MIN6     */
+	{ 5, { 0, 4, 7, 10, 14         } }, /* CHORDTYPE_9        */
+	{ 5, { 0, 4, 7, 11, 14         } }, /* CHORDTYPE_MAJ9     */
+	{ 5, { 0, 3, 7, 10, 14         } }, /* CHORDTYPE_MIN9     */
+	{ 6, { 0, 4, 7, 10, 14, 17     } }, /* CHORDTYPE_11       */
+	{ 6, { 0, 4, 7, 11, 14, 17     } }, /* CHORDTYPE_MAJ11    */
+	{ 6, { 0, 3, 7, 10, 14, 17     } }, /* CHORDTYPE_MIN11    */
+	{ 6, { 0, 4, 7, 10, 14,     21 } }, /* CHORDTYPE_13       */
+	{ 7, { 0, 4, 7, 10, 14, 17, 21 } }, /* CHORDTYPE_13_11    */
+	{ 7, { 0, 4, 7, 11, 14, 17, 21 } }, /* CHORDTYPE_MAJ13_11 */
+	{ 7, { 0, 3, 7, 10, 14, 17, 21 } }, /* CHORDTYPE_MIN13_11 */
+	{ 3, { 0, 2, 7                 } }, /* CHORDTYPE_SUS2     */
+	{ 3, { 0, 5, 7                 } }, /* CHORDTYPE_SUS4     */
+	{ 2, { 0,    7                 } }, /* CHORDTYPE_5        */
+	{ 2, { 0, 7, 12                } }, /* CHORDTYPE_5_8      */
 };
+
 
 static int
 musicexpr_flatten(struct mdl_stream *oes, struct musicexpr_t *me)
@@ -571,8 +576,9 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 			    int level)
 {
 	struct midievent *midievent;
-	struct musicexpr_t *me_subexpr;
-	int ret;
+	struct musicexpr_t chord_note;
+	struct noteoffsets_t noteoffsets;
+	int ret, i;
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -612,14 +618,24 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 		if (ret != 0)
 			return ret;
 		break;
-
-
-		break;
 	case ME_TYPE_CHORD:
-		me_subexpr = me->chord.me;
-		assert(me_subexpr->me_type == ME_TYPE_ABSNOTE);
+		assert(me->chord.me->me_type == ME_TYPE_ABSNOTE);
+		assert(CHORDTYPE_NONE < me->chord.chordtype
+			 && me->chord.chordtype < CHORDTYPE_MAX);
 
-		/* XXX use chord_noteoffsets */
+		noteoffsets = get_noteoffsets_for_chord(me->chord.chordtype);
+		for (i = 0; i < noteoffsets.count; i++) {
+			chord_note = *(me->chord.me);
+			chord_note.absnote.note += noteoffsets.offsets[i];
+
+			ret = add_musicexpr_to_midievents(midi_es,
+							  &chord_note,
+							  offset,
+							  level);
+			if (ret != 0)
+				return ret;
+		}
+		break;
 	default:
 		assert(0);
 		break;
@@ -793,6 +809,9 @@ musicexpr_free(struct musicexpr_t *me)
 	case ME_TYPE_WITHOFFSET:
 		musicexpr_free(me->offset_expr.me);
 		break;
+	case ME_TYPE_CHORD:
+		musicexpr_free(me->chord.me);
+		break;
 	default:
 		assert(0);
 	}
@@ -817,3 +836,17 @@ offsetexprstream_new(void)
 {
 	return mdl_stream_new(OFFSETEXPRSTREAM);
 }
+
+static struct noteoffsets_t
+get_noteoffsets_for_chord(enum chordtype_t chordtype)
+{
+	struct noteoffsets_t noteoffsets;
+
+	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
+
+	noteoffsets.count   = chord_noteoffsets[chordtype].count;
+	noteoffsets.offsets = chord_noteoffsets[chordtype].offsets;
+
+	return noteoffsets;
+}
+

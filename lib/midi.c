@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.7 2015/12/03 20:46:25 je Exp $ */
+/* $Id: midi.c,v 1.8 2015/12/17 20:01:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -88,7 +88,9 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 	}
 
 	if (me.time_as_measures < minimum_time_as_measures) {
-		warnx("time is decreasing in eventstream");
+		warnx("time is decreasing in eventstream (%f < %f)",
+		      me.time_as_measures,
+		      minimum_time_as_measures);
 		return 0;
 	}
 
