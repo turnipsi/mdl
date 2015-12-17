@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.37 2015/12/17 20:43:43 je Exp $ */
+/* $Id: musicexpr.c,v 1.38 2015/12/17 20:44:22 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -571,7 +571,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 		       sizeof(struct midievent),
 		       compare_midievents);
 	if (ret == -1) {
-		warnx("could not sort midieventstream");
+		warn("could not sort midieventstream");
 		goto error;
 	}
 
