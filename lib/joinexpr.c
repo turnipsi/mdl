@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.6 2015/12/15 21:12:03 je Exp $ */
+/* $Id: joinexpr.c,v 1.7 2015/12/19 21:51:14 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -112,6 +112,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 				new_me = musicexpr_sequence(a, b, NULL);
 			}
 			break;
+		case ME_TYPE_CHORD:
+			unimplemented();
+			break;
 		case ME_TYPE_REST:
 			new_me = musicexpr_sequence(a, b, NULL);
 			break;
@@ -127,10 +130,34 @@ join_joinexpr(struct musicexpr_t *me, int level)
 			assert(0);
 		}
 		break;
+	case ME_TYPE_CHORD:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			unimplemented();
+			break;
+		case ME_TYPE_CHORD:
+			unimplemented();
+			break;
+		case ME_TYPE_REST:
+			unimplemented();
+			break;
+		case ME_TYPE_SEQUENCE:
+			unimplemented();
+			break;
+		case ME_TYPE_WITHOFFSET:
+			unimplemented();
+			break;
+		default:
+			assert(0);
+		}
+		break;
 	case ME_TYPE_REST:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
 			new_me = musicexpr_sequence(a, b, NULL);
+			break;
+		case ME_TYPE_CHORD:
+			unimplemented();
 			break;
 		case ME_TYPE_REST:
 			new_me = a;
@@ -157,6 +184,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 						musicexpr_sequence(b, NULL),
 						level);
 			break;
+		case ME_TYPE_CHORD:
+			unimplemented();
+			break;
 		case ME_TYPE_SEQUENCE:
 			new_me = join_sequences(a, b, level);
 			break;
@@ -170,6 +200,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 	case ME_TYPE_WITHOFFSET:
 		switch (b->me_type) {
 		case ME_TYPE_ABSNOTE:
+			unimplemented();
+			break;
+		case ME_TYPE_CHORD:
 			unimplemented();
 			break;
 		case ME_TYPE_REST:
