@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.38 2015/12/17 20:44:22 je Exp $ */
+/* $Id: musicexpr.c,v 1.39 2015/12/19 21:48:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,7 +42,7 @@ static struct mdl_stream *offsetexprstream_new(void);
 static void	musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 
 static void	relative_to_absolute(struct musicexpr_t *,
-				     struct absnote_t *,
+				     struct previous_relative_exprs_t *,
 				     int);
 static int	musicexpr_flatten(struct mdl_stream *, struct musicexpr_t *);
 static int	offset_expressions(struct mdl_stream *,
@@ -321,16 +321,19 @@ musicexpr_clone_sequence(struct sequence_t *cloned_seq,
 static void
 musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
 {
-	struct absnote_t prev_absnote;
+	struct previous_relative_exprs_t prev_relative_exprs;
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
 	/* set default values for the first absolute note */
-	prev_absnote.length = 0.25;
-	prev_absnote.notesym = NOTE_C;
-	prev_absnote.note = 60;
+	prev_relative_exprs.absnote.length = 0.25;
+	prev_relative_exprs.absnote.notesym = NOTE_C;
+	prev_relative_exprs.absnote.note = 60;
 
-	relative_to_absolute(me, &prev_absnote, level + 1);
+	/* set default value for the first chordtype */
+	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
+
+	relative_to_absolute(me, &prev_relative_exprs, level + 1);
 }
 
 static float
@@ -356,7 +359,8 @@ musicexpr_length(struct musicexpr_t *me)
 }
 
 static void
-relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
+relative_to_absolute(struct musicexpr_t *me,
+		     struct previous_relative_exprs_t *prev_exprs,
 		     int level)
 {
 	struct seqitem *s;
@@ -372,7 +376,7 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 	case ME_TYPE_ABSNOTE:
 		mdl_log(3, level, "rel->abs expression (absnote)\n");
 		/* pass as is, but this affects previous absnote */
-		*prev_absnote = me->absnote;
+		prev_exprs->absnote = me->absnote;
 		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(3, level, "rel->abs expression (relnote)\n");
@@ -382,14 +386,15 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
 		assert(relnote.length >= 0);
 
-		note = 12 * (prev_absnote->note / 12)
+		note = 12 * (prev_exprs->absnote.note / 12)
 			 + notevalues[relnote.notesym]
 			 + relnote.notemods;
 
-		c = compare_notesyms(prev_absnote->notesym, relnote.notesym);
-		if (c > 0 && prev_absnote->note > note) {
+		c = compare_notesyms(prev_exprs->absnote.notesym,
+				     relnote.notesym);
+		if (c > 0 && prev_exprs->absnote.note > note) {
 			note += 12;
-		} else if (c < 0 && prev_absnote->note < note) {
+		} else if (c < 0 && prev_exprs->absnote.note < note) {
 			note -= 12;
 		}
 
@@ -398,13 +403,13 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		absnote.notesym = relnote.notesym;
 		absnote.length  = relnote.length;
 		if (absnote.length == 0)
-			absnote.length = prev_absnote->length;
+			absnote.length = prev_exprs->absnote.length;
 		absnote.note = note;
 
 		me->me_type = ME_TYPE_ABSNOTE;
 		me->absnote = absnote;
 
-		*prev_absnote = absnote;
+		prev_exprs->absnote = absnote;
 
 		break;
 	case ME_TYPE_REST:
@@ -412,32 +417,33 @@ relative_to_absolute(struct musicexpr_t *me, struct absnote_t *prev_absnote,
 		musicexpr_log(me, 3, level + 1);
 
 		if (me->rest.length == 0) {
-			me->rest.length = prev_absnote->length;
+			me->rest.length = prev_exprs->absnote.length;
 		} else {
-			prev_absnote->length = me->rest.length;
+			prev_exprs->absnote.length = me->rest.length;
 		}
 		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(3, level, "rel->abs expression (joinexpr)\n");
-		relative_to_absolute(me->joinexpr.a, prev_absnote, level + 1);
-		relative_to_absolute(me->joinexpr.b, prev_absnote, level + 1);
+		relative_to_absolute(me->joinexpr.a, prev_exprs, level + 1);
+		relative_to_absolute(me->joinexpr.b, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
 		TAILQ_FOREACH(s, &me->sequence, tq)
-			relative_to_absolute(s->me, prev_absnote, level + 1);
+			relative_to_absolute(s->me, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(3, level, "rel->abs expression (withoffset)\n");
 		relative_to_absolute(me->offset_expr.me,
-				     prev_absnote,
+				     prev_exprs,
 				     level + 1);
 		break;
 	case ME_TYPE_CHORD:
-		/* XXX chord type should also be previous in case
-		 * XXX chord ":" is used? */
 		mdl_log(3, level, "rel->abs expression (chord)\n");
-		relative_to_absolute(me->chord.me, prev_absnote, level + 1);
+		relative_to_absolute(me->chord.me, prev_exprs, level + 1);
+		if (me->chord.chordtype == CHORDTYPE_NONE)
+			me->chord.chordtype = prev_exprs->chordtype;
+		prev_exprs->chordtype = me->chord.chordtype;
 		break;
 	default:
 		assert(0);

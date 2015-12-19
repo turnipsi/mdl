@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.31 2015/12/17 20:01:29 je Exp $ */
+/* $Id: musicexpr.h,v 1.32 2015/12/19 21:48:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -106,6 +106,11 @@ TAILQ_HEAD(sequence_t, seqitem);
 struct seqitem {
 	struct musicexpr_t     *me;
 	TAILQ_ENTRY(seqitem)	tq;
+};
+
+struct previous_relative_exprs_t {
+	struct absnote_t absnote;
+	enum chordtype_t chordtype;
 };
 
 struct joinexpr_t {
