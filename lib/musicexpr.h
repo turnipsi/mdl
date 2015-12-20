@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.32 2015/12/19 21:48:34 je Exp $ */
+/* $Id: musicexpr.h,v 1.33 2015/12/20 19:59:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,6 +31,7 @@ enum musicexpr_type {
 	ME_TYPE_WITHOFFSET,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_CHORD,
+	ME_TYPE_NOTEOFFSETEXPR
 };
 
 enum notesym_t {
@@ -92,9 +93,10 @@ struct chord_t {
 	struct musicexpr_t *me;
 };
 
-struct noteoffsets_t {
-	int *offsets;
-	size_t count;
+struct noteoffsetexpr_t {
+	struct musicexpr_t     *me;
+	int		       *offsets;
+	size_t			count;
 };
 
 struct musicexpr_with_offset_t {
@@ -126,7 +128,8 @@ struct musicexpr_t {
 		struct chord_t			chord;
 		struct rest_t			rest;
 		struct sequence_t		sequence;
-		struct musicexpr_with_offset_t	offset_expr;
+		struct musicexpr_with_offset_t	offsetexpr;
+		struct noteoffsetexpr_t		noteoffsetexpr;
 	};
 };
 

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.39 2015/12/19 21:48:34 je Exp $ */
+/* $Id: musicexpr.c,v 1.40 2015/12/20 19:59:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -65,12 +65,14 @@ static int
 add_musicexpr_to_midievents(struct mdl_stream *,
 			    const struct musicexpr_t *,
 			    float,
+			    int,
 			    int);
 
 static int	compare_notesyms(enum notesym_t, enum notesym_t);
 static int	compare_midievents(const void *, const void *);
 
-static struct noteoffsets_t	get_noteoffsets_for_chord(enum chordtype_t);
+static void	chord_to_noteoffsetexpr(struct musicexpr_t *,
+					struct chord_t);
 
 struct {
 	size_t count;
@@ -167,9 +169,9 @@ offset_expressions(struct mdl_stream *oes,
 		mdl_log(3, level, "finding offset expression for" \
 				    " offset expression\n");
 		musicexpr_log(me, 4, level + 1);
-		*offset += me->offset_expr.offset;
+		*offset += me->offsetexpr.offset;
 		ret = offset_expressions(oes,
-					 me->offset_expr.me,
+					 me->offsetexpr.me,
 					 offset,
 					 level + 1);
 		if (ret != 0)
@@ -267,9 +269,9 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(4, level, "cloning expression %p (withoffset)\n", me);
 		musicexpr_log(me, 4, level + 1);
-		cloned->offset_expr.me = musicexpr_clone(me->offset_expr.me,
+		cloned->offsetexpr.me = musicexpr_clone(me->offsetexpr.me,
 							 level + 1);
-		if (cloned->offset_expr.me == NULL) {
+		if (cloned->offsetexpr.me == NULL) {
 			free(cloned);
 			cloned = NULL;
 		}
@@ -434,7 +436,7 @@ relative_to_absolute(struct musicexpr_t *me,
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(3, level, "rel->abs expression (withoffset)\n");
-		relative_to_absolute(me->offset_expr.me,
+		relative_to_absolute(me->offsetexpr.me,
 				     prev_exprs,
 				     level + 1);
 		break;
@@ -543,9 +545,9 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
-	struct musicexpr_with_offset_t offset_expr;
+	struct musicexpr_with_offset_t offsetexpr;
 	struct musicexpr_t *me;
-	float offset;
+	float timeoffset;
 	int i, ret;
 
 	mdl_log(2, level, "offset expression stream to midi events\n");
@@ -554,19 +556,20 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 		goto error;
 
 	for (i = 0; i < offset_es->count; i++) {
-		offset_expr = offset_es->mexprs[i];
-		me = offset_expr.me;
-		offset = offset_expr.offset;
+		offsetexpr = offset_es->mexprs[i];
+		me = offsetexpr.me;
+		timeoffset = offsetexpr.offset;
 
 		mdl_log(4,
 			level + 1,
 			"handling expression with offset %.3f\n",
-			offset);
+			timeoffset);
 		musicexpr_log(me, 4, level + 2);
 
 		ret = add_musicexpr_to_midievents(midi_es,
 						  me,
-						  offset,
+						  timeoffset,
+						  0,
 						  level + 1);
 		if (ret != 0)
 			goto error;
@@ -603,68 +606,76 @@ error:
 static int
 add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 			    const struct musicexpr_t *me,
-			    float offset,
+			    float timeoffset,
+			    int noteoffset,
 			    int level)
 {
 	struct midievent *midievent;
-	struct musicexpr_t chord_note;
-	struct noteoffsets_t noteoffsets;
-	int ret, i;
+	struct musicexpr_t *basenoteexpr, noteoffsetexpr;
+	int ret, new_note, new_noteoffset, i;
+
+	ret = 0;
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+		new_note = me->absnote.note + noteoffset;
+
 		/* we accept and ignore notes that are out-of-range */
-		if (me->absnote.note < 0
-		      || MIDI_NOTE_MAX < me->absnote.note) {
+		if (new_note < 0 || MIDI_NOTE_MAX < new_note) {
 			mdl_log(2,
 				level,
 				"skipping note with value %d",
-				me->absnote.note);
-			return 0;
+				new_note);
+			ret = 0;
+			break;
 		}
-		/* length can never be non-positive, that is a bug */
+		/* length can never be non-positive here, that is a bug */
 		assert(me->absnote.length > 0);
 
 		midievent = &midi_es->midievents[ midi_es->count ];
 		bzero(midievent, sizeof(struct midievent));
 		midievent->eventtype = NOTEON;
 		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = me->absnote.note;
-		midievent->time_as_measures = offset;
+		midievent->note = new_note;
+		midievent->time_as_measures = timeoffset;
 		midievent->velocity = DEFAULT_VELOCITY;
 
 		ret = mdl_stream_increment(midi_es);
 		if (ret != 0)
-			return ret;
+			break;
 
 		midievent = &midi_es->midievents[ midi_es->count ];
 		bzero(midievent, sizeof(struct midievent));
 		midievent->eventtype = NOTEOFF;
 		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = me->absnote.note;
-		midievent->time_as_measures = offset + me->absnote.length;
+		midievent->note = new_note;
+		midievent->time_as_measures = timeoffset + me->absnote.length;
 		midievent->velocity = 0;
 
 		ret = mdl_stream_increment(midi_es);
-		if (ret != 0)
-			return ret;
 		break;
 	case ME_TYPE_CHORD:
-		assert(me->chord.me->me_type == ME_TYPE_ABSNOTE);
-		assert(CHORDTYPE_NONE < me->chord.chordtype
-			 && me->chord.chordtype < CHORDTYPE_MAX);
+		chord_to_noteoffsetexpr(&noteoffsetexpr, me->chord);
+		ret = add_musicexpr_to_midievents(midi_es,
+						  &noteoffsetexpr,
+						  timeoffset,
+						  noteoffset,
+					    	  level);
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		basenoteexpr = me->noteoffsetexpr.me;
+		assert(basenoteexpr->me_type == ME_TYPE_ABSNOTE);
 
-		noteoffsets = get_noteoffsets_for_chord(me->chord.chordtype);
-		for (i = 0; i < noteoffsets.count; i++) {
-			chord_note = *(me->chord.me);
-			chord_note.absnote.note += noteoffsets.offsets[i];
-
+		for (i = 0; i < me->noteoffsetexpr.count; i++) {
+			new_noteoffset
+			    = noteoffset + me->noteoffsetexpr.offsets[i];
 			ret = add_musicexpr_to_midievents(midi_es,
-							  &chord_note,
-							  offset,
+							  basenoteexpr,
+							  timeoffset,
+							  new_noteoffset,
 							  level);
 			if (ret != 0)
-				return ret;
+				break;
 		}
 		break;
 	default:
@@ -672,7 +683,7 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 		break;
 	}
 
-	return 0;
+	return ret;
 }
 
 struct musicexpr_t *
@@ -747,8 +758,8 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(loglevel,
 			indentlevel,
-			"offset_expr offset=%.3f\n", me->offset_expr.offset);
-		musicexpr_log(me->offset_expr.me, loglevel, indentlevel + 1);
+			"offsetexpr offset=%.3f\n", me->offsetexpr.offset);
+		musicexpr_log(me->offsetexpr.me, loglevel, indentlevel + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(loglevel, indentlevel, "joinexpr\n");
@@ -838,10 +849,13 @@ musicexpr_free(struct musicexpr_t *me)
 		musicexpr_free_sequence(me->sequence);
 		break;
 	case ME_TYPE_WITHOFFSET:
-		musicexpr_free(me->offset_expr.me);
+		musicexpr_free(me->offsetexpr.me);
 		break;
 	case ME_TYPE_CHORD:
 		musicexpr_free(me->chord.me);
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		musicexpr_free(me->noteoffsetexpr.me);
 		break;
 	default:
 		assert(0);
@@ -868,16 +882,18 @@ offsetexprstream_new(void)
 	return mdl_stream_new(OFFSETEXPRSTREAM);
 }
 
-static struct noteoffsets_t
-get_noteoffsets_for_chord(enum chordtype_t chordtype)
+static void
+chord_to_noteoffsetexpr(struct musicexpr_t *me, struct chord_t chord)
 {
-	struct noteoffsets_t noteoffsets;
+	enum chordtype_t chordtype;
 
+	chordtype = chord.chordtype;
+
+	assert(chord.me->me_type == ME_TYPE_ABSNOTE);
 	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
 
-	noteoffsets.count   = chord_noteoffsets[chordtype].count;
-	noteoffsets.offsets = chord_noteoffsets[chordtype].offsets;
-
-	return noteoffsets;
+	me->me_type                = ME_TYPE_NOTEOFFSETEXPR;
+	me->noteoffsetexpr.me      = chord.me;
+	me->noteoffsetexpr.count   = chord_noteoffsets[chordtype].count;
+	me->noteoffsetexpr.offsets = chord_noteoffsets[chordtype].offsets;
 }
-
