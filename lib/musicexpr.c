@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.40 2015/12/20 19:59:06 je Exp $ */
+/* $Id: musicexpr.c,v 1.41 2015/12/21 20:32:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -131,7 +131,7 @@ offset_expressions(struct mdl_stream *oes,
 		   float *offset,
 		   int level)
 {
-	struct seqitem *s;
+	struct tqitem_me *p;
 	float old_offset;
 	int ret;
 
@@ -156,9 +156,9 @@ offset_expressions(struct mdl_stream *oes,
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "finding offset expression for sequence\n");
 		musicexpr_log(me, 4, level + 1);
-		TAILQ_FOREACH(s, &me->sequence, tq) {
+		TAILQ_FOREACH(p, &me->sequence, tq) {
 			ret = offset_expressions(oes,
-						 s->me,
+						 p->me,
 						 offset,
 						 level + 1);
 			if (ret != 0)
@@ -297,12 +297,12 @@ musicexpr_clone_sequence(struct sequence_t *cloned_seq,
 			 struct sequence_t seq,
 			 int level)
 {
-	struct seqitem *p, *q;
+	struct tqitem_me *p, *q;
 
 	TAILQ_INIT(cloned_seq);
 
 	TAILQ_FOREACH(p, &seq, tq) {
-		q = malloc(sizeof(struct seqitem));
+		q = malloc(sizeof(struct tqitem_me));
 		if (q == NULL) {
 			warn("malloc failure when cloning sequence");
 			musicexpr_free_sequence(*cloned_seq);
@@ -365,7 +365,7 @@ relative_to_absolute(struct musicexpr_t *me,
 		     struct previous_relative_exprs_t *prev_exprs,
 		     int level)
 {
-	struct seqitem *s;
+	struct tqitem_me *p;
 	struct absnote_t absnote;
 	struct relnote_t relnote;
 	int notevalues[] = {
@@ -431,8 +431,8 @@ relative_to_absolute(struct musicexpr_t *me,
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
-		TAILQ_FOREACH(s, &me->sequence, tq)
-			relative_to_absolute(s->me, prev_exprs, level + 1);
+		TAILQ_FOREACH(p, &me->sequence, tq)
+			relative_to_absolute(p->me, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(3, level, "rel->abs expression (withoffset)\n");
@@ -691,7 +691,7 @@ musicexpr_sequence(struct musicexpr_t *next_me, ...)
 {
 	va_list va;
 	struct musicexpr_t *me;
-	struct seqitem *s;
+	struct tqitem_me *p;
 
 	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
 		warnx("malloc in musicexpr_sequence");
@@ -704,15 +704,15 @@ musicexpr_sequence(struct musicexpr_t *next_me, ...)
 	va_start(va, next_me);
 
 	while (next_me != NULL) {
-		if ((s = malloc(sizeof(struct seqitem))) == NULL) {
+		if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
 			warnx("malloc in musicexpr_sequence");
 			musicexpr_free(me);
 			me = NULL;
 			goto finish;
 		}
 
-		s->me = next_me;
-		TAILQ_INSERT_TAIL(&me->sequence, s, tq);
+		p->me = next_me;
+		TAILQ_INSERT_TAIL(&me->sequence, p, tq);
 
 		next_me = va_arg(va, struct musicexpr_t *);
 	}
@@ -827,7 +827,7 @@ musicexpr_log_sequence(struct sequence_t seq,
 		       int loglevel,
 		       int indentlevel)
 {
-	struct seqitem *p;
+	struct tqitem_me *p;
 
 	TAILQ_FOREACH(p, &seq, tq)
 		musicexpr_log(p->me, loglevel, indentlevel + 1);
@@ -867,7 +867,7 @@ musicexpr_free(struct musicexpr_t *me)
 void
 musicexpr_free_sequence(struct sequence_t seq)
 {
-	struct seqitem *p, *q;
+	struct tqitem_me *p, *q;
 
 	TAILQ_FOREACH_SAFE(p, &seq, tq, q) {
 		TAILQ_REMOVE(&seq, p, tq);

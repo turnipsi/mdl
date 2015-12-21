@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.8 2015/12/20 19:59:06 je Exp $ */
+/* $Id: joinexpr.c,v 1.9 2015/12/21 20:32:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,7 +33,7 @@ join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
 int
 joinexpr_musicexpr(struct musicexpr_t *me, int level)
 {
-	struct seqitem *s;
+	struct tqitem_me *p;
 	int ret;
 
 	ret = 0;
@@ -54,8 +54,8 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		ret = join_joinexpr(me, level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
-		TAILQ_FOREACH(s, &me->sequence, tq) {
-			ret = joinexpr_musicexpr(s->me, level + 1);
+		TAILQ_FOREACH(p, &me->sequence, tq) {
+			ret = joinexpr_musicexpr(p->me, level + 1);
 			if (ret != 0)
 				break;
 		}
@@ -235,7 +235,7 @@ join_joinexpr(struct musicexpr_t *me, int level)
 static struct musicexpr_t *
 join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
-	struct seqitem *last_of_a, *first_of_b, *s;
+	struct tqitem_me *last_of_a, *first_of_b, *p;
 	struct musicexpr_t *joined_expr;
 
 	if (a == NULL || b == NULL) {
@@ -271,18 +271,18 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	joined_expr->joinexpr.a = last_of_a->me;
 	joined_expr->joinexpr.b = first_of_b->me;
 
-	s = malloc(sizeof(struct seqitem));
-	if (s == NULL) {
+	p = malloc(sizeof(struct tqitem_me));
+	if (p == NULL) {
 		warn("malloc in join_sequences");
 		free(joined_expr);
 		return NULL;
 	}
-	s->me = joined_expr;
+	p->me = joined_expr;
 
 	join_joinexpr(joined_expr, level + 1);
 
 	TAILQ_REMOVE(&b->sequence, first_of_b, tq);
-	TAILQ_REPLACE(&a->sequence, last_of_a, s, tq);
+	TAILQ_REPLACE(&a->sequence, last_of_a, p, tq);
 	TAILQ_CONCAT(&a->sequence, &b->sequence, tq);
 
 	musicexpr_free(b);
