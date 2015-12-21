@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.9 2015/12/21 20:32:03 je Exp $ */
+/* $Id: joinexpr.c,v 1.10 2015/12/21 20:53:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -100,6 +100,11 @@ join_joinexpr(struct musicexpr_t *me, int level)
 	assert(a->me_type != ME_TYPE_JOINEXPR);
 	assert(b->me_type != ME_TYPE_JOINEXPR);
 
+	if (a->me_type == ME_TYPE_CHORD)
+		assert(a->chord.me->me_type == ME_TYPE_ABSNOTE);
+	if (b->me_type == ME_TYPE_CHORD)
+		assert(b->chord.me->me_type == ME_TYPE_ABSNOTE);
+
 	switch (a->me_type) {
 	case ME_TYPE_ABSNOTE:
 		switch (b->me_type) {
@@ -136,7 +141,20 @@ join_joinexpr(struct musicexpr_t *me, int level)
 			unimplemented();
 			break;
 		case ME_TYPE_CHORD:
-			unimplemented();
+			if (a->chord.chordtype == b->chord.chordtype
+			      && a->chord.me->absnote.note
+				   == b->chord.me->absnote.note) {
+				new_me = a;
+				new_me->chord.me->absnote.length
+				    += b->chord.me->absnote.length;
+				musicexpr_free(b);
+			} else {
+				/* XXX both a and b should be turned to
+				 * XXX noteoffsetexprs (which in turn should
+				 * XXX be turned to simultences and then
+				 * XXX joined */
+				unimplemented();
+			}
 			break;
 		case ME_TYPE_REST:
 			unimplemented();
