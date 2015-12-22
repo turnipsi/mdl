@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.41 2015/12/21 20:32:03 je Exp $ */
+/* $Id: musicexpr.c,v 1.42 2015/12/22 20:23:52 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -70,9 +70,6 @@ add_musicexpr_to_midievents(struct mdl_stream *,
 
 static int	compare_notesyms(enum notesym_t, enum notesym_t);
 static int	compare_midievents(const void *, const void *);
-
-static void	chord_to_noteoffsetexpr(struct musicexpr_t *,
-					struct chord_t);
 
 struct {
 	size_t count;
@@ -611,7 +608,7 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 			    int level)
 {
 	struct midievent *midievent;
-	struct musicexpr_t *basenoteexpr, noteoffsetexpr;
+	struct musicexpr_t *basenoteexpr, *noteoffsetexpr;
 	int ret, new_note, new_noteoffset, i;
 
 	ret = 0;
@@ -655,12 +652,13 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 		ret = mdl_stream_increment(midi_es);
 		break;
 	case ME_TYPE_CHORD:
-		chord_to_noteoffsetexpr(&noteoffsetexpr, me->chord);
+		noteoffsetexpr = chord_to_noteoffsetexpr(me->chord, level);
 		ret = add_musicexpr_to_midievents(midi_es,
-						  &noteoffsetexpr,
+						  noteoffsetexpr,
 						  timeoffset,
 						  noteoffset,
 					    	  level);
+		musicexpr_free(noteoffsetexpr);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
 		basenoteexpr = me->noteoffsetexpr.me;
@@ -882,10 +880,16 @@ offsetexprstream_new(void)
 	return mdl_stream_new(OFFSETEXPRSTREAM);
 }
 
-static void
-chord_to_noteoffsetexpr(struct musicexpr_t *me, struct chord_t chord)
+struct musicexpr_t *
+chord_to_noteoffsetexpr(struct chord_t chord, int level)
 {
+	struct musicexpr_t *me;
 	enum chordtype_t chordtype;
+
+	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
+		warn("malloc in chord_to_noteoffsetexpr");
+		return NULL;
+	}
 
 	chordtype = chord.chordtype;
 
@@ -893,7 +897,9 @@ chord_to_noteoffsetexpr(struct musicexpr_t *me, struct chord_t chord)
 	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
 
 	me->me_type                = ME_TYPE_NOTEOFFSETEXPR;
-	me->noteoffsetexpr.me      = chord.me;
+	me->noteoffsetexpr.me      = musicexpr_clone(chord.me, level);
 	me->noteoffsetexpr.count   = chord_noteoffsets[chordtype].count;
 	me->noteoffsetexpr.offsets = chord_noteoffsets[chordtype].offsets;
+
+	return me;
 }

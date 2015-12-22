@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.10 2015/12/21 20:53:36 je Exp $ */
+/* $Id: joinexpr.c,v 1.11 2015/12/22 20:23:52 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,10 @@
 #include "joinexpr.h"
 #include "musicexpr.h"
 
-static int	join_joinexpr(struct musicexpr_t *, int);
+int		joinexpr_musicexpr(struct musicexpr_t *, int);
+static struct	musicexpr_t *join_two_musicexprs(struct musicexpr_t *,
+						 struct musicexpr_t *,
+						 int);
 
 static struct musicexpr_t *
 join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
@@ -33,6 +36,7 @@ join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
 int
 joinexpr_musicexpr(struct musicexpr_t *me, int level)
 {
+	struct musicexpr_t *joined_me;
 	struct tqitem_me *p;
 	int ret;
 
@@ -51,7 +55,14 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		if (ret != 0)
 			break;
 
-		ret = join_joinexpr(me, level + 1);
+		joined_me = join_two_musicexprs(me->joinexpr.a,
+						me->joinexpr.b,
+						level + 1);
+		if (joined_me == NULL) {
+			ret = 1;
+			break;
+		}
+		*me = *joined_me;
 		break;
 	case ME_TYPE_SEQUENCE:
 		TAILQ_FOREACH(p, &me->sequence, tq) {
@@ -76,17 +87,14 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 	return ret;
 }
 
-static int
-join_joinexpr(struct musicexpr_t *me, int level)
+/* frees or reuses a and b, those should be used after passing through
+ * this function */
+static struct musicexpr_t *
+join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
-	struct musicexpr_t *a, *b, *new_me;
-
-	assert(me->me_type == ME_TYPE_JOINEXPR);
+	struct musicexpr_t *new_me;
 
 	new_me = NULL;
-
-	a = me->joinexpr.a;
-	b = me->joinexpr.b;
 
 	/* Relative notes can not be joined (think of case "cis ~ des g"...
 	 * if "des" disappears then (absolute note) "g" gets resolved
@@ -131,6 +139,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 		case ME_TYPE_WITHOFFSET:
 			unimplemented();
 			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
+			unimplemented();
+			break;
 		default:
 			assert(0);
 		}
@@ -148,13 +159,12 @@ join_joinexpr(struct musicexpr_t *me, int level)
 				new_me->chord.me->absnote.length
 				    += b->chord.me->absnote.length;
 				musicexpr_free(b);
-			} else {
-				/* XXX both a and b should be turned to
-				 * XXX noteoffsetexprs (which in turn should
-				 * XXX be turned to simultences and then
-				 * XXX joined */
-				unimplemented();
+				break;
 			}
+			new_me = join_two_musicexprs(
+				   chord_to_noteoffsetexpr(a->chord, level),
+				   chord_to_noteoffsetexpr(b->chord, level),
+				   level);
 			break;
 		case ME_TYPE_REST:
 			unimplemented();
@@ -163,6 +173,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 			unimplemented();
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
+			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
 			unimplemented();
 			break;
 		default:
@@ -190,6 +203,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 		case ME_TYPE_WITHOFFSET:
 			unimplemented();
 			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
+			unimplemented();
+			break;
 		default:
 			assert(0);
 		}
@@ -209,6 +225,9 @@ join_joinexpr(struct musicexpr_t *me, int level)
 			new_me = join_sequences(a, b, level);
 			break;
 		case ME_TYPE_WITHOFFSET:
+			unimplemented();
+			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
 			unimplemented();
 			break;
 		default:
@@ -232,6 +251,33 @@ join_joinexpr(struct musicexpr_t *me, int level)
 		case ME_TYPE_WITHOFFSET:
 			unimplemented();
 			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
+			unimplemented();
+			break;
+		default:
+			assert(0);
+		}
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		switch (b->me_type) {
+		case ME_TYPE_ABSNOTE:
+			unimplemented();
+			break;
+		case ME_TYPE_CHORD:
+			unimplemented();
+			break;
+		case ME_TYPE_REST:
+			unimplemented();
+			break;
+		case ME_TYPE_SEQUENCE:
+			unimplemented();
+			break;
+		case ME_TYPE_WITHOFFSET:
+			unimplemented();
+			break;
+		case ME_TYPE_NOTEOFFSETEXPR:
+			unimplemented();
+			break;
 		default:
 			assert(0);
 		}
@@ -240,14 +286,7 @@ join_joinexpr(struct musicexpr_t *me, int level)
 		assert(0);
 	}
 
-	if (new_me == NULL)
-		return 1;
-
-	*me = *new_me;
-
-	free(new_me);
-
-	return 0;
+	return new_me;
 }
 
 static struct musicexpr_t *
@@ -297,7 +336,7 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	}
 	p->me = joined_expr;
 
-	join_joinexpr(joined_expr, level + 1);
+	joinexpr_musicexpr(joined_expr, level + 1);
 
 	TAILQ_REMOVE(&b->sequence, first_of_b, tq);
 	TAILQ_REPLACE(&a->sequence, last_of_a, p, tq);
