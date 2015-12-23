@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.30 2015/12/21 20:32:03 je Exp $
+/* $Id: parse.y,v 1.31 2015/12/23 21:26:37 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,7 +34,7 @@ static void    *malloc_musicexpr(void);
 %}
 
 %union {
-	struct sequence_t	sequence;
+	struct melist_t		melist;
 	struct joinexpr_t	joinexpr;
 	struct musicexpr_t     *musicexpr;
 	struct relnote_t	relnote;
@@ -96,7 +96,7 @@ static void    *malloc_musicexpr(void);
 %left			WHITESPACE
 
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
-%type	<sequence>	sequence sp_sequence
+%type	<melist>	sequence sp_sequence
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<chord>		chord
@@ -115,14 +115,14 @@ musicexpr_sequence:
 	sequence {
 		$$ = malloc(sizeof(struct musicexpr_t));
 		if ($$ == NULL) {
-			musicexpr_free_sequence($1);
+			musicexpr_free_melist($1);
 			warn("%s", "malloc error");
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_SEQUENCE;
-		$$->sequence = $1;
+		$$->melist = $1;
 	}
 	;
 
@@ -150,7 +150,7 @@ sp_sequence:
 		s = malloc(sizeof(struct tqitem_me));
 		if (s == NULL) {
 			musicexpr_free($1);
-			musicexpr_free_sequence($3);
+			musicexpr_free_melist($3);
 			warn("%s", "malloc error");
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */

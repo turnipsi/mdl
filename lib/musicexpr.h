@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.35 2015/12/22 20:23:52 je Exp $ */
+/* $Id: musicexpr.h,v 1.36 2015/12/23 21:26:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -105,8 +105,7 @@ struct musicexpr_with_offset_t {
 	struct musicexpr_t     *me;
 };
 
-TAILQ_HEAD(sequence_t, tqitem_me);
-TAILQ_HEAD(simultence_t, tqitem_me);
+TAILQ_HEAD(melist_t, tqitem_me);
 struct tqitem_me {
 	struct musicexpr_t     *me;
 	TAILQ_ENTRY(tqitem_me)	tq;
@@ -129,18 +128,18 @@ struct musicexpr_t {
 		struct relnote_t		relnote;
 		struct chord_t			chord;
 		struct rest_t			rest;
-		struct sequence_t		sequence;
+		struct melist_t			melist;
 		struct musicexpr_with_offset_t	offsetexpr;
 		struct noteoffsetexpr_t		noteoffsetexpr;
-		struct simultence_t		simultence;
 	};
 };
 
 void	musicexpr_free(struct musicexpr_t *);
-void	musicexpr_free_sequence(struct sequence_t);
+void	musicexpr_free_melist(struct melist_t);
 void	musicexpr_log(const struct musicexpr_t *, int, int);
 
-struct musicexpr_t	*musicexpr_sequence(struct musicexpr_t *, ...);
+struct musicexpr_t      *musicexpr_sequence(struct musicexpr_t *, ...);
+struct musicexpr_t	*musicexpr_simultence(struct musicexpr_t *, ...);
 struct musicexpr_t	*chord_to_noteoffsetexpr(struct chord_t, int);
 
 struct mdl_stream	*musicexpr_to_midievents(struct musicexpr_t *, int);

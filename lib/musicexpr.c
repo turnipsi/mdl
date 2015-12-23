@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.42 2015/12/22 20:23:52 je Exp $ */
+/* $Id: musicexpr.c,v 1.43 2015/12/23 21:26:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,9 +33,9 @@
 #define DEFAULT_VELOCITY	80
 
 static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
-static int			 musicexpr_clone_sequence(struct sequence_t *,
-			 				  struct sequence_t,
-							  int);
+static int			 musicexpr_clone_melist(struct melist_t *,
+			 				struct melist_t,
+							int);
 
 static struct mdl_stream *offsetexprstream_new(void);
 
@@ -56,7 +56,10 @@ static int	add_new_offset_expression(struct mdl_stream *,
 
 static float	musicexpr_length(struct musicexpr_t *);
 static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
-static void	musicexpr_log_sequence(struct sequence_t, int, int);
+static void	musicexpr_log_melist(struct melist_t, int, int);
+
+static struct musicexpr_t *
+musicexpr_tq(enum musicexpr_type, struct musicexpr_t *, ...);
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *, int);
@@ -153,7 +156,7 @@ offset_expressions(struct mdl_stream *oes,
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "finding offset expression for sequence\n");
 		musicexpr_log(me, 4, level + 1);
-		TAILQ_FOREACH(p, &me->sequence, tq) {
+		TAILQ_FOREACH(p, &me->melist, tq) {
 			ret = offset_expressions(oes,
 						 p->me,
 						 offset,
@@ -255,9 +258,9 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(4, level, "cloning expression %p (sequence)\n", me);
-		ret = musicexpr_clone_sequence(&cloned->sequence,
-					       me->sequence,
-					       level + 1);
+		ret = musicexpr_clone_melist(&cloned->melist,
+					     me->melist,
+					     level + 1);
 		if (ret != 0) {
 			free(cloned);
 			cloned = NULL;
@@ -290,28 +293,29 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 }
 
 static int
-musicexpr_clone_sequence(struct sequence_t *cloned_seq,
-			 struct sequence_t seq,
-			 int level)
+musicexpr_clone_melist(struct melist_t *cloned_melist,
+		       struct melist_t melist,
+		       int level)
 {
 	struct tqitem_me *p, *q;
 
-	TAILQ_INIT(cloned_seq);
+	TAILQ_INIT(cloned_melist);
 
-	TAILQ_FOREACH(p, &seq, tq) {
+	TAILQ_FOREACH(p, &melist, tq) {
 		q = malloc(sizeof(struct tqitem_me));
 		if (q == NULL) {
-			warn("malloc failure when cloning sequence");
-			musicexpr_free_sequence(*cloned_seq);
+			warn("malloc failure when cloning" \
+				" music expression list");
+			musicexpr_free_melist(*cloned_melist);
 			return 1;
 		}
 		q->me = musicexpr_clone(p->me, level);
 		if (q->me == NULL) {
 			free(q);
-			musicexpr_free_sequence(*cloned_seq);
+			musicexpr_free_melist(*cloned_melist);
 			return 1;
 		}
-		TAILQ_INSERT_TAIL(cloned_seq, q, tq);
+		TAILQ_INSERT_TAIL(cloned_melist, q, tq);
 	}
 
 	return 0;
@@ -428,7 +432,7 @@ relative_to_absolute(struct musicexpr_t *me,
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
-		TAILQ_FOREACH(p, &me->sequence, tq)
+		TAILQ_FOREACH(p, &me->melist, tq)
 			relative_to_absolute(p->me, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_WITHOFFSET:
@@ -684,38 +688,68 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 	return ret;
 }
 
-struct musicexpr_t *
-musicexpr_sequence(struct musicexpr_t *next_me, ...)
+static struct musicexpr_t *
+musicexpr_tq(enum musicexpr_type me_type,
+	     struct musicexpr_t *next_me, ...)
 {
 	va_list va;
 	struct musicexpr_t *me;
 	struct tqitem_me *p;
 
 	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
-		warnx("malloc in musicexpr_sequence");
+		warnx("malloc in musicexpr_tq");
 		return NULL;
 	}
 
-	me->me_type = ME_TYPE_SEQUENCE;
-	TAILQ_INIT(&me->sequence);
+	assert(me_type == ME_TYPE_SEQUENCE || me_type == ME_TYPE_SIMULTENCE);
+
+	me->me_type = me_type;
+
+	TAILQ_INIT(&me->melist);
 
 	va_start(va, next_me);
 
 	while (next_me != NULL) {
 		if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
-			warnx("malloc in musicexpr_sequence");
+			warnx("malloc in musicexpr_tq");
 			musicexpr_free(me);
 			me = NULL;
 			goto finish;
 		}
 
 		p->me = next_me;
-		TAILQ_INSERT_TAIL(&me->sequence, p, tq);
+		TAILQ_INSERT_TAIL(&me->melist, p, tq);
 
 		next_me = va_arg(va, struct musicexpr_t *);
 	}
 
 finish:
+	va_end(va);
+
+	return me;
+}
+
+struct musicexpr_t *
+musicexpr_sequence(struct musicexpr_t *next_me, ...)
+{
+	va_list va;
+	struct musicexpr_t *me;
+
+	va_start(va, next_me);
+	me = musicexpr_tq(ME_TYPE_SEQUENCE, next_me, va);
+	va_end(va);
+
+	return me;
+}
+
+struct musicexpr_t *
+musicexpr_simultence(struct musicexpr_t *next_me, ...)
+{
+	va_list va;
+	struct musicexpr_t *me;
+
+	va_start(va, next_me);
+	me = musicexpr_tq(ME_TYPE_SIMULTENCE, next_me, va);
 	va_end(va);
 
 	return me;
@@ -751,7 +785,7 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 		break;
 	case ME_TYPE_SEQUENCE:
 		mdl_log(loglevel, indentlevel, "sequence\n");
-		musicexpr_log_sequence(me->sequence, loglevel, indentlevel);
+		musicexpr_log_melist(me->melist, loglevel, indentlevel);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(loglevel,
@@ -821,13 +855,11 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 }
 
 static void
-musicexpr_log_sequence(struct sequence_t seq,
-		       int loglevel,
-		       int indentlevel)
+musicexpr_log_melist(struct melist_t melist, int loglevel, int indentlevel)
 {
 	struct tqitem_me *p;
 
-	TAILQ_FOREACH(p, &seq, tq)
+	TAILQ_FOREACH(p, &melist, tq)
 		musicexpr_log(p->me, loglevel, indentlevel + 1);
 }
 
@@ -844,7 +876,7 @@ musicexpr_free(struct musicexpr_t *me)
 		musicexpr_free(me->joinexpr.b);
 		break;
 	case ME_TYPE_SEQUENCE:
-		musicexpr_free_sequence(me->sequence);
+		musicexpr_free_melist(me->melist);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		musicexpr_free(me->offsetexpr.me);
@@ -863,12 +895,12 @@ musicexpr_free(struct musicexpr_t *me)
 }
 
 void
-musicexpr_free_sequence(struct sequence_t seq)
+musicexpr_free_melist(struct melist_t melist)
 {
 	struct tqitem_me *p, *q;
 
-	TAILQ_FOREACH_SAFE(p, &seq, tq, q) {
-		TAILQ_REMOVE(&seq, p, tq);
+	TAILQ_FOREACH_SAFE(p, &melist, tq, q) {
+		TAILQ_REMOVE(&melist, p, tq);
 		musicexpr_free(p->me);
 		free(p);
 	}
