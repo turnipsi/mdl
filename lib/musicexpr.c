@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.44 2015/12/25 21:33:06 je Exp $ */
+/* $Id: musicexpr.c,v 1.45 2015/12/26 20:33:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,7 +61,7 @@ static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
 static void	musicexpr_log_melist(struct melist_t, int, int);
 
 static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type, struct musicexpr_t *, ...);
+musicexpr_tq(enum musicexpr_type me_type, va_list va);
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *, int);
@@ -683,11 +683,9 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 }
 
 static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type me_type,
-	     struct musicexpr_t *next_me, ...)
+musicexpr_tq(enum musicexpr_type me_type, va_list va)
 {
-	va_list va;
-	struct musicexpr_t *me;
+	struct musicexpr_t *me, *next_me;
 	struct tqitem_me *p;
 
 	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
@@ -701,9 +699,10 @@ musicexpr_tq(enum musicexpr_type me_type,
 
 	TAILQ_INIT(&me->melist);
 
-	va_start(va, next_me);
-
+	next_me = va_arg(va, struct musicexpr_t *);
 	while (next_me != NULL) {
+		mdl_log(4, 4, "adding expression %p:\n", next_me);
+		musicexpr_log(next_me, 4, 5);
 		if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
 			warnx("malloc in musicexpr_tq");
 			musicexpr_free(me);
@@ -730,7 +729,7 @@ musicexpr_sequence(struct musicexpr_t *next_me, ...)
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SEQUENCE, next_me, va);
+	me = musicexpr_tq(ME_TYPE_SEQUENCE, va);
 	va_end(va);
 
 	return me;
@@ -743,7 +742,7 @@ musicexpr_simultence(struct musicexpr_t *next_me, ...)
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SIMULTENCE, next_me, va);
+	me = musicexpr_tq(ME_TYPE_SIMULTENCE, va);
 	va_end(va);
 
 	return me;
@@ -874,6 +873,18 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 			me->absnote.note,
 			me->absnote.length);
 		break;
+	case ME_TYPE_CHORD:
+		mdl_log(loglevel, indentlevel, "chord\n");
+		musicexpr_log_chordtype(me->chord.chordtype,
+					loglevel,
+					indentlevel + 1);
+		musicexpr_log(me->chord.me, loglevel, indentlevel + 1);
+		break;
+	case ME_TYPE_JOINEXPR:
+		mdl_log(loglevel, indentlevel, "joinexpr\n");
+		musicexpr_log(me->joinexpr.a, loglevel, indentlevel + 1);
+		musicexpr_log(me->joinexpr.b, loglevel, indentlevel + 1);
+		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(loglevel,
 			indentlevel,
@@ -894,23 +905,15 @@ musicexpr_log(const struct musicexpr_t *me, int loglevel, int indentlevel)
 		mdl_log(loglevel, indentlevel, "sequence\n");
 		musicexpr_log_melist(me->melist, loglevel, indentlevel);
 		break;
+	case ME_TYPE_SIMULTENCE:
+		mdl_log(loglevel, indentlevel, "simultence\n");
+		musicexpr_log_melist(me->melist, loglevel, indentlevel);
+		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(loglevel,
 			indentlevel,
 			"offsetexpr offset=%.3f\n", me->offsetexpr.offset);
 		musicexpr_log(me->offsetexpr.me, loglevel, indentlevel + 1);
-		break;
-	case ME_TYPE_JOINEXPR:
-		mdl_log(loglevel, indentlevel, "joinexpr\n");
-		musicexpr_log(me->joinexpr.a, loglevel, indentlevel + 1);
-		musicexpr_log(me->joinexpr.b, loglevel, indentlevel + 1);
-		break;
-	case ME_TYPE_CHORD:
-		mdl_log(loglevel, indentlevel, "chord\n");
-		musicexpr_log_chordtype(me->chord.chordtype,
-					loglevel,
-					indentlevel + 1);
-		musicexpr_log(me->chord.me, loglevel, indentlevel + 1);
 		break;
 	default:
 		assert(0);
