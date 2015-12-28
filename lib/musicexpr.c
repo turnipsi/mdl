@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.46 2015/12/28 21:22:17 je Exp $ */
+/* $Id: musicexpr.c,v 1.47 2015/12/28 21:36:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -976,9 +976,6 @@ musicexpr_log_melist(struct melist_t melist, int loglevel, int indentlevel)
 void
 musicexpr_free(struct musicexpr_t *me)
 {
-	if (me == NULL)
-		return;
-
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_RELNOTE:
