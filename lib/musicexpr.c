@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.47 2015/12/28 21:36:31 je Exp $ */
+/* $Id: musicexpr.c,v 1.48 2015/12/29 21:37:06 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -705,7 +705,7 @@ musicexpr_tq(enum musicexpr_type me_type, va_list va)
 		musicexpr_log(next_me, 4, 5);
 		if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
 			warnx("malloc in musicexpr_tq");
-			musicexpr_free(me);
+			free_melist(me);
 			me = NULL;
 			goto finish;
 		}
@@ -1045,3 +1045,18 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 
 	return me;
 }
+
+void
+free_melist(struct musicexpr_t *me)
+{
+	struct tqitem_me *p, *q;
+
+	assert(me->me_type == ME_TYPE_SEQUENCE
+		 || me->me_type == ME_TYPE_SIMULTENCE);
+
+	TAILQ_FOREACH_SAFE(p, &me->melist, tq, q) {
+		TAILQ_REMOVE(&me->melist, p, tq);
+		free(p);
+	}
+}
+
