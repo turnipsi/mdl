@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.48 2015/12/29 21:37:06 je Exp $ */
+/* $Id: musicexpr.c,v 1.49 2015/12/29 21:51:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,7 +61,7 @@ static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
 static void	musicexpr_log_melist(struct melist_t, int, int);
 
 static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type me_type, va_list va);
+musicexpr_tq(enum musicexpr_type me_type, struct musicexpr_t *, va_list va);
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *, int);
@@ -683,9 +683,11 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 }
 
 static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type me_type, va_list va)
+musicexpr_tq(enum musicexpr_type me_type,
+	     struct musicexpr_t *next_me,
+	     va_list va)
 {
-	struct musicexpr_t *me, *next_me;
+	struct musicexpr_t *me;
 	struct tqitem_me *p;
 
 	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
@@ -699,7 +701,6 @@ musicexpr_tq(enum musicexpr_type me_type, va_list va)
 
 	TAILQ_INIT(&me->melist);
 
-	next_me = va_arg(va, struct musicexpr_t *);
 	while (next_me != NULL) {
 		mdl_log(4, 4, "adding expression %p:\n", next_me);
 		musicexpr_log(next_me, 4, 5);
@@ -729,7 +730,7 @@ musicexpr_sequence(struct musicexpr_t *next_me, ...)
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SEQUENCE, va);
+	me = musicexpr_tq(ME_TYPE_SEQUENCE, next_me, va);
 	va_end(va);
 
 	return me;
@@ -742,7 +743,7 @@ musicexpr_simultence(struct musicexpr_t *next_me, ...)
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SIMULTENCE, va);
+	me = musicexpr_tq(ME_TYPE_SIMULTENCE, next_me, va);
 	va_end(va);
 
 	return me;
