@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.16 2015/12/29 21:37:06 je Exp $ */
+/* $Id: joinexpr.c,v 1.17 2015/12/30 08:35:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,6 +29,12 @@ int		joinexpr_musicexpr(struct musicexpr_t *, int);
 static struct	musicexpr_t *join_two_musicexprs(struct musicexpr_t *,
 						 struct musicexpr_t *,
 						 int);
+
+static int compare_noteoffsets(struct noteoffsetexpr_t,
+			       struct noteoffsetexpr_t);
+
+static struct musicexpr_t *
+join_noteoffsetexprs(struct musicexpr_t *, struct musicexpr_t *, int); 
 
 static struct musicexpr_t *
 join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
@@ -150,7 +156,9 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			break;
 		case ME_TYPE_NOTEOFFSETEXPR:
 			mdl_log(3, level, "joining two noteoffsetexprs\n");
-			unimplemented();
+			tmp_me = join_noteoffsetexprs(a, b, level);
+			if (tmp_me != NULL)
+				return tmp_me;
 			break;
 		case ME_TYPE_REST:
 			mdl_log(3, level, "joining two rests\n");
@@ -239,6 +247,63 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	}
 
 	return tmp_me;
+}
+
+static struct musicexpr_t *
+join_noteoffsetexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+{
+	struct musicexpr_t *joined_subexpr, *tmp_a, *tmp_b;
+
+	if (compare_noteoffsets(a->noteoffsetexpr, b->noteoffsetexpr) != 0) {
+		mdl_log(4,
+			level + 1,
+			"could not join noteoffexprs directly\n");
+		return NULL;
+	}
+
+	if ((tmp_a = musicexpr_clone(a->noteoffsetexpr.me, level)) == NULL)
+		return NULL;
+
+	if ((tmp_b = musicexpr_clone(b->noteoffsetexpr.me, level)) == NULL) {
+		musicexpr_free(tmp_a);
+		return NULL;
+	}
+
+	joined_subexpr = join_two_musicexprs(tmp_a, tmp_b, level);
+	if (joined_subexpr == NULL) {
+		musicexpr_free(tmp_a);
+		musicexpr_free(tmp_b);
+		return NULL;
+	}
+
+	a->noteoffsetexpr.me = joined_subexpr;
+	musicexpr_free(b);
+
+	return joined_subexpr;
+}
+
+static int
+compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
+{
+	int min_i, i;
+
+	min_i = (a.count < b.count) ? a.count : b.count;
+			       
+	for (i = 0; i < min_i; i++) {
+		if (a.offsets[i] < b.offsets[i]) {
+			return -1;
+		} else if (a.offsets[i] > b.offsets[i]) {
+			return 1;
+		}
+	}
+
+	if (a.count < b.count) {
+		return -1;
+	} else if (a.count > b.count) {
+		return 1;
+	}
+ 
+	return 0;       
 }
 
 static struct musicexpr_t *

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.38 2015/12/29 21:37:06 je Exp $ */
+/* $Id: musicexpr.h,v 1.39 2015/12/30 08:35:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -138,6 +138,7 @@ void	musicexpr_free(struct musicexpr_t *);
 void	musicexpr_free_melist(struct melist_t);
 void	musicexpr_log(const struct musicexpr_t *, int, int);
 
+struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
 struct musicexpr_t      *musicexpr_sequence(struct musicexpr_t *, ...);
 struct musicexpr_t	*musicexpr_simultence(struct musicexpr_t *, ...);
 struct musicexpr_t	*chord_to_noteoffsetexpr(struct chord_t, int);

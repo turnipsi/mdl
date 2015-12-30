@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.49 2015/12/29 21:51:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.50 2015/12/30 08:35:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,10 +32,9 @@
 #define DEFAULT_MIDICHANNEL	0
 #define DEFAULT_VELOCITY	80
 
-static struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
-static int			 musicexpr_clone_melist(struct melist_t *,
-			 				struct melist_t,
-							int);
+static int	musicexpr_clone_melist(struct melist_t *,
+				       struct melist_t,
+				       int);
 
 static struct mdl_stream *offsetexprstream_new(void);
 
@@ -215,7 +214,7 @@ add_new_offset_expression(struct mdl_stream *oes,
 	return mdl_stream_increment(oes);
 }
 
-static struct musicexpr_t *
+struct musicexpr_t *
 musicexpr_clone(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *cloned;
