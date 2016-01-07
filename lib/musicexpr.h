@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.39 2015/12/30 08:35:08 je Exp $ */
+/* $Id: musicexpr.h,v 1.40 2016/01/07 21:15:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,14 +25,14 @@
 
 enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
+	ME_TYPE_CHORD,
+	ME_TYPE_JOINEXPR,
+	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_RELNOTE,
 	ME_TYPE_REST,
 	ME_TYPE_SEQUENCE,
+	ME_TYPE_SIMULTENCE,
 	ME_TYPE_WITHOFFSET,
-	ME_TYPE_JOINEXPR,
-	ME_TYPE_CHORD,
-	ME_TYPE_NOTEOFFSETEXPR,
-	ME_TYPE_SIMULTENCE
 };
 
 enum notesym_t {
@@ -111,11 +111,6 @@ struct tqitem_me {
 	TAILQ_ENTRY(tqitem_me)	tq;
 };
 
-struct previous_relative_exprs_t {
-	struct absnote_t absnote;
-	enum chordtype_t chordtype;
-};
-
 struct joinexpr_t {
 	struct musicexpr_t *a, *b;
 };
@@ -139,8 +134,8 @@ void	musicexpr_free_melist(struct melist_t);
 void	musicexpr_log(const struct musicexpr_t *, int, int);
 
 struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
-struct musicexpr_t      *musicexpr_sequence(struct musicexpr_t *, ...);
-struct musicexpr_t	*musicexpr_simultence(struct musicexpr_t *, ...);
+struct musicexpr_t      *musicexpr_sequence(int, struct musicexpr_t *, ...);
+struct musicexpr_t	*musicexpr_simultence(int, struct musicexpr_t *, ...);
 struct musicexpr_t	*chord_to_noteoffsetexpr(struct chord_t, int);
 struct musicexpr_t	*musicexpr_to_simultence(struct musicexpr_t *, int);
 

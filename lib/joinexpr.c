@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.17 2015/12/30 08:35:08 je Exp $ */
+/* $Id: joinexpr.c,v 1.18 2016/01/07 21:15:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -187,14 +187,18 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	if (at == ME_TYPE_REST || bt == ME_TYPE_REST) {
 		/* rests are incompatible with everything else */
 		mdl_log(4, level, "joining rest and some --> sequence\n");
-		return musicexpr_sequence(a, b, NULL);
+		return musicexpr_sequence(level, a, b, NULL);
 	}
 
 	if (at == ME_TYPE_SEQUENCE || bt == ME_TYPE_SEQUENCE) {
 		/* non-sequence --> wrap to sequence and join sequences */
 		mdl_log(4, level, "wrapping an expression to sequence\n");
-		tmp_a = (at != ME_TYPE_SEQUENCE) ? musicexpr_sequence(a) : a;
-		tmp_b = (bt != ME_TYPE_SEQUENCE) ? musicexpr_sequence(b) : b;
+		tmp_a = (at != ME_TYPE_SEQUENCE)
+			  ? musicexpr_sequence(level, a, NULL)
+			  : a;
+		tmp_b = (bt != ME_TYPE_SEQUENCE)
+			  ? musicexpr_sequence(level, b, NULL)
+			  : b;
 		tmp_me = join_two_musicexprs(tmp_a, tmp_b, level);
 		if (tmp_me == NULL) {
 			if (tmp_a != a)

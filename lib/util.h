@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.12 2015/12/09 19:56:10 je Exp $ */
+/* $Id: util.h,v 1.13 2016/01/07 21:15:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,9 @@
 #define MDL_UTIL_H
 
 #include <unistd.h>
+
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 
 struct mdl_stream {
 	size_t count, slotcount;
