@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.52 2016/01/08 20:32:32 je Exp $ */
+/* $Id: musicexpr.c,v 1.53 2016/01/08 20:58:05 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -212,7 +212,6 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		}
 		break;
 	default:
-		printf("type: %d\n", me->me_type);
 		assert(0);
 	}
 
@@ -412,7 +411,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 	if (simultence == NULL) {
 		warnx("Could not flatten music expression to create offset" \
 			" expression stream");
-		return 1;
+		goto finish;
 	}
 
 	TAILQ_FOREACH(p, &simultence->melist, tq) {
