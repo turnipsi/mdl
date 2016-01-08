@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.51 2016/01/07 21:15:16 je Exp $ */
+/* $Id: musicexpr.c,v 1.52 2016/01/08 20:32:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -52,9 +52,6 @@ static void	musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 static void	relative_to_absolute(struct musicexpr_t *,
 				     struct previous_relative_exprs_t *,
 				     int);
-static int	musicexpr_flatten(struct mdl_stream *,
-				  struct musicexpr_t **,
-				  struct musicexpr_t *);
 
 static struct tqitem_me *musicexpr_clone_to_tqitem(struct musicexpr_t *, int);
 
@@ -123,39 +120,6 @@ struct {
 	{ 2, { 0,    7                 } }, /* CHORDTYPE_5        */
 	{ 2, { 0, 7, 12                } }, /* CHORDTYPE_5_8      */
 };
-
-static int
-musicexpr_flatten(struct mdl_stream *oes,
-		  struct musicexpr_t **simultence,
-		  struct musicexpr_t *me)
-{
-	struct tqitem_me *p;
-	int level, ret;
-
-	assert(oes->s_type == OFFSETEXPRSTREAM);
-
-	ret = 0;
-	level = 1;
-
-	mdl_log(1, level, "flattening music expression\n");
-
-	if ((*simultence = musicexpr_to_simultence(me, level + 1)) == NULL) {
-		warnx("Could not flatten music expression to create offset" \
-			" expression stream");
-		return 1;
-	}
-
-	TAILQ_FOREACH(p, &(*simultence)->melist, tq) {
-		assert(p->me->me_type == ME_TYPE_WITHOFFSET);
-		oes->mexprs[ oes->count ] = p->me->offsetexpr;
-		if (mdl_stream_increment(oes) != 0) {
-			ret = 1;
-			break;
-		}
-	}
-
-	return ret;
-}
 
 struct musicexpr_t *
 musicexpr_clone(struct musicexpr_t *me, int level)
@@ -417,6 +381,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *me_workcopy, *simultence;
 	struct mdl_stream *offset_es, *midi_es;
+	struct tqitem_me *p;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
@@ -443,10 +408,18 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		goto finish;
 	}
 
-	if (musicexpr_flatten(offset_es, &simultence, me_workcopy) != 0) {
-		warnx("could not flatten music expression"
-			" to offset-expression-stream");
-		goto finish;
+	simultence = musicexpr_to_simultence(me_workcopy, level + 1);
+	if (simultence == NULL) {
+		warnx("Could not flatten music expression to create offset" \
+			" expression stream");
+		return 1;
+	}
+
+	TAILQ_FOREACH(p, &simultence->melist, tq) {
+		assert(p->me->me_type == ME_TYPE_WITHOFFSET);
+		offset_es->mexprs[ offset_es->count ] = p->me->offsetexpr;
+		if (mdl_stream_increment(offset_es) != 0)
+			goto finish;
 	}
 
 	midi_es = offsetexprstream_to_midievents(offset_es, level + 1);
@@ -456,10 +429,11 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 
 finish:
 	mdl_stream_free(offset_es);
-	musicexpr_free(me_workcopy);
 
 	if (simultence != NULL)
 		musicexpr_free(simultence);
+
+	musicexpr_free(me_workcopy);
 
 	return midi_es;
 }
