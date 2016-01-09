@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.31 2015/12/23 21:26:37 je Exp $
+/* $Id: parse.y,v 1.32 2016/01/09 20:47:12 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -133,32 +133,12 @@ sequence:
 
 sp_sequence:
 	musicexpr {
-		struct tqitem_me *s;
-		s = malloc(sizeof(struct tqitem_me));
-		if (s == NULL) {
-			warn("%s", "malloc error");
-			/* XXX YYERROR and memory leaks?
-			 * XXX return NULL and handle on upper layer? */
-			YYERROR;
-		}
-		s->me = $1;
 		TAILQ_INIT(&$$);
-		TAILQ_INSERT_HEAD(&$$, s, tq);
+		TAILQ_INSERT_HEAD(&$$, $1, tq);
 	  }
 	| musicexpr WHITESPACE sp_sequence {
-		struct tqitem_me *s;
-		s = malloc(sizeof(struct tqitem_me));
-		if (s == NULL) {
-			musicexpr_free($1);
-			musicexpr_free_melist($3);
-			warn("%s", "malloc error");
-			/* XXX YYERROR and memory leaks?
-			 * XXX return NULL and handle on upper layer? */
-			YYERROR;
-		}
-		s->me = $1;
 		$$ = $3;
-		TAILQ_INSERT_HEAD(&$$, s, tq);
+		TAILQ_INSERT_HEAD(&$$, $1, tq);
 	  }
 	| /* empty */ {}
 	;

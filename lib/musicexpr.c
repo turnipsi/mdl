@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.53 2016/01/08 20:58:05 je Exp $ */
+/* $Id: musicexpr.c,v 1.54 2016/01/09 20:47:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,8 +53,6 @@ static void	relative_to_absolute(struct musicexpr_t *,
 				     struct previous_relative_exprs_t *,
 				     int);
 
-static struct tqitem_me *musicexpr_clone_to_tqitem(struct musicexpr_t *, int);
-
 static void	musicexpr_log_chordtype(enum chordtype_t, int, int);
 static void	musicexpr_log_melist(struct melist_t, int, int);
 
@@ -69,9 +67,6 @@ add_musicexpr_to_simultence(struct musicexpr_t *,
 			    struct musicexpr_t *,
 			    struct simultence_state *,
 			    int);
-
-static int
-append_to_melist(struct musicexpr_t *, struct musicexpr_t *, int);
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *, int);
@@ -223,12 +218,12 @@ musicexpr_clone_melist(struct melist_t *cloned_melist,
 		       struct melist_t melist,
 		       int level)
 {
-	struct tqitem_me *p, *q;
+	struct musicexpr_t *p, *q;
 
 	TAILQ_INIT(cloned_melist);
 
 	TAILQ_FOREACH(p, &melist, tq) {
-		q = musicexpr_clone_to_tqitem(p->me, level);
+		q = musicexpr_clone(p, level);
 		if (q == NULL) {
 			warnx("cloud not clone music expression list");
 			musicexpr_free_melist(*cloned_melist);
@@ -263,7 +258,7 @@ relative_to_absolute(struct musicexpr_t *me,
 		     struct previous_relative_exprs_t *prev_exprs,
 		     int level)
 {
-	struct tqitem_me *p;
+	struct musicexpr_t *p;
 	struct absnote_t absnote;
 	struct relnote_t relnote;
 	int notevalues[] = {
@@ -330,7 +325,7 @@ relative_to_absolute(struct musicexpr_t *me,
 	case ME_TYPE_SEQUENCE:
 		mdl_log(3, level, "rel->abs expression (sequence)\n");
 		TAILQ_FOREACH(p, &me->melist, tq)
-			relative_to_absolute(p->me, prev_exprs, level + 1);
+			relative_to_absolute(p, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_WITHOFFSET:
 		mdl_log(3, level, "rel->abs expression (withoffset)\n");
@@ -378,9 +373,8 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 struct mdl_stream *
 musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
-	struct musicexpr_t *me_workcopy, *simultence;
+	struct musicexpr_t *me_workcopy, *simultence, *p;
 	struct mdl_stream *offset_es, *midi_es;
-	struct tqitem_me *p;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
@@ -415,8 +409,8 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 	}
 
 	TAILQ_FOREACH(p, &simultence->melist, tq) {
-		assert(p->me->me_type == ME_TYPE_WITHOFFSET);
-		offset_es->mexprs[ offset_es->count ] = p->me->offsetexpr;
+		assert(p->me_type == ME_TYPE_WITHOFFSET);
+		offset_es->mexprs[ offset_es->count ] = p->offsetexpr;
 		if (mdl_stream_increment(offset_es) != 0)
 			goto finish;
 	}
@@ -617,16 +611,10 @@ musicexpr_tq(enum musicexpr_type me_type,
 	TAILQ_INIT(&me->melist);
 
 	while (listitem != NULL) {
-		if (append_to_melist(me, listitem, 4) != 0) {
-			free_melist(me);
-			me = NULL;
-			goto finish;
-		}
-
+		TAILQ_INSERT_TAIL(&me->melist, listitem, tq);
 		listitem = va_arg(va, struct musicexpr_t *);
 	}
 
-finish:
 	va_end(va);
 
 	return me;
@@ -659,33 +647,13 @@ musicexpr_simultence(int level, struct musicexpr_t *next_me, ...)
 }
 
 static int
-append_to_melist(struct musicexpr_t *me, struct musicexpr_t *addme, int level)
-{
-	struct tqitem_me *p;
-
-	mdl_log(4, level, "adding expression to list:\n", addme);
-	musicexpr_log(addme, 4, level + 1);
-
-	if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
-		warnx("malloc in append_to_melist");
-		return 1;
-	}
-
-	p->me = addme;
-
-	TAILQ_INSERT_TAIL(&me->melist, p, tq);
-
-	return 0;
-}
-
-static int
 add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 			    struct musicexpr_t *me,
 			    struct simultence_state *state,
 			    int level)
 {
-	struct musicexpr_t *cloned, *noteoffsetexpr, *offsetexpr, *subexpr;
-	struct tqitem_me *p;
+	struct musicexpr_t *cloned, *noteoffsetexpr, *offsetexpr, *subexpr,
+			   *p;
 	float end_offset, new_next_offset, old_offset;
 	int noteoffset, ret, i;
 
@@ -707,9 +675,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 		offsetexpr->offsetexpr.me = cloned;
 		offsetexpr->offsetexpr.offset = state->next_offset;
 
-		ret = append_to_melist(simultence, offsetexpr, level);
-		if (ret != 0)
-			return ret;
+		TAILQ_INSERT_TAIL(&simultence->melist, offsetexpr, tq);
 
 		end_offset = state->next_offset + cloned->absnote.length;
 		state->length = MAX(end_offset, state->length);
@@ -755,7 +721,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
         case ME_TYPE_SEQUENCE:
 		TAILQ_FOREACH(p, &me->melist, tq) {
 			ret = add_musicexpr_to_simultence(simultence,
-							  p->me,
+							  p,
 							  state,
 							  level);
 			if (ret != 0)
@@ -766,7 +732,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 		TAILQ_FOREACH(p, &me->melist, tq) {
 			old_offset = state->next_offset;
 			ret = add_musicexpr_to_simultence(simultence,
-							  p->me,
+							  p,
 							  state,
 							  level);
 			if (ret != 0)
@@ -838,31 +804,10 @@ musicexpr_to_simultence(struct musicexpr_t *me, int level)
 	return simultence;
 }
 
-static struct tqitem_me *
-musicexpr_clone_to_tqitem(struct musicexpr_t *me, int level)
-{
-	struct tqitem_me *tqitem;
-	struct musicexpr_t *cloned_me;
-
-	if ((cloned_me = musicexpr_clone(me, level)) == NULL)
-		return NULL;
-
-	tqitem = malloc(sizeof(struct tqitem_me));
-	if (tqitem == NULL) {
-		warnx("malloc in musicexpr_clone_to_tqitem");
-		musicexpr_free(cloned_me);
-		return NULL;
-	}
-
-	tqitem->me = cloned_me;
-
-	return tqitem;
-}
-
 static void
 apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 {
-	struct tqitem_me *p;
+	struct musicexpr_t *p;
 
 	/* XXX there is probably a common pattern here: do some operation
 	 * XXX to all subexpressions... but the knowledge "what are the
@@ -884,7 +829,7 @@ apply_noteoffset(struct musicexpr_t *me, int offset, int level)
         case ME_TYPE_SEQUENCE:
         case ME_TYPE_SIMULTENCE:
 		TAILQ_FOREACH(p, &me->melist, tq)
-			apply_noteoffset(p->me, offset, level);
+			apply_noteoffset(p, offset, level);
 		break;
         case ME_TYPE_WITHOFFSET:
 		apply_noteoffset(me->offsetexpr.me, offset, level);
@@ -1006,10 +951,10 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 static void
 musicexpr_log_melist(struct melist_t melist, int loglevel, int indentlevel)
 {
-	struct tqitem_me *p;
+	struct musicexpr_t *p;
 
 	TAILQ_FOREACH(p, &melist, tq)
-		musicexpr_log(p->me, loglevel, indentlevel + 1);
+		musicexpr_log(p, loglevel, indentlevel + 1);
 }
 
 void
@@ -1047,12 +992,11 @@ musicexpr_free(struct musicexpr_t *me)
 void
 musicexpr_free_melist(struct melist_t melist)
 {
-	struct tqitem_me *p, *q;
+	struct musicexpr_t *p, *q;
 
 	TAILQ_FOREACH_SAFE(p, &melist, tq, q) {
 		TAILQ_REMOVE(&melist, p, tq);
-		musicexpr_free(p->me);
-		free(p);
+		musicexpr_free(p);
 	}
 }
 
@@ -1089,7 +1033,7 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 void
 free_melist(struct musicexpr_t *me)
 {
-	struct tqitem_me *p, *q;
+	struct musicexpr_t *p, *q;
 
 	assert(me->me_type == ME_TYPE_SEQUENCE
 		 || me->me_type == ME_TYPE_SIMULTENCE);

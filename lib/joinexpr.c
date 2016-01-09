@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.18 2016/01/07 21:15:16 je Exp $ */
+/* $Id: joinexpr.c,v 1.19 2016/01/09 20:47:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -45,8 +45,7 @@ join_simultences(struct musicexpr_t *, struct musicexpr_t *, int);
 int
 joinexpr_musicexpr(struct musicexpr_t *me, int level)
 {
-	struct musicexpr_t *joined_me;
-	struct tqitem_me *p;
+	struct musicexpr_t *joined_me, *p;
 	int ret;
 
 	ret = 0;
@@ -75,7 +74,7 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		break;
 	case ME_TYPE_SEQUENCE:
 		TAILQ_FOREACH(p, &me->melist, tq) {
-			ret = joinexpr_musicexpr(p->me, level + 1);
+			ret = joinexpr_musicexpr(p, level + 1);
 			if (ret != 0)
 				break;
 		}
@@ -313,8 +312,7 @@ compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
 static struct musicexpr_t *
 join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
-	struct tqitem_me *last_of_a, *first_of_b, *p;
-	struct musicexpr_t *joined_expr;
+	struct musicexpr_t *joined_expr, *last_of_a, *first_of_b;
 
 	assert(a->me_type == ME_TYPE_SEQUENCE);
 	assert(b->me_type == ME_TYPE_SEQUENCE);
@@ -332,29 +330,21 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		warn("malloc in join_sequences");
 		return NULL;
 	}
-	if ((p = malloc(sizeof(struct tqitem_me))) == NULL) {
-		warn("malloc in join_sequences");
-		free(joined_expr);
-		return NULL;
-	}
-
-	p->me = joined_expr;
 
 	last_of_a = TAILQ_LAST(&a->melist, melist_t);
 	first_of_b = TAILQ_FIRST(&b->melist);
 
 	joined_expr->me_type = ME_TYPE_JOINEXPR;
-	joined_expr->joinexpr.a = last_of_a->me;
-	joined_expr->joinexpr.b = first_of_b->me;
+	joined_expr->joinexpr.a = last_of_a;
+	joined_expr->joinexpr.b = first_of_b;
 
 	if (joinexpr_musicexpr(joined_expr, level + 1) != 0) {
 		free(joined_expr);
-		free(p);
 		return NULL;
 	}
 
 	TAILQ_REMOVE(&b->melist, first_of_b, tq);
-	TAILQ_REPLACE(&a->melist, last_of_a, p, tq);
+	TAILQ_REPLACE(&a->melist, last_of_a, joined_expr, tq);
 	TAILQ_CONCAT(&a->melist, &b->melist, tq);
 
 	musicexpr_free(b);

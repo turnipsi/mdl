@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.40 2016/01/07 21:15:16 je Exp $ */
+/* $Id: musicexpr.h,v 1.41 2016/01/09 20:47:12 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -105,16 +105,12 @@ struct musicexpr_with_offset_t {
 	struct musicexpr_t     *me;
 };
 
-TAILQ_HEAD(melist_t, tqitem_me);
-struct tqitem_me {
-	struct musicexpr_t     *me;
-	TAILQ_ENTRY(tqitem_me)	tq;
-};
 
 struct joinexpr_t {
 	struct musicexpr_t *a, *b;
 };
 
+TAILQ_HEAD(melist_t, musicexpr_t);
 struct musicexpr_t {
 	enum musicexpr_type me_type;
 	union {
@@ -127,6 +123,7 @@ struct musicexpr_t {
 		struct musicexpr_with_offset_t	offsetexpr;
 		struct noteoffsetexpr_t		noteoffsetexpr;
 	};
+	TAILQ_ENTRY(musicexpr_t) tq;
 };
 
 void	musicexpr_free(struct musicexpr_t *);
