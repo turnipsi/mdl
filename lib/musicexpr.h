@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.41 2016/01/09 20:47:12 je Exp $ */
+/* $Id: musicexpr.h,v 1.42 2016/01/11 21:15:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@ enum musicexpr_type {
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
 	ME_TYPE_WITHOFFSET,
+	ME_TYPE_COUNT,
 };
 
 enum notesym_t {
@@ -122,22 +123,26 @@ struct musicexpr_t {
 		struct melist_t			melist;
 		struct musicexpr_with_offset_t	offsetexpr;
 		struct noteoffsetexpr_t		noteoffsetexpr;
-	};
+	} u;
 	TAILQ_ENTRY(musicexpr_t) tq;
 };
 
 void	musicexpr_free(struct musicexpr_t *);
-void	musicexpr_free_melist(struct melist_t);
 void	musicexpr_log(const struct musicexpr_t *, int, int);
 
-struct musicexpr_t	*musicexpr_clone(struct musicexpr_t *, int);
-struct musicexpr_t      *musicexpr_sequence(int, struct musicexpr_t *, ...);
-struct musicexpr_t	*musicexpr_simultence(int, struct musicexpr_t *, ...);
-struct musicexpr_t	*chord_to_noteoffsetexpr(struct chord_t, int);
-struct musicexpr_t	*musicexpr_to_simultence(struct musicexpr_t *, int);
+struct musicexpr_t     *musicexpr_clone(struct musicexpr_t *, int);
+struct musicexpr_t     *musicexpr_sequence(int, struct musicexpr_t *, ...);
+struct musicexpr_t     *musicexpr_simultence(int, struct musicexpr_t *, ...);
+struct musicexpr_t     *chord_to_noteoffsetexpr(struct chord_t, int);
+struct musicexpr_t     *musicexpr_to_simultence(struct musicexpr_t *, int);
+const char	       *musicexpr_type_to_string(const struct musicexpr_t *);
+void			musicexpr_free_melist(struct melist_t);
+void			free_melist(struct musicexpr_t *);
 
 struct mdl_stream	*musicexpr_to_midievents(struct musicexpr_t *, int);
 
 void			free_melist(struct musicexpr_t *);
+void			musicexpr_copy(struct musicexpr_t *,
+				       struct musicexpr_t *);
 
 #endif

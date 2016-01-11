@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.32 2016/01/09 20:47:12 je Exp $
+/* $Id: parse.y,v 1.33 2016/01/11 21:15:40 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -122,7 +122,7 @@ musicexpr_sequence:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_SEQUENCE;
-		$$->melist = $1;
+		$$->u.melist = $1;
 	}
 	;
 
@@ -151,7 +151,7 @@ musicexpr:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_JOINEXPR;
-		$$->joinexpr = $1;
+		$$->u.joinexpr = $1;
 
 	  }
 	| relnote {
@@ -161,7 +161,7 @@ musicexpr:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_RELNOTE;
-		$$->relnote = $1;
+		$$->u.relnote = $1;
 	  }
 	| chord {
 		if (($$ = malloc_musicexpr()) == NULL) {
@@ -170,7 +170,7 @@ musicexpr:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_CHORD;
-		$$->chord = $1;
+		$$->u.chord = $1;
 	  }
 	| rest {
 		if (($$ = malloc_musicexpr()) == NULL) {
@@ -179,7 +179,7 @@ musicexpr:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_REST;
-		$$->rest = $1;
+		$$->u.rest = $1;
 	}
 	;
 
@@ -220,7 +220,7 @@ chord:
 			YYERROR;
 		}
 		$$.me->me_type = ME_TYPE_RELNOTE;
-		$$.me->relnote = $1;
+		$$.me->u.relnote = $1;
 	};
 
 notesym:
