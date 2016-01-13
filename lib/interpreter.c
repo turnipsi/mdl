@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.35 2015/12/03 20:46:24 je Exp $ */
+/* $Id: interpreter.c,v 1.36 2016/01/13 21:02:42 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -72,7 +72,7 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	mdl_log(1, level, "parse ok, got parse result:\n");
-	musicexpr_log(parsed_expr, 2, level + 1);
+	musicexpr_log(parsed_expr, 2, level + 1, NULL);
 
 	eventstream = musicexpr_to_midievents(parsed_expr, level);
 	if (eventstream == NULL) {
