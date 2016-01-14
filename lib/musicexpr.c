@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.56 2016/01/13 21:02:42 je Exp $ */
+/* $Id: musicexpr.c,v 1.57 2016/01/14 19:59:22 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -636,8 +636,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 	assert(me->me_type != ME_TYPE_JOINEXPR);
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
-	old_offset = state->next_offset;
-	new_next_offset = 0;
+	new_next_offset = old_offset = state->next_offset;
 
 	mdl_log(3,
 		level,
@@ -670,7 +669,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 		state->length = MAX(end_offset, state->length);
 		state->length_no_rests = MAX(end_offset,
 					     state->length_no_rests);
-		new_next_offset = end_offset;
+		state->next_offset = end_offset;
 		break;
         case ME_TYPE_CHORD:
 		noteoffsetexpr = chord_to_noteoffsetexpr(me->u.chord, level);
@@ -703,11 +702,12 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 					      new_next_offset);
 			state->next_offset = old_offset;
 		}
+		state->next_offset = new_next_offset;
 		break;
         case ME_TYPE_REST:
 		end_offset = state->next_offset + me->u.rest.length;
 		state->length = MAX(end_offset, state->length);
-		new_next_offset = end_offset;
+		state->next_offset = end_offset;
 		break;
         case ME_TYPE_SEQUENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
@@ -732,6 +732,7 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 					      new_next_offset);
 			state->next_offset = old_offset;
 		}
+		state->next_offset = new_next_offset;
 		break;
         case ME_TYPE_WITHOFFSET:
 		state->next_offset += me->u.offsetexpr.offset;
@@ -746,13 +747,11 @@ add_musicexpr_to_simultence(struct musicexpr_t *simultence,
 		assert(0);
 	}
 
-	state->next_offset = new_next_offset;
-
 	mdl_log(3,
 		level,
 		"offset changed from %f to %f\n",
 		old_offset,
-		new_next_offset);
+		state->next_offset);
 
 	return 0;
 }
