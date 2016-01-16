@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.9 2016/01/16 20:03:53 je Exp $ */
+/* $Id: midi.c,v 1.10 2016/01/16 21:37:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -129,7 +129,7 @@ midi_send_midievent(struct midievent *me)
 
 	mdl_log(2,
 		0,
-		"sending \"%s\", notevalue=%d velocity=%d clock=%d.%.0f\n",
+		"sending \"%s\": notevalue=%d velocity=%d clock=%d.%.0f\n",
 		(me->eventtype == NOTEON  ? "note on"  :
 		 me->eventtype == NOTEOFF ? "note off" : "(unknown)"),
 		me->note,

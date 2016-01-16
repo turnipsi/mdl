@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.21 2016/01/15 21:43:53 je Exp $ */
+/* $Id: joinexpr.c,v 1.22 2016/01/16 21:37:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,7 +53,7 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 
 	ret = 0;
 
-	mdl_log(4,
+	mdl_log(3,
 		level,
 		"joining possible subexpressions in %p (%s)\n",
 		me,
@@ -113,7 +113,7 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	struct musicexpr_t *tmp_a, *tmp_b, *tmp_me;
 	enum musicexpr_type at, bt;
 
-	mdl_log(4,
+	mdl_log(3,
 		level,
 		"joining expressions %p/%s and %p/%s\n",
 		a,
@@ -150,24 +150,24 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		switch (at) {
 		case ME_TYPE_ABSNOTE:
 			if (a->u.absnote.note == b->u.absnote.note) {
-				mdl_log(4, level, "matched absnotes\n");
+				mdl_log(3, level, "matched absnotes\n");
 				a->u.absnote.length += b->u.absnote.length;
 				musicexpr_free(b);
 				return a;
 			}
-			mdl_log(4, level, "absnotes do not match\n");
+			mdl_log(3, level, "absnotes do not match\n");
 			break;
 		case ME_TYPE_CHORD:
 			if (a->u.chord.chordtype == b->u.chord.chordtype
 			      && a->u.chord.me->u.absnote.note
 				   == b->u.chord.me->u.absnote.note) {
-				mdl_log(4, level, "matched chords\n");
+				mdl_log(3, level, "matched chords\n");
 				a->u.chord.me->u.absnote.length
 				    += b->u.chord.me->u.absnote.length;
 				musicexpr_free(b);
 				return a;
 			}
-			mdl_log(4, level, "chords do not match\n");
+			mdl_log(3, level, "chords do not match\n");
 			break;
 		case ME_TYPE_NOTEOFFSETEXPR:
 			mdl_log(3, level, "joining two noteoffsetexprs\n");
@@ -201,13 +201,13 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 
 	if (at == ME_TYPE_REST || bt == ME_TYPE_REST) {
 		/* rests are incompatible with everything else */
-		mdl_log(4, level, "joining rest and some --> sequence\n");
+		mdl_log(3, level, "joining rest and some --> sequence\n");
 		return musicexpr_sequence(level, a, b, NULL);
 	}
 
 	if (at == ME_TYPE_SEQUENCE || bt == ME_TYPE_SEQUENCE) {
 		/* non-sequence --> wrap to sequence and join sequences */
-		mdl_log(4, level, "wrapping an expression to sequence\n");
+		mdl_log(3, level, "wrapping an expression to sequence\n");
 		tmp_a = (at != ME_TYPE_SEQUENCE)
 			  ? musicexpr_sequence(level, a, NULL)
 			  : a;
@@ -226,7 +226,7 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 
 	if (at == ME_TYPE_CHORD || bt == ME_TYPE_CHORD) {
 		/* chord --> noteoffsetexpr and join */
-		mdl_log(4, level, "converting chord to noteoffsetexpr\n");
+		mdl_log(3, level, "converting chord to noteoffsetexpr\n");
 		tmp_a = (at == ME_TYPE_CHORD)
 			  ? chord_to_noteoffsetexpr(a->u.chord, level)
 			  : a;
@@ -235,7 +235,7 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			  : b;
 	} else if (at != ME_TYPE_SIMULTENCE || bt != ME_TYPE_SIMULTENCE) {
 		/* non-simultence -> simultence and join */
-		mdl_log(4, level, "converting an expression to simultence\n");
+		mdl_log(3, level, "converting an expression to simultence\n");
 		tmp_a = (at != ME_TYPE_SIMULTENCE)
 			  ? musicexpr_to_simultence(a, level + 1)
 			  : a;
@@ -275,7 +275,7 @@ join_noteoffsetexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 
 	if (compare_noteoffsets(a->u.noteoffsetexpr,
 				b->u.noteoffsetexpr) != 0) {
-		mdl_log(4,
+		mdl_log(3,
 			level + 1,
 			"could not join noteoffexprs directly\n");
 		return NULL;
@@ -374,14 +374,13 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 static struct musicexpr_t *
 join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
-	struct musicexpr_t *p, *q, *r, *s;
+	struct musicexpr_t *p, *q, *r;
 	struct musicexpr_with_offset_t *p_me, *q_me;
 	float prev_note_end, next_note_start, a_length;
 
 	a_length = 0.0;
 
-	/* Join notes when we can.  This is inefficient with simultences
-	 * with lots of notes, but hopefully is not misused much. */
+	/* First find length of "a", rests can be removed. */
 	TAILQ_FOREACH_SAFE(p, &a->u.melist, tq, r) {
 		assert(p->me_type == ME_TYPE_WITHOFFSET);
 		p_me = &p->u.offsetexpr;
@@ -399,25 +398,41 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			continue;
 		}
 
-		prev_note_end = p_me->offset + p_me->me->u.absnote.length;
-		a_length = MAX(a_length, prev_note_end);
+		a_length = MAX(a_length,
+			       p_me->offset + p_me->me->u.absnote.length);
+	}
 
-		TAILQ_FOREACH_SAFE(q, &b->u.melist, tq, s) {
+	/* Join notes when we can.  This is inefficient with simultences
+	 * with lots of notes, but hopefully is not misused much. */
+	TAILQ_FOREACH(p, &a->u.melist, tq) {
+		assert(p->me_type == ME_TYPE_WITHOFFSET);
+		p_me = &p->u.offsetexpr;
+
+		assert(p_me->me->me_type == ME_TYPE_ABSNOTE);
+
+		prev_note_end = p_me->offset + p_me->me->u.absnote.length;
+
+		TAILQ_FOREACH_SAFE(q, &b->u.melist, tq, r) {
 			assert(q->me_type == ME_TYPE_WITHOFFSET);
 			q_me = &q->u.offsetexpr;
 
 			assert(q_me->me->me_type == ME_TYPE_ABSNOTE
 				 || q_me->me->me_type == ME_TYPE_REST);
 
-			if (q_me->me->me_type == ME_TYPE_REST)
+			if (q_me->me->me_type == ME_TYPE_REST) {
+				/* this rest can be passed on as is to
+				 * joined simultence (with offset change) */
 				continue;
+			}
 
 			if (p_me->me->u.absnote.note
 			      != q_me->me->u.absnote.note)
 				continue;
 
-			next_note_start
-			    = q_me->offset + q_me->me->u.absnote.length;
+			/* this is somewhat curious way of joining, because
+			 * to join to music expression "a" q_me->offset
+			 * must be zero or negative */
+			next_note_start = a_length + q_me->offset;
 
 			if (fabs(prev_note_end - next_note_start)
 			      >= MIN_DIFFERENCE_TO_JOIN)
@@ -435,11 +450,8 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		}
 	}
 
-	TAILQ_FOREACH(q, &b->u.melist, tq) {
-		q_me = &q->u.offsetexpr;
-		assert(q_me->me->me_type == ME_TYPE_ABSNOTE);
-		q_me->offset += a_length;
-	}
+	TAILQ_FOREACH(q, &b->u.melist, tq)
+		q->u.offsetexpr.offset += a_length;
 
 	TAILQ_CONCAT(&a->u.melist, &b->u.melist, tq);
 	musicexpr_free(b);
