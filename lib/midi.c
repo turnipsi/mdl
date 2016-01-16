@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.8 2015/12/17 20:01:29 je Exp $ */
+/* $Id: midi.c,v 1.9 2016/01/16 20:03:53 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <sndio.h>
+#include <time.h>
 #include <unistd.h>
 
 #include "midi.h"
@@ -100,6 +101,7 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 int
 midi_send_midievent(struct midievent *me)
 {
+	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_SIZE];
 	int ret;
 	u_int8_t eventbase, velocity;
@@ -118,6 +120,22 @@ midi_send_midievent(struct midievent *me)
 	default:
 		assert(0);
 	}
+
+	if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
+		warn("could not get real time");
+		time.tv_sec = 0;
+		time.tv_nsec = 0;
+	}
+
+	mdl_log(2,
+		0,
+		"sending \"%s\", notevalue=%d velocity=%d clock=%d.%.0f\n",
+		(me->eventtype == NOTEON  ? "note on"  :
+		 me->eventtype == NOTEOFF ? "note off" : "(unknown)"),
+		me->note,
+		velocity,
+		time.tv_sec,
+		time.tv_nsec / 1000000.0);
 
 	midievent[0] = (u_int8_t) (eventbase + me->channel);
 	midievent[1] = me->note;
