@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.41 2015/11/28 21:55:32 je Exp $ */
+/* $Id: mdl.c,v 1.42 2016/01/16 19:37:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -239,6 +239,9 @@ setup_sequencer_for_sources(char **files,
 		return 1;
 	}
 
+	if (fflush(NULL) == EOF)
+		warn("error flushing streams before sequencer fork");
+
 	/* for the midi sequencer process */
 	if ((sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
@@ -254,7 +257,7 @@ setup_sequencer_for_sources(char **files,
 		mdl_process_type = "seq";
 		mdl_log(1, 0, "new sequencer process, pid %d\n", getpid());
 		/* XXX should close all file descriptors that sequencer
-		 * XXX does not need */
+		 * XXX does not need... does this do that? */
 		if (lockfd >= 0 && close(lockfd) == -1)
 			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
@@ -262,8 +265,11 @@ setup_sequencer_for_sources(char **files,
 		sequencer_retvalue = sequencer_loop(ms_sp[1]);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
+		if (fflush(NULL) == EOF) {
+			warn("error flushing streams in sequencer"
+			       " before exit");
+		}
 		_exit(sequencer_retvalue);
-
 	}
 
 	if (close(ms_sp[1]) == -1)
@@ -379,6 +385,9 @@ start_interpreter(int file_fd,
 	}
 
 
+	if (fflush(NULL) == EOF)
+		warn("error flushing streams before interpreter fork");
+
 	if ((interpreter_pid = fork()) == -1) {
 		warn("could not fork interpreter pid");
 		if (close(mi_sp[0]) == -1)
@@ -401,19 +410,23 @@ start_interpreter(int file_fd,
 		 * do not leak file descriptors to interpreter process */
 		if (lockfd >= 0 && close(lockfd) == -1) {
 			warn("error closing lock file descriptor");
-			_exit(1);
+			ret = 1;
+			goto interpreter_out;
 		}
 		if (close(sequencer_socket) == -1) {
 			warn("error closing sequencer socket");
-			_exit(1);
+			ret = 1;
+			goto interpreter_out;
 		}
 		if (close(mi_sp[0]) == -1) {
 			warn("error closing first endpoint of mi_sp");
-			_exit(1);
+			ret = 1;
+			goto interpreter_out;
 		}
 		if (close(is_pipe[1]) == -1) {
 			warn("error closing second endpoint of is_pipe");
-			_exit(1);
+			ret = 1;
+			goto interpreter_out;
 		}
 
 		ret = handle_musicfile_and_socket(file_fd,
@@ -428,6 +441,12 @@ start_interpreter(int file_fd,
 			warn("error closing first endpoint of is_pipe");
 		if (close(mi_sp[1]) == -1)
 			warn("error closing second endpoint of mi_sp");
+
+interpreter_out:
+		if (fflush(NULL) == EOF) {
+			warn("error flushing streams in sequencer"
+			       " before exit");
+		}
 
 		_exit(ret);
 	}
