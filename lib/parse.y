@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.33 2016/01/11 21:15:40 je Exp $
+/* $Id: parse.y,v 1.34 2016/01/17 20:31:02 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -137,6 +137,8 @@ sp_sequence:
 		TAILQ_INSERT_HEAD(&$$, $1, tq);
 	  }
 	| musicexpr WHITESPACE sp_sequence {
+		/* XXX do not use right recursion,
+		 * XXX left is better to prevent yacc stack overflow */
 		$$ = $3;
 		TAILQ_INSERT_HEAD(&$$, $1, tq);
 	  }
