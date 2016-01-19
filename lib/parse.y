@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.35 2016/01/19 20:51:27 je Exp $
+/* $Id: parse.y,v 1.36 2016/01/19 20:59:34 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -138,7 +138,6 @@ sequence:
 		$$ = $1;
 		TAILQ_INSERT_TAIL(&$$, $2, tq);
 	  }
-	| SUBEXPR_START sequence SUBEXPR_END { $$ = $2; }
 	;
 
 musicexpr:
@@ -178,7 +177,8 @@ musicexpr:
 		}
 		$$->me_type = ME_TYPE_REST;
 		$$->u.rest = $1;
-	}
+	  }
+	| SUBEXPR_START musicexpr_sequence SUBEXPR_END { $$ = $2; }
 	;
 
 joinexpr:
