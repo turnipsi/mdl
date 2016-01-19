@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.34 2016/01/17 20:31:02 je Exp $
+/* $Id: parse.y,v 1.35 2016/01/19 20:51:27 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,14 +48,15 @@ static void    *malloc_musicexpr(void);
 
 %token	<notesym>	NOTETOKEN_C
 			NOTETOKEN_D
+			NOTETOKEN_ES
 			NOTETOKEN_E
 			NOTETOKEN_F
 			NOTETOKEN_G
 			NOTETOKEN_A
 			NOTETOKEN_B
 
-%token	<i>		NOTETOKEN_ES
-			NOTETOKEN_IS
+%token	<i>		NOTEMOD_ES
+			NOTEMOD_IS
 			
 %token			RESTTOKEN
 %token	<i>		LENGTHDOT
@@ -92,11 +93,12 @@ static void    *malloc_musicexpr(void);
 			CHORDTOKEN_5
 			CHORDTOKEN_5_8
 
+%token			SUBEXPR_START SUBEXPR_END
+
 %left			JOINEXPR
-%left			WHITESPACE
 
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
-%type	<melist>	sequence sp_sequence
+%type	<melist>	sequence
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<chord>		chord
@@ -110,6 +112,7 @@ static void    *malloc_musicexpr(void);
 
 grammar:
 	musicexpr_sequence { parsed_expr = $1; }
+	;
 
 musicexpr_sequence:
 	sequence {
@@ -127,22 +130,15 @@ musicexpr_sequence:
 	;
 
 sequence:
-	sp_sequence { $$ = $1; }
-	| WHITESPACE sp_sequence { $$ = $2; }
-	;
-
-sp_sequence:
 	musicexpr {
 		TAILQ_INIT(&$$);
-		TAILQ_INSERT_HEAD(&$$, $1, tq);
+		TAILQ_INSERT_TAIL(&$$, $1, tq);
 	  }
-	| musicexpr WHITESPACE sp_sequence {
-		/* XXX do not use right recursion,
-		 * XXX left is better to prevent yacc stack overflow */
-		$$ = $3;
-		TAILQ_INSERT_HEAD(&$$, $1, tq);
+	| sequence musicexpr {
+		$$ = $1;
+		TAILQ_INSERT_TAIL(&$$, $2, tq);
 	  }
-	| /* empty */ {}
+	| SUBEXPR_START sequence SUBEXPR_END { $$ = $2; }
 	;
 
 musicexpr:
@@ -186,9 +182,9 @@ musicexpr:
 	;
 
 joinexpr:
-	musicexpr WHITESPACE JOINEXPR WHITESPACE musicexpr {
+	musicexpr JOINEXPR musicexpr {
 		$$.a = $1;
-		$$.b = $5;
+		$$.b = $3;
 	}
 	;
 
@@ -199,7 +195,7 @@ relnote:
 		$$.octavemods = $3;
 		$$.length     = $4;
 	  }
-	| NOTETOKEN_ES octavemods notelength {
+	| NOTETOKEN_ES notemods octavemods notelength {
 		/* "es" is a special case */
 		$$.notesym    = NOTE_E;
 		$$.notemods   = - $1;
@@ -236,9 +232,9 @@ notesym:
 	;
 
 notemods:
-	NOTETOKEN_IS   { $$ = + $1; }
-	| NOTETOKEN_ES { $$ = - $1; }
-	| /* empty */  { $$ = 0;    }
+	NOTEMOD_IS    { $$ = + $1; }
+	| NOTEMOD_ES  { $$ = - $1; }
+	| /* empty */ { $$ = 0;    }
 	;
 
 octavemods:

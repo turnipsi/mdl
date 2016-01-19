@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.12 2015/12/14 21:11:45 je Exp $ */
+/* $Id: lex.l,v 1.13 2016/01/19 20:51:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,8 +28,10 @@ int	yywrap(void);
 %}
 
 %%
-(es)+	{ yylval.i = strlen(yytext) / 2; return NOTETOKEN_ES; }
-(is)+	{ yylval.i = strlen(yytext) / 2; return NOTETOKEN_IS; }
+[ \t\n]+es { return NOTETOKEN_ES; }
+
+(es)+	{ yylval.i = strlen(yytext) / 2; return NOTEMOD_ES; }
+(is)+	{ yylval.i = strlen(yytext) / 2; return NOTEMOD_IS; }
 
 c	{ return NOTETOKEN_C; }
 d	{ return NOTETOKEN_D; }
@@ -83,7 +85,10 @@ r	{ return RESTTOKEN; }
 :1\.5\.8	{ return CHORDTOKEN_5_8;      }
 :		{ return CHORDTOKEN_NONE;     }
 
-[ \t\n]+	{ return WHITESPACE; }
+\{		{ return SUBEXPR_START; }
+\}		{ return SUBEXPR_END;   }
+
+[ \t\n]+	{}
 %%
 
 /* XXX I do not know why I need this */
