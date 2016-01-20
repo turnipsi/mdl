@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.57 2016/01/14 19:59:22 je Exp $ */
+/* $Id: musicexpr.c,v 1.58 2016/01/20 20:22:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -232,6 +232,7 @@ relative_to_absolute(struct musicexpr_t *me,
 	struct musicexpr_t *p;
 	struct absnote_t absnote;
 	struct relnote_t relnote;
+	struct previous_relative_exprs_t prev_exprs_copy;
 	int notevalues[] = {
 		/* for NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
@@ -304,6 +305,17 @@ relative_to_absolute(struct musicexpr_t *me,
 	case ME_TYPE_SEQUENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq)
 			relative_to_absolute(p, prev_exprs, level + 1);
+		break;
+	case ME_TYPE_SIMULTENCE:
+		/* For simultences, make previous expression affect all
+		 * expressions in simultence, but do not let expressions
+		 * in simultence affect subsequent expressions. */
+		prev_exprs_copy = *prev_exprs;
+		TAILQ_FOREACH(p, &me->u.melist, tq) {
+			prev_exprs_copy = *prev_exprs;
+			relative_to_absolute(p, &prev_exprs_copy, level + 1);
+		}
+		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_WITHOFFSET:
 		relative_to_absolute(me->u.offsetexpr.me,

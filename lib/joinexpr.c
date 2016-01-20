@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.22 2016/01/16 21:37:51 je Exp $ */
+/* $Id: joinexpr.c,v 1.23 2016/01/20 20:22:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -82,6 +82,7 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		musicexpr_copy(me, joined_me);
 		break;
 	case ME_TYPE_SEQUENCE:
+	case ME_TYPE_SIMULTENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			ret = joinexpr_musicexpr(p, level + 1);
 			if (ret != 0)

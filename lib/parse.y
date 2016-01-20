@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.36 2016/01/19 20:59:34 je Exp $
+/* $Id: parse.y,v 1.37 2016/01/20 20:22:39 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -93,12 +93,13 @@ static void    *malloc_musicexpr(void);
 			CHORDTOKEN_5
 			CHORDTOKEN_5_8
 
-%token			SUBEXPR_START SUBEXPR_END
+%token			SEQUENCE_START SEQUENCE_END
+%token			SIMULTENCE_START SIMULTENCE_END
 
 %left			JOINEXPR
 
 %type	<musicexpr>	grammar musicexpr musicexpr_sequence
-%type	<melist>	sequence
+%type	<melist>	expression_list
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<chord>		chord
@@ -115,7 +116,7 @@ grammar:
 	;
 
 musicexpr_sequence:
-	sequence {
+	expression_list {
 		$$ = malloc(sizeof(struct musicexpr_t));
 		if ($$ == NULL) {
 			musicexpr_free_melist($1);
@@ -129,12 +130,12 @@ musicexpr_sequence:
 	}
 	;
 
-sequence:
+expression_list:
 	musicexpr {
 		TAILQ_INIT(&$$);
 		TAILQ_INSERT_TAIL(&$$, $1, tq);
 	  }
-	| sequence musicexpr {
+	| expression_list musicexpr {
 		$$ = $1;
 		TAILQ_INSERT_TAIL(&$$, $2, tq);
 	  }
@@ -178,7 +179,21 @@ musicexpr:
 		$$->me_type = ME_TYPE_REST;
 		$$->u.rest = $1;
 	  }
-	| SUBEXPR_START musicexpr_sequence SUBEXPR_END { $$ = $2; }
+	| SEQUENCE_START musicexpr_sequence SEQUENCE_END {
+		$$ = $2;
+	  }
+	| SIMULTENCE_START expression_list SIMULTENCE_END {
+		$$ = malloc(sizeof(struct musicexpr_t));
+		if ($$ == NULL) {
+			musicexpr_free_melist($2);
+			warn("%s", "malloc error");
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_SIMULTENCE;
+		$$->u.melist = $2;
+	  }
 	;
 
 joinexpr:
