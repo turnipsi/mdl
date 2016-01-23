@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.62 2016/01/23 17:01:10 je Exp $ */
+/* $Id: musicexpr.c,v 1.63 2016/01/23 17:11:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -350,13 +350,17 @@ relative_to_absolute(struct musicexpr_t *me,
 				     level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
-		/* XXX how should a sequence affect relativity?
-		 * XXX   1. should it not affect at all?
-		 * XXX   2. should only the first note affect it?
-		 * XXX   3. should all notes affect as if sequence was just
-		 * XXX      laid out flat? (as is the case now) */
-		TAILQ_FOREACH(p, &me->u.melist, tq)
+		/* make the first note in a sequence affect notes/lengths
+		 * of subsequent expressions that follow the sequence */
+		first_note_seen = 0;
+		prev_exprs_copy = *prev_exprs;
+		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			relative_to_absolute(p, prev_exprs, level + 1);
+			if (!first_note_seen)
+				prev_exprs_copy = *prev_exprs;
+			first_note_seen = 1;
+		}
+		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_SIMULTENCE:
 		/* For simultences, make previous expression affect all
