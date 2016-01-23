@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.60 2016/01/23 14:39:42 je Exp $ */
+/* $Id: musicexpr.c,v 1.61 2016/01/23 16:54:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -160,6 +160,7 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		       &me->u.noteoffsetexpr.offsets,
 		       me->u.noteoffsetexpr.count * sizeof(int));
 		break;
+	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
 		cloned->u.scaledexpr.me = musicexpr_clone(me->u.scaledexpr.me,
 							  level + 1);
@@ -169,14 +170,6 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		}
 		break;
 	case ME_TYPE_SEQUENCE:
-		ret = musicexpr_clone_melist(&cloned->u.melist,
-					     me->u.melist,
-					     level + 1);
-		if (ret != 0) {
-			free(cloned);
-			cloned = NULL;
-		}
-		break;
 	case ME_TYPE_SIMULTENCE:
 		ret = musicexpr_clone_melist(&cloned->u.melist,
 					     me->u.melist,
@@ -254,7 +247,7 @@ relative_to_absolute(struct musicexpr_t *me,
 		/* for NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
 	};
-	int note, c;
+	int first_note_seen, note, c;
 
 	mdl_log(3,
 		level,
@@ -320,6 +313,36 @@ relative_to_absolute(struct musicexpr_t *me,
 		} else {
 			prev_exprs->absnote.length = me->u.rest.length;
 		}
+		break;
+	case ME_TYPE_RELSIMULTENCE:
+		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
+
+		/* in case value for scaled expression length is missing,
+		 * get it from previous length */
+		if (me->u.scaledexpr.length == 0)
+			me->u.scaledexpr.length = prev_exprs->absnote.length;
+
+		/* Order should not generally matter in simultences, except
+		 * in this case we let relativity to affect simultence
+		 * notes.  The first note should affect relativity
+		 * (not default length), but not subsequent ones. */
+		first_note_seen = 0;
+		prev_exprs_copy = *prev_exprs;
+		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
+			relative_to_absolute(p, prev_exprs, level + 1);
+			if (!first_note_seen)
+				prev_exprs_copy = *prev_exprs;
+			first_note_seen = 1;
+		}
+		*prev_exprs = prev_exprs_copy;
+
+		/* we also set default length for subsequent expressions */
+		prev_exprs->absnote.length = me->u.scaledexpr.length;
+
+		/* relsimultence can now be treated like normal
+		 * scaled expression */
+		me->me_type = ME_TYPE_SCALEDEXPR;
+
 		break;
 	case ME_TYPE_SCALEDEXPR:
 		relative_to_absolute(me->u.scaledexpr.me,
@@ -1145,6 +1168,19 @@ musicexpr_log(const struct musicexpr_t *me,
 			me->u.relnote.length,
 			me->u.relnote.octavemods);
 		break;
+	case ME_TYPE_RELSIMULTENCE:
+		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
+		mdl_log(loglevel,
+			indentlevel,
+			"%s%s length=%.3f\n",
+			prefix,
+			metype_string,
+			me->u.scaledexpr.length);
+		musicexpr_log(me->u.scaledexpr.me,
+			      loglevel,
+			      indentlevel + 1,
+			      prefix);
+		break;
 	case ME_TYPE_REST:
 		mdl_log(loglevel,
 			indentlevel,
@@ -1281,6 +1317,7 @@ musicexpr_free(struct musicexpr_t *me)
 	case ME_TYPE_NOTEOFFSETEXPR:
 		musicexpr_free(me->u.noteoffsetexpr.me);
 		break;
+	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
 		musicexpr_free(me->u.scaledexpr.me);
 		break;
@@ -1395,6 +1432,7 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
 		"relnote",		/* ME_TYPE_RELNOTE */
+		"relsimultence",	/* ME_TYPE_RELSIMULTENCE */
 		"rest",			/* ME_TYPE_REST */
 		"scaledexpr",		/* ME_TYPE_SCALEDEXPR */
 		"sequence",		/* ME_TYPE_SEQUENCE */
@@ -1428,4 +1466,3 @@ musicexpr_new_empty(void)
 
 	return me;
 }
-

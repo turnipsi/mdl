@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.15 2016/01/23 13:15:48 je Exp $ */
+/* $Id: lex.l,v 1.16 2016/01/23 16:54:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -94,8 +94,8 @@ r	{ return RESTTOKEN; }
 \<\<		{ return SIMULTENCE_START; }
 \>\>		{ return SIMULTENCE_END;   }
 
-\<		{ return SCALED_SIMULTENCE_START; }
-\>		{ return SCALED_SIMULTENCE_END;   }
+\<		{ return RELSIMULTENCE_START; }
+\>		{ return RELSIMULTENCE_END;   }
 
 [ \t\n]+	{}
 %%

@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.25 2016/01/23 14:39:42 je Exp $ */
+/* $Id: joinexpr.c,v 1.26 2016/01/23 16:54:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,6 +51,9 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 
 	ret = 0;
 
+	assert(me->me_type != ME_TYPE_RELNOTE);
+	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
+
 	mdl_log(3,
 		level,
 		"joining possible subexpressions in %p (%s)\n",
@@ -60,7 +63,6 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_EMPTY:
-	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 		break;
 	case ME_TYPE_CHORD:
@@ -138,6 +140,8 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	 * this. */
 	assert(at != ME_TYPE_RELNOTE);
 	assert(bt != ME_TYPE_RELNOTE);
+	assert(at != ME_TYPE_RELSIMULTENCE);
+	assert(bt != ME_TYPE_RELSIMULTENCE);
 
 	/* we should have handled the subexpressions before entering here */
 	assert(at != ME_TYPE_JOINEXPR);

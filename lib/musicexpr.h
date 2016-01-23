@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.45 2016/01/23 14:39:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.46 2016/01/23 16:54:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,6 +32,7 @@ enum musicexpr_type {
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_RELNOTE,
+	ME_TYPE_RELSIMULTENCE,
 	ME_TYPE_REST,
 	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
@@ -120,6 +121,7 @@ struct scaledexpr_t {
 };
 
 TAILQ_HEAD(melist_t, musicexpr_t);
+
 struct musicexpr_t {
 	enum musicexpr_type me_type;
 	union {
