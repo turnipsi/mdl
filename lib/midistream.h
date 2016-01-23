@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.7 2016/01/23 19:15:42 je Exp $ */
+/* $Id: midistream.h,v 1.1 2016/01/23 19:15:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,25 +16,16 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_MIDI_H
-#define MDL_MIDI_H
+#ifndef MDL_MIDISTREAM_H
+#define MDL_MIDISTREAM_H
 
-#include "util.h"
+#include <sys/types.h>
 
-#define MIDI_CHANNEL_MAX	15
-#define MIDI_NOTE_MAX		127
+#include "musicexpr.h"
 
-enum eventtype_t { SONG_END, NOTEOFF, NOTEON, EVENTTYPE_COUNT };
+struct mdl_stream *
+musicexpr_to_midievents(struct musicexpr_t *, int);
 
-struct midievent {
-	enum eventtype_t        eventtype;
-	u_int8_t                channel, note, velocity;
-	float                   time_as_measures;
-};
-
-int	midi_open_device(void);
-int	midi_check_midievent(struct midievent, float);
-int	midi_send_midievent(struct midievent *);
-void	midi_close_device(void);
+ssize_t	midi_write_midistream(int, struct mdl_stream *, int);
 
 #endif

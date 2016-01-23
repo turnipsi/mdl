@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.63 2016/01/23 17:11:46 je Exp $ */
+/* $Id: musicexpr.c,v 1.64 2016/01/23 19:15:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,12 +27,8 @@
 #include <string.h>
 
 #include "joinexpr.h"
-#include "midi.h"
 #include "musicexpr.h"
 #include "util.h"
-
-#define DEFAULT_MIDICHANNEL	0
-#define DEFAULT_VELOCITY	80
 
 struct previous_relative_exprs_t {
 	struct absnote_t absnote;
@@ -46,14 +42,11 @@ struct simultence_state {
 static int	musicexpr_clone_melist(struct melist_t *,
 				       struct melist_t,
 				       int);
-static void	musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 static void	relative_to_absolute(struct musicexpr_t *,
 				     struct previous_relative_exprs_t *,
 				     int);
 static void	musicexpr_log_chordtype(enum chordtype_t, int, int, char *);
 static void	musicexpr_log_melist(struct melist_t, int, int, char *);
-
-static struct mdl_stream *offsetexprstream_new(void);
 
 static struct musicexpr_t *
 musicexpr_tq(enum musicexpr_type me_type,
@@ -61,16 +54,17 @@ musicexpr_tq(enum musicexpr_type me_type,
 	     struct musicexpr_t *,
 	     va_list va);
 
+static struct musicexpr_t *
+musicexpr_simultence(int, struct musicexpr_t *, ...);
+
 static int
 add_musicexpr_to_flat_simultence(struct musicexpr_t *,
 				 struct musicexpr_t *,
 				 struct simultence_state *,
 				 int);
 
-static struct mdl_stream *
-offsetexprstream_to_midievents(struct mdl_stream *, int);
+void musicexpr_apply_noteoffset(struct musicexpr_t *, int, int);
 
-static void	apply_noteoffset(struct musicexpr_t *, int, int);
 static struct musicexpr_t *musicexpr_scale_in_time(struct musicexpr_t *,
 						   float,
 						   int);
@@ -78,14 +72,7 @@ static float	musicexpr_calc_length(struct musicexpr_t *);
 void		musicexpr_stretch_length_by_factor(struct musicexpr_t *,
 						   float);
 
-static int
-add_musicexpr_to_midievents(struct mdl_stream *,
-			    const struct musicexpr_t *,
-			    float,
-			    int);
-
 static int	compare_notesyms(enum notesym_t, enum notesym_t);
-static int	compare_midievents(const void *, const void *);
 
 static struct musicexpr_t *musicexpr_new_empty(void);
 
@@ -216,7 +203,7 @@ musicexpr_clone_melist(struct melist_t *cloned_melist,
 	return 0;
 }
 
-static void
+void
 musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
 {
 	struct previous_relative_exprs_t prev_relative_exprs;
@@ -408,233 +395,6 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 	return (diff < 4) ? -1 : 1;
 }
 
-struct mdl_stream *
-musicexpr_to_midievents(struct musicexpr_t *me, int level)
-{
-	struct musicexpr_t *me_workcopy, *simultence, *p;
-	struct mdl_stream *offset_es, *midi_es;
-
-	mdl_log(1, level, "converting music expression to midi stream\n");
-
-	midi_es = NULL;
-	simultence = NULL;
-
-	if ((offset_es = offsetexprstream_new()) == NULL) {
-		warnx("could not setup new offsetexprstream");
-		return NULL;
-	}
-
-	if ((me_workcopy = musicexpr_clone(me, level + 1)) == NULL) {
-		warnx("could not clone music expressions");
-		mdl_stream_free(offset_es);
-		return NULL;
-	}
-
-	/* first convert relative->absolute,
-	 * joinexpr_musicexpr() can not handle relative expressions */
-	musicexpr_relative_to_absolute(me_workcopy, level + 1);
-
-	mdl_log(1, level + 1, "joining all music expressions\n");
-	if (joinexpr_musicexpr(me_workcopy, level + 1) != 0) {
-		warnx("error occurred in joining music expressions");
-		goto finish;
-	}
-
-	mdl_log(1,
-		level + 1,
-		"converting expression to a (flat) simultence\n");
-	simultence = musicexpr_to_flat_simultence(me_workcopy, level + 1);
-	if (simultence == NULL) {
-		warnx("Could not flatten music expression to create offset" \
-			" expression stream");
-		goto finish;
-	}
-
-	mdl_log(1, level + 1, "making offset expression stream\n");
-	TAILQ_FOREACH(p, &simultence->u.melist, tq) {
-		assert(p->me_type == ME_TYPE_WITHOFFSET);
-		offset_es->mexprs[ offset_es->count ] = p->u.offsetexpr;
-		if (mdl_stream_increment(offset_es) != 0)
-			goto finish;
-	}
-
-	midi_es = offsetexprstream_to_midievents(offset_es, level + 1);
-	if (midi_es == NULL)
-		warnx("could not convert offset-expression-stream" \
-			" to midistream");
-
-finish:
-	mdl_stream_free(offset_es);
-
-	if (simultence != NULL)
-		musicexpr_free(simultence);
-
-	musicexpr_free(me_workcopy);
-
-	return midi_es;
-}
-
-static int
-compare_midievents(const void *a, const void *b)
-{
-	const struct midievent *ma, *mb;
-
-	ma = a;
-	mb = b;
-
-	return (ma->time_as_measures < mb->time_as_measures)          ? -1 : 
-	       (ma->time_as_measures > mb->time_as_measures)          ?  1 :
-	       (ma->eventtype == NOTEOFF && mb->eventtype == NOTEON)  ? -1 :
-	       (ma->eventtype == NOTEON  && mb->eventtype == NOTEOFF) ?  1 :
-	       0;
-}
-
-static struct mdl_stream *
-offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
-{
-	struct mdl_stream *midi_es;
-	struct midievent *midievent;
-	struct offsetexpr_t offsetexpr;
-	struct musicexpr_t *me;
-	float timeoffset;
-	int i, ret;
-
-	mdl_log(2, level, "offset expression stream to midi events\n");
-
-	if ((midi_es = midi_eventstream_new()) == NULL)
-		goto error;
-
-	for (i = 0; i < offset_es->count; i++) {
-		offsetexpr = offset_es->mexprs[i];
-		me = offsetexpr.me;
-		timeoffset = offsetexpr.offset;
-
-		mdl_log(4,
-			level + 1,
-			"handling expression with offset %.3f\n",
-			timeoffset);
-		musicexpr_log(me, 4, level + 2, NULL);
-
-		ret = add_musicexpr_to_midievents(midi_es,
-						  me,
-						  timeoffset,
-						  level + 1);
-		if (ret != 0)
-			goto error;
-	}
-
-	ret = heapsort(midi_es->midievents,
-		       midi_es->count,
-		       sizeof(struct midievent),
-		       compare_midievents);
-	if (ret == -1) {
-		warn("could not sort midieventstream");
-		goto error;
-	}
-
-	/* add SONG_END midievent */
-	midievent = &midi_es->midievents[ midi_es->count ];
-	bzero(midievent, sizeof(struct midievent));
-	midievent->eventtype = SONG_END;
-
-	ret = mdl_stream_increment(midi_es);
-	if (ret != 0)
-		goto error;
-
-	return midi_es;
-
-error:
-	warnx("could not convert offset-expression-stream to midi stream");
-	if (midi_es)
-		mdl_stream_free(midi_es);
-
-	return NULL;
-}
-
-static int
-add_musicexpr_to_midievents(struct mdl_stream *midi_es,
-			    const struct musicexpr_t *me,
-			    float timeoffset,
-			    int level)
-{
-	struct midievent *midievent;
-	struct musicexpr_t *noteoffsetexpr, *subexpr;
-	int ret, new_note, i;
-
-	ret = 0;
-
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-		new_note = me->u.absnote.note;
-
-		/* we accept and ignore notes that are out-of-range */
-		if (new_note < 0 || MIDI_NOTE_MAX < new_note) {
-			mdl_log(2,
-				level,
-				"skipping note with value %d",
-				new_note);
-			ret = 0;
-			break;
-		}
-		/* length can never be non-positive here, that is a bug */
-		assert(me->u.absnote.length > 0);
-
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEON;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = new_note;
-		midievent->time_as_measures = timeoffset;
-		midievent->velocity = DEFAULT_VELOCITY;
-
-		ret = mdl_stream_increment(midi_es);
-		if (ret != 0)
-			break;
-
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEOFF;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = new_note;
-		midievent->time_as_measures
-		    = timeoffset + me->u.absnote.length;
-		midievent->velocity = 0;
-
-		ret = mdl_stream_increment(midi_es);
-		break;
-	case ME_TYPE_CHORD:
-		noteoffsetexpr = chord_to_noteoffsetexpr(me->u.chord, level);
-		ret = add_musicexpr_to_midievents(midi_es,
-						  noteoffsetexpr,
-						  timeoffset,
-					    	  level);
-		musicexpr_free(noteoffsetexpr);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
-			subexpr = musicexpr_clone(me->u.noteoffsetexpr.me,
-						  level);
-			apply_noteoffset(subexpr,
-					 me->u.noteoffsetexpr.offsets[i],
-					 level);
-
-			ret = add_musicexpr_to_midievents(midi_es,
-							  subexpr,
-							  timeoffset,
-							  level);
-			musicexpr_free(subexpr);
-			if (ret != 0)
-				break;
-		}
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
-	return ret;
-}
-
 static struct musicexpr_t *
 musicexpr_tq(enum musicexpr_type me_type,
 	     int level,
@@ -677,7 +437,7 @@ musicexpr_sequence(int level, struct musicexpr_t *next_me, ...)
 	return me;
 }
 
-struct musicexpr_t *
+static struct musicexpr_t *
 musicexpr_simultence(int level, struct musicexpr_t *next_me, ...)
 {
 	va_list va;
@@ -761,7 +521,9 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 			if (subexpr == NULL)
 				return 1;
 			noteoffset = me->u.noteoffsetexpr.offsets[i];
-			apply_noteoffset(subexpr, noteoffset, level);
+			musicexpr_apply_noteoffset(subexpr,
+						   noteoffset,
+						   level);
 			old_offset = state->next_offset;
 			ret = add_musicexpr_to_flat_simultence(simultence,
 							       subexpr,
@@ -886,8 +648,8 @@ musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
 	return simultence;
 }
 
-static void
-apply_noteoffset(struct musicexpr_t *me, int offset, int level)
+void
+musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 {
 	struct musicexpr_t *p;
 
@@ -902,31 +664,37 @@ apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 		me->u.absnote.note += offset;
 		break;
         case ME_TYPE_CHORD:
-		apply_noteoffset(me->u.chord.me, offset, level);
+		musicexpr_apply_noteoffset(me->u.chord.me, offset, level);
 		break;
         case ME_TYPE_EMPTY:
 		/* do nothing */
 		break;
         case ME_TYPE_JOINEXPR:
-		apply_noteoffset(me->u.joinexpr.a, offset, level);
-		apply_noteoffset(me->u.joinexpr.b, offset, level);
+		musicexpr_apply_noteoffset(me->u.joinexpr.a, offset, level);
+		musicexpr_apply_noteoffset(me->u.joinexpr.b, offset, level);
 		break;
         case ME_TYPE_NOTEOFFSETEXPR:
-		apply_noteoffset(me->u.noteoffsetexpr.me, offset, level);
+		musicexpr_apply_noteoffset(me->u.noteoffsetexpr.me,
+					   offset,
+					   level);
 		break;
         case ME_TYPE_REST:
 		/* do nothing */
 		break;
         case ME_TYPE_SCALEDEXPR:
-		apply_noteoffset(me->u.scaledexpr.me, offset, level);
+		musicexpr_apply_noteoffset(me->u.scaledexpr.me,
+					   offset,
+					   level);
 		break;
         case ME_TYPE_SEQUENCE:
         case ME_TYPE_SIMULTENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq)
-			apply_noteoffset(p, offset, level);
+			musicexpr_apply_noteoffset(p, offset, level);
 		break;
         case ME_TYPE_WITHOFFSET:
-		apply_noteoffset(me->u.offsetexpr.me, offset, level);
+		musicexpr_apply_noteoffset(me->u.offsetexpr.me,
+					   offset,
+					   level);
 		break;
 	default:
 		assert(0);
@@ -1353,12 +1121,6 @@ musicexpr_free_melist(struct melist_t melist)
 		TAILQ_REMOVE(&melist, p, tq);
 		musicexpr_free(p);
 	}
-}
-
-static struct mdl_stream *
-offsetexprstream_new(void)
-{
-	return mdl_stream_new(OFFSETEXPRSTREAM);
 }
 
 struct musicexpr_t *

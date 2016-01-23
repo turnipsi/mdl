@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.36 2016/01/13 21:02:42 je Exp $ */
+/* $Id: interpreter.c,v 1.37 2016/01/23 19:15:42 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,7 +23,7 @@
 #include <unistd.h>
 
 #include "compat.h"
-#include "midi.h"
+#include "midistream.h"
 #include "musicexpr.h"
 #include "util.h"
 

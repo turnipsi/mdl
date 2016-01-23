@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.10 2016/01/16 21:37:51 je Exp $ */
+/* $Id: midi.c,v 1.11 2016/01/23 19:15:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,12 +18,9 @@
 
 #include <assert.h>
 #include <err.h>
-#include <errno.h>
-#include <stdlib.h>
 #include <math.h>
 #include <sndio.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "midi.h"
 #include "util.h"
@@ -156,40 +153,4 @@ static int
 midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 {
 	return (min <= value && value <= max);
-}
-
-struct mdl_stream *
-midi_eventstream_new(void)
-{
-	return mdl_stream_new(MIDIEVENTSTREAM);
-}
-
-ssize_t
-midi_write_midistream(int sequencer_socket,
-		      struct mdl_stream *s,
-		      int level)
-{
-	size_t wsize;
-	ssize_t nw, total_wcount;
-
-	total_wcount = 0;
-
-	/* XXX overflow? */
-	wsize = s->count * sizeof(struct midievent);
-
-	while (total_wcount < wsize) {
-		nw = write(sequencer_socket,
-			   (char *) s->midievents + total_wcount,
-			   wsize - total_wcount);
-		if (nw == -1) {
-			if (errno == EAGAIN)
-				continue;
-			warn("error writing to sequencer");
-			return -1;
-		}
-		mdl_log(2, level, "wrote %ld bytes to sequencer\n", nw);
-		total_wcount += nw;
-	}
-
-	return total_wcount;
 }
