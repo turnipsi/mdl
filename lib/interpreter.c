@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.37 2016/01/23 19:15:42 je Exp $ */
+/* $Id: interpreter.c,v 1.38 2016/01/23 19:45:48 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,6 +39,7 @@ handle_musicfile_and_socket(int file_fd,
 			    int server_socket)
 {
 	struct mdl_stream *eventstream;
+	ssize_t wcount;
 	int level, ret;
 
 	/* XXX main_socket not yet used for anything */
@@ -82,10 +83,11 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	mdl_log(1, level, "writing midi stream to sequencer\n");
-	/* XXX */
-	(void) midi_write_midistream(sequencer_socket,
-				     eventstream,
-				     level + 1);
+	wcount = midi_write_midistream(sequencer_socket,
+				       eventstream,
+				       level + 1);
+	if (wcount == -1)
+		ret = 1;
 
 finish:
 	if (eventstream)
