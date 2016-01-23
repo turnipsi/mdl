@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.14 2016/01/20 20:22:39 je Exp $ */
+/* $Id: lex.l,v 1.15 2016/01/23 13:15:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,6 +46,9 @@ r	{ return RESTTOKEN; }
 \.+		{ yylval.i = strlen(yytext); return LENGTHDOT; }
 [1-9][0-9]*	{
 			/* XXX error handling */
+			/* things later presume this is > 0,
+			 * so do not change this to allow zero without
+			 * thinking the implications */
 			yylval.i = strtonum(yytext, 1, INT_MAX, NULL);
 			return LENGTHNUMBER;
 		}
@@ -90,6 +93,9 @@ r	{ return RESTTOKEN; }
 
 \<\<		{ return SIMULTENCE_START; }
 \>\>		{ return SIMULTENCE_END;   }
+
+\<		{ return SCALED_SIMULTENCE_START; }
+\>		{ return SCALED_SIMULTENCE_END;   }
 
 [ \t\n]+	{}
 %%

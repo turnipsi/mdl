@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.43 2016/01/13 21:02:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.44 2016/01/23 13:15:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,13 +23,17 @@
 
 #include "util.h"
 
+#define MINIMUM_MUSICEXPR_LENGTH	0.0001
+
 enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
 	ME_TYPE_CHORD,
+	ME_TYPE_EMPTY,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_RELNOTE,
 	ME_TYPE_REST,
+	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
 	ME_TYPE_WITHOFFSET,
@@ -106,9 +110,13 @@ struct musicexpr_with_offset_t {
 	struct musicexpr_t     *me;
 };
 
-
 struct joinexpr_t {
 	struct musicexpr_t *a, *b;
+};
+
+struct scaledexpr_t {
+	struct musicexpr_t *me;
+	float length;
 };
 
 TAILQ_HEAD(melist_t, musicexpr_t);
@@ -116,13 +124,14 @@ struct musicexpr_t {
 	enum musicexpr_type me_type;
 	union {
 		struct absnote_t		absnote;
-		struct joinexpr_t		joinexpr;
-		struct relnote_t		relnote;
 		struct chord_t			chord;
-		struct rest_t			rest;
+		struct joinexpr_t		joinexpr;
 		struct melist_t			melist;
 		struct musicexpr_with_offset_t	offsetexpr;
 		struct noteoffsetexpr_t		noteoffsetexpr;
+		struct relnote_t		relnote;
+		struct rest_t			rest;
+		struct scaledexpr_t		scaledexpr;
 	} u;
 	TAILQ_ENTRY(musicexpr_t) tq;
 };
@@ -134,7 +143,8 @@ struct musicexpr_t     *musicexpr_clone(struct musicexpr_t *, int);
 struct musicexpr_t     *musicexpr_sequence(int, struct musicexpr_t *, ...);
 struct musicexpr_t     *musicexpr_simultence(int, struct musicexpr_t *, ...);
 struct musicexpr_t     *chord_to_noteoffsetexpr(struct chord_t, int);
-struct musicexpr_t     *musicexpr_to_simultence(struct musicexpr_t *, int);
+struct musicexpr_t     *musicexpr_to_flat_simultence(struct musicexpr_t *,
+						     int);
 const char	       *musicexpr_type_to_string(const struct musicexpr_t *);
 void			musicexpr_free_melist(struct melist_t);
 void			free_melist(struct musicexpr_t *);

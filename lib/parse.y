@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.37 2016/01/20 20:22:39 je Exp $
+/* $Id: parse.y,v 1.38 2016/01/23 13:15:48 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -93,12 +93,16 @@ static void    *malloc_musicexpr(void);
 			CHORDTOKEN_5
 			CHORDTOKEN_5_8
 
-%token			SEQUENCE_START SEQUENCE_END
-%token			SIMULTENCE_START SIMULTENCE_END
+%token			SCALED_SIMULTENCE_START
+			SCALED_SIMULTENCE_END
+			SEQUENCE_START
+			SEQUENCE_END
+			SIMULTENCE_START
+			SIMULTENCE_END
 
 %left			JOINEXPR
 
-%type	<musicexpr>	grammar musicexpr musicexpr_sequence
+%type	<musicexpr>	grammar musicexpr sequence simultence
 %type	<melist>	expression_list
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
@@ -112,10 +116,10 @@ static void    *malloc_musicexpr(void);
 %%
 
 grammar:
-	musicexpr_sequence { parsed_expr = $1; }
+	sequence { parsed_expr = $1; }
 	;
 
-musicexpr_sequence:
+sequence:
 	expression_list {
 		$$ = malloc(sizeof(struct musicexpr_t));
 		if ($$ == NULL) {
@@ -142,7 +146,16 @@ expression_list:
 	;
 
 musicexpr:
-	joinexpr {
+	chord {
+		if (($$ = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_CHORD;
+		$$->u.chord = $1;
+	  }
+	| joinexpr {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -161,15 +174,6 @@ musicexpr:
 		$$->me_type = ME_TYPE_RELNOTE;
 		$$->u.relnote = $1;
 	  }
-	| chord {
-		if (($$ = malloc_musicexpr()) == NULL) {
-			/* XXX YYERROR and memory leaks?
-			 * XXX return NULL and handle on upper layer? */
-			YYERROR;
-		}
-		$$->me_type = ME_TYPE_CHORD;
-		$$->u.chord = $1;
-	  }
 	| rest {
 		if (($$ = malloc_musicexpr()) == NULL) {
 			/* XXX YYERROR and memory leaks?
@@ -179,22 +183,51 @@ musicexpr:
 		$$->me_type = ME_TYPE_REST;
 		$$->u.rest = $1;
 	  }
-	| SEQUENCE_START musicexpr_sequence SEQUENCE_END {
+	| SCALED_SIMULTENCE_START simultence SCALED_SIMULTENCE_END notelength {
+		if (($$ = malloc_musicexpr()) == NULL) {
+			musicexpr_free($2);
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_SCALEDEXPR;
+		$$->u.scaledexpr.me = $2;
+		$$->u.scaledexpr.length = $4;
+	  }
+	| SEQUENCE_START sequence SEQUENCE_END {
 		$$ = $2;
 	  }
-	| SIMULTENCE_START expression_list SIMULTENCE_END {
+	| SIMULTENCE_START simultence SIMULTENCE_END {
+		$$ = $2;
+	  }
+	;
+
+simultence:
+	expression_list {
 		$$ = malloc(sizeof(struct musicexpr_t));
 		if ($$ == NULL) {
-			musicexpr_free_melist($2);
+			musicexpr_free_melist($1);
 			warn("%s", "malloc error");
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_SIMULTENCE;
-		$$->u.melist = $2;
+		$$->u.melist = $1;
 	  }
 	;
+
+chord:
+	relnote chordtype {
+		$$.chordtype = $2;
+		if (($$.me = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$.me->me_type = ME_TYPE_RELNOTE;
+		$$.me->u.relnote = $1;
+	};
 
 joinexpr:
 	musicexpr JOINEXPR musicexpr {
@@ -222,18 +255,6 @@ relnote:
 rest:
 	RESTTOKEN notelength {
 		$$.length = $2;
-	};
-
-chord:
-	relnote chordtype {
-		$$.chordtype = $2;
-		if (($$.me = malloc_musicexpr()) == NULL) {
-			/* XXX YYERROR and memory leaks?
-			 * XXX return NULL and handle on upper layer? */
-			YYERROR;
-		}
-		$$.me->me_type = ME_TYPE_RELNOTE;
-		$$.me->u.relnote = $1;
 	};
 
 notesym:
