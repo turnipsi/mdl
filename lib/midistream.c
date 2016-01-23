@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.1 2016/01/23 19:15:42 je Exp $ */
+/* $Id: midistream.c,v 1.2 2016/01/23 19:59:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
+
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
@@ -26,6 +28,7 @@
 #include "joinexpr.h"
 #include "midi.h"
 #include "midistream.h"
+#include "relative.h"
 
 #define DEFAULT_MIDICHANNEL	0
 #define DEFAULT_VELOCITY	80

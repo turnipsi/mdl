@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.64 2016/01/23 19:15:42 je Exp $ */
+/* $Id: musicexpr.c,v 1.65 2016/01/23 19:59:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,11 +30,6 @@
 #include "musicexpr.h"
 #include "util.h"
 
-struct previous_relative_exprs_t {
-	struct absnote_t absnote;
-	enum chordtype_t chordtype;
-};
-
 struct simultence_state {
 	float length, length_no_rests, next_offset;
 };
@@ -42,9 +37,6 @@ struct simultence_state {
 static int	musicexpr_clone_melist(struct melist_t *,
 				       struct melist_t,
 				       int);
-static void	relative_to_absolute(struct musicexpr_t *,
-				     struct previous_relative_exprs_t *,
-				     int);
 static void	musicexpr_log_chordtype(enum chordtype_t, int, int, char *);
 static void	musicexpr_log_melist(struct melist_t, int, int, char *);
 
@@ -71,8 +63,6 @@ static struct musicexpr_t *musicexpr_scale_in_time(struct musicexpr_t *,
 static float	musicexpr_calc_length(struct musicexpr_t *);
 void		musicexpr_stretch_length_by_factor(struct musicexpr_t *,
 						   float);
-
-static int	compare_notesyms(enum notesym_t, enum notesym_t);
 
 static struct musicexpr_t *musicexpr_new_empty(void);
 
@@ -201,198 +191,6 @@ musicexpr_clone_melist(struct melist_t *cloned_melist,
 	}
 
 	return 0;
-}
-
-void
-musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
-{
-	struct previous_relative_exprs_t prev_relative_exprs;
-
-	mdl_log(2, level, "converting relative expression to absolute\n");
-
-	/* set default values for the first absolute note */
-	prev_relative_exprs.absnote.length = 0.25;
-	prev_relative_exprs.absnote.notesym = NOTE_C;
-	prev_relative_exprs.absnote.note = 60;
-
-	/* set default value for the first chordtype */
-	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
-
-	relative_to_absolute(me, &prev_relative_exprs, level + 1);
-}
-
-static void
-relative_to_absolute(struct musicexpr_t *me,
-		     struct previous_relative_exprs_t *prev_exprs,
-		     int level)
-{
-	struct musicexpr_t *p;
-	struct absnote_t absnote;
-	struct relnote_t relnote;
-	struct previous_relative_exprs_t prev_exprs_copy;
-	int notevalues[] = {
-		/* for NOTE_C, NOTE_D, ... */
-		0, 2, 4, 5, 7, 9, 11,
-	};
-	int first_note_seen, note, c;
-
-	mdl_log(3,
-		level,
-		"rel->abs expression (%s)\n",
-		musicexpr_type_to_string(me));
-
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-		/* pass as is, but this affects previous absnote */
-		prev_exprs->absnote = me->u.absnote;
-		break;
-	case ME_TYPE_CHORD:
-		relative_to_absolute(me->u.chord.me, prev_exprs, level + 1);
-		if (me->u.chord.chordtype == CHORDTYPE_NONE)
-			me->u.chord.chordtype = prev_exprs->chordtype;
-		prev_exprs->chordtype = me->u.chord.chordtype;
-		break;
-	case ME_TYPE_EMPTY:
-		break;
-	case ME_TYPE_JOINEXPR:
-		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level + 1);
-		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level + 1);
-		break;
-	case ME_TYPE_RELNOTE:
-		musicexpr_log(me, 3, level + 1, NULL);
-
-		relnote = me->u.relnote;
-
-		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
-		assert(relnote.length >= 0);
-
-		note = 12 * (prev_exprs->absnote.note / 12)
-			 + notevalues[relnote.notesym]
-			 + relnote.notemods;
-
-		c = compare_notesyms(prev_exprs->absnote.notesym,
-				     relnote.notesym);
-		if (c > 0 && prev_exprs->absnote.note > note) {
-			note += 12;
-		} else if (c < 0 && prev_exprs->absnote.note < note) {
-			note -= 12;
-		}
-
-		note += 12 * relnote.octavemods;
-
-		absnote.notesym = relnote.notesym;
-		absnote.length  = relnote.length;
-		if (absnote.length == 0)
-			absnote.length = prev_exprs->absnote.length;
-		absnote.note = note;
-
-		me->me_type = ME_TYPE_ABSNOTE;
-		me->u.absnote = absnote;
-
-		prev_exprs->absnote = absnote;
-
-		break;
-	case ME_TYPE_REST:
-		musicexpr_log(me, 3, level + 1, NULL);
-
-		if (me->u.rest.length == 0) {
-			me->u.rest.length = prev_exprs->absnote.length;
-		} else {
-			prev_exprs->absnote.length = me->u.rest.length;
-		}
-		break;
-	case ME_TYPE_RELSIMULTENCE:
-		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
-
-		/* in case value for scaled expression length is missing,
-		 * get it from previous length */
-		if (me->u.scaledexpr.length == 0)
-			me->u.scaledexpr.length = prev_exprs->absnote.length;
-
-		/* Order should not generally matter in simultences, except
-		 * in this case we let relativity to affect simultence
-		 * notes.  The first note should affect relativity
-		 * (not default length), but not subsequent ones. */
-		first_note_seen = 0;
-		prev_exprs_copy = *prev_exprs;
-		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level + 1);
-			if (!first_note_seen)
-				prev_exprs_copy = *prev_exprs;
-			first_note_seen = 1;
-		}
-		*prev_exprs = prev_exprs_copy;
-
-		/* we also set default length for subsequent expressions */
-		prev_exprs->absnote.length = me->u.scaledexpr.length;
-
-		/* relsimultence can now be treated like normal
-		 * scaled expression */
-		me->me_type = ME_TYPE_SCALEDEXPR;
-
-		break;
-	case ME_TYPE_SCALEDEXPR:
-		relative_to_absolute(me->u.scaledexpr.me,
-				     prev_exprs,
-				     level + 1);
-		break;
-	case ME_TYPE_SEQUENCE:
-		/* make the first note in a sequence affect notes/lengths
-		 * of subsequent expressions that follow the sequence */
-		first_note_seen = 0;
-		prev_exprs_copy = *prev_exprs;
-		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level + 1);
-			if (!first_note_seen)
-				prev_exprs_copy = *prev_exprs;
-			first_note_seen = 1;
-		}
-		*prev_exprs = prev_exprs_copy;
-		break;
-	case ME_TYPE_SIMULTENCE:
-		/* For simultences, make previous expression affect all
-		 * expressions in simultence, but do not let expressions
-		 * in simultence affect subsequent expressions. */
-		prev_exprs_copy = *prev_exprs;
-		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			prev_exprs_copy = *prev_exprs;
-			relative_to_absolute(p, &prev_exprs_copy, level + 1);
-		}
-		*prev_exprs = prev_exprs_copy;
-		break;
-	case ME_TYPE_WITHOFFSET:
-		relative_to_absolute(me->u.offsetexpr.me,
-				     prev_exprs,
-				     level + 1);
-		break;
-	default:
-		assert(0);
-		break;
-	}
-
-	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)
-		musicexpr_log(me, 3, level + 2, "--> ");
-}
-
-/* if equal                            -->  0
- * if higher b is closer to a than lower  b -->  1
- * if lower  b is closer to a than higher b --> -1 */
-static int
-compare_notesyms(enum notesym_t a, enum notesym_t b)
-{
-	int diff;
-
-	assert(0 <= a && a < NOTE_MAX);
-	assert(0 <= b && b < NOTE_MAX);
-
-	if (a == b)
-		return 0;
-
-	diff = a - b;
-	if (diff < 0)
-		diff += NOTE_MAX;
-
-	return (diff < 4) ? -1 : 1;
 }
 
 static struct musicexpr_t *

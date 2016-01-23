@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.47 2016/01/23 19:15:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.48 2016/01/23 19:59:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -155,7 +155,5 @@ void			musicexpr_copy(struct musicexpr_t *,
 
 void
 musicexpr_apply_noteoffset(struct musicexpr_t *, int, int);
-
-void	musicexpr_relative_to_absolute(struct musicexpr_t *, int);
 
 #endif
