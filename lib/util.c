@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.14 2015/12/09 19:56:10 je Exp $ */
+/* $Id: util.c,v 1.15 2016/01/23 14:39:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,7 +81,7 @@ mdl_stream_new(enum streamtype s_type)
 	switch (s->s_type) {
 	case OFFSETEXPRSTREAM:
 		s->mexprs = calloc(s->slotcount,
-				   sizeof(struct musicexpr_with_offset_t));
+				   sizeof(struct offsetexpr_t));
 		if (s->mexprs == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
@@ -117,7 +117,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items
 			    = reallocarray(s->mexprs,
 					   s->slotcount,
-					   sizeof(struct musicexpr_with_offset_t));
+					   sizeof(struct offsetexpr_t));
 
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");

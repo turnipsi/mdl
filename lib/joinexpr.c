@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.24 2016/01/23 13:15:48 je Exp $ */
+/* $Id: joinexpr.c,v 1.25 2016/01/23 14:39:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -382,7 +382,7 @@ static struct musicexpr_t *
 join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
 	struct musicexpr_t *p, *q, *r;
-	struct musicexpr_with_offset_t *p_me, *q_me;
+	struct offsetexpr_t *p_me, *q_me;
 	float prev_note_end, next_note_start, a_length;
 
 	a_length = 0.0;

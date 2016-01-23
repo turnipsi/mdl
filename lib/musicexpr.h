@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.44 2016/01/23 13:15:48 je Exp $ */
+/* $Id: musicexpr.h,v 1.45 2016/01/23 14:39:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -105,7 +105,7 @@ struct noteoffsetexpr_t {
 	size_t			count;
 };
 
-struct musicexpr_with_offset_t {
+struct offsetexpr_t {
 	float			offset;
 	struct musicexpr_t     *me;
 };
@@ -127,8 +127,8 @@ struct musicexpr_t {
 		struct chord_t			chord;
 		struct joinexpr_t		joinexpr;
 		struct melist_t			melist;
-		struct musicexpr_with_offset_t	offsetexpr;
-		struct noteoffsetexpr_t		noteoffsetexpr;
+		struct offsetexpr_t		offsetexpr;
+ 		struct noteoffsetexpr_t		noteoffsetexpr;
 		struct relnote_t		relnote;
 		struct rest_t			rest;
 		struct scaledexpr_t		scaledexpr;

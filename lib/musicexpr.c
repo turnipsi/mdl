@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.59 2016/01/23 13:15:48 je Exp $ */
+/* $Id: musicexpr.c,v 1.60 2016/01/23 14:39:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -462,7 +462,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
-	struct musicexpr_with_offset_t offsetexpr;
+	struct offsetexpr_t offsetexpr;
 	struct musicexpr_t *me;
 	float timeoffset;
 	int i, ret;
