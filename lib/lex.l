@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.16 2016/01/23 16:54:58 je Exp $ */
+/* $Id: lex.l,v 1.17 2016/01/27 21:34:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,7 +27,21 @@
 int	yywrap(void);
 %}
 
+%x quotedstring
+
 %%
+\"			BEGIN(quotedstring);
+
+<quotedstring>[[:alnum:]]+	{
+					yylval.string = strdup(yytext);
+					if (yylval.string == NULL) {
+						/* XXX error handling */
+					}
+					return QUOTED_STRING;
+				}
+
+<quotedstring>\"	BEGIN(INITIAL);
+
 [ \t\n]+es { return NOTETOKEN_ES; }
 
 (es)+	{ yylval.i = strlen(yytext) / 2; return NOTEMOD_ES; }
@@ -96,6 +110,8 @@ r	{ return RESTTOKEN; }
 
 \<		{ return RELSIMULTENCE_START; }
 \>		{ return RELSIMULTENCE_END;   }
+
+::		{ return TRACK_OPERATOR; }
 
 [ \t\n]+	{}
 %%

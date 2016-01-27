@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.2 2016/01/23 19:59:23 je Exp $ */
+/* $Id: midistream.c,v 1.3 2016/01/27 21:34:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -266,6 +266,7 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 		ret = mdl_stream_increment(midi_es);
 		break;
 	case ME_TYPE_CHORD:
+		/* XXX dead code? */
 		noteoffsetexpr = chord_to_noteoffsetexpr(me->u.chord, level);
 		ret = add_musicexpr_to_midievents(midi_es,
 						  noteoffsetexpr,
@@ -274,6 +275,7 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 		musicexpr_free(noteoffsetexpr);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
+		/* XXX dead code? */
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
 			subexpr = musicexpr_clone(me->u.noteoffsetexpr.me,
 						  level);

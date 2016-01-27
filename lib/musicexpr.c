@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.65 2016/01/23 19:59:23 je Exp $ */
+/* $Id: musicexpr.c,v 1.66 2016/01/27 21:34:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -136,6 +136,23 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		memcpy(&cloned->u.noteoffsetexpr.offsets,
 		       &me->u.noteoffsetexpr.offsets,
 		       me->u.noteoffsetexpr.count * sizeof(int));
+		break;
+	case ME_TYPE_ONTRACK:
+		cloned->u.ontrack.me = musicexpr_clone(me->u.ontrack.me,
+						       level + 1);
+		if (cloned->u.ontrack.me == NULL) {
+			free(cloned);
+			cloned = NULL;
+			break;
+		}
+		cloned->u.ontrack.trackname
+		    = strdup(me->u.ontrack.trackname);
+		if (cloned->u.ontrack.trackname == NULL) {
+			free(cloned->u.ontrack.me);
+			free(cloned);
+			cloned = NULL;
+			break;
+		}
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
@@ -334,6 +351,11 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 			state->next_offset = old_offset;
 		}
 		state->next_offset = new_next_offset;
+		break;
+        case ME_TYPE_ONTRACK:
+		/* XXX is this the place where should look up the
+		 * XXX instrument code, and perhaps flat simultence
+		 * XXX should contain something with instrument codes? */
 		break;
         case ME_TYPE_REST:
 		end_offset = state->next_offset + me->u.rest.length;
@@ -731,6 +753,18 @@ musicexpr_log(const struct musicexpr_t *me,
 			free(old_tmpstring);
 		}
 		break;
+	case ME_TYPE_ONTRACK:
+		mdl_log(loglevel,
+			indentlevel,
+			"%s%s trackname=%s\n",
+			prefix,
+			metype_string,
+			me->u.ontrack.trackname);
+		musicexpr_log(me->u.ontrack.me,
+			      loglevel,
+			      indentlevel + 1,
+			      prefix);
+		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(loglevel,
 			indentlevel,
@@ -892,6 +926,10 @@ musicexpr_free(struct musicexpr_t *me)
 	case ME_TYPE_NOTEOFFSETEXPR:
 		musicexpr_free(me->u.noteoffsetexpr.me);
 		break;
+	case ME_TYPE_ONTRACK:
+		musicexpr_free(me->u.ontrack.me);
+		free(me->u.ontrack.trackname);
+		break;
 	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
 		musicexpr_free(me->u.scaledexpr.me);
@@ -1000,6 +1038,7 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 		"empty",		/* ME_TYPE_EMPTY */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
+		"ontrack",		/* ME_TYPE_ONTRACK */
 		"relnote",		/* ME_TYPE_RELNOTE */
 		"relsimultence",	/* ME_TYPE_RELSIMULTENCE */
 		"rest",			/* ME_TYPE_REST */

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.48 2016/01/23 19:59:23 je Exp $ */
+/* $Id: musicexpr.h,v 1.49 2016/01/27 21:34:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,6 +31,7 @@ enum musicexpr_type {
 	ME_TYPE_EMPTY,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
+	ME_TYPE_ONTRACK,
 	ME_TYPE_RELNOTE,
 	ME_TYPE_RELSIMULTENCE,
 	ME_TYPE_REST,
@@ -80,6 +81,7 @@ enum chordtype_t {
 };
 
 struct absnote_t {
+	struct instrument_t *instrument;
 	enum notesym_t notesym;
 	float length;
 	int note;
@@ -120,6 +122,11 @@ struct scaledexpr_t {
 	float length;
 };
 
+struct ontrack_t {
+	struct musicexpr_t *me;
+	char *trackname;
+};
+
 TAILQ_HEAD(melist_t, musicexpr_t);
 
 struct musicexpr_t {
@@ -131,6 +138,7 @@ struct musicexpr_t {
 		struct melist_t			melist;
 		struct offsetexpr_t		offsetexpr;
  		struct noteoffsetexpr_t		noteoffsetexpr;
+		struct ontrack_t		ontrack;
 		struct relnote_t		relnote;
 		struct rest_t			rest;
 		struct scaledexpr_t		scaledexpr;

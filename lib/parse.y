@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.40 2016/01/24 16:13:30 je Exp $
+/* $Id: parse.y,v 1.41 2016/01/27 21:34:13 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,14 +34,16 @@ static void    *malloc_musicexpr(void);
 %}
 
 %union {
-	struct melist_t		melist;
-	struct joinexpr_t	joinexpr;
-	struct musicexpr_t     *musicexpr;
-	struct relnote_t	relnote;
 	struct chord_t		chord;
+	struct joinexpr_t	joinexpr;
+	struct melist_t		melist;
+	struct musicexpr_t     *musicexpr;
+	struct ontrack_t	ontrack;
+	struct relnote_t	relnote;
 	struct rest_t		rest;
-	enum notesym_t		notesym;
 	enum chordtype_t	chordtype;
+	enum notesym_t		notesym;
+	char		       *string;
 	float			f;
 	int			i;
 }
@@ -63,6 +65,8 @@ static void    *malloc_musicexpr(void);
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
 %token	<i>		OCTAVEDOWN
+
+%token	<string>	QUOTED_STRING
 
 %token	<chordtype>	CHORDTOKEN_NONE
 			CHORDTOKEN_MAJ
@@ -100,10 +104,12 @@ static void    *malloc_musicexpr(void);
 			SIMULTENCE_START
 			SIMULTENCE_END
 
+%right			TRACK_OPERATOR
+
 %left			JOINEXPR
 
 %type	<musicexpr>	grammar musicexpr relsimultence_expr
-			sequence_expr simultence_expr
+			sequence_expr simultence_expr track_expr
 %type	<melist>	expression_list
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
@@ -161,6 +167,7 @@ musicexpr:
 	  }
 	| SEQUENCE_START sequence_expr SEQUENCE_END { $$ = $2; }
 	| SIMULTENCE_START simultence_expr SIMULTENCE_END { $$ = $2; }
+	| track_expr { $$ = $1; }
 	;
 
 chord:
@@ -232,15 +239,30 @@ sequence_expr:
 	;
 
 simultence_expr:
-	SIMULTENCE_START expression_list SIMULTENCE_END {
+	expression_list {
 		if (($$ = malloc_musicexpr()) == NULL) {
-			musicexpr_free_melist($2);
+			musicexpr_free_melist($1);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_SIMULTENCE;
-		$$->u.melist = $2;
+		$$->u.melist = $1;
+	  }
+	;
+
+track_expr:
+	QUOTED_STRING TRACK_OPERATOR musicexpr {
+		if (($$ = malloc_musicexpr()) == NULL) {
+			free($1);
+			musicexpr_free($3);
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->me_type = ME_TYPE_ONTRACK;
+		$$->u.ontrack.trackname = $1;
+		$$->u.ontrack.me = $3;
 	  }
 	;
 

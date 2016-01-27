@@ -1,4 +1,4 @@
-/* $Id: instrument.c,v 1.1 2016/01/24 21:04:35 je Exp $ */
+/* $Id: instrument.c,v 1.2 2016/01/27 21:34:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,256 +16,209 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include "instrument.h"
-
 #include <sys/types.h>
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define LONGEST_DRUMKIT_NAME "electronic drums"
-struct drumkit_t {
-	const char name[ sizeof(LONGEST_DRUMKIT_NAME) ];
-	u_int8_t code;
-};
+#include "instrument.h"
+#include "util.h"
 
-#define LONGEST_INSTRUMENT_NAME "acoustic guitar (nylon)"
-struct instrument_t {
-	const char name[ sizeof(LONGEST_INSTRUMENT_NAME) ];
-	u_int8_t code;
-};
-
-static int	compare_drumkits(const void *, const void *);
 static int	compare_instruments(const void *, const void *);
 
-int
-get_drumkit_code(char *drumkit_name)
+struct instrument_t *
+get_instrument(enum instrument_type_t type, char *instrument_name)
 {
-	static const struct drumkit_t codes[] = {
-		{ "brush drums",       40 },
-		{ "brush kit",         40 },
-		{ "classical drums",   48 },
-		{ "cm-64 drums",      127 },
-		{ "cm-64 kit",        127 },
-		{ "drums",              0 },
-			/* LONGEST_DRUMKIT_NAME: */
-		{ "electronic drums",  24 },
-		{ "electronic kit",    24 },
-		{ "jazz drums",        32 },
-		{ "jazz kit",          32 },
-		{ "mt-32 drums",      127 },
-		{ "mt-32 kit",        127 },
-		{ "orchestra drums",   48 },
-		{ "orchestra kit",     48 },
-		{ "power drums",       16 },
-		{ "power kit",         16 },
-		{ "rock drums",        16 },
-		{ "room drums",         8 },
-		{ "room kit",           8 },
-		{ "sfx drums",         56 },
-		{ "sfx kit",           56 },
-		{ "standard drums",     0 },
-		{ "standard kit",       0 },
-		{ "tr-808 drums",      25 },
-		{ "tr-808 kit",        25 },
+	static const struct instrument_t drumkits[] = {
+		{ INSTR_DRUMKIT, "brush drums",       40 },
+		{ INSTR_DRUMKIT, "brush kit",         40 },
+		{ INSTR_DRUMKIT, "classical drums",   48 },
+		{ INSTR_DRUMKIT, "cm-64 drums",      127 },
+		{ INSTR_DRUMKIT, "cm-64 kit",        127 },
+		{ INSTR_DRUMKIT, "drums",              0 },
+			/* LONGEST DRUMKIT */
+		{ INSTR_DRUMKIT, "electronic drums",  24 },
+		{ INSTR_DRUMKIT, "electronic kit",    24 },
+		{ INSTR_DRUMKIT, "jazz drums",        32 },
+		{ INSTR_DRUMKIT, "jazz kit",          32 },
+		{ INSTR_DRUMKIT, "mt-32 drums",      127 },
+		{ INSTR_DRUMKIT, "mt-32 kit",        127 },
+		{ INSTR_DRUMKIT, "orchestra drums",   48 },
+		{ INSTR_DRUMKIT, "orchestra kit",     48 },
+		{ INSTR_DRUMKIT, "power drums",       16 },
+		{ INSTR_DRUMKIT, "power kit",         16 },
+		{ INSTR_DRUMKIT, "rock drums",        16 },
+		{ INSTR_DRUMKIT, "room drums",         8 },
+		{ INSTR_DRUMKIT, "room kit",           8 },
+		{ INSTR_DRUMKIT, "sfx drums",         56 },
+		{ INSTR_DRUMKIT, "sfx kit",           56 },
+		{ INSTR_DRUMKIT, "standard drums",     0 },
+		{ INSTR_DRUMKIT, "standard kit",       0 },
+		{ INSTR_DRUMKIT, "tr-808 drums",      25 },
+		{ INSTR_DRUMKIT, "tr-808 kit",        25 },
 	};
-	struct drumkit_t *drumkit;
 
-	drumkit = bsearch(drumkit_name,
-			  codes,
-			  sizeof(codes) / sizeof(struct drumkit_t),
-			  sizeof(struct drumkit_t),
-			  compare_drumkits);
-	if (drumkit == NULL)
-		return -1;
+	static const struct instrument_t instruments[] = {
+		{ INSTR_TONED, "accordion",                21 },
+		{ INSTR_TONED, "acoustic bass",            32 },
+		{ INSTR_TONED, "acoustic grand",            0 },
+			/* LONGEST INSTR_TONED */
+		{ INSTR_TONED, "acoustic guitar (nylon)",  24 },
+		{ INSTR_TONED, "acoustic guitar (steel)",  25 },
+		{ INSTR_TONED, "agogo",                   113 },
+		{ INSTR_TONED, "alto sax",                 65 },
+		{ INSTR_TONED, "applause",                126 },
+		{ INSTR_TONED, "bagpipe",                 109 },
+		{ INSTR_TONED, "banjo",                   105 },
+		{ INSTR_TONED, "baritone sax",             67 },
+		{ INSTR_TONED, "bassoon",                  70 },
+		{ INSTR_TONED, "bird tweet",              123 },
+		{ INSTR_TONED, "blown bottle",             76 },
+		{ INSTR_TONED, "brass section",            61 },
+		{ INSTR_TONED, "breath noise",            121 },
+		{ INSTR_TONED, "bright acoustic",           1 },
+		{ INSTR_TONED, "celesta",                   8 },
+		{ INSTR_TONED, "cello",                    42 },
+		{ INSTR_TONED, "choir aahs",               52 },
+		{ INSTR_TONED, "church organ",             19 },
+		{ INSTR_TONED, "clarinet",                 71 },
+		{ INSTR_TONED, "clav",                      7 },
+		{ INSTR_TONED, "concertina",               23 },
+		{ INSTR_TONED, "contrabass",               43 },
+		{ INSTR_TONED, "distorted guitar",         30 },
+		{ INSTR_TONED, "drawbar organ",            16 },
+		{ INSTR_TONED, "dulcimer",                 15 },
+		{ INSTR_TONED, "electric bass (finger)",   33 },
+		{ INSTR_TONED, "electric bass (pick)",     34 },
+		{ INSTR_TONED, "electric grand",            2 },
+		{ INSTR_TONED, "electric guitar (clean)",  27 },
+		{ INSTR_TONED, "electric guitar (jazz)",   26 },
+		{ INSTR_TONED, "electric guitar (muted)",  28 },
+		{ INSTR_TONED, "electric piano 1",          4 },
+		{ INSTR_TONED, "electric piano 2",          5 },
+		{ INSTR_TONED, "english horn",             69 },
+		{ INSTR_TONED, "fiddle",                  110 },
+		{ INSTR_TONED, "flute",                    73 },
+		{ INSTR_TONED, "french horn",              60 },
+		{ INSTR_TONED, "fretless bass",            35 },
+		{ INSTR_TONED, "fx 1 (rain)",              96 },
+		{ INSTR_TONED, "fx 2 (soundtrack)",        97 },
+		{ INSTR_TONED, "fx 3 (crystal)",           98 },
+		{ INSTR_TONED, "fx 4 (atmosphere)",        99 },
+		{ INSTR_TONED, "fx 5 (brightness)",       100 },
+		{ INSTR_TONED, "fx 6 (goblins)",          101 },
+		{ INSTR_TONED, "fx 7 (echoes)",           102 },
+		{ INSTR_TONED, "fx 8 (sci-fi)",           103 },
+		{ INSTR_TONED, "glockenspiel",              9 },
+		{ INSTR_TONED, "guitar fret noise",       120 },
+		{ INSTR_TONED, "guitar harmonics",         31 },
+		{ INSTR_TONED, "gunshot",                 127 },
+		{ INSTR_TONED, "harmonica",                22 },
+		{ INSTR_TONED, "harpsichord",               6 },
+		{ INSTR_TONED, "helicopter",              125 },
+		{ INSTR_TONED, "honky-tonk",                3 },
+		{ INSTR_TONED, "kalimba",                 108 },
+		{ INSTR_TONED, "koto",                    107 },
+		{ INSTR_TONED, "lead 1 (square)",          80 },
+		{ INSTR_TONED, "lead 2 (sawtooth)",        81 },
+		{ INSTR_TONED, "lead 3 (calliope)",        82 },
+		{ INSTR_TONED, "lead 4 (chiff)",           83 },
+		{ INSTR_TONED, "lead 5 (charang)",         84 },
+		{ INSTR_TONED, "lead 6 (voice)",           85 },
+		{ INSTR_TONED, "lead 7 (fifths)",          86 },
+		{ INSTR_TONED, "lead 8 (bass+lead)",       87 },
+		{ INSTR_TONED, "marimba",                  12 },
+		{ INSTR_TONED, "melodic tom",             117 },
+		{ INSTR_TONED, "music box",                10 },
+		{ INSTR_TONED, "muted trumpet",            59 },
+		{ INSTR_TONED, "oboe",                     68 },
+		{ INSTR_TONED, "ocarina",                  79 },
+		{ INSTR_TONED, "orchestra hit",            55 },
+		{ INSTR_TONED, "orchestral harp",          46 },
+		{ INSTR_TONED, "overdriven guitar",        29 },
+		{ INSTR_TONED, "pad 1 (new age)",          88 },
+		{ INSTR_TONED, "pad 2 (warm)",             89 },
+		{ INSTR_TONED, "pad 3 (polysynth)",        90 },
+		{ INSTR_TONED, "pad 4 (choir)",            91 },
+		{ INSTR_TONED, "pad 5 (bowed)",            92 },
+		{ INSTR_TONED, "pad 6 (metallic)",         93 },
+		{ INSTR_TONED, "pad 7 (halo)",             94 },
+		{ INSTR_TONED, "pad 8 (sweep)",            95 },
+		{ INSTR_TONED, "pan flute",                75 },
+		{ INSTR_TONED, "percussive organ",         17 },
+		{ INSTR_TONED, "piccolo",                  72 },
+		{ INSTR_TONED, "pizzicato strings",        45 },
+		{ INSTR_TONED, "recorder",                 74 },
+		{ INSTR_TONED, "reed organ",               20 },
+		{ INSTR_TONED, "reverse cymbal",          119 },
+		{ INSTR_TONED, "rock organ",               18 },
+		{ INSTR_TONED, "seashore",                122 },
+		{ INSTR_TONED, "shakuhachi",               77 },
+		{ INSTR_TONED, "shamisen",                106 },
+		{ INSTR_TONED, "shanai",                  111 },
+		{ INSTR_TONED, "sitar",                   104 },
+		{ INSTR_TONED, "slap bass 1",              36 },
+		{ INSTR_TONED, "slap bass 2",              37 },
+		{ INSTR_TONED, "soprano sax",              64 },
+		{ INSTR_TONED, "steel drums",             114 },
+		{ INSTR_TONED, "string ensemble 1",        48 },
+		{ INSTR_TONED, "string ensemble 2",        49 },
+		{ INSTR_TONED, "synth bass 1",             38 },
+		{ INSTR_TONED, "synth bass 2",             39 },
+		{ INSTR_TONED, "synth drum",              118 },
+		{ INSTR_TONED, "synth voice",              54 },
+		{ INSTR_TONED, "synthbrass 1",             62 },
+		{ INSTR_TONED, "synthbrass 2",             63 },
+		{ INSTR_TONED, "synthstrings 1",           50 },
+		{ INSTR_TONED, "synthstrings 2",           51 },
+		{ INSTR_TONED, "taiko drum",              116 },
+		{ INSTR_TONED, "telephone ring",          124 },
+		{ INSTR_TONED, "tenor sax",                66 },
+		{ INSTR_TONED, "timpani",                  47 },
+		{ INSTR_TONED, "tinkle bell",             112 },
+		{ INSTR_TONED, "tremolo strings",          44 },
+		{ INSTR_TONED, "trombone",                 57 },
+		{ INSTR_TONED, "trumpet",                  56 },
+		{ INSTR_TONED, "tuba",                     58 },
+		{ INSTR_TONED, "tubular bells",            14 },
+		{ INSTR_TONED, "vibraphone",               11 },
+		{ INSTR_TONED, "viola",                    41 },
+		{ INSTR_TONED, "violin",                   40 },
+		{ INSTR_TONED, "voice oohs",               53 },
+		{ INSTR_TONED, "whistle",                  78 },
+		{ INSTR_TONED, "woodblock",               115 },
+		{ INSTR_TONED, "xylophone",                13 },
+	};
+	const struct instrument_t *instrument_table;
+	size_t tablesize;
 
-	return drumkit->code;
+ 	assert(type == INSTR_DRUMKIT || type == INSTR_TONED);
+
+	if (type == INSTR_DRUMKIT) {
+		instrument_table = drumkits;
+		tablesize = sizeof(drumkits);
+	} else {
+		instrument_table = instruments;
+		tablesize = sizeof(instruments);
+	}
+
+	/* might return NULL, should be ok */
+	return bsearch(instrument_name,
+		       instrument_table,
+		       tablesize / sizeof(struct instrument_t),
+		       sizeof(struct instrument_t),
+		       compare_instruments);
 }
 
 static int
-compare_drumkits(const void *a, const void *b)
+compare_instruments(const void *v_name, const void *v_instrument)
 {
-	const struct drumkit_t *drumkit_a, *drumkit_b;
+	const struct instrument_t *instrument;
+	const char *name;
 
-	drumkit_a = a;
-	drumkit_b = b;
+	name = v_name;
+	instrument = v_instrument;
 
-	return strncmp(drumkit_a->name,
-		       drumkit_b->name,
-		       sizeof(LONGEST_DRUMKIT_NAME));
-}
-
-int
-get_instrument_code(char *instrument_name)
-{
-	static const struct instrument_t codes[] = {
-		{ "acoustic grand",            0 },
-		{ "bright acoustic",           1 },
-		{ "electric grand",            2 },
-		{ "honky-tonk",                3 },
-		{ "electric piano 1",          4 },
-		{ "electric piano 2",          5 },
-		{ "harpsichord",               6 },
-		{ "clav",                      7 },
-
-		{ "celesta",                   8 },
-		{ "glockenspiel",              9 },
-		{ "music box",                10 },
-		{ "vibraphone",               11 },
-		{ "marimba",                  12 },
-		{ "xylophone",                13 },
-		{ "tubular bells",            14 },
-		{ "dulcimer",                 15 },
-
-		{ "drawbar organ",            16 },
-		{ "percussive organ",         17 },
-		{ "rock organ",               18 },
-		{ "church organ",             19 },
-		{ "reed organ",               20 },
-		{ "accordion",                21 },
-		{ "harmonica",                22 },
-		{ "concertina",               23 },
-
-			/* LONGEST_INSTRUMENT_NAME: */
-		{ "acoustic guitar (nylon)",  24 },
-		{ "acoustic guitar (steel)",  25 },
-		{ "electric guitar (jazz)",   26 },
-		{ "electric guitar (clean)",  27 },
-		{ "electric guitar (muted)",  28 },
-		{ "overdriven guitar",        29 },
-		{ "distorted guitar",         30 },
-		{ "guitar harmonics",         31 },
-
-		{ "acoustic bass",            32 },
-		{ "electric bass (finger)",   33 },
-		{ "electric bass (pick)",     34 },
-		{ "fretless bass",            35 },
-		{ "slap bass 1",              36 },
-		{ "slap bass 2",              37 },
-		{ "synth bass 1",             38 },
-		{ "synth bass 2",             39 },
-
-		{ "violin",                   40 },
-		{ "viola",                    41 },
-		{ "cello",                    42 },
-		{ "contrabass",               43 },
-		{ "tremolo strings",          44 },
-		{ "pizzicato strings",        45 },
-		{ "orchestral harp",          46 },
-		{ "timpani",                  47 },
-
-		{ "string ensemble 1",        48 },
-		{ "string ensemble 2",        49 },
-		{ "synthstrings 1",           50 },
-		{ "synthstrings 2",           51 },
-		{ "choir aahs",               52 },
-		{ "voice oohs",               53 },
-		{ "synth voice",              54 },
-		{ "orchestra hit",            55 },
-
-		{ "trumpet",                  56 },
-		{ "trombone",                 57 },
-		{ "tuba",                     58 },
-		{ "muted trumpet",            59 },
-		{ "french horn",              60 },
-		{ "brass section",            61 },
-		{ "synthbrass 1",             62 },
-		{ "synthbrass 2",             63 },
-
-		{ "soprano sax",              64 },
-		{ "alto sax",                 65 },
-		{ "tenor sax",                66 },
-		{ "baritone sax",             67 },
-		{ "oboe",                     68 },
-		{ "english horn",             69 },
-		{ "bassoon",                  70 },
-		{ "clarinet",                 71 },
-
-		{ "piccolo",                  72 },
-		{ "flute",                    73 },
-		{ "recorder",                 74 },
-		{ "pan flute",                75 },
-		{ "blown bottle",             76 },
-		{ "shakuhachi",               77 },
-		{ "whistle",                  78 },
-		{ "ocarina",                  79 },
-
-		{ "lead 1 (square)",          80 },
-		{ "lead 2 (sawtooth)",        81 },
-		{ "lead 3 (calliope)",        82 },
-		{ "lead 4 (chiff)",           83 },
-		{ "lead 5 (charang)",         84 },
-		{ "lead 6 (voice)",           85 },
-		{ "lead 7 (fifths)",          86 },
-		{ "lead 8 (bass+lead)",       87 },
-
-		{ "pad 1 (new age)",          88 },
-		{ "pad 2 (warm)",             89 },
-		{ "pad 3 (polysynth)",        90 },
-		{ "pad 4 (choir)",            91 },
-		{ "pad 5 (bowed)",            92 },
-		{ "pad 6 (metallic)",         93 },
-		{ "pad 7 (halo)",             94 },
-		{ "pad 8 (sweep)",            95 },
-
-		{ "fx 1 (rain)",              96 },
-		{ "fx 2 (soundtrack)",        97 },
-		{ "fx 3 (crystal)",           98 },
-		{ "fx 4 (atmosphere)",        99 },
-		{ "fx 5 (brightness)",       100 },
-		{ "fx 6 (goblins)",          101 },
-		{ "fx 7 (echoes)",           102 },
-		{ "fx 8 (sci-fi)",           103 },
-
-		{ "sitar",                   104 },
-		{ "banjo",                   105 },
-		{ "shamisen",                106 },
-		{ "koto",                    107 },
-		{ "kalimba",                 108 },
-		{ "bagpipe",                 109 },
-		{ "fiddle",                  110 },
-		{ "shanai",                  111 },
-
-		{ "tinkle bell",             112 },
-		{ "agogo",                   113 },
-		{ "steel drums",             114 },
-		{ "woodblock",               115 },
-		{ "taiko drum",              116 },
-		{ "melodic tom",             117 },
-		{ "synth drum",              118 },
-		{ "reverse cymbal",          119 },
-
-		{ "guitar fret noise",       120 },
-		{ "breath noise",            121 },
-		{ "seashore",                122 },
-		{ "bird tweet",              123 },
-		{ "telephone ring",          124 },
-		{ "helicopter",              125 },
-		{ "applause",                126 },
-		{ "gunshot",                 127 },
-	};
-	struct instrument_t *instrument;
-
-	instrument = bsearch(instrument_name,
-			     codes,
-			     sizeof(codes) / sizeof(struct instrument_t),
-			     sizeof(struct instrument_t),
-			     compare_instruments);
-	if (instrument == NULL)
-		return -1;
-
-	return instrument->code;
-}
-
-static int
-compare_instruments(const void *a, const void *b)
-{
-	const struct instrument_t *instrument_a, *instrument_b;
-
-	instrument_a = a;
-	instrument_b = b;
-
-	return strncmp(instrument_a->name,
-		       instrument_b->name,
-		       sizeof(LONGEST_INSTRUMENT_NAME));
+	return strncmp(name, instrument->name, LONGEST_INSTRUMENT_SIZE);
 }
