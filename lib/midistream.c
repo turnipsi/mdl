@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.3 2016/01/27 21:34:13 je Exp $ */
+/* $Id: midistream.c,v 1.4 2016/01/28 21:18:11 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 {
 	struct musicexpr_t *me_workcopy, *simultence, *p;
 	struct mdl_stream *offset_es, *midi_es;
+	struct song_t *song;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
@@ -66,9 +67,17 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		return NULL;
 	}
 
+	song = mdl_song_new(level + 1);
+	if (song == NULL) {
+		warnx("could not create a new song");
+		musicexpr_free(me_workcopy);
+		mdl_stream_free(offset_es);
+		return NULL;
+	}
+
 	/* first convert relative->absolute,
 	 * joinexpr_musicexpr() can not handle relative expressions */
-	musicexpr_relative_to_absolute(me_workcopy, level + 1);
+	musicexpr_relative_to_absolute(song, me_workcopy, level + 1);
 
 	mdl_log(1, level + 1, "joining all music expressions\n");
 	if (joinexpr_musicexpr(me_workcopy, level + 1) != 0) {

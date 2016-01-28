@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.49 2016/01/27 21:34:13 je Exp $ */
+/* $Id: musicexpr.h,v 1.50 2016/01/28 21:18:11 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,7 +81,7 @@ enum chordtype_t {
 };
 
 struct absnote_t {
-	struct instrument_t *instrument;
+	struct track_t *track;
 	enum notesym_t notesym;
 	float length;
 	int note;

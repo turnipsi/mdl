@@ -1,4 +1,4 @@
-/* $Id: relative.h,v 1.2 2016/01/28 21:18:11 je Exp $ */
+/* $Id: song.h,v 1.1 2016/01/28 21:18:11 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,14 +16,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_RELATIVE_H
-#define MDL_RELATIVE_H
+#ifndef MDL_SONG_H
+#define MDL_SONG_H
 
-#include "musicexpr.h"
-#include "song.h"
+#include "instrument.h"
+#include "midi.h"
 
-void	musicexpr_relative_to_absolute(struct song_t *,
-				       struct musicexpr_t *,
-				       int);
+struct track_t {
+	char *trackname;
+	struct instrument_t *instrument;
+};
+
+struct song_t {
+	struct track_t tracks[MIDI_CHANNEL_MAX];
+	int trackcount;
+};
+
+struct song_t  *mdl_song_new(int);
+struct track_t *mdl_song_find_track_or_new(struct song_t *, char *, int);
+struct track_t *mdl_song_get_default_track(struct song_t *);
+void		mdl_song_free(struct song_t *);
 
 #endif

@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.2 2016/01/27 21:34:13 je Exp $ */
+/* $Id: relative.c,v 1.3 2016/01/28 21:18:11 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 
 #include "instrument.h"
 #include "relative.h"
+#include "song.h"
 #include "util.h"
 
 struct previous_relative_exprs_t {
@@ -35,20 +36,19 @@ static void	relative_to_absolute(struct musicexpr_t *,
 static int	compare_notesyms(enum notesym_t, enum notesym_t);
 
 void
-musicexpr_relative_to_absolute(struct musicexpr_t *me, int level)
+musicexpr_relative_to_absolute(struct song_t *song,
+			       struct musicexpr_t *me,
+			       int level)
 {
 	struct previous_relative_exprs_t prev_relative_exprs;
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
 	/* set default values for the first absolute note */
-	prev_relative_exprs.absnote.instrument
-	    = get_instrument(INSTR_TONED, "acoustic grand");
 	prev_relative_exprs.absnote.length = 0.25;
 	prev_relative_exprs.absnote.notesym = NOTE_C;
 	prev_relative_exprs.absnote.note = 60;
-
-	assert(prev_relative_exprs.absnote.instrument != NULL);
+	prev_relative_exprs.absnote.track = mdl_song_get_default_track(song);
 
 	/* set default value for the first chordtype */
 	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
@@ -122,7 +122,7 @@ relative_to_absolute(struct musicexpr_t *me,
 
 		note += 12 * relnote.octavemods;
 
-		absnote.instrument = prev_exprs->absnote.instrument;
+		absnote.track = prev_exprs->absnote.track;
 		absnote.notesym = relnote.notesym;
 		absnote.length  = relnote.length;
 		if (absnote.length == 0)
