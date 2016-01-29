@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.27 2016/01/27 21:34:13 je Exp $ */
+/* $Id: joinexpr.c,v 1.28 2016/01/29 20:51:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -159,9 +159,8 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		/* when joined music expression types match */
 		switch (at) {
 		case ME_TYPE_ABSNOTE:
-			/* XXX should also take into account possible
-			 * XXX instrument changes occurring in absolute
-			 * XXX notes */
+			/* XXX should also take into account the track
+			 * XXX parameter and possible instrument changes */
 			if (a->u.absnote.note == b->u.absnote.note) {
 				mdl_log(3, level, "matched absnotes\n");
 				a->u.absnote.length += b->u.absnote.length;
@@ -446,9 +445,8 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			      != q_me->me->u.absnote.note)
 				continue;
 
-			/* XXX should also take into account possible
-			 * XXX instrument changes occurring in absolute
-			 * XXX notes */
+			/* XXX should also take into account the track
+			 * XXX parameter and possible instrument changes */
 
 			/* this is somewhat curious way of joining, because
 			 * to join to music expression "a" q_me->offset

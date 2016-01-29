@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.50 2016/01/28 21:18:11 je Exp $ */
+/* $Id: musicexpr.h,v 1.51 2016/01/29 20:51:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 
 #include <sys/queue.h>
 
+#include "song.h"
 #include "util.h"
 
 #define MINIMUM_MUSICEXPR_LENGTH	0.0001

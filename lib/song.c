@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.1 2016/01/28 21:18:11 je Exp $ */
+/* $Id: song.c,v 1.2 2016/01/29 20:51:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,15 +37,16 @@ mdl_song_new(int level)
 		return NULL;
 	}
 
-	song->trackcount = 0;
+	SLIST_INIT(&song->tracklist);
 
-	/* XXX is this a hack? */
 	track = mdl_song_find_track_or_new(song, "acoustic grand", level);
 	if (track == NULL) {
 		warnx("could not create the default track");
-		mdl_song_free(song);
+		free(song);
 		return NULL;
 	}
+
+	song->default_track = track;
 
 	return song;
 }
@@ -53,58 +54,40 @@ mdl_song_new(int level)
 void
 mdl_song_free(struct song_t *song)
 {
-	int i;
+	struct track_t *p, *q;
 
-	for (i = 0; i < song->trackcount; i++)
-		free(song->tracks[i].trackname);
+	SLIST_FOREACH_SAFE(p, &song->tracklist, sl, q) {
+		SLIST_REMOVE(&song->tracklist, p, track_t, sl);
+		free(p->trackname);
+		free(p);
+	}
 
 	free(song);
-}
-
-struct track_t *
-mdl_song_get_default_track(struct song_t *song)
-{
-	assert(song->trackcount > 0);
-
-	return &song->tracks[0];
 }
 
 struct track_t *
 mdl_song_find_track_or_new(struct song_t *song, char *trackname, int level)
 {
 	struct track_t *track;
-	struct instrument_t *instrument;
-	char *trackname_copy;
-	int i;
 
 	/* XXX drum track should be treated in a special way */
 
-	for (i = 0; i < song->trackcount; i++)
-		if (strcmp(song->tracks[i].trackname, trackname) == 0)
-			return &song->tracks[i];
+	SLIST_FOREACH(track, &song->tracklist, sl)
+		if (strcmp(track->trackname, trackname) == 0)
+			return track;
 
-	if (song->trackcount == MIDI_CHANNEL_MAX + 1) {
-		warnx("maximum track count reached, ignoring track %s",
-		      trackname);
+	if ((track = malloc(sizeof(struct track_t))) == NULL) {
+		warn("malloc failure in mdl_song_find_track_or_new");
 		return NULL;
 	}
 
-	if ((trackname_copy = strdup(trackname)) == NULL) {
+	if ((track->trackname = strdup(trackname)) == NULL) {
 		warn("strdup in mdl_song_find_track_or_new");
+		free(track);
 		return NULL;
 	}
 
-	track = &song->tracks[ song->trackcount ];
-	track->trackname = trackname_copy;
-
-	instrument = get_instrument(INSTR_TONED, track->trackname);
-	if (instrument == NULL) {
-		instrument = get_instrument(INSTR_TONED, "acoustic grand");
-		assert(instrument != NULL);
-	}
-	track->instrument = instrument;
-
-	song->trackcount += 1;
+	SLIST_INSERT_HEAD(&song->tracklist, track, sl);
 
 	mdl_log(2, level, "added a new track %s\n", track->trackname);
 

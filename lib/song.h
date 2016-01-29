@@ -1,4 +1,4 @@
-/* $Id: song.h,v 1.1 2016/01/28 21:18:11 je Exp $ */
+/* $Id: song.h,v 1.2 2016/01/29 20:51:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,19 +22,19 @@
 #include "instrument.h"
 #include "midi.h"
 
+SLIST_HEAD(tracklist_t, track_t);
 struct track_t {
 	char *trackname;
-	struct instrument_t *instrument;
+	SLIST_ENTRY(track_t) sl;
 };
 
 struct song_t {
-	struct track_t tracks[MIDI_CHANNEL_MAX];
-	int trackcount;
+	struct tracklist_t tracklist;
+	struct track_t *default_track;
 };
 
 struct song_t  *mdl_song_new(int);
 struct track_t *mdl_song_find_track_or_new(struct song_t *, char *, int);
-struct track_t *mdl_song_get_default_track(struct song_t *);
 void		mdl_song_free(struct song_t *);
 
 #endif

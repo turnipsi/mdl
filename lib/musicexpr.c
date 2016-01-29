@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.66 2016/01/27 21:34:13 je Exp $ */
+/* $Id: musicexpr.c,v 1.67 2016/01/29 20:51:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -676,12 +676,13 @@ musicexpr_log(const struct musicexpr_t *me,
 	case ME_TYPE_ABSNOTE:
 		mdl_log(loglevel,
 			indentlevel,
-			"%s%s notesym=%d note=%d length=%.3f\n",
+			"%s%s notesym=%d note=%d length=%.3f track=\"%s\"\n",
 			prefix,
 			metype_string,
 			me->u.absnote.notesym,
 			me->u.absnote.note,
-			me->u.absnote.length);
+			me->u.absnote.length,
+			me->u.absnote.track->trackname);
 		break;
 	case ME_TYPE_CHORD:
 		mdl_log(loglevel,
