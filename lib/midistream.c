@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.5 2016/01/30 20:27:22 je Exp $ */
+/* $Id: midistream.c,v 1.6 2016/01/31 20:33:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,7 +67,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		return NULL;
 	}
 
-	song = mdl_song_new(level + 1);
+	song = mdl_song_new(me_workcopy, level + 1);
 	if (song == NULL) {
 		warnx("could not create a new song");
 		musicexpr_free(me_workcopy);
@@ -97,7 +97,7 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 
 	mdl_log(1, level + 1, "making offset expression stream\n");
 	TAILQ_FOREACH(p, &simultence->u.melist, tq) {
-		assert(p->me_type == ME_TYPE_WITHOFFSET);
+		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		offset_es->mexprs[ offset_es->count ] = p->u.offsetexpr;
 		if (mdl_stream_increment(offset_es) != 0)
 			goto finish;
@@ -230,10 +230,12 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 			    int level)
 {
 	struct midievent *midievent;
-	struct musicexpr_t *noteoffsetexpr, *subexpr;
-	int ret, new_note, offset, i;
+	int ret, new_note;
 
 	ret = 0;
+
+	/* XXX what about ME_TYPE_REST, that might almost be currently
+	 * XXX possible? */
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:

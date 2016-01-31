@@ -1,4 +1,4 @@
-/* $Id: song.h,v 1.3 2016/01/31 20:33:47 je Exp $ */
+/* $Id: track.c,v 1.1 2016/01/31 20:33:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,21 +16,21 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_SONG_H
-#define MDL_SONG_H
+#include <assert.h>
 
-#include "musicexpr.h"
+#include "instrument.h"
 #include "track.h"
 
-SLIST_HEAD(tracklist_t, track_t);
+struct instrument_t *
+track_get_default_instrument(struct track_t *track)
+{
+	struct instrument_t *instrument;
 
-struct song_t {
-	struct tracklist_t tracklist;
-	struct track_t *default_track;
-};
+	instrument = get_instrument(INSTR_TONED, track->name);
+	if (instrument == NULL) {
+		instrument = get_instrument(INSTR_TONED, "acoustic grand");
+		assert(instrument != NULL);
+	}
 
-struct song_t  *mdl_song_new(struct musicexpr_t *, int);
-struct track_t *mdl_song_find_track_or_new(struct song_t *, char *, int);
-void		mdl_song_free(struct song_t *);
-
-#endif
+	return instrument;
+}

@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.28 2016/01/29 20:51:26 je Exp $ */
+/* $Id: joinexpr.c,v 1.29 2016/01/31 20:33:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -88,6 +88,9 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 		}
 		musicexpr_copy(me, joined_me);
 		break;
+	case ME_TYPE_OFFSETEXPR:
+		ret = joinexpr_musicexpr(me->u.offsetexpr.me, level + 1);
+		break;
 	case ME_TYPE_ONTRACK:
 		ret = joinexpr_musicexpr(me->u.ontrack.me, level + 1);
 		break;
@@ -101,9 +104,6 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 			if (ret != 0)
 				break;
 		}
-		break;
-	case ME_TYPE_WITHOFFSET:
-		ret = joinexpr_musicexpr(me->u.offsetexpr.me, level + 1);
 		break;
 	default:
 		assert(0);
@@ -191,6 +191,10 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			if (tmp_me != NULL)
 				return tmp_me;
 			break;
+		case ME_TYPE_OFFSETEXPR:
+			mdl_log(3, level, "joining two exprs with offset\n");
+			unimplemented();
+			break;
 		case ME_TYPE_REST:
 			mdl_log(3, level, "joining two rests\n");
 			a->u.rest.length += b->u.rest.length;
@@ -202,10 +206,6 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		case ME_TYPE_SIMULTENCE:
 			mdl_log(3, level, "joining two simultences\n");
 			return join_simultences(a, b, level);
-		case ME_TYPE_WITHOFFSET:
-			mdl_log(3, level, "joining two exprs with offset\n");
-			unimplemented();
-			break;
 		default:
 			assert(0);
 			break;
@@ -398,7 +398,7 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 
 	/* First find length of "a", rests can be removed. */
 	TAILQ_FOREACH_SAFE(p, &a->u.melist, tq, r) {
-		assert(p->me_type == ME_TYPE_WITHOFFSET);
+		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		p_me = &p->u.offsetexpr;
 
 		assert(p_me->me->me_type == ME_TYPE_ABSNOTE
@@ -421,7 +421,7 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	/* Join notes when we can.  This is inefficient with simultences
 	 * with lots of notes, but hopefully is not misused much. */
 	TAILQ_FOREACH(p, &a->u.melist, tq) {
-		assert(p->me_type == ME_TYPE_WITHOFFSET);
+		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		p_me = &p->u.offsetexpr;
 
 		assert(p_me->me->me_type == ME_TYPE_ABSNOTE);
@@ -429,7 +429,7 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		prev_note_end = p_me->offset + p_me->me->u.absnote.length;
 
 		TAILQ_FOREACH_SAFE(q, &b->u.melist, tq, r) {
-			assert(q->me_type == ME_TYPE_WITHOFFSET);
+			assert(q->me_type == ME_TYPE_OFFSETEXPR);
 			q_me = &q->u.offsetexpr;
 
 			assert(q_me->me->me_type == ME_TYPE_ABSNOTE

@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.15 2016/01/23 14:39:42 je Exp $ */
+/* $Id: util.c,v 1.16 2016/01/31 20:33:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -79,18 +79,18 @@ mdl_stream_new(enum streamtype s_type)
 	s->s_type = s_type;
 
 	switch (s->s_type) {
-	case OFFSETEXPRSTREAM:
-		s->mexprs = calloc(s->slotcount,
-				   sizeof(struct offsetexpr_t));
-		if (s->mexprs == NULL) {
+	case MIDIEVENTSTREAM:
+		s->midievents = calloc(s->slotcount, sizeof(struct midievent));
+		if (s->midievents == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
 			return NULL;
 		}
 		break;
-	case MIDIEVENTSTREAM:
-		s->midievents = calloc(s->slotcount, sizeof(struct midievent));
-		if (s->midievents == NULL) {
+	case OFFSETEXPRSTREAM:
+		s->mexprs = calloc(s->slotcount,
+				   sizeof(struct offsetexpr_t));
+		if (s->mexprs == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
 			return NULL;
@@ -113,6 +113,16 @@ mdl_stream_increment(struct mdl_stream *s)
 		mdl_log(2, 0, "mdl_stream now contains %d items\n", s->count);
 		s->slotcount *= 2;
 		switch (s->s_type) {
+		case MIDIEVENTSTREAM:
+			new_items = reallocarray(s->midievents,
+						 s->slotcount,
+						 sizeof(struct midievent));
+			if (new_items == NULL) {
+				warn("reallocarray in mdl_stream_increment");
+				return 1;
+			}
+			s->midievents = new_items;
+			break;
 		case OFFSETEXPRSTREAM:
 			new_items
 			    = reallocarray(s->mexprs,
@@ -124,16 +134,6 @@ mdl_stream_increment(struct mdl_stream *s)
 				return 1;
 			}
 			s->mexprs = new_items;
-			break;
-		case MIDIEVENTSTREAM:
-			new_items = reallocarray(s->midievents,
-						 s->slotcount,
-						 sizeof(struct midievent));
-			if (new_items == NULL) {
-				warn("reallocarray in mdl_stream_increment");
-				return 1;
-			}
-			s->midievents = new_items;
 			break;
 		default:
 			assert(0);

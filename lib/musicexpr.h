@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.51 2016/01/29 20:51:26 je Exp $ */
+/* $Id: musicexpr.h,v 1.52 2016/01/31 20:33:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,7 +21,8 @@
 
 #include <sys/queue.h>
 
-#include "song.h"
+#include "instrument.h"
+#include "track.h"
 #include "util.h"
 
 #define MINIMUM_MUSICEXPR_LENGTH	0.0001
@@ -32,6 +33,7 @@ enum musicexpr_type {
 	ME_TYPE_EMPTY,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
+	ME_TYPE_OFFSETEXPR,
 	ME_TYPE_ONTRACK,
 	ME_TYPE_RELNOTE,
 	ME_TYPE_RELSIMULTENCE,
@@ -39,7 +41,6 @@ enum musicexpr_type {
 	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
-	ME_TYPE_WITHOFFSET,
 	ME_TYPE_COUNT,
 };
 
@@ -82,6 +83,7 @@ enum chordtype_t {
 };
 
 struct absnote_t {
+	struct instrument_t *instrument;
 	struct track_t *track;
 	enum notesym_t notesym;
 	float length;
@@ -125,7 +127,7 @@ struct scaledexpr_t {
 
 struct ontrack_t {
 	struct musicexpr_t *me;
-	char *trackname;
+	struct track_t *track;
 };
 
 TAILQ_HEAD(melist_t, musicexpr_t);
@@ -137,8 +139,8 @@ struct musicexpr_t {
 		struct chord_t			chord;
 		struct joinexpr_t		joinexpr;
 		struct melist_t			melist;
-		struct offsetexpr_t		offsetexpr;
  		struct noteoffsetexpr_t		noteoffsetexpr;
+		struct offsetexpr_t		offsetexpr;
 		struct ontrack_t		ontrack;
 		struct relnote_t		relnote;
 		struct rest_t			rest;

@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.41 2016/01/27 21:34:13 je Exp $
+/* $Id: parse.y,v 1.42 2016/01/31 20:33:46 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -261,8 +261,17 @@ track_expr:
 			YYERROR;
 		}
 		$$->me_type = ME_TYPE_ONTRACK;
-		$$->u.ontrack.trackname = $1;
 		$$->u.ontrack.me = $3;
+		$$->u.ontrack.track = malloc(sizeof(struct track_t));
+		if ($$->u.ontrack.track == NULL) {
+			free($$);
+			free($1);
+			musicexpr_free($3);
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->u.ontrack.track->name = $1;
 	  }
 	;
 

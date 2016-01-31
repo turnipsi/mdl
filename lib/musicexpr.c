@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.67 2016/01/29 20:51:26 je Exp $ */
+/* $Id: musicexpr.c,v 1.68 2016/01/31 20:33:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -137,18 +137,18 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 		       &me->u.noteoffsetexpr.offsets,
 		       me->u.noteoffsetexpr.count * sizeof(int));
 		break;
+	case ME_TYPE_OFFSETEXPR:
+		cloned->u.offsetexpr.me = musicexpr_clone(me->u.offsetexpr.me,
+							  level + 1);
+		if (cloned->u.offsetexpr.me == NULL) {
+			free(cloned);
+			cloned = NULL;
+		}
+		break;
 	case ME_TYPE_ONTRACK:
 		cloned->u.ontrack.me = musicexpr_clone(me->u.ontrack.me,
 						       level + 1);
 		if (cloned->u.ontrack.me == NULL) {
-			free(cloned);
-			cloned = NULL;
-			break;
-		}
-		cloned->u.ontrack.trackname
-		    = strdup(me->u.ontrack.trackname);
-		if (cloned->u.ontrack.trackname == NULL) {
-			free(cloned->u.ontrack.me);
 			free(cloned);
 			cloned = NULL;
 			break;
@@ -169,14 +169,6 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 					     me->u.melist,
 					     level + 1);
 		if (ret != 0) {
-			free(cloned);
-			cloned = NULL;
-		}
-		break;
-	case ME_TYPE_WITHOFFSET:
-		cloned->u.offsetexpr.me = musicexpr_clone(me->u.offsetexpr.me,
-							  level + 1);
-		if (cloned->u.offsetexpr.me == NULL) {
 			free(cloned);
 			cloned = NULL;
 		}
@@ -296,7 +288,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 			warn("malloc in add_musicexpr_to_flat_simultence");
 			musicexpr_free(cloned);
 		}
-		offsetexpr->me_type = ME_TYPE_WITHOFFSET;
+		offsetexpr->me_type = ME_TYPE_OFFSETEXPR;
 		offsetexpr->u.offsetexpr.me = cloned;
 		offsetexpr->u.offsetexpr.offset = state->next_offset;
 
@@ -401,7 +393,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 		}
 		state->next_offset = new_next_offset;
 		break;
-        case ME_TYPE_WITHOFFSET:
+        case ME_TYPE_OFFSETEXPR:
 		state->next_offset += me->u.offsetexpr.offset;
 		ret = add_musicexpr_to_flat_simultence(simultence,
 						       me->u.offsetexpr.me,
@@ -498,6 +490,11 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 					   offset,
 					   level);
 		break;
+        case ME_TYPE_OFFSETEXPR:
+		musicexpr_apply_noteoffset(me->u.offsetexpr.me,
+					   offset,
+					   level);
+		break;
         case ME_TYPE_REST:
 		/* do nothing */
 		break;
@@ -510,11 +507,6 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
         case ME_TYPE_SIMULTENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq)
 			musicexpr_apply_noteoffset(p, offset, level);
-		break;
-        case ME_TYPE_WITHOFFSET:
-		musicexpr_apply_noteoffset(me->u.offsetexpr.me,
-					   offset,
-					   level);
 		break;
 	default:
 		assert(0);
@@ -596,7 +588,7 @@ musicexpr_stretch_length_by_factor(struct musicexpr_t *me,
 		TAILQ_FOREACH(p, &me->u.melist, tq)
 			musicexpr_stretch_length_by_factor(p, factor);
 		break;
-        case ME_TYPE_WITHOFFSET:
+        case ME_TYPE_OFFSETEXPR:
 		musicexpr_stretch_length_by_factor(me->u.offsetexpr.me,
 						   factor);
 		break;
@@ -645,7 +637,7 @@ musicexpr_calc_length(struct musicexpr_t *me)
 		TAILQ_FOREACH(p, &me->u.melist, tq)
 			length = MAX(length, musicexpr_calc_length(p));
 		break;
-        case ME_TYPE_WITHOFFSET:
+        case ME_TYPE_OFFSETEXPR:
 		length = me->u.offsetexpr.offset
 			   + musicexpr_calc_length(me->u.offsetexpr.me);
 		break;
@@ -676,13 +668,15 @@ musicexpr_log(const struct musicexpr_t *me,
 	case ME_TYPE_ABSNOTE:
 		mdl_log(loglevel,
 			indentlevel,
-			"%s%s notesym=%d note=%d length=%.3f track=\"%s\"\n",
+			"%s%s notesym=%d note=%d length=%.3f" \
+			  " instrument=\"%s\" track=\"%s\"\n",
 			prefix,
 			metype_string,
 			me->u.absnote.notesym,
 			me->u.absnote.note,
 			me->u.absnote.length,
-			me->u.absnote.track->trackname);
+			me->u.absnote.instrument->name,
+			me->u.absnote.track->name);
 		break;
 	case ME_TYPE_CHORD:
 		mdl_log(loglevel,
@@ -757,14 +751,17 @@ musicexpr_log(const struct musicexpr_t *me,
 	case ME_TYPE_ONTRACK:
 		mdl_log(loglevel,
 			indentlevel,
-			"%s%s trackname=%s\n",
+			"%s%s track=%s\n",
 			prefix,
 			metype_string,
-			me->u.ontrack.trackname);
+			me->u.ontrack.track->name);
 		musicexpr_log(me->u.ontrack.me,
 			      loglevel,
 			      indentlevel + 1,
 			      prefix);
+		mdl_log(loglevel,
+			indentlevel,
+			"heippati\n");
 		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(loglevel,
@@ -833,7 +830,7 @@ musicexpr_log(const struct musicexpr_t *me,
 				     indentlevel,
 				     prefix);
 		break;
-	case ME_TYPE_WITHOFFSET:
+	case ME_TYPE_OFFSETEXPR:
 		mdl_log(loglevel,
 			indentlevel,
 			"%s%s offset=%.3f\n",
@@ -929,7 +926,6 @@ musicexpr_free(struct musicexpr_t *me)
 		break;
 	case ME_TYPE_ONTRACK:
 		musicexpr_free(me->u.ontrack.me);
-		free(me->u.ontrack.trackname);
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
@@ -939,7 +935,7 @@ musicexpr_free(struct musicexpr_t *me)
 	case ME_TYPE_SIMULTENCE:
 		musicexpr_free_melist(me->u.melist);
 		break;
-	case ME_TYPE_WITHOFFSET:
+	case ME_TYPE_OFFSETEXPR:
 		musicexpr_free(me->u.offsetexpr.me);
 		break;
 	default:
@@ -1039,6 +1035,7 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 		"empty",		/* ME_TYPE_EMPTY */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
+		"offsetexpr",		/* ME_TYPE_OFFSETEXPR */
 		"ontrack",		/* ME_TYPE_ONTRACK */
 		"relnote",		/* ME_TYPE_RELNOTE */
 		"relsimultence",	/* ME_TYPE_RELSIMULTENCE */
@@ -1046,7 +1043,6 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 		"scaledexpr",		/* ME_TYPE_SCALEDEXPR */
 		"sequence",		/* ME_TYPE_SEQUENCE */
 		"simultence",		/* ME_TYPE_SIMULTENCE */
-		"withoffset",		/* ME_TYPE_WITHOFFSET */
 	};
 
 	assert(ME_TYPE_ABSNOTE <= me->me_type && me->me_type < ME_TYPE_COUNT);

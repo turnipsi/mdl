@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.4 2016/01/29 20:51:26 je Exp $ */
+/* $Id: relative.c,v 1.5 2016/01/31 20:33:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,8 +20,10 @@
 #include <sys/queue.h>
 
 #include "instrument.h"
+#include "musicexpr.h"
 #include "relative.h"
 #include "song.h"
+#include "track.h"
 #include "util.h"
 
 struct previous_relative_exprs_t {
@@ -29,8 +31,7 @@ struct previous_relative_exprs_t {
 	enum chordtype_t chordtype;
 };
 
-static void	relative_to_absolute(struct song_t *,
-				     struct musicexpr_t *,
+static void	relative_to_absolute(struct musicexpr_t *,
 				     struct previous_relative_exprs_t *,
 				     int);
 
@@ -46,6 +47,8 @@ musicexpr_relative_to_absolute(struct song_t *song,
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
 	/* set default values for the first absolute note */
+	prev_relative_exprs.absnote.instrument
+	    = track_get_default_instrument(song->default_track);
 	prev_relative_exprs.absnote.length = 0.25;
 	prev_relative_exprs.absnote.notesym = NOTE_C;
 	prev_relative_exprs.absnote.note = 60;
@@ -54,19 +57,17 @@ musicexpr_relative_to_absolute(struct song_t *song,
 	/* set default value for the first chordtype */
 	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
 
-	relative_to_absolute(song, me, &prev_relative_exprs, level + 1);
+	relative_to_absolute(me, &prev_relative_exprs, level + 1);
 }
 
 static void
-relative_to_absolute(struct song_t *song,
-		     struct musicexpr_t *me,
+relative_to_absolute(struct musicexpr_t *me,
 		     struct previous_relative_exprs_t *prev_exprs,
 		     int level)
 {
 	struct musicexpr_t *p;
 	struct absnote_t absnote;
 	struct relnote_t relnote;
-	struct track_t *track;
 	struct previous_relative_exprs_t prev_exprs_copy;
 	int notevalues[] = {
 		/* for NOTE_C, NOTE_D, ... */
@@ -85,10 +86,7 @@ relative_to_absolute(struct song_t *song,
 		prev_exprs->absnote = me->u.absnote;
 		break;
 	case ME_TYPE_CHORD:
-		relative_to_absolute(song,
-				     me->u.chord.me,
-				     prev_exprs,
-				     level + 1);
+		relative_to_absolute(me->u.chord.me, prev_exprs, level + 1);
 		if (me->u.chord.chordtype == CHORDTYPE_NONE)
 			me->u.chord.chordtype = prev_exprs->chordtype;
 		prev_exprs->chordtype = me->u.chord.chordtype;
@@ -96,28 +94,18 @@ relative_to_absolute(struct song_t *song,
 	case ME_TYPE_EMPTY:
 		break;
 	case ME_TYPE_JOINEXPR:
-		relative_to_absolute(song,
-				     me->u.joinexpr.a,
-				     prev_exprs,
-				     level + 1);
-		relative_to_absolute(song,
-				     me->u.joinexpr.b,
+		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level + 1);
+		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level + 1);
+		break;
+	case ME_TYPE_OFFSETEXPR:
+		relative_to_absolute(me->u.offsetexpr.me,
 				     prev_exprs,
 				     level + 1);
 		break;
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
-		track = mdl_song_find_track_or_new(song,
-						   me->u.ontrack.trackname,
-						   level);
-		if (track == NULL) {
-			/* XXX should return error, void type must change */
-		}
-		prev_exprs->absnote.track = track;
-		relative_to_absolute(song,
-				     me->u.ontrack.me,
-				     prev_exprs,
-				     level + 1);
+		prev_exprs->absnote.track = me->u.ontrack.track;
+		relative_to_absolute(me->u.ontrack.me, prev_exprs, level + 1);
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_RELNOTE:
@@ -142,12 +130,12 @@ relative_to_absolute(struct song_t *song,
 
 		note += 12 * relnote.octavemods;
 
+		absnote = prev_exprs->absnote;
 		absnote.length = relnote.length;
 		if (absnote.length == 0)
 			absnote.length = prev_exprs->absnote.length;
 		absnote.note = note;
 		absnote.notesym = relnote.notesym;
-		absnote.track = prev_exprs->absnote.track;
 
 		me->me_type = ME_TYPE_ABSNOTE;
 		me->u.absnote = absnote;
@@ -179,10 +167,7 @@ relative_to_absolute(struct song_t *song,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
-			relative_to_absolute(song,
-					     p,
-					     prev_exprs,
-					     level + 1);
+			relative_to_absolute(p, prev_exprs, level + 1);
 			if (!first_note_seen)
 				prev_exprs_copy = *prev_exprs;
 			first_note_seen = 1;
@@ -198,8 +183,7 @@ relative_to_absolute(struct song_t *song,
 
 		break;
 	case ME_TYPE_SCALEDEXPR:
-		relative_to_absolute(song,
-				     me->u.scaledexpr.me,
+		relative_to_absolute(me->u.scaledexpr.me,
 				     prev_exprs,
 				     level + 1);
 		break;
@@ -209,7 +193,7 @@ relative_to_absolute(struct song_t *song,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			relative_to_absolute(song, p, prev_exprs, level + 1);
+			relative_to_absolute(p, prev_exprs, level + 1);
 			if (!first_note_seen)
 				prev_exprs_copy = *prev_exprs;
 			first_note_seen = 1;
@@ -223,18 +207,9 @@ relative_to_absolute(struct song_t *song,
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
-			relative_to_absolute(song,
-					     p,
-					     &prev_exprs_copy,
-					     level + 1);
+			relative_to_absolute(p, &prev_exprs_copy, level + 1);
 		}
 		*prev_exprs = prev_exprs_copy;
-		break;
-	case ME_TYPE_WITHOFFSET:
-		relative_to_absolute(song,
-				     me->u.offsetexpr.me,
-				     prev_exprs,
-				     level + 1);
 		break;
 	default:
 		assert(0);
