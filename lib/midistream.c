@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.6 2016/01/31 20:33:46 je Exp $ */
+/* $Id: midistream.c,v 1.7 2016/02/01 20:20:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -205,6 +205,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 	}
 
 	/* add SONG_END midievent */
+	/* XXX should set midievent->time_as_measures as well */
 	midievent = &midi_es->midievents[ midi_es->count ];
 	bzero(midievent, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;
@@ -232,56 +233,44 @@ add_musicexpr_to_midievents(struct mdl_stream *midi_es,
 	struct midievent *midievent;
 	int ret, new_note;
 
-	ret = 0;
-
 	/* XXX what about ME_TYPE_REST, that might almost be currently
-	 * XXX possible? */
+	 * XXX possible? (it is probably better if SONG_END could have
+	 * XXX offset information so that the final rest would be
+	 * XXX unnecessary and we could expect only ME_TYPE_ABSNOTEs
+	 * XXX here) */
 
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-		new_note = me->u.absnote.note;
+	assert(me->me_type == ME_TYPE_ABSNOTE);
 
-		/* we accept and ignore notes that are out-of-range */
-		if (new_note < 0 || MIDI_NOTE_MAX < new_note) {
-			mdl_log(2,
-				level,
-				"skipping note with value %d",
-				new_note);
-			ret = 0;
-			break;
-		}
-		/* length can never be non-positive here, that is a bug */
-		assert(me->u.absnote.length > 0);
+	new_note = me->u.absnote.note;
 
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEON;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = new_note;
-		midievent->time_as_measures = timeoffset;
-		midievent->velocity = DEFAULT_VELOCITY;
-
-		ret = mdl_stream_increment(midi_es);
-		if (ret != 0)
-			break;
-
-		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
-		midievent->eventtype = NOTEOFF;
-		midievent->channel = DEFAULT_MIDICHANNEL;
-		midievent->note = new_note;
-		midievent->time_as_measures
-		    = timeoffset + me->u.absnote.length;
-		midievent->velocity = 0;
-
-		ret = mdl_stream_increment(midi_es);
-		break;
-	default:
-		assert(0);
-		break;
+	/* we accept and ignore notes that are out-of-range */
+	if (new_note < 0 || MIDI_NOTE_MAX < new_note) {
+		mdl_log(2, level, "skipping note with value %d", new_note);
+		return 0;
 	}
+	assert(me->u.absnote.length > 0);
 
-	return ret;
+	midievent = &midi_es->midievents[ midi_es->count ];
+	bzero(midievent, sizeof(struct midievent));
+	midievent->eventtype = NOTEON;
+	midievent->channel = DEFAULT_MIDICHANNEL;
+	midievent->note = new_note;
+	midievent->time_as_measures = timeoffset;
+	midievent->velocity = DEFAULT_VELOCITY;
+
+	ret = mdl_stream_increment(midi_es);
+	if (ret != 0)
+		return ret;
+
+	midievent = &midi_es->midievents[ midi_es->count ];
+	bzero(midievent, sizeof(struct midievent));
+	midievent->eventtype = NOTEOFF;
+	midievent->channel = DEFAULT_MIDICHANNEL;
+	midievent->note = new_note;
+	midievent->time_as_measures = timeoffset + me->u.absnote.length;
+	midievent->velocity = 0;
+
+	return mdl_stream_increment(midi_es);
 }
 
 static int
