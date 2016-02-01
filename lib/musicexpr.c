@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.68 2016/01/31 20:33:46 je Exp $ */
+/* $Id: musicexpr.c,v 1.69 2016/02/01 20:19:41 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -345,9 +345,12 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 		state->next_offset = new_next_offset;
 		break;
         case ME_TYPE_ONTRACK:
-		/* XXX is this the place where should look up the
-		 * XXX instrument code, and perhaps flat simultence
-		 * XXX should contain something with instrument codes? */
+		ret = add_musicexpr_to_flat_simultence(simultence,
+						       me->u.ontrack.me,
+						       state,
+						       level + 1);
+		if (ret != 0)
+			return ret;
 		break;
         case ME_TYPE_REST:
 		end_offset = state->next_offset + me->u.rest.length;
