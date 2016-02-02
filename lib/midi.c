@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.11 2016/01/23 19:15:42 je Exp $ */
+/* $Id: midi.c,v 1.12 2016/02/02 21:05:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,32 +62,35 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 		return 0;
 	}
 
-	if (me.eventtype == SONG_END)
+	if (me.eventtype == SONG_END) {
+		/* XXX should check for me.u.time_as_measures */
 		return 1;
+	}
 
-	if (!midi_check_range(me.channel, 0, MIDI_CHANNEL_MAX)) {
-		warnx("midievent channel is invalid: %d", me.channel);
+	if (!midi_check_range(me.u.note.channel, 0, MIDI_CHANNEL_COUNT-1)) {
+		warnx("midievent channel is invalid: %d", me.u.note.channel);
 		return 0;
 	}
 
-	if (!midi_check_range(me.note, 0, MIDI_NOTE_MAX)) {
-		warnx("midievent note is invalid: %d", me.note);
+	if (!midi_check_range(me.u.note.note, 0, MIDI_NOTE_COUNT-1)) {
+		warnx("midievent note is invalid: %d", me.u.note.note);
 		return 0;
 	}
 
-	if (!midi_check_range(me.velocity, 0, MIDI_VELOCITY_MAX)) {
-		warnx("midievent velocity is invalid: %d", me.velocity);
+	if (!midi_check_range(me.u.note.velocity, 0, MIDI_VELOCITY_MAX)) {
+		warnx("midievent velocity is invalid: %d",
+		      me.u.note.velocity);
 		return 0;
 	}
 
-	if (!isfinite(me.time_as_measures)) {
+	if (!isfinite(me.u.note.time_as_measures)) {
 		warnx("time_as_measures is not a valid (finite) value");
 		return 0;
 	}
 
-	if (me.time_as_measures < minimum_time_as_measures) {
+	if (me.u.note.time_as_measures < minimum_time_as_measures) {
 		warnx("time is decreasing in eventstream (%f < %f)",
-		      me.time_as_measures,
+		      me.u.note.time_as_measures,
 		      minimum_time_as_measures);
 		return 0;
 	}
@@ -108,7 +111,7 @@ midi_send_midievent(struct midievent *me)
 	switch (me->eventtype) {
 	case NOTEON:
 		eventbase = MIDI_NOTEON_BASE;
-		velocity = me->velocity;
+		velocity = me->u.note.velocity;
 		break;
 	case NOTEOFF:
 		eventbase = MIDI_NOTEOFF_BASE;
@@ -126,16 +129,18 @@ midi_send_midievent(struct midievent *me)
 
 	mdl_log(2,
 		0,
-		"sending \"%s\": notevalue=%d velocity=%d clock=%d.%.0f\n",
+		"sending \"%s\": notevalue=%d channel=%d velocity=%d" \
+		  " clock=%d.%.0f\n",
 		(me->eventtype == NOTEON  ? "note on"  :
 		 me->eventtype == NOTEOFF ? "note off" : "(unknown)"),
-		me->note,
+		me->u.note.note,
+		me->u.note.channel,
 		velocity,
 		time.tv_sec,
 		time.tv_nsec / 1000000.0);
 
-	midievent[0] = (u_int8_t) (eventbase + me->channel);
-	midievent[1] = me->note;
+	midievent[0] = (u_int8_t) (eventbase + me->u.note.channel);
+	midievent[1] = me->u.note.note;
 	midievent[2] = velocity;
 
 	ret = mio_write(mio, midievent, MIDI_EVENT_SIZE);

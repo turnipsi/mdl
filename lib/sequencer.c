@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.58 2015/11/28 21:55:32 je Exp $ */
+/* $Id: sequencer.c,v 1.59 2016/02/02 21:05:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -58,7 +58,7 @@ struct notestate {
 enum playback_state_t { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
 
 struct songstate {
-	struct notestate notestates[MIDI_CHANNEL_MAX+1][MIDI_NOTE_MAX+1];
+	struct notestate notestates[MIDI_CHANNEL_COUNT][MIDI_NOTE_COUNT];
 	struct eventstream es;
 	struct eventpointer current_event;
 	struct timespec latest_tempo_change_as_time;
@@ -395,10 +395,10 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me)
 
 	ret = midi_send_midievent(me);
 	if (ret == 0) {
-		ss->notestates[me->channel][me->note].state
+		ss->notestates[me->u.note.channel][me->u.note.note].state
 		  = (me->eventtype == NOTEON) ? 1 : 0;
-		ss->notestates[me->channel][me->note].velocity
-		  = (me->eventtype == NOTEON) ? me->velocity : 0;
+		ss->notestates[me->u.note.channel][me->u.note.note].velocity
+		  = (me->eventtype == NOTEON) ? me->u.note.velocity : 0;
 	}
 
 	return ret;
@@ -467,7 +467,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		}
 
 		ss->current_event.index = i;
-		ss->time_as_measures = new_b->events[i].time_as_measures;
+		ss->time_as_measures
+		    = new_b->events[i].u.note.time_as_measures;
 	}
 
 	if (nr > 0)
@@ -533,20 +534,25 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
-			if (me->time_as_measures >= old_ss->time_as_measures)
+			if (me->u.note.time_as_measures
+			     >= old_ss->time_as_measures)
 				break;
 
 			switch (me->eventtype) {
 			case NOTEON:
-				ss->notestates[me->channel][me->note]
+				ss->notestates[me->u.note.channel]
+					      [me->u.note.note]
 				    .state = 1;
-				ss->notestates[me->channel][me->note]
-				    .velocity = me->velocity;
+				ss->notestates[me->u.note.channel]
+					      [me->u.note.note]
+				    .velocity = me->u.note.velocity;
 				break;
 			case NOTEOFF:
-				ss->notestates[me->channel][me->note]
+				ss->notestates[me->u.note.channel]
+					      [me->u.note.note]
 				    .state = 0;
-				ss->notestates[me->channel][me->note]
+				ss->notestates[me->u.note.channel]
+					      [me->u.note.note]
 				    .velocity = 0;
 				break;
 			default:
@@ -559,20 +565,20 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 
 	/* sync playback state
 	 *   (start or turn off notes according to new playback song) */
-	for (c = 0; c < MIDI_CHANNEL_MAX; c++) {
-		for (n = 0; n < MIDI_NOTE_MAX; n++) {
+	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
+		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->notestates[c][n];
  			new =     ss->notestates[c][n];
 
 			note_off.eventtype = NOTEOFF;
-			note_off.channel   = c;
-			note_off.note      = n;
-			note_off.velocity  = 0;
+			note_off.u.note.channel   = c;
+			note_off.u.note.note      = n;
+			note_off.u.note.velocity  = 0;
 
 			note_on.eventtype = NOTEON;
-			note_on.channel   = c;
-			note_on.note      = n;
-			note_on.velocity  = new.velocity;
+			note_on.u.note.channel   = c;
+			note_on.u.note.note      = n;
+			note_on.u.note.velocity  = new.velocity;
 
 			if (old.state && new.state
 			     && old.velocity != new.velocity) {
@@ -640,7 +646,7 @@ sequencer_time_for_next_note(struct songstate *ss,
 			 ];
 
 	measures_for_note_since_latest_tempo_change
-	    = next_midievent.time_as_measures
+	    = next_midievent.u.note.time_as_measures
 		- ss->latest_tempo_change_as_measures;
 
 	time_for_note_since_latest_tempo_change_in_ns
@@ -675,13 +681,13 @@ sequencer_close_songstate(struct songstate *ss)
 	struct midievent note_off;
 	int c, n;
 
-	for (c = 0; c < MIDI_CHANNEL_MAX; c++)
-		for (n = 0; n < MIDI_NOTE_MAX; n++)
+	for (c = 0; c < MIDI_CHANNEL_COUNT; c++)
+		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
 			if (ss->notestates[c][n].state) {
 				note_off.eventtype = NOTEOFF;
-				note_off.channel   = c;
-				note_off.note      = n;
-				note_off.velocity  = 0;
+				note_off.u.note.channel   = c;
+				note_off.u.note.note      = n;
+				note_off.u.note.velocity  = 0;
 				if (sequencer_noteevent(ss, &note_off) != 0)
 					warnx("error in turning off note"
 						" %d on channel %d", n, c);

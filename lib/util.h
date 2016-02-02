@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.15 2016/01/31 20:33:47 je Exp $ */
+/* $Id: util.h,v 1.16 2016/02/02 21:05:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,10 +26,15 @@
 
 struct mdl_stream {
 	size_t count, slotcount;
-	enum streamtype { MIDIEVENTSTREAM, OFFSETEXPRSTREAM } s_type;
+	enum streamtype {
+		MIDIEVENTSTREAM,
+		OFFSETEXPRSTREAM,
+		TRACKMIDIEVENTSTREAM,
+	} s_type;
 	union {
 		struct offsetexpr_t	*mexprs;
 		struct midievent	*midievents;
+		struct trackmidinote_t	*trackmidinotes;
 	};
 };
 

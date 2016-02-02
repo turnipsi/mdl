@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.7 2016/01/23 19:15:42 je Exp $ */
+/* $Id: midi.h,v 1.8 2016/02/02 21:05:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,17 +19,32 @@
 #ifndef MDL_MIDI_H
 #define MDL_MIDI_H
 
+#include "instrument.h"
 #include "util.h"
 
-#define MIDI_CHANNEL_MAX	15
-#define MIDI_NOTE_MAX		127
+#define MIDI_CHANNEL_COUNT	16
+#define MIDI_NOTE_COUNT		128
 
 enum eventtype_t { SONG_END, NOTEOFF, NOTEON, EVENTTYPE_COUNT };
 
+struct midinote_t {
+	u_int8_t	channel, note, velocity;
+	float		time_as_measures;
+};
+
+struct trackmidinote_t {
+	enum eventtype_t	eventtype;
+	struct instrument_t    *instrument;
+	struct midinote_t	note;
+	struct track_t	       *track;
+};
+
 struct midievent {
-	enum eventtype_t        eventtype;
-	u_int8_t                channel, note, velocity;
-	float                   time_as_measures;
+	enum eventtype_t	eventtype;
+	union {
+		struct midinote_t	note;
+		float			time_as_measures;
+	} u;
 };
 
 int	midi_open_device(void);

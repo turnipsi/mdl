@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.16 2016/01/31 20:33:47 je Exp $ */
+/* $Id: util.c,v 1.17 2016/02/02 21:05:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -96,6 +96,15 @@ mdl_stream_new(enum streamtype s_type)
 			return NULL;
 		}
 		break;
+	case TRACKMIDIEVENTSTREAM:
+		s->trackmidinotes = calloc(s->slotcount,
+					   sizeof(struct trackmidinote_t));
+		if (s->trackmidinotes == NULL) {
+			warn("calloc in mdl_stream_new");
+			free(s);
+			return NULL;
+		}
+		break;
 	default:
 		assert(0);
 	}
@@ -135,6 +144,18 @@ mdl_stream_increment(struct mdl_stream *s)
 			}
 			s->mexprs = new_items;
 			break;
+		case TRACKMIDIEVENTSTREAM:
+			new_items
+			    = reallocarray(s->trackmidinotes,
+					   s->slotcount,
+					   sizeof(struct trackmidinote_t));
+
+			if (new_items == NULL) {
+				warn("reallocarray in mdl_stream_increment");
+				return 1;
+			}
+			s->trackmidinotes = new_items;
+			break;
 		default:
 			assert(0);
 		}
@@ -147,11 +168,14 @@ void
 mdl_stream_free(struct mdl_stream *s)
 {
 	switch (s->s_type) {
+	case MIDIEVENTSTREAM:
+		free(s->midievents);
+		break;
 	case OFFSETEXPRSTREAM:
 		free(s->mexprs);
 		break;
-	case MIDIEVENTSTREAM:
-		free(s->midievents);
+	case TRACKMIDIEVENTSTREAM:
+		free(s->trackmidinotes);
 		break;
 	default:
 		assert(0);
