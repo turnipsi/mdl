@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.17 2016/01/27 21:34:13 je Exp $ */
+/* $Id: lex.l,v 1.18 2016/02/02 21:08:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,7 +32,7 @@ int	yywrap(void);
 %%
 \"			BEGIN(quotedstring);
 
-<quotedstring>[[:alnum:]]+	{
+<quotedstring>[[:alnum:] ]+	{
 					yylval.string = strdup(yytext);
 					if (yylval.string == NULL) {
 						/* XXX error handling */
