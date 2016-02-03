@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.8 2016/02/02 21:05:18 je Exp $ */
+/* $Id: midistream.c,v 1.9 2016/02/03 21:09:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -300,7 +300,16 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 			}
 
 			if (tracks[ch].instrument != tmn.instrument) {
-				/* XXX generate instrument event */
+				assert(tmn.instrument != NULL);
+				midievent
+				    = &midi_es->midievents[ midi_es->count ];
+				bzero(midievent, sizeof(struct midievent));
+				midievent->eventtype = INSTRUMENT_CHANGE;
+				midievent->u.instrument_change.code
+				    = tmn.instrument->code;
+				ret = mdl_stream_increment(midi_es);
+				if (ret != 0)
+					goto error;
 			}
 
 			tracks[ch].instrument = tmn.instrument;
@@ -323,8 +332,6 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 
 	for (i = 0; i < MIDI_CHANNEL_COUNT; i++)
 		assert(tracks[i].notecount == 0);
-
-	/* XXX */
 
 	/* add SONG_END midievent */
 	/* XXX should set midievent->time_as_measures as well */

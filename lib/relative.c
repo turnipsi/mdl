@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.5 2016/01/31 20:33:47 je Exp $ */
+/* $Id: relative.c,v 1.6 2016/02/03 21:09:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,12 +43,20 @@ musicexpr_relative_to_absolute(struct song_t *song,
 			       int level)
 {
 	struct previous_relative_exprs_t prev_relative_exprs;
+	struct instrument_t *instrument;
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
 	/* set default values for the first absolute note */
-	prev_relative_exprs.absnote.instrument
-	    = track_get_default_instrument(song->default_track);
+	instrument = track_get_default_instrument(song->default_track);
+	if (instrument != NULL) {
+		prev_relative_exprs.absnote.instrument = instrument;
+	} else {
+		prev_relative_exprs.absnote.instrument
+		    = get_instrument(INSTR_TONED, "acoustic grand");
+	}
+	assert(prev_relative_exprs.absnote.instrument != NULL);
+
 	prev_relative_exprs.absnote.length = 0.25;
 	prev_relative_exprs.absnote.notesym = NOTE_C;
 	prev_relative_exprs.absnote.note = 60;
@@ -68,6 +76,7 @@ relative_to_absolute(struct musicexpr_t *me,
 	struct musicexpr_t *p;
 	struct absnote_t absnote;
 	struct relnote_t relnote;
+	struct instrument_t *instrument;
 	struct previous_relative_exprs_t prev_exprs_copy;
 	int notevalues[] = {
 		/* for NOTE_C, NOTE_D, ... */
@@ -105,6 +114,9 @@ relative_to_absolute(struct musicexpr_t *me,
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
 		prev_exprs->absnote.track = me->u.ontrack.track;
+		instrument = track_get_default_instrument(me->u.ontrack.track);
+		if (instrument != NULL)
+			prev_exprs->absnote.instrument = instrument;
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level + 1);
 		*prev_exprs = prev_exprs_copy;
 		break;

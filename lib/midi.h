@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.8 2016/02/02 21:05:18 je Exp $ */
+/* $Id: midi.h,v 1.9 2016/02/03 21:09:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,17 @@
 #define MIDI_CHANNEL_COUNT	16
 #define MIDI_NOTE_COUNT		128
 
-enum eventtype_t { SONG_END, NOTEOFF, NOTEON, EVENTTYPE_COUNT };
+enum eventtype_t {
+	SONG_END,
+	NOTEOFF,
+	NOTEON,
+	INSTRUMENT_CHANGE,
+	EVENTTYPE_COUNT,
+};
+
+struct instrument_change_t {
+	u_int8_t	channel, code;
+};
 
 struct midinote_t {
 	u_int8_t	channel, note, velocity;
@@ -42,8 +52,9 @@ struct trackmidinote_t {
 struct midievent {
 	enum eventtype_t	eventtype;
 	union {
-		struct midinote_t	note;
-		float			time_as_measures;
+		struct midinote_t		note;
+		float				time_as_measures;
+		struct instrument_change_t	instrument_change;
 	} u;
 };
 

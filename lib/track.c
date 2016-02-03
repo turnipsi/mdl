@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.1 2016/01/31 20:33:47 je Exp $ */
+/* $Id: track.c,v 1.2 2016/02/03 21:09:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,13 +24,5 @@
 struct instrument_t *
 track_get_default_instrument(struct track_t *track)
 {
-	struct instrument_t *instrument;
-
-	instrument = get_instrument(INSTR_TONED, track->name);
-	if (instrument == NULL) {
-		instrument = get_instrument(INSTR_TONED, "acoustic grand");
-		assert(instrument != NULL);
-	}
-
-	return instrument;
+	return get_instrument(INSTR_TONED, track->name);
 }
