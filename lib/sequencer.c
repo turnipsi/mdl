@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.60 2016/02/03 21:09:27 je Exp $ */
+/* $Id: sequencer.c,v 1.61 2016/02/06 22:03:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -301,7 +301,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
 	ss->measure_length = 1;
 	ss->playback_state = ps;
 	ss->tempo = 120;
-	ss->time_as_measures = 0;
+	ss->time_as_measures = 0.0;
 }
 
 static void
@@ -485,8 +485,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		}
 
 		ss->current_event.index = i;
-		ss->time_as_measures
-		    = new_b->events[i].u.note.time_as_measures;
+		ss->time_as_measures = new_b->events[i].time_as_measures;
 	}
 
 	if (nr > 0)
@@ -552,8 +551,7 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
-			if (me->u.note.time_as_measures
-			     >= old_ss->time_as_measures)
+			if (me->time_as_measures >= old_ss->time_as_measures)
 				break;
 
 			switch (me->eventtype) {
@@ -664,7 +662,7 @@ sequencer_time_for_next_note(struct songstate *ss,
 			 ];
 
 	measures_for_note_since_latest_tempo_change
-	    = next_midievent.u.note.time_as_measures
+	    = next_midievent.time_as_measures
 		- ss->latest_tempo_change_as_measures;
 
 	time_for_note_since_latest_tempo_change_in_ns

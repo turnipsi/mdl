@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.13 2016/02/03 21:09:27 je Exp $ */
+/* $Id: midi.c,v 1.14 2016/02/06 22:03:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,6 +67,13 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 		return 0;
 	}
 
+	if (me.time_as_measures < minimum_time_as_measures) {
+		warnx("time is decreasing in eventstream (%f < %f)",
+		      me.time_as_measures,
+		      minimum_time_as_measures);
+		return 0;
+	}
+
 	switch (me.eventtype) {
 	case INSTRUMENT_CHANGE:
 		ret = midi_check_range(me.u.instrument_change.code,
@@ -114,21 +121,13 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 			return 0;
 		}
 
-		if (!isfinite(me.u.note.time_as_measures)) {
+		if (!isfinite(me.time_as_measures)) {
 			warnx("time_as_measures is not a valid (finite)");
-			return 0;
-		}
-
-		if (me.u.note.time_as_measures < minimum_time_as_measures) {
-			warnx("time is decreasing in eventstream (%f < %f)",
-			      me.u.note.time_as_measures,
-			      minimum_time_as_measures);
 			return 0;
 		}
 
 		return 1;
 	case SONG_END:
-		/* XXX should check for me.u.time_as_measures */
 		return 1;
 	default:
 		assert(0);

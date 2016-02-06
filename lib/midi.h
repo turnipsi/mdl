@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.9 2016/02/03 21:09:27 je Exp $ */
+/* $Id: midi.h,v 1.10 2016/02/06 22:03:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,21 +39,21 @@ struct instrument_change_t {
 
 struct midinote_t {
 	u_int8_t	channel, note, velocity;
-	float		time_as_measures;
 };
 
 struct trackmidinote_t {
 	enum eventtype_t	eventtype;
 	struct instrument_t    *instrument;
 	struct midinote_t	note;
+	float			time_as_measures;
 	struct track_t	       *track;
 };
 
 struct midievent {
 	enum eventtype_t	eventtype;
+	float			time_as_measures;
 	union {
 		struct midinote_t		note;
-		float				time_as_measures;
 		struct instrument_change_t	instrument_change;
 	} u;
 };
