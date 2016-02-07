@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.62 2016/02/07 19:56:27 je Exp $ */
+/* $Id: sequencer.c,v 1.63 2016/02/07 20:45:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -310,7 +310,6 @@ sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout)
 	struct timespec current_time, notetime;
 	int ret;
 
-	/* XXX a bug somewhere here? */
 	sequencer_time_for_next_note(ss, &notetime);
 
 	ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -672,10 +671,17 @@ sequencer_time_for_next_note(struct songstate *ss,
 	    = (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo))
                 * measures_for_note_since_latest_tempo_change;
 
-	time_for_note_since_latest_tempo_change.tv_sec
-	    = time_for_note_since_latest_tempo_change_in_ns / 1000000000;
 	time_for_note_since_latest_tempo_change.tv_nsec
-	    = fmodf(time_for_note_since_latest_tempo_change_in_ns, 1000000000);
+	    = fmodf(time_for_note_since_latest_tempo_change_in_ns,
+		    1000000000.0);
+
+	/* this is tricky to get right... naively dividing
+	 * time_for_note_since_latest_tempo_change_in_ns / 1000000000.0
+	 * does not always work, because of floating point rounding errors */
+	time_for_note_since_latest_tempo_change.tv_sec
+	    = rintf((time_for_note_since_latest_tempo_change_in_ns
+		       - time_for_note_since_latest_tempo_change.tv_nsec)
+		           / 1000000000.0);
 
 	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec
                              + ss->latest_tempo_change_as_time.tv_sec;
