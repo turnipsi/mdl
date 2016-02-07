@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.14 2016/02/06 22:03:10 je Exp $ */
+/* $Id: midi.c,v 1.15 2016/02/07 19:56:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -205,4 +205,45 @@ static int
 midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 {
 	return (min <= value && value <= max);
+}
+
+void
+midievent_log(const char *prefix, struct midievent *midievent, int level)
+{
+	switch (midievent->eventtype) {
+	case INSTRUMENT_CHANGE:
+		mdl_log(2,
+			level,
+			"%s instrument change time=%.3f"
+			    " channel=%d instrument=%d\n",
+			prefix,
+			midievent->time_as_measures,
+			midievent->u.instrument_change.channel,
+			midievent->u.instrument_change.code);
+		break;
+	case NOTEOFF:
+	case NOTEON:
+		mdl_log(2,
+			level,
+			"%s %s time=%.3f channel=%d note=%d"
+			    " velocity=%d\n",
+			prefix,
+			(midievent->eventtype == NOTEOFF
+			    ? "noteoff"
+			    : "noteon"),
+			midievent->time_as_measures,
+			midievent->u.note.channel,
+			midievent->u.note.note,
+			midievent->u.note.velocity);
+		break;
+	case SONG_END:
+		mdl_log(2,
+			level,
+			"%s song end time=%.3f\n",
+			prefix,
+			midievent->time_as_measures);
+		break;
+	default:
+		assert(0);
+	}
 }

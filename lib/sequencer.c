@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.61 2016/02/06 22:03:10 je Exp $ */
+/* $Id: sequencer.c,v 1.62 2016/02/07 19:56:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -310,6 +310,7 @@ sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout)
 	struct timespec current_time, notetime;
 	int ret;
 
+	/* XXX a bug somewhere here? */
 	sequencer_time_for_next_note(ss, &notetime);
 
 	ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
@@ -477,6 +478,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 
 		if (new_b->events[i].eventtype == SONG_END)
 			ss->got_song_end = 1;
+
+		midievent_log("received", &new_b->events[i], 1);
 
 		if (!midi_check_midievent(new_b->events[i],
 					  ss->time_as_measures)) {
