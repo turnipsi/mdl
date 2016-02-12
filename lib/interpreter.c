@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.38 2016/01/23 19:45:48 je Exp $ */
+/* $Id: interpreter.c,v 1.39 2016/02/12 20:20:01 je Exp $ */
  
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,7 +42,7 @@ handle_musicfile_and_socket(int file_fd,
 	ssize_t wcount;
 	int level, ret;
 
-	/* XXX main_socket not yet used for anything */
+	/* XXX main_socket is not yet used for anything. */
 
 	eventstream = NULL;
 	level = 0;
@@ -63,8 +63,10 @@ handle_musicfile_and_socket(int file_fd,
 		return 1;
 	}
 
-	/* if yyparse() returned ok, we should have parsed_expr != NULL
-	 * and available for us now */
+	/*
+	 * If yyparse() returned ok, we should have parsed_expr != NULL
+	 * and available for us now.
+	 */
 
 	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
 		warnx("expected sequence");

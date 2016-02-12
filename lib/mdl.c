@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.42 2016/01/16 19:37:57 je Exp $ */
+/* $Id: mdl.c,v 1.43 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -56,7 +56,7 @@ static int		setup_sequencer_for_sources(char **,
 static int		setup_server_socket(const char *);
 static void __dead	usage(void);
 
-/* if set in signal handler, should do shutdown */
+/* If set in signal handler, we should shut down. */
 volatile sig_atomic_t mdl_shutdown_main = 0;
 
 extern int loglevel;
@@ -139,9 +139,11 @@ main(int argc, char *argv[])
 		err(1, "error creating %s", mdldir);
 
 	if (sflag) {
-		/* when opening server socket, open mdldir for exclusive lock,
-		 * to get exclusive access to socket path, not needed for
-		 * anything else */
+		/*
+		 * When opening server socket, open mdldir for exclusive
+		 * lock, to get exclusive access to socket path, not needed
+		 * for anything else.
+		 */
 		fileflags = O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY;
 		if ((lockfd = open(mdldir, fileflags)) == -1) {
 			warn("could not open %s for exclusive lock", mdldir);
@@ -233,7 +235,7 @@ setup_sequencer_for_sources(char **files,
 	server_socket = -1;
 	retvalue = 0;
 
-	/* setup socketpair for main <-> sequencer communication */
+	/* Setup socketpair for main <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
 		warn("could not setup socketpair for main <-> sequencer");
 		return 1;
@@ -242,7 +244,7 @@ setup_sequencer_for_sources(char **files,
 	if (fflush(NULL) == EOF)
 		warn("error flushing streams before sequencer fork");
 
-	/* for the midi sequencer process */
+	/* Fork the midi sequencer process. */
 	if ((sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
 		if (close(ms_sp[0]) == -1)
@@ -253,11 +255,15 @@ setup_sequencer_for_sources(char **files,
 	}
 
 	if (sequencer_pid == 0) {
-		/* sequencer process, start sequencer loop */
+		/*
+		 * We are in sequencer process, start sequencer loop.
+		 */
 		mdl_process_type = "seq";
 		mdl_log(1, 0, "new sequencer process, pid %d\n", getpid());
-		/* XXX should close all file descriptors that sequencer
-		 * XXX does not need... does this do that? */
+		/*
+		 * XXX We should close all file descriptors that sequencer
+		 * XXX does not need... does this do that?
+		 */
 		if (lockfd >= 0 && close(lockfd) == -1)
 			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
@@ -368,13 +374,13 @@ start_interpreter(int file_fd,
 	int interpreter_status;
 	pid_t interpreter_pid;
 
-	/* setup socketpair for main <-> interpreter communication */
+	/* Setup socketpair for main <-> interpreter communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, mi_sp) == -1) {
 		warn("could not setup socketpair for main <-> interpreter");
 		return 1;
 	}
 
-	/* setup pipe for interpreter -> sequencer communication */
+	/* Setup pipe for interpreter -> sequencer communication. */
 	if (pipe(is_pipe) == -1) {
 		warn("could not setup pipe for interpreter -> sequencer");
 		if (close(mi_sp[0]) == -1)
@@ -402,12 +408,16 @@ start_interpreter(int file_fd,
 	}
 
 	if (interpreter_pid == 0) {
-		/* interpreter process */
+		/*
+		 * We are in the interpreter process.
+		 */
 		mdl_process_type = "interp";
 		mdl_log(1, 0, "new interpreter process, pid %d\n", getpid());
 
-		/* be strict here when closing file descriptors so that we
-		 * do not leak file descriptors to interpreter process */
+		/*
+		 * Be strict here when closing file descriptors so that we
+		 * do not leak file descriptors to interpreter process.
+		 */
 		if (lockfd >= 0 && close(lockfd) == -1) {
 			warn("error closing lock file descriptor");
 			ret = 1;
@@ -456,25 +466,31 @@ interpreter_out:
 	if (close(is_pipe[0]) == -1)
 		warn("error closing first endpoint of is_pipe");
 
-	/* we can communicate to interpreter through mi_sp[0],
+	/*
+	 * We can communicate to interpreter through mi_sp[0],
 	 * but to establish interpreter <-> sequencer communication
-	 * we must send is_pipe[1] to sequencer */
+	 * we must send is_pipe[1] to sequencer.
+	 */
 
 	if (send_fd_through_socket(is_pipe[1], sequencer_socket) != 0) {
-		/* XXX what to do in case of error?
-		 * XXX what should we clean up? */
+		/*
+		 * XXX What to do in case of error?
+		 * XXX What should we clean up?
+		 */
 	}
 
-	/* XXX mi_sp[0] not yet used for anything */
+	/* XXX mi_sp[0] not yet used for anything. */
 
 	if (close(mi_sp[0]) == -1)
 		warn("error closing first endpoint of mi_sp");
 	if (close(is_pipe[1]) == -1)
 		warn("error closing second endpoint of is_pipe");
 
-	/* XXX only one interpreter thread should be running at once,
+	/*
+	 * XXX Only one interpreter thread should be running at once,
 	 * XXX so we should wait specifically for that one to finish
-	 * XXX (we might do something interesting while waiting, though) */
+	 * XXX (we might do something interesting while waiting, though).
+	 */
 	if (waitpid(interpreter_pid, &interpreter_status, 0) == -1)
 		warn("error when wait for interpreter to finish");
 
@@ -528,8 +544,10 @@ setup_server_socket(const char *socketpath)
 		return -1;
 	}
 
-	/* exclusive flock() for mdldir should mean that
-	 * no other mdl process is using the socketpath */
+	/*
+	 * Exclusive flock() for mdldir should mean that
+	 * no other mdl process is using the socketpath.
+	 */
 	if (unlink(socketpath) == -1 && errno != ENOENT) {
 		warn("could not remove %s", socketpath);
 		goto fail;

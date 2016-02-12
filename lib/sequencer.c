@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.63 2016/02/07 20:45:56 je Exp $ */
+/* $Id: sequencer.c,v 1.64 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,7 +67,7 @@ struct songstate {
 	enum playback_state_t playback_state;
 };
 
-/* if set in signal handler, should do shutdown */
+/* If this is set in signal handler, we should shut down. */
 volatile sig_atomic_t mdl_shutdown_sequencer = 0;
 
 static void	sequencer_calculate_timeout(struct songstate *,
@@ -112,8 +112,10 @@ sequencer_loop(int main_socket)
 	struct timespec timeout, *timeout_p;
 	sigset_t loop_sigmask, select_sigmask;
 
-	/* XXX receiving fd works even if recvfd is not specified...
-	 * XXX is this a bug? */
+	/*
+	 * XXX receiving fd works even if recvfd is not specified...
+	 * XXX is this a bug? (can this be confirmed?)
+	 */
 	if (pledge("rpath recvfd stdio unix wpath", NULL) == -1) {
 		warn("pledge");
 		return 1;
@@ -181,7 +183,7 @@ sequencer_loop(int main_socket)
 		if (main_socket == -1
 		      && interp_fd == -1
 		      && timeout_p == NULL) {
-			/* nothing more to do! */
+			/* Nothing more to do! */
 			retvalue = 0;
 			goto finish;
 		}
@@ -218,7 +220,7 @@ sequencer_loop(int main_socket)
 							main_socket);
 			if (ret == -1) {
 				warnx("error receiving pipe from interpreter" \
-				        " to sequencer");
+					" to sequencer");
 				retvalue = 1;
 				goto finish;
 			}
@@ -229,8 +231,10 @@ sequencer_loop(int main_socket)
 				if (old_interp_fd >= 0
 				      && close(old_interp_fd) == -1)
 					warn("closing old interpreter fd");
-				/* we have new interp_fd, make it non-blocking
-				 * and go back to select() */
+				/*
+				 * We have new interp_fd, make it
+				 * non-blocking and go back to select().
+				 */
 				if (fcntl(interp_fd, F_SETFL, O_NONBLOCK)
 				      == -1) {
 					warn("could not set interp_fd" \
@@ -251,8 +255,10 @@ sequencer_loop(int main_socket)
 				goto finish;
 			}
 			if (nr == 0) {
-				/* we have a new playback stream, great!
-				 * reading_song becomes the playback song */
+				/*
+				 * We have a new playback stream, great!
+				 * reading_song becomes the playback song.
+				 */
 				tmp_song      = reading_song;
 				reading_song  = playback_song;
 				playback_song = tmp_song;
@@ -362,8 +368,10 @@ sequencer_play_music(struct songstate *ss)
 
 			sequencer_calculate_timeout(ss, &time_to_play);
 
-			/* if timeout has not been gone to zero, 
-			 * it is not our time to play yet */
+			/*
+			 * If timeout has not been gone to zero,
+			 * it is not our time to play yet.
+			 */
 			if (time_to_play.tv_sec > 0
 			      || (time_to_play.tv_sec == 0
 				   && time_to_play.tv_nsec > 0))
@@ -399,7 +407,7 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me)
 	if (ret == 0) {
 		switch (me->eventtype) {
 		case INSTRUMENT_CHANGE:
-			/* XXX */
+			/* XXX What to do here? */
 			break;
 		case NOTEOFF:
 			nstate = &ss->notestates[me->u.note.channel]
@@ -454,7 +462,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	}
 
 	if (nr == 0) {
-		/* the last event must be SONG_END */
+		/* The last event must be SONG_END. */
 		if (!ss->got_song_end) {
 			warnx("received music stream which" \
 				" is not complete (last event not SONG_END)");
@@ -468,7 +476,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	for (i = new_b->readcount / sizeof(struct midievent);
 	     i < (new_b->readcount + nr) / sizeof(struct midievent);
 	     i++) {
-		/* song end must not come again */
+		/* The song end must not come again. */
 		if (ss->got_song_end) {
 			warnx("received music events after song end");
 			nr = -1;
@@ -518,8 +526,10 @@ sequencer_reset_songstate(struct songstate *ss)
 	if (ss->playback_state != FREEING_EVENTSTREAM)
 		return 1;
 
-	/* do not allow this to go on too long so that
-	 * we do not miss our playback moment */
+	/*
+	 * Do not allow this to go on too long so that
+	 * we do not miss our playback moment.
+	 */
 	i = 0;
 	while (!SIMPLEQ_EMPTY(&ss->es) && i++ < 64) {
 		eb = SIMPLEQ_FIRST(&ss->es);
@@ -527,7 +537,7 @@ sequencer_reset_songstate(struct songstate *ss)
 		free(eb);
 	}
 
-	/* if eventstream is empty, we can re-init and return true */
+	/* If eventstream is empty, we can re-init and return true. */
 	if (SIMPLEQ_EMPTY(&ss->es)) {
 		sequencer_init_songstate(ss, READING);
 		return 1;
@@ -544,9 +554,11 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 	struct midievent note_off, note_on, *me;
 	int c, n, ret;
 
-	/* find the event where we should be at at new songstate,
+	/*
+	 * Find the event where we should be at at new songstate,
 	 * and do a "shadow playback" to determine what our midi state
-	 * should be */
+	 * should be.
+	 */
 	ce = ss->current_event;
 	SIMPLEQ_FOREACH(ce.block, &ss->es, entries) {
 		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
@@ -581,12 +593,14 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 		ss->current_event.index = ce.index;
 	}
 
-	/* sync playback state
-	 *   (start or turn off notes according to new playback song) */
+	/*
+	 * Sync playback state
+	 *   (start or turn off notes according to new playback song).
+	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->notestates[c][n];
- 			new =     ss->notestates[c][n];
+			new =     ss->notestates[c][n];
 
 			note_off.eventtype = NOTEOFF;
 			note_off.u.note.channel   = c;
@@ -600,8 +614,10 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 
 			if (old.state && new.state
 			     && old.velocity != new.velocity) {
-				/* note playing in different velocity,
-				 * so play note again */
+				/*
+				 * Note is playing in different velocity,
+				 * so play the note again.
+				 */
 				ret = sequencer_noteevent(ss, &note_off);
 				if (ret != 0)
 					return ret;
@@ -609,24 +625,26 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 				if (ret != 0)
 					return ret;
 			} else if (old.state && !new.state) {
-				/* note playing, but should no longer be */
+				/* Note is playing, but should no longer be. */
 				ret = sequencer_noteevent(ss, &note_off);
 				if (ret != 0)
 					return ret;
 			} else if (!old.state && new.state) {
-				/* note not playing, but should be */
+				/* Note is not playing, but should be. */
 				ret = sequencer_noteevent(ss, &note_on);
 				if (ret != 0)
 					return ret;
 			}
 
-			/* sequencer_noteevent() should also have
-			 * a side effect to make these true: */
+			/*
+			 * sequencer_noteevent() should also have
+			 * a side effect to make these true:
+			 */
 			assert(
 			  old_ss->notestates[c][n].state
 			      == ss->notestates[c][n].state
-                            && old_ss->notestates[c][n].velocity
-			         == ss->notestates[c][n].velocity
+			    && old_ss->notestates[c][n].velocity
+				 == ss->notestates[c][n].velocity
 			);
 		}
 	}
@@ -669,24 +687,26 @@ sequencer_time_for_next_note(struct songstate *ss,
 
 	time_for_note_since_latest_tempo_change_in_ns
 	    = (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo))
-                * measures_for_note_since_latest_tempo_change;
+		* measures_for_note_since_latest_tempo_change;
 
 	time_for_note_since_latest_tempo_change.tv_nsec
 	    = fmodf(time_for_note_since_latest_tempo_change_in_ns,
 		    1000000000.0);
 
-	/* this is tricky to get right... naively dividing
+	/*
+	 * This is tricky to get right... naively dividing
 	 * time_for_note_since_latest_tempo_change_in_ns / 1000000000.0
-	 * does not always work, because of floating point rounding errors */
+	 * does not always work, because of floating point rounding errors.
+	 */
 	time_for_note_since_latest_tempo_change.tv_sec
 	    = rintf((time_for_note_since_latest_tempo_change_in_ns
 		       - time_for_note_since_latest_tempo_change.tv_nsec)
-		           / 1000000000.0);
+			   / 1000000000.0);
 
 	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec
-                             + ss->latest_tempo_change_as_time.tv_sec;
+			     + ss->latest_tempo_change_as_time.tv_sec;
 	notetime->tv_nsec = time_for_note_since_latest_tempo_change.tv_nsec
-                              + ss->latest_tempo_change_as_time.tv_nsec;
+			      + ss->latest_tempo_change_as_time.tv_nsec;
 
 	if (notetime->tv_nsec >= 1000000000) {
 		notetime->tv_nsec -= 1000000000;
@@ -751,8 +771,8 @@ receive_fd_through_socket(int *received_fd, int socket)
 		return 0;
 
 	if (   cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
-            && cmsg->cmsg_level == SOL_SOCKET
-            && cmsg->cmsg_type  == SCM_RIGHTS) {
+	    && cmsg->cmsg_level == SOL_SOCKET
+	    && cmsg->cmsg_type  == SCM_RIGHTS) {
 		*received_fd = *(int *)CMSG_DATA(cmsg);
 		return 1;
 	}

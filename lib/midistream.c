@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.11 2016/02/07 19:56:27 je Exp $ */
+/* $Id: midistream.c,v 1.12 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -79,8 +79,10 @@ musicexpr_to_midievents(struct musicexpr_t *me, int level)
 		return NULL;
 	}
 
-	/* first convert relative->absolute,
-	 * joinexpr_musicexpr() can not handle relative expressions */
+	/*
+	 * First convert relative->absolute,
+	 * joinexpr_musicexpr() can not handle relative expressions.
+	 */
 	musicexpr_relative_to_absolute(song, me_workcopy, level + 1);
 
 	mdl_log(1, level + 1, "joining all music expressions\n");
@@ -130,7 +132,7 @@ midi_write_midistream(int sequencer_socket,
 
 	total_wcount = 0;
 
-	/* XXX overflow? */
+	/* XXX Can this overflow? */
 	wsize = s->count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
@@ -330,7 +332,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 			midievent->eventtype = NOTEON;
 			midievent->time_as_measures = tmn.time_as_measures;
 			midievent->u.note = tmn.note;
-			
+
 			midievent_log("sending", midievent, level + 1);
 
 			ret = mdl_stream_increment(midi_es);
@@ -346,7 +348,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 	for (i = 0; i < MIDI_CHANNEL_COUNT; i++)
 		assert(tracks[i].notecount == 0);
 
-	/* add SONG_END midievent */
+	/* Add SONG_END midievent. */
 	midievent = &midi_es->midievents[ midi_es->count ];
 	bzero(midievent, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;
@@ -380,17 +382,19 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		timeoffset);
 	musicexpr_log(me, 4, level + 2, NULL);
 
-	/* XXX what about ME_TYPE_REST, that might almost be currently
+	/*
+	 * XXX What about ME_TYPE_REST, that might almost be currently
 	 * XXX possible? (it is probably better if SONG_END could have
 	 * XXX offset information so that the final rest would be
 	 * XXX unnecessary and we could expect only ME_TYPE_ABSNOTEs
-	 * XXX here) */
+	 * XXX here).
+	 */
 
 	assert(me->me_type == ME_TYPE_ABSNOTE);
 
 	new_note = me->u.absnote.note;
 
-	/* we accept and ignore notes that are out-of-range */
+	/* We accept and ignore notes that are out-of-range. */
 	if (new_note < 0 || MIDI_NOTE_COUNT <= new_note) {
 		mdl_log(2, level, "skipping note with value %d", new_note);
 		return 0;

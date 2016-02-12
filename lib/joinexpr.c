@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.29 2016/01/31 20:33:46 je Exp $ */
+/* $Id: joinexpr.c,v 1.30 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,7 +35,7 @@ static int compare_noteoffsets(struct noteoffsetexpr_t,
 			       struct noteoffsetexpr_t);
 
 static struct musicexpr_t *
-join_noteoffsetexprs(struct musicexpr_t *, struct musicexpr_t *, int); 
+join_noteoffsetexprs(struct musicexpr_t *, struct musicexpr_t *, int);
 
 static struct musicexpr_t *
 join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
@@ -66,8 +66,10 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 	case ME_TYPE_REST:
 		break;
 	case ME_TYPE_CHORD:
-		/* the possible subexpressions of chords are such that
-		 * calling joinexpr_musicexpr() is a no-op */
+		/*
+		 * The possible subexpressions of chords are such that
+		 * calling joinexpr_musicexpr() is a no-op.
+		 */
 		assert(me->u.chord.me->me_type == ME_TYPE_ABSNOTE
 			 || me->u.chord.me->me_type == ME_TYPE_RELNOTE);
 		break;
@@ -112,9 +114,11 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
 	return ret;
 }
 
-/* When this return non-NULL, it frees or reuses a and b,
+/*
+ * When this return non-NULL, it frees or reuses a and b,
  * those should never be used after passing through this function.
- * In case of error NULL is returned and a and b are left untouched. */
+ * In case of error NULL is returned and a and b are left untouched.
+ */
 static struct musicexpr_t *
 join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 {
@@ -136,17 +140,19 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	at = a->me_type;
 	bt = b->me_type;
 
-	/* Relative notes can not be joined (think of case "cis ~ des g"...
+	/*
+	 * Relative notes can not be joined (think of case "cis ~ des g"...
 	 * if "des" disappears then (absolute note) "g" gets resolved
 	 * differently).  Thus it is callers responsibility to call
 	 * musicexpr_relative_to_absolute() for both a and b before calling
-	 * this. */
+	 * this.
+	 */
 	assert(at != ME_TYPE_RELNOTE);
 	assert(bt != ME_TYPE_RELNOTE);
 	assert(at != ME_TYPE_RELSIMULTENCE);
 	assert(bt != ME_TYPE_RELSIMULTENCE);
 
-	/* we should have handled the subexpressions before entering here */
+	/* We should have handled the subexpressions before entering here. */
 	assert(at != ME_TYPE_JOINEXPR);
 	assert(bt != ME_TYPE_JOINEXPR);
 
@@ -156,11 +162,13 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		assert(b->u.chord.me->me_type == ME_TYPE_ABSNOTE);
 
 	if (at == bt) {
-		/* when joined music expression types match */
+		/* Handle cases where joined music expression types match. */
 		switch (at) {
 		case ME_TYPE_ABSNOTE:
-			/* XXX should also take into account the track
-			 * XXX parameter and possible instrument changes */
+			/*
+			 * XXX This should also take into account the track
+			 * XXX parameter and possible instrument changes.
+			 */
 			if (a->u.absnote.note == b->u.absnote.note) {
 				mdl_log(3, level, "matched absnotes\n");
 				a->u.absnote.length += b->u.absnote.length;
@@ -212,17 +220,19 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		}
 	}
 
-	/* when joined music expression types do not match
-	 * or join could not be done directly */
+	/*
+	 * Handle cases where joined music expression types do not match
+	 * or join could not be done directly.
+	 */
 
 	if (at == ME_TYPE_REST || bt == ME_TYPE_REST) {
-		/* rests are incompatible with everything else */
+		/* Rests are incompatible with everything else. */
 		mdl_log(3, level, "joining rest and some --> sequence\n");
 		return musicexpr_sequence(level, a, b, NULL);
 	}
 
 	if (at == ME_TYPE_SEQUENCE || bt == ME_TYPE_SEQUENCE) {
-		/* non-sequence --> wrap to sequence and join sequences */
+		/* Non-sequence --> wrap to sequence and join sequences. */
 		mdl_log(3, level, "wrapping an expression to sequence\n");
 		tmp_a = (at != ME_TYPE_SEQUENCE)
 			  ? musicexpr_sequence(level, a, NULL)
@@ -241,7 +251,7 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	}
 
 	if (at == ME_TYPE_CHORD || bt == ME_TYPE_CHORD) {
-		/* chord --> noteoffsetexpr and join */
+		/* Chord --> noteoffsetexpr and join. */
 		mdl_log(3, level, "converting chord to noteoffsetexpr\n");
 		tmp_a = (at == ME_TYPE_CHORD)
 			  ? chord_to_noteoffsetexpr(a->u.chord, level)
@@ -250,7 +260,7 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			  ? chord_to_noteoffsetexpr(b->u.chord, level)
 			  : b;
 	} else if (at != ME_TYPE_SIMULTENCE || bt != ME_TYPE_SIMULTENCE) {
-		/* non-simultence -> simultence and join */
+		/* Non-simultence -> simultence and join. */
 		mdl_log(3, level, "converting an expression to simultence\n");
 		tmp_a = (at != ME_TYPE_SIMULTENCE)
 			  ? musicexpr_to_flat_simultence(a, level + 1)
@@ -265,16 +275,20 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	tmp_me = join_two_musicexprs(tmp_a, tmp_b, level);
 
 	if (tmp_me != NULL) {
-		/* joining succeeded, if using converted expressions
+		/*
+		 * Joining succeeded.  If using converted expressions
 		 * then free the original expressions before returning
-		 * the joined expression */
+		 * the joined expression.
+		 */
 		if (tmp_a != a)
 			musicexpr_free(a);
 		if (tmp_b != b)
 			musicexpr_free(b);
 	} else {
-		/* joining failed, if using converted expressions
-		 * free the temporary expressions before returning NULL */
+		/*
+		 * Joining failed.  If using converted expressions
+		 * free the temporary expressions before returning NULL.
+		 */
 		if (tmp_a != a)
 			musicexpr_free(tmp_a);
 		if (tmp_b != b)
@@ -326,7 +340,7 @@ compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
 	int min_i, i;
 
 	min_i = (a.count < b.count) ? a.count : b.count;
-			       
+
 	for (i = 0; i < min_i; i++) {
 		if (a.offsets[i] < b.offsets[i]) {
 			return -1;
@@ -340,8 +354,8 @@ compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
 	} else if (a.count > b.count) {
 		return 1;
 	}
- 
-	return 0;       
+
+	return 0;
 }
 
 static struct musicexpr_t *
@@ -418,8 +432,10 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			       p_me->offset + p_me->me->u.absnote.length);
 	}
 
-	/* Join notes when we can.  This is inefficient with simultences
-	 * with lots of notes, but hopefully is not misused much. */
+	/*
+	 * Join notes when we can.  This is inefficient with simultences
+	 * with lots of notes, but hopefully is not misused much.
+	 */
 	TAILQ_FOREACH(p, &a->u.melist, tq) {
 		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		p_me = &p->u.offsetexpr;
@@ -436,8 +452,10 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 				 || q_me->me->me_type == ME_TYPE_REST);
 
 			if (q_me->me->me_type == ME_TYPE_REST) {
-				/* this rest can be passed on as is to
-				 * joined simultence (with offset change) */
+				/*
+				 * This rest can be passed on as is to
+				 * joined simultence (with offset change).
+				 */
 				continue;
 			}
 
@@ -445,12 +463,16 @@ join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 			      != q_me->me->u.absnote.note)
 				continue;
 
-			/* XXX should also take into account the track
-			 * XXX parameter and possible instrument changes */
+			/*
+			 * XXX This should also take into account the track
+			 * XXX parameter and possible instrument changes.
+			 */
 
-			/* this is somewhat curious way of joining, because
+			/*
+			 * This is somewhat curious way of joining, because
 			 * to join to music expression "a" q_me->offset
-			 * must be zero or negative */
+			 * must be zero or negative.
+			 */
 			next_note_start = a_length + q_me->offset;
 
 			if (fabs(prev_note_end - next_note_start)

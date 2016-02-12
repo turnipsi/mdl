@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.6 2016/02/03 21:09:27 je Exp $ */
+/* $Id: relative.c,v 1.7 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -47,7 +47,7 @@ musicexpr_relative_to_absolute(struct song_t *song,
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
-	/* set default values for the first absolute note */
+	/* Set default values for the first absolute note. */
 	instrument = track_get_default_instrument(song->default_track);
 	if (instrument != NULL) {
 		prev_relative_exprs.absnote.instrument = instrument;
@@ -62,7 +62,7 @@ musicexpr_relative_to_absolute(struct song_t *song,
 	prev_relative_exprs.absnote.note = 60;
 	prev_relative_exprs.absnote.track = song->default_track;
 
-	/* set default value for the first chordtype */
+	/* Set default value for the first chordtype. */
 	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
 
 	relative_to_absolute(me, &prev_relative_exprs, level + 1);
@@ -79,7 +79,7 @@ relative_to_absolute(struct musicexpr_t *me,
 	struct instrument_t *instrument;
 	struct previous_relative_exprs_t prev_exprs_copy;
 	int notevalues[] = {
-		/* for NOTE_C, NOTE_D, ... */
+		/* For NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
 	};
 	int first_note_seen, note, c;
@@ -91,7 +91,7 @@ relative_to_absolute(struct musicexpr_t *me,
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-		/* pass as is, but this affects previous absnote */
+		/* Pass as is, but this affects previous absnote. */
 		prev_exprs->absnote = me->u.absnote;
 		break;
 	case ME_TYPE_CHORD:
@@ -167,15 +167,19 @@ relative_to_absolute(struct musicexpr_t *me,
 	case ME_TYPE_RELSIMULTENCE:
 		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
 
-		/* in case value for scaled expression length is missing,
-		 * get it from previous length */
+		/*
+		 * In case value for scaled expression length is missing,
+		 * get it from previous length.
+		 */
 		if (me->u.scaledexpr.length == 0)
 			me->u.scaledexpr.length = prev_exprs->absnote.length;
 
-		/* Order should not generally matter in simultences, except
+		/*
+		 * Order should not generally matter in simultences, except
 		 * in this case we let relativity to affect simultence
 		 * notes.  The first note should affect relativity
-		 * (not default length), but not subsequent ones. */
+		 * (not default length), but not subsequent ones.
+		 */
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
@@ -186,11 +190,13 @@ relative_to_absolute(struct musicexpr_t *me,
 		}
 		*prev_exprs = prev_exprs_copy;
 
-		/* we also set default length for subsequent expressions */
+		/* We also set default length for subsequent expressions. */
 		prev_exprs->absnote.length = me->u.scaledexpr.length;
 
-		/* relsimultence can now be treated like normal
-		 * scaled expression */
+		/*
+		 * relsimultence can now be treated like normal
+		 * scaled expression.
+		 */
 		me->me_type = ME_TYPE_SCALEDEXPR;
 
 		break;
@@ -200,8 +206,10 @@ relative_to_absolute(struct musicexpr_t *me,
 				     level + 1);
 		break;
 	case ME_TYPE_SEQUENCE:
-		/* make the first note in a sequence affect notes/lengths
-		 * of subsequent expressions that follow the sequence */
+		/*
+		 * Make the first note in a sequence affect notes/lengths
+		 * of subsequent expressions that follow the sequence.
+		 */
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
@@ -213,9 +221,11 @@ relative_to_absolute(struct musicexpr_t *me,
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_SIMULTENCE:
-		/* For simultences, make previous expression affect all
+		/*
+		 * For simultences, make previous expression affect all
 		 * expressions in simultence, but do not let expressions
-		 * in simultence affect subsequent expressions. */
+		 * in simultence affect subsequent expressions.
+		 */
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
@@ -232,9 +242,11 @@ relative_to_absolute(struct musicexpr_t *me,
 		musicexpr_log(me, 3, level + 2, "--> ");
 }
 
-/* if equal                            -->  0
- * if higher b is closer to a than lower  b -->  1
- * if lower  b is closer to a than higher b --> -1 */
+/*
+ * If equal                                 -->  0.
+ * If higher b is closer to a than lower  b -->  1.
+ * if lower  b is closer to a than higher b --> -1.
+ */
 static int
 compare_notesyms(enum notesym_t a, enum notesym_t b)
 {

@@ -1,4 +1,4 @@
-/* $Id: instrument.c,v 1.2 2016/01/27 21:34:13 je Exp $ */
+/* $Id: instrument.c,v 1.3 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -203,7 +203,7 @@ get_instrument(enum instrument_type_t type, char *instrument_name)
 		tablesize = sizeof(instruments);
 	}
 
-	/* might return NULL, should be ok */
+	/* This might return NULL, that is ok. */
 	return bsearch(instrument_name,
 		       instrument_table,
 		       tablesize / sizeof(struct instrument_t),

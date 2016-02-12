@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.3 2016/01/31 20:33:47 je Exp $ */
+/* $Id: song.c,v 1.4 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,8 +68,10 @@ connect_tracks_to_song(struct song_t *song,
 	struct track_t *tmp_track, *track;
 	int ret;
 
-	/* XXX use some higher-order subroutine to simplify functions like
-	 * XXX this one? */
+	/*
+	 * XXX Use some higher-order subroutine to simplify functions like
+	 * XXX this one?
+	 */
 
 	ret = 0;
 
@@ -158,7 +160,7 @@ mdl_song_find_track_or_new(struct song_t *song, char *trackname, int level)
 {
 	struct track_t *track;
 
-	/* XXX drum track should be treated in a special way */
+	/* XXX Drum track should be treated in a special way. */
 
 	SLIST_FOREACH(track, &song->tracklist, sl)
 		if (strcmp(track->name, trackname) == 0)

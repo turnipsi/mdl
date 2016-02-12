@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.69 2016/02/01 20:19:41 je Exp $ */
+/* $Id: musicexpr.c,v 1.70 2016/02/12 20:20:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -319,7 +319,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 			return ret;
 		break;
         case ME_TYPE_EMPTY:
-		/* nothing to do */
+		/* Nothing to do. */
 		break;
         case ME_TYPE_NOTEOFFSETEXPR:
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
@@ -428,7 +428,7 @@ musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
 	state.length          = 0;
 	state.length_no_rests = 0;
 	state.next_offset     = 0;
-	
+
 	if ((simultence = musicexpr_simultence(level, NULL)) == NULL)
 		return NULL;
 
@@ -468,9 +468,11 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 {
 	struct musicexpr_t *p;
 
-	/* XXX there is probably a common pattern here: do some operation
+	/*
+	 * XXX There is probably a common pattern here: do some operation
 	 * XXX to all subexpressions... but the knowledge "what are the
-	 * XXX subexpressions" is not anywhere */
+	 * XXX subexpressions" is not anywhere.
+	 */
 
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
@@ -482,7 +484,7 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 		musicexpr_apply_noteoffset(me->u.chord.me, offset, level);
 		break;
         case ME_TYPE_EMPTY:
-		/* do nothing */
+		/* Nothing to do. */
 		break;
         case ME_TYPE_JOINEXPR:
 		musicexpr_apply_noteoffset(me->u.joinexpr.a, offset, level);
@@ -499,7 +501,7 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 					   level);
 		break;
         case ME_TYPE_REST:
-		/* do nothing */
+		/* Nothing to do. */
 		break;
         case ME_TYPE_SCALEDEXPR:
 		musicexpr_apply_noteoffset(me->u.scaledexpr.me,
