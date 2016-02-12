@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.43 2016/02/12 20:20:01 je Exp $ */
+/* $Id: mdl.c,v 1.44 2016/02/12 20:44:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -440,8 +440,8 @@ start_interpreter(int file_fd,
 		}
 
 		ret = handle_musicfile_and_socket(file_fd,
-					   	  mi_sp[1],
-					   	  is_pipe[0],
+						  mi_sp[1],
+						  is_pipe[0],
 						  server_socket);
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)

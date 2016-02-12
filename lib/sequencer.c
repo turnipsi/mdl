@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.64 2016/02/12 20:20:01 je Exp $ */
+/* $Id: sequencer.c,v 1.65 2016/02/12 20:44:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -219,7 +219,7 @@ sequencer_loop(int main_socket)
 			ret = receive_fd_through_socket(&interp_fd,
 							main_socket);
 			if (ret == -1) {
-				warnx("error receiving pipe from interpreter" \
+				warnx("error receiving pipe from interpreter"
 					" to sequencer");
 				retvalue = 1;
 				goto finish;
@@ -744,7 +744,7 @@ receive_fd_through_socket(int *received_fd, int socket)
 {
 	struct msghdr	msg;
 	struct cmsghdr *cmsg;
-	union {                           
+	union {
 		struct cmsghdr	hdr;
 		unsigned char	buf[CMSG_SPACE(sizeof(int))];
 	} cmsgbuf;

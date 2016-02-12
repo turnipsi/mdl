@@ -1,5 +1,5 @@
-/* $Id: interpreter.c,v 1.39 2016/02/12 20:20:01 je Exp $ */
- 
+/* $Id: interpreter.c,v 1.40 2016/02/12 20:44:04 je Exp $ */
+
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
  *

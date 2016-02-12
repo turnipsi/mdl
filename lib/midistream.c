@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.12 2016/02/12 20:20:01 je Exp $ */
+/* $Id: midistream.c,v 1.13 2016/02/12 20:44:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -280,7 +280,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 			midievent->u.note = tmn.note;
 
 			midievent_log("sending", midievent, level + 1);
-			
+
 			ret = mdl_stream_increment(midi_es);
 			if (ret != 0)
 				goto error;

@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.42 2016/01/31 20:33:46 je Exp $
+/* $Id: parse.y,v 1.43 2016/02/12 20:44:04 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,7 +59,7 @@ static void    *malloc_musicexpr(void);
 
 %token	<i>		NOTEMOD_ES
 			NOTEMOD_IS
-			
+
 %token			RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
@@ -358,7 +358,7 @@ countlength(int lengthbase, int dotcount)
 {
 	float length, lengthextender;
 	int i;
-	
+
 	length = 1.0 / lengthbase;
 	lengthextender = length;
 

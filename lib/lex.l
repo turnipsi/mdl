@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.18 2016/02/02 21:08:19 je Exp $ */
+/* $Id: lex.l,v 1.19 2016/02/12 20:44:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 #include <string.h>
 
 #include "musicexpr.h"
-#include "y.tab.h"   
+#include "y.tab.h"
 
 int	yywrap(void);
 %}
@@ -69,7 +69,7 @@ r	{ return RESTTOKEN; }
 '+		{ yylval.i = strlen(yytext); return OCTAVEUP; }
 ,+		{ yylval.i = strlen(yytext); return OCTAVEDOWN; }
 
-~ 		{ return JOINEXPR; }
+~		{ return JOINEXPR; }
 
 :5		{ return CHORDTOKEN_MAJ;      }
 :m		{ return CHORDTOKEN_MIN;      }
