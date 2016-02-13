@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.13 2016/02/12 20:44:04 je Exp $ */
+/* $Id: midistream.c,v 1.14 2016/02/13 19:59:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <limits.h>
 #include <stdlib.h>
 #include <strings.h>
 #include <unistd.h>
@@ -127,12 +128,15 @@ midi_write_midistream(int sequencer_socket,
 		      struct mdl_stream *s,
 		      int level)
 {
-	size_t wsize;
-	ssize_t nw, total_wcount;
+	ssize_t nw, total_wcount, wsize;
+
+	if ((SSIZE_MAX / sizeof(struct midievent)) < s->count) {
+		warnx("midistream size overflow, not writing anything");
+		return -1;
+	}
 
 	total_wcount = 0;
 
-	/* XXX Can this overflow? */
 	wsize = s->count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
@@ -177,7 +181,8 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 	struct offsetexpr_t offsetexpr;
 	struct musicexpr_t *me;
 	float timeoffset;
-	int i, ret;
+	size_t i;
+	int ret;
 
 	mdl_log(2, level, "offset expression stream to midi events\n");
 
@@ -233,12 +238,13 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
 	struct trackmidinote_t tmn;
-	int ret, ch, i;
+	int ret, ch;
 	struct {
 		struct instrument_t *instrument;
 		struct track_t *track;
 		int notecount;
 	} tracks[MIDI_CHANNEL_COUNT];
+	size_t i;
 
 	tmn.time_as_measures = 0.0;
 

@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.40 2016/02/12 20:44:04 je Exp $ */
+/* $Id: interpreter.c,v 1.41 2016/02/13 19:59:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <assert.h>
 #include <err.h>
 #include <errno.h>
 #include <stdio.h>
@@ -42,7 +43,10 @@ handle_musicfile_and_socket(int file_fd,
 	ssize_t wcount;
 	int level, ret;
 
-	/* XXX main_socket is not yet used for anything. */
+	assert(file_fd >= 0);
+	assert(main_socket >= 0);		/* XXX not used yet */
+	assert(sequencer_socket >= 0);
+	assert(server_socket >= 0);		/* XXX not used yet */
 
 	eventstream = NULL;
 	level = 0;

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.70 2016/02/12 20:20:01 je Exp $ */
+/* $Id: musicexpr.c,v 1.71 2016/02/13 19:59:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,13 +41,10 @@ static void	musicexpr_log_chordtype(enum chordtype_t, int, int, char *);
 static void	musicexpr_log_melist(struct melist_t, int, int, char *);
 
 static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type me_type,
-	     int,
-	     struct musicexpr_t *,
-	     va_list va);
+musicexpr_tq(enum musicexpr_type me_type, struct musicexpr_t *, va_list va);
 
 static struct musicexpr_t *
-musicexpr_simultence(int, struct musicexpr_t *, ...);
+musicexpr_simultence(struct musicexpr_t *, ...);
 
 static int
 add_musicexpr_to_flat_simultence(struct musicexpr_t *,
@@ -204,7 +201,6 @@ musicexpr_clone_melist(struct melist_t *cloned_melist,
 
 static struct musicexpr_t *
 musicexpr_tq(enum musicexpr_type me_type,
-	     int level,
 	     struct musicexpr_t *listitem,
 	     va_list va)
 {
@@ -232,26 +228,26 @@ musicexpr_tq(enum musicexpr_type me_type,
 }
 
 struct musicexpr_t *
-musicexpr_sequence(int level, struct musicexpr_t *next_me, ...)
+musicexpr_sequence(struct musicexpr_t *next_me, ...)
 {
 	va_list va;
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SEQUENCE, level, next_me, va);
+	me = musicexpr_tq(ME_TYPE_SEQUENCE, next_me, va);
 	va_end(va);
 
 	return me;
 }
 
 static struct musicexpr_t *
-musicexpr_simultence(int level, struct musicexpr_t *next_me, ...)
+musicexpr_simultence(struct musicexpr_t *next_me, ...)
 {
 	va_list va;
 	struct musicexpr_t *me;
 
 	va_start(va, next_me);
-	me = musicexpr_tq(ME_TYPE_SIMULTENCE, level, next_me, va);
+	me = musicexpr_tq(ME_TYPE_SIMULTENCE, next_me, va);
 	va_end(va);
 
 	return me;
@@ -266,7 +262,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 	struct musicexpr_t *cloned, *noteoffsetexpr, *offsetexpr, *p,
 			   *scaled_me, *subexpr;
 	float end_offset, new_next_offset, old_offset;
-	int noteoffset, ret, i;
+	size_t i;
+	int noteoffset, ret;
 
 	assert(me->me_type != ME_TYPE_JOINEXPR);
 	assert(me->me_type != ME_TYPE_RELNOTE);
@@ -429,7 +426,7 @@ musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
 	state.length_no_rests = 0;
 	state.next_offset     = 0;
 
-	if ((simultence = musicexpr_simultence(level, NULL)) == NULL)
+	if ((simultence = musicexpr_simultence(NULL)) == NULL)
 		return NULL;
 
 	ret = add_musicexpr_to_flat_simultence(simultence, me, &state, level);
@@ -662,7 +659,8 @@ musicexpr_log(const struct musicexpr_t *me,
 	const char *metype_string;
 	char *old_tmpstring, *tmpstring;
 	char default_prefix[] = "";
-	int ret, i;
+	size_t i;
+	int ret;
 
 	metype_string = musicexpr_type_to_string(me);
 
@@ -889,7 +887,7 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 		"1.5.8",	/* CHORDTYPE_5_8      */
 	};
 
-	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
+	assert(chordtype < CHORDTYPE_MAX);
 
 	mdl_log(loglevel,
 		indentlevel,
@@ -968,7 +966,7 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 		size_t count;
 		int offsets[7];
 	} chord_noteoffsets[] = {
-		{ 0                              }, /* CHORDTYPE_NONE     */
+		{ 0, {                         } }, /* CHORDTYPE_NONE     */
 		{ 3, { 0, 4, 7                 } }, /* CHORDTYPE_MAJ      */
 		{ 3, { 0, 3, 7                 } }, /* CHORDTYPE_MIN      */
 		{ 3, { 0, 4, 8                 } }, /* CHORDTYPE_AUG      */
@@ -1009,7 +1007,7 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 	chordtype = chord.chordtype;
 
 	assert(chord.me->me_type == ME_TYPE_ABSNOTE);
-	assert(0 <= chordtype && chordtype < CHORDTYPE_MAX);
+	assert(chordtype < CHORDTYPE_MAX);
 
 	me->me_type                  = ME_TYPE_NOTEOFFSETEXPR;
 	me->u.noteoffsetexpr.me      = musicexpr_clone(chord.me, level);
@@ -1050,7 +1048,7 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 		"simultence",		/* ME_TYPE_SIMULTENCE */
 	};
 
-	assert(ME_TYPE_ABSNOTE <= me->me_type && me->me_type < ME_TYPE_COUNT);
+	assert(me->me_type < ME_TYPE_COUNT);
 
 	return strings[me->me_type];
 }

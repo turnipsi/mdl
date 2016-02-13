@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.7 2016/02/12 20:20:01 je Exp $ */
+/* $Id: relative.c,v 1.8 2016/02/13 19:59:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -125,7 +125,7 @@ relative_to_absolute(struct musicexpr_t *me,
 
 		relnote = me->u.relnote;
 
-		assert(0 <= relnote.notesym && relnote.notesym < NOTE_MAX);
+		assert(relnote.notesym < NOTE_MAX);
 		assert(relnote.length >= 0);
 
 		note = 12 * (prev_exprs->absnote.note / 12)
@@ -252,8 +252,8 @@ compare_notesyms(enum notesym_t a, enum notesym_t b)
 {
 	int diff;
 
-	assert(0 <= a && a < NOTE_MAX);
-	assert(0 <= b && b < NOTE_MAX);
+	assert(a < NOTE_MAX);
+	assert(b < NOTE_MAX);
 
 	if (a == b)
 		return 0;

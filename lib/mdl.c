@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.44 2016/02/12 20:44:04 je Exp $ */
+/* $Id: mdl.c,v 1.45 2016/02/13 19:59:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -73,7 +73,10 @@ usage(void)
 static void
 handle_signal(int signo)
 {
-	mdl_shutdown_main = 1;
+	assert(signo == SIGINT || signo == SIGTERM);
+
+	if (signo == SIGINT || signo == SIGTERM)
+		mdl_shutdown_main = 1;
 }
 
 int
