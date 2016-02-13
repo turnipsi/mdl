@@ -1,4 +1,4 @@
-/* $Id: instrument.c,v 1.3 2016/02/12 20:20:01 je Exp $ */
+/* $Id: instrument.c,v 1.4 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,10 +27,10 @@
 
 static int	compare_instruments(const void *, const void *);
 
-struct instrument_t *
-get_instrument(enum instrument_type_t type, char *instrument_name)
+struct instrument *
+get_instrument(enum instrument_type type, char *instrument_name)
 {
-	static const struct instrument_t drumkits[] = {
+	static const struct instrument drumkits[] = {
 		{ INSTR_DRUMKIT, "brush drums",       40 },
 		{ INSTR_DRUMKIT, "brush kit",         40 },
 		{ INSTR_DRUMKIT, "classical drums",   48 },
@@ -59,7 +59,7 @@ get_instrument(enum instrument_type_t type, char *instrument_name)
 		{ INSTR_DRUMKIT, "tr-808 kit",        25 },
 	};
 
-	static const struct instrument_t instruments[] = {
+	static const struct instrument instruments[] = {
 		{ INSTR_TONED, "accordion",                21 },
 		{ INSTR_TONED, "acoustic bass",            32 },
 		{ INSTR_TONED, "acoustic grand",            0 },
@@ -190,10 +190,10 @@ get_instrument(enum instrument_type_t type, char *instrument_name)
 		{ INSTR_TONED, "woodblock",               115 },
 		{ INSTR_TONED, "xylophone",                13 },
 	};
-	const struct instrument_t *instrument_table;
+	const struct instrument *instrument_table;
 	size_t tablesize;
 
- 	assert(type == INSTR_DRUMKIT || type == INSTR_TONED);
+	assert(type == INSTR_DRUMKIT || type == INSTR_TONED);
 
 	if (type == INSTR_DRUMKIT) {
 		instrument_table = drumkits;
@@ -206,15 +206,15 @@ get_instrument(enum instrument_type_t type, char *instrument_name)
 	/* This might return NULL, that is ok. */
 	return bsearch(instrument_name,
 		       instrument_table,
-		       tablesize / sizeof(struct instrument_t),
-		       sizeof(struct instrument_t),
+		       tablesize / sizeof(struct instrument),
+		       sizeof(struct instrument),
 		       compare_instruments);
 }
 
 static int
 compare_instruments(const void *v_name, const void *v_instrument)
 {
-	const struct instrument_t *instrument;
+	const struct instrument *instrument;
 	const char *name;
 
 	name = v_name;

@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.66 2016/02/13 19:59:33 je Exp $ */
+/* $Id: sequencer.c,v 1.67 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -55,7 +55,7 @@ struct notestate {
 	unsigned int velocity : 7;
 };
 
-enum playback_state_t { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
+enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
 
 struct songstate {
 	struct notestate notestates[MIDI_CHANNEL_COUNT][MIDI_NOTE_COUNT];
@@ -64,7 +64,7 @@ struct songstate {
 	struct timespec latest_tempo_change_as_time;
 	float latest_tempo_change_as_measures, tempo, time_as_measures;
 	int got_song_end, measure_length;
-	enum playback_state_t playback_state;
+	enum playback_state playback_state;
 };
 
 /* If this is set in signal handler, we should shut down. */
@@ -78,7 +78,7 @@ static void	sequencer_free_songstate(struct songstate *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(void);
 static void	sequencer_init_songstate(struct songstate *,
-					 enum playback_state_t);
+					 enum playback_state);
 static int	sequencer_noteevent(struct songstate *, struct midievent *);
 static int	sequencer_play_music(struct songstate *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
@@ -295,7 +295,7 @@ finish:
 }
 
 static void
-sequencer_init_songstate(struct songstate *ss, enum playback_state_t ps)
+sequencer_init_songstate(struct songstate *ss, enum playback_state ps)
 {
 	SIMPLEQ_INIT(&ss->es);
 

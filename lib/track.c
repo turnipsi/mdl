@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.2 2016/02/03 21:09:27 je Exp $ */
+/* $Id: track.c,v 1.3 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,8 +21,8 @@
 #include "instrument.h"
 #include "track.h"
 
-struct instrument_t *
-track_get_default_instrument(struct track_t *track)
+struct instrument *
+track_get_default_instrument(struct track *track)
 {
 	return get_instrument(INSTR_TONED, track->name);
 }

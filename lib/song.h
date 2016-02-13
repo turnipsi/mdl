@@ -1,4 +1,4 @@
-/* $Id: song.h,v 1.3 2016/01/31 20:33:47 je Exp $ */
+/* $Id: song.h,v 1.4 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,15 +22,15 @@
 #include "musicexpr.h"
 #include "track.h"
 
-SLIST_HEAD(tracklist_t, track_t);
+SLIST_HEAD(tracklist, track);
 
-struct song_t {
-	struct tracklist_t tracklist;
-	struct track_t *default_track;
+struct song {
+	struct tracklist tracklist;
+	struct track *default_track;
 };
 
-struct song_t  *mdl_song_new(struct musicexpr_t *, int);
-struct track_t *mdl_song_find_track_or_new(struct song_t *, char *, int);
-void		mdl_song_free(struct song_t *);
+struct song    *mdl_song_new(struct musicexpr *, int);
+struct track   *mdl_song_find_track_or_new(struct song *, char *, int);
+void		mdl_song_free(struct song *);
 
 #endif

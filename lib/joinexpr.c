@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.31 2016/02/13 19:59:33 je Exp $ */
+/* $Id: joinexpr.c,v 1.32 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,27 +26,26 @@
 #include "joinexpr.h"
 #include "musicexpr.h"
 
-int		joinexpr_musicexpr(struct musicexpr_t *, int);
-static struct	musicexpr_t *join_two_musicexprs(struct musicexpr_t *,
-						 struct musicexpr_t *,
-						 int);
+int		joinexpr_musicexpr(struct musicexpr *, int);
+static struct	musicexpr *join_two_musicexprs(struct musicexpr *,
+					       struct musicexpr *,
+					       int);
 
-static int compare_noteoffsets(struct noteoffsetexpr_t,
-			       struct noteoffsetexpr_t);
+static int compare_noteoffsets(struct noteoffsetexpr, struct noteoffsetexpr);
 
-static struct musicexpr_t *
-join_noteoffsetexprs(struct musicexpr_t *, struct musicexpr_t *, int);
+static struct musicexpr *
+join_noteoffsetexprs(struct musicexpr *, struct musicexpr *, int);
 
-static struct musicexpr_t *
-join_sequences(struct musicexpr_t *, struct musicexpr_t *, int);
+static struct musicexpr *
+join_sequences(struct musicexpr *, struct musicexpr *, int);
 
-static struct musicexpr_t *
-join_simultences(struct musicexpr_t *, struct musicexpr_t *, int);
+static struct musicexpr *
+join_simultences(struct musicexpr *, struct musicexpr *, int);
 
 int
-joinexpr_musicexpr(struct musicexpr_t *me, int level)
+joinexpr_musicexpr(struct musicexpr *me, int level)
 {
-	struct musicexpr_t *joined_me, *p;
+	struct musicexpr *joined_me, *p;
 	int ret;
 
 	ret = 0;
@@ -119,10 +118,10 @@ joinexpr_musicexpr(struct musicexpr_t *me, int level)
  * those should never be used after passing through this function.
  * In case of error NULL is returned and a and b are left untouched.
  */
-static struct musicexpr_t *
-join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+static struct musicexpr *
+join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 {
-	struct musicexpr_t *tmp_a, *tmp_b, *tmp_me;
+	struct musicexpr *tmp_a, *tmp_b, *tmp_me;
 	enum musicexpr_type at, bt;
 
 	mdl_log(3,
@@ -298,10 +297,10 @@ join_two_musicexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	return tmp_me;
 }
 
-static struct musicexpr_t *
-join_noteoffsetexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+static struct musicexpr *
+join_noteoffsetexprs(struct musicexpr *a, struct musicexpr *b, int level)
 {
-	struct musicexpr_t *joined_subexpr, *tmp_a, *tmp_b;
+	struct musicexpr *joined_subexpr, *tmp_a, *tmp_b;
 
 	if (compare_noteoffsets(a->u.noteoffsetexpr,
 				b->u.noteoffsetexpr) != 0) {
@@ -335,7 +334,7 @@ join_noteoffsetexprs(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 }
 
 static int
-compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
+compare_noteoffsets(struct noteoffsetexpr a, struct noteoffsetexpr b)
 {
 	int min_i, i;
 
@@ -358,10 +357,10 @@ compare_noteoffsets(struct noteoffsetexpr_t a, struct noteoffsetexpr_t b)
 	return 0;
 }
 
-static struct musicexpr_t *
-join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+static struct musicexpr *
+join_sequences(struct musicexpr *a, struct musicexpr *b, int level)
 {
-	struct musicexpr_t *joined_expr, *last_of_a, *first_of_b;
+	struct musicexpr *joined_expr, *last_of_a, *first_of_b;
 
 	assert(a->me_type == ME_TYPE_SEQUENCE);
 	assert(b->me_type == ME_TYPE_SEQUENCE);
@@ -375,12 +374,12 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 		return a;
 	}
 
-	if ((joined_expr = malloc(sizeof(struct musicexpr_t))) == NULL) {
+	if ((joined_expr = malloc(sizeof(struct musicexpr))) == NULL) {
 		warn("malloc in join_sequences");
 		return NULL;
 	}
 
-	last_of_a = TAILQ_LAST(&a->u.melist, melist_t);
+	last_of_a = TAILQ_LAST(&a->u.melist, melist);
 	first_of_b = TAILQ_FIRST(&b->u.melist);
 
 	joined_expr->me_type = ME_TYPE_JOINEXPR;
@@ -401,11 +400,11 @@ join_sequences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
 	return a;
 }
 
-static struct musicexpr_t *
-join_simultences(struct musicexpr_t *a, struct musicexpr_t *b, int level)
+static struct musicexpr *
+join_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 {
-	struct musicexpr_t *p, *q, *r;
-	struct offsetexpr_t *p_me, *q_me;
+	struct musicexpr *p, *q, *r;
+	struct offsetexpr *p_me, *q_me;
 	float prev_note_end, next_note_start, a_length;
 
 	a_length = 0.0;

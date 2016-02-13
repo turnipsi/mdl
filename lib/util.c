@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.17 2016/02/02 21:05:18 je Exp $ */
+/* $Id: util.c,v 1.18 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -88,8 +88,7 @@ mdl_stream_new(enum streamtype s_type)
 		}
 		break;
 	case OFFSETEXPRSTREAM:
-		s->mexprs = calloc(s->slotcount,
-				   sizeof(struct offsetexpr_t));
+		s->mexprs = calloc(s->slotcount, sizeof(struct offsetexpr));
 		if (s->mexprs == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
@@ -98,7 +97,7 @@ mdl_stream_new(enum streamtype s_type)
 		break;
 	case TRACKMIDIEVENTSTREAM:
 		s->trackmidinotes = calloc(s->slotcount,
-					   sizeof(struct trackmidinote_t));
+					   sizeof(struct trackmidinote));
 		if (s->trackmidinotes == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
@@ -136,7 +135,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items
 			    = reallocarray(s->mexprs,
 					   s->slotcount,
-					   sizeof(struct offsetexpr_t));
+					   sizeof(struct offsetexpr));
 
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");
@@ -148,7 +147,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items
 			    = reallocarray(s->trackmidinotes,
 					   s->slotcount,
-					   sizeof(struct trackmidinote_t));
+					   sizeof(struct trackmidinote));
 
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");

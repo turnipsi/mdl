@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.43 2016/02/12 20:44:04 je Exp $
+/* $Id: parse.y,v 1.44 2016/02/13 21:31:30 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 
 #include "musicexpr.h"
 
-struct musicexpr_t *parsed_expr = NULL;
+struct musicexpr *parsed_expr = NULL;
 
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
@@ -34,15 +34,15 @@ static void    *malloc_musicexpr(void);
 %}
 
 %union {
-	struct chord_t		chord;
-	struct joinexpr_t	joinexpr;
-	struct melist_t		melist;
-	struct musicexpr_t     *musicexpr;
-	struct ontrack_t	ontrack;
-	struct relnote_t	relnote;
-	struct rest_t		rest;
-	enum chordtype_t	chordtype;
-	enum notesym_t		notesym;
+	struct chord		chord;
+	struct joinexpr		joinexpr;
+	struct melist		melist;
+	struct musicexpr       *musicexpr;
+	struct ontrack		ontrack;
+	struct relnote		relnote;
+	struct rest		rest;
+	enum chordtype		chordtype;
+	enum notesym		notesym;
 	char		       *string;
 	float			f;
 	int			i;
@@ -262,7 +262,7 @@ track_expr:
 		}
 		$$->me_type = ME_TYPE_ONTRACK;
 		$$->u.ontrack.me = $3;
-		$$->u.ontrack.track = malloc(sizeof(struct track_t));
+		$$->u.ontrack.track = malloc(sizeof(struct track));
 		if ($$->u.ontrack.track == NULL) {
 			free($$);
 			free($1);
@@ -375,7 +375,7 @@ malloc_musicexpr(void)
 {
 	void *me;
 
-	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL)
+	if ((me = malloc(sizeof(struct musicexpr))) == NULL)
 		warn("%s", "malloc error");
 
 	return me;

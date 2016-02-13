@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.53 2016/02/13 19:59:33 je Exp $ */
+/* $Id: musicexpr.h,v 1.54 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,13 +44,13 @@ enum musicexpr_type {
 	ME_TYPE_COUNT,
 };
 
-enum notesym_t {
+enum notesym {
 	NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX,
 };
 
-enum notemod_t { NOTEMOD_ES, NOTEMOD_IS, };
+enum notemod { NOTEMOD_ES, NOTEMOD_IS, };
 
-enum chordtype_t {
+enum chordtype {
 	CHORDTYPE_NONE,
 	CHORDTYPE_MAJ,
 	CHORDTYPE_MIN,
@@ -82,89 +82,87 @@ enum chordtype_t {
 	CHORDTYPE_MAX,	/* not a chord */
 };
 
-struct absnote_t {
-	struct instrument_t *instrument;
-	struct track_t *track;
-	enum notesym_t notesym;
+struct absnote {
+	struct instrument *instrument;
+	struct track *track;
+	enum notesym notesym;
 	float length;
 	int note;
 };
 
-struct relnote_t {
-	enum notesym_t notesym;
+struct relnote {
+	enum notesym notesym;
 	float length;
 	int notemods, octavemods;
 };
 
-struct rest_t {
+struct rest {
 	float length;
 };
 
-struct chord_t {
-	enum chordtype_t chordtype;
-	struct musicexpr_t *me;
+struct chord {
+	enum chordtype chordtype;
+	struct musicexpr *me;
 };
 
-struct noteoffsetexpr_t {
-	struct musicexpr_t     *me;
+struct noteoffsetexpr {
+	struct musicexpr       *me;
 	int		       *offsets;
 	size_t			count;
 };
 
-struct offsetexpr_t {
+struct offsetexpr {
 	float			offset;
-	struct musicexpr_t     *me;
+	struct musicexpr       *me;
 };
 
-struct joinexpr_t {
-	struct musicexpr_t *a, *b;
+struct joinexpr {
+	struct musicexpr *a, *b;
 };
 
-struct scaledexpr_t {
-	struct musicexpr_t *me;
+struct scaledexpr {
+	struct musicexpr *me;
 	float length;
 };
 
-struct ontrack_t {
-	struct musicexpr_t *me;
-	struct track_t *track;
+struct ontrack {
+	struct musicexpr *me;
+	struct track *track;
 };
 
-TAILQ_HEAD(melist_t, musicexpr_t);
+TAILQ_HEAD(melist, musicexpr);
 
-struct musicexpr_t {
+struct musicexpr {
 	enum musicexpr_type me_type;
 	union {
-		struct absnote_t		absnote;
-		struct chord_t			chord;
-		struct joinexpr_t		joinexpr;
-		struct melist_t			melist;
- 		struct noteoffsetexpr_t		noteoffsetexpr;
-		struct offsetexpr_t		offsetexpr;
-		struct ontrack_t		ontrack;
-		struct relnote_t		relnote;
-		struct rest_t			rest;
-		struct scaledexpr_t		scaledexpr;
+		struct absnote		absnote;
+		struct chord		chord;
+		struct joinexpr		joinexpr;
+		struct melist		melist;
+		struct noteoffsetexpr	noteoffsetexpr;
+		struct offsetexpr	offsetexpr;
+		struct ontrack		ontrack;
+		struct relnote		relnote;
+		struct rest		rest;
+		struct scaledexpr	scaledexpr;
 	} u;
-	TAILQ_ENTRY(musicexpr_t) tq;
+	TAILQ_ENTRY(musicexpr) tq;
 };
 
-void	musicexpr_free(struct musicexpr_t *);
-void	musicexpr_log(const struct musicexpr_t *, int, int, char *);
+void	musicexpr_free(struct musicexpr *);
+void	musicexpr_log(const struct musicexpr *, int, int, char *);
 
-struct musicexpr_t     *musicexpr_clone(struct musicexpr_t *, int);
-struct musicexpr_t     *musicexpr_sequence(struct musicexpr_t *, ...);
-struct musicexpr_t     *chord_to_noteoffsetexpr(struct chord_t, int);
-struct musicexpr_t     *musicexpr_to_flat_simultence(struct musicexpr_t *,
-						     int);
-const char	       *musicexpr_type_to_string(const struct musicexpr_t *);
-void			musicexpr_free_melist(struct melist_t);
-void			free_melist(struct musicexpr_t *);
+struct musicexpr       *musicexpr_clone(struct musicexpr *, int);
+struct musicexpr       *musicexpr_sequence(struct musicexpr *, ...);
+struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);
+struct musicexpr       *musicexpr_to_flat_simultence(struct musicexpr *, int);
+const char	       *musicexpr_type_to_string(const struct musicexpr *);
+void			musicexpr_free_melist(struct melist);
+void			free_melist(struct musicexpr *);
 
-void			musicexpr_copy(struct musicexpr_t *,
-				       struct musicexpr_t *);
+void			musicexpr_copy(struct musicexpr *, struct musicexpr *);
 
 void
-musicexpr_apply_noteoffset(struct musicexpr_t *, int, int);
+musicexpr_apply_noteoffset(struct musicexpr *, int, int);
 
 #endif

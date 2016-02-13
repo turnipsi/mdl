@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.1 2016/01/31 20:33:47 je Exp $ */
+/* $Id: track.h,v 1.2 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,12 +23,12 @@
 
 #include "instrument.h"
 
-struct track_t {
+struct track {
 	char *name;
-	SLIST_ENTRY(track_t) sl;
+	SLIST_ENTRY(track) sl;
 };
 
-struct instrument_t *
-track_get_default_instrument(struct track_t *);
+struct instrument *
+track_get_default_instrument(struct track *);
 
 #endif

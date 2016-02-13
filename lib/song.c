@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.4 2016/02/12 20:20:01 je Exp $ */
+/* $Id: song.c,v 1.5 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,15 +27,15 @@
 #include "util.h"
 
 static int
-connect_tracks_to_song(struct song_t *, struct musicexpr_t *, int);
+connect_tracks_to_song(struct song *, struct musicexpr *, int);
 
-struct song_t *
-mdl_song_new(struct musicexpr_t *me, int level)
+struct song *
+mdl_song_new(struct musicexpr *me, int level)
 {
-	struct song_t *song;
-	struct track_t *track;
+	struct song *song;
+	struct track *track;
 
-	if ((song = malloc(sizeof(struct song_t))) == NULL) {
+	if ((song = malloc(sizeof(struct song))) == NULL) {
 		warn("malloc failure in mdl_new_song");
 		return NULL;
 	}
@@ -60,12 +60,10 @@ mdl_song_new(struct musicexpr_t *me, int level)
 }
 
 static int
-connect_tracks_to_song(struct song_t *song,
-		       struct musicexpr_t *me,
-		       int level)
+connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 {
-	struct musicexpr_t *p;
-	struct track_t *tmp_track, *track;
+	struct musicexpr *p;
+	struct track *tmp_track, *track;
 	int ret;
 
 	/*
@@ -142,12 +140,12 @@ connect_tracks_to_song(struct song_t *song,
 }
 
 void
-mdl_song_free(struct song_t *song)
+mdl_song_free(struct song *song)
 {
-	struct track_t *p, *q;
+	struct track *p, *q;
 
 	SLIST_FOREACH_SAFE(p, &song->tracklist, sl, q) {
-		SLIST_REMOVE(&song->tracklist, p, track_t, sl);
+		SLIST_REMOVE(&song->tracklist, p, track, sl);
 		free(p->name);
 		free(p);
 	}
@@ -155,10 +153,10 @@ mdl_song_free(struct song_t *song)
 	free(song);
 }
 
-struct track_t *
-mdl_song_find_track_or_new(struct song_t *song, char *trackname, int level)
+struct track *
+mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 {
-	struct track_t *track;
+	struct track *track;
 
 	/* XXX Drum track should be treated in a special way. */
 
@@ -166,7 +164,7 @@ mdl_song_find_track_or_new(struct song_t *song, char *trackname, int level)
 		if (strcmp(track->name, trackname) == 0)
 			return track;
 
-	if ((track = malloc(sizeof(struct track_t))) == NULL) {
+	if ((track = malloc(sizeof(struct track))) == NULL) {
 		warn("malloc failure in mdl_song_find_track_or_new");
 		return NULL;
 	}

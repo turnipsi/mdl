@@ -1,4 +1,4 @@
-/* $Id: joinexpr.h,v 1.2 2015/12/09 19:56:10 je Exp $ */
+/* $Id: joinexpr.h,v 1.3 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,6 @@
 
 #include "musicexpr.h"
 
-int	joinexpr_musicexpr(struct musicexpr_t *, int);
+int	joinexpr_musicexpr(struct musicexpr *, int);
 
 #endif

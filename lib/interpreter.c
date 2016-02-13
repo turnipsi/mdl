@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.41 2016/02/13 19:59:33 je Exp $ */
+/* $Id: interpreter.c,v 1.42 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,8 +28,8 @@
 #include "musicexpr.h"
 #include "util.h"
 
-extern FILE			*yyin;
-extern struct musicexpr_t	*parsed_expr;
+extern FILE		*yyin;
+extern struct musicexpr	*parsed_expr;
 
 int	yyparse(void);
 

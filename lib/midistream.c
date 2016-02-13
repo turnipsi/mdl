@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.14 2016/02/13 19:59:33 je Exp $ */
+/* $Id: midistream.c,v 1.15 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,18 +43,18 @@ static struct mdl_stream *trackmidievents_to_midievents(struct mdl_stream *,
 
 static int
 add_musicexpr_to_trackmidievents(struct mdl_stream *,
-				 const struct musicexpr_t *,
+				 const struct musicexpr *,
 				 float,
 				 int);
 
 static int	compare_trackmidievents(const void *, const void *);
 
 struct mdl_stream *
-musicexpr_to_midievents(struct musicexpr_t *me, int level)
+musicexpr_to_midievents(struct musicexpr *me, int level)
 {
-	struct musicexpr_t *me_workcopy, *simultence, *p;
+	struct musicexpr *me_workcopy, *simultence, *p;
 	struct mdl_stream *offset_es, *midi_es;
-	struct song_t *song;
+	struct song *song;
 
 	mdl_log(1, level, "converting music expression to midi stream\n");
 
@@ -178,8 +178,8 @@ static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 {
 	struct mdl_stream *midi_es, *trackmidi_es;
-	struct offsetexpr_t offsetexpr;
-	struct musicexpr_t *me;
+	struct offsetexpr offsetexpr;
+	struct musicexpr *me;
 	float timeoffset;
 	size_t i;
 	int ret;
@@ -207,7 +207,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 
 	ret = heapsort(trackmidi_es->midievents,
 		       trackmidi_es->count,
-		       sizeof(struct trackmidinote_t),
+		       sizeof(struct trackmidinote),
 		       compare_trackmidievents);
 	if (ret == -1) {
 		warn("could not sort midieventstream");
@@ -237,11 +237,11 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
-	struct trackmidinote_t tmn;
+	struct trackmidinote tmn;
 	int ret, ch;
 	struct {
-		struct instrument_t *instrument;
-		struct track_t *track;
+		struct instrument *instrument;
+		struct track *track;
 		int notecount;
 	} tracks[MIDI_CHANNEL_COUNT];
 	size_t i;
@@ -375,11 +375,11 @@ error:
 
 static int
 add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
-				 const struct musicexpr_t *me,
+				 const struct musicexpr *me,
 				 float timeoffset,
 				 int level)
 {
-	struct trackmidinote_t *tmnote;
+	struct trackmidinote *tmnote;
 	int ret, new_note;
 
 	mdl_log(4,
@@ -408,7 +408,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	assert(me->u.absnote.length > 0);
 
 	tmnote = &trackmidi_es->trackmidinotes[ trackmidi_es->count ];
-	bzero(tmnote, sizeof(struct trackmidinote_t));
+	bzero(tmnote, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEON;
 	tmnote->instrument = me->u.absnote.instrument;
 	tmnote->note.channel = DEFAULT_MIDICHANNEL;
@@ -422,7 +422,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		return ret;
 
 	tmnote = &trackmidi_es->trackmidinotes[ trackmidi_es->count ];
-	bzero(tmnote, sizeof(struct trackmidinote_t));
+	bzero(tmnote, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEOFF;
 	tmnote->instrument = me->u.absnote.instrument;
 	tmnote->note.channel = DEFAULT_MIDICHANNEL;
@@ -437,7 +437,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 static int
 compare_trackmidievents(const void *a, const void *b)
 {
-	const struct trackmidinote_t *ta, *tb;
+	const struct trackmidinote *ta, *tb;
 
 	ta = a;
 	tb = b;

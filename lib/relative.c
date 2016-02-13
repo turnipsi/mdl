@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.8 2016/02/13 19:59:33 je Exp $ */
+/* $Id: relative.c,v 1.9 2016/02/13 21:31:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,24 +26,24 @@
 #include "track.h"
 #include "util.h"
 
-struct previous_relative_exprs_t {
-	struct absnote_t absnote;
-	enum chordtype_t chordtype;
+struct previous_relative_exprs {
+	struct absnote absnote;
+	enum chordtype chordtype;
 };
 
-static void	relative_to_absolute(struct musicexpr_t *,
-				     struct previous_relative_exprs_t *,
+static void	relative_to_absolute(struct musicexpr *,
+				     struct previous_relative_exprs *,
 				     int);
 
-static int	compare_notesyms(enum notesym_t, enum notesym_t);
+static int	compare_notesyms(enum notesym, enum notesym);
 
 void
-musicexpr_relative_to_absolute(struct song_t *song,
-			       struct musicexpr_t *me,
+musicexpr_relative_to_absolute(struct song *song,
+			       struct musicexpr *me,
 			       int level)
 {
-	struct previous_relative_exprs_t prev_relative_exprs;
-	struct instrument_t *instrument;
+	struct previous_relative_exprs prev_relative_exprs;
+	struct instrument *instrument;
 
 	mdl_log(2, level, "converting relative expression to absolute\n");
 
@@ -69,15 +69,15 @@ musicexpr_relative_to_absolute(struct song_t *song,
 }
 
 static void
-relative_to_absolute(struct musicexpr_t *me,
-		     struct previous_relative_exprs_t *prev_exprs,
+relative_to_absolute(struct musicexpr *me,
+		     struct previous_relative_exprs *prev_exprs,
 		     int level)
 {
-	struct musicexpr_t *p;
-	struct absnote_t absnote;
-	struct relnote_t relnote;
-	struct instrument_t *instrument;
-	struct previous_relative_exprs_t prev_exprs_copy;
+	struct musicexpr *p;
+	struct absnote absnote;
+	struct relnote relnote;
+	struct instrument *instrument;
+	struct previous_relative_exprs prev_exprs_copy;
 	int notevalues[] = {
 		/* For NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
@@ -248,7 +248,7 @@ relative_to_absolute(struct musicexpr_t *me,
  * if lower  b is closer to a than higher b --> -1.
  */
 static int
-compare_notesyms(enum notesym_t a, enum notesym_t b)
+compare_notesyms(enum notesym a, enum notesym b)
 {
 	int diff;
 

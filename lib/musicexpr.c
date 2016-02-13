@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.71 2016/02/13 19:59:33 je Exp $ */
+/* $Id: musicexpr.c,v 1.72 2016/02/13 21:31:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,42 +34,39 @@ struct simultence_state {
 	float length, length_no_rests, next_offset;
 };
 
-static int	musicexpr_clone_melist(struct melist_t *,
-				       struct melist_t,
-				       int);
-static void	musicexpr_log_chordtype(enum chordtype_t, int, int, char *);
-static void	musicexpr_log_melist(struct melist_t, int, int, char *);
+static int	musicexpr_clone_melist(struct melist *, struct melist, int);
+static void	musicexpr_log_chordtype(enum chordtype, int, int, char *);
+static void	musicexpr_log_melist(struct melist, int, int, char *);
 
-static struct musicexpr_t *
-musicexpr_tq(enum musicexpr_type me_type, struct musicexpr_t *, va_list va);
+static struct musicexpr *
+musicexpr_tq(enum musicexpr_type me_type, struct musicexpr *, va_list va);
 
-static struct musicexpr_t *
-musicexpr_simultence(struct musicexpr_t *, ...);
+static struct musicexpr *
+musicexpr_simultence(struct musicexpr *, ...);
 
 static int
-add_musicexpr_to_flat_simultence(struct musicexpr_t *,
-				 struct musicexpr_t *,
+add_musicexpr_to_flat_simultence(struct musicexpr *,
+				 struct musicexpr *,
 				 struct simultence_state *,
 				 int);
 
-void musicexpr_apply_noteoffset(struct musicexpr_t *, int, int);
+void musicexpr_apply_noteoffset(struct musicexpr *, int, int);
 
-static struct musicexpr_t *musicexpr_scale_in_time(struct musicexpr_t *,
-						   float,
-						   int);
-static float	musicexpr_calc_length(struct musicexpr_t *);
-void		musicexpr_stretch_length_by_factor(struct musicexpr_t *,
-						   float);
+static struct musicexpr *musicexpr_scale_in_time(struct musicexpr *,
+						 float,
+						 int);
+static float	musicexpr_calc_length(struct musicexpr *);
+void		musicexpr_stretch_length_by_factor(struct musicexpr *, float);
 
-static struct musicexpr_t *musicexpr_new_empty(void);
+static struct musicexpr *musicexpr_new_empty(void);
 
-struct musicexpr_t *
-musicexpr_clone(struct musicexpr_t *me, int level)
+struct musicexpr *
+musicexpr_clone(struct musicexpr *me, int level)
 {
-	struct musicexpr_t *cloned;
+	struct musicexpr *cloned;
 	int ret;
 
-	cloned = malloc(sizeof(struct musicexpr_t));
+	cloned = malloc(sizeof(struct musicexpr));
 	if (cloned == NULL) {
 		warn("malloc failure when cloning musicexpr");
 		return NULL;
@@ -178,11 +175,11 @@ musicexpr_clone(struct musicexpr_t *me, int level)
 }
 
 static int
-musicexpr_clone_melist(struct melist_t *cloned_melist,
-		       struct melist_t melist,
+musicexpr_clone_melist(struct melist *cloned_melist,
+		       struct melist melist,
 		       int level)
 {
-	struct musicexpr_t *p, *q;
+	struct musicexpr *p, *q;
 
 	TAILQ_INIT(cloned_melist);
 
@@ -199,14 +196,14 @@ musicexpr_clone_melist(struct melist_t *cloned_melist,
 	return 0;
 }
 
-static struct musicexpr_t *
+static struct musicexpr *
 musicexpr_tq(enum musicexpr_type me_type,
-	     struct musicexpr_t *listitem,
+	     struct musicexpr *listitem,
 	     va_list va)
 {
-	struct musicexpr_t *me;
+	struct musicexpr *me;
 
-	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
+	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
 		warnx("malloc in musicexpr_tq");
 		return NULL;
 	}
@@ -219,7 +216,7 @@ musicexpr_tq(enum musicexpr_type me_type,
 
 	while (listitem != NULL) {
 		TAILQ_INSERT_TAIL(&me->u.melist, listitem, tq);
-		listitem = va_arg(va, struct musicexpr_t *);
+		listitem = va_arg(va, struct musicexpr *);
 	}
 
 	va_end(va);
@@ -227,11 +224,11 @@ musicexpr_tq(enum musicexpr_type me_type,
 	return me;
 }
 
-struct musicexpr_t *
-musicexpr_sequence(struct musicexpr_t *next_me, ...)
+struct musicexpr *
+musicexpr_sequence(struct musicexpr *next_me, ...)
 {
 	va_list va;
-	struct musicexpr_t *me;
+	struct musicexpr *me;
 
 	va_start(va, next_me);
 	me = musicexpr_tq(ME_TYPE_SEQUENCE, next_me, va);
@@ -240,11 +237,11 @@ musicexpr_sequence(struct musicexpr_t *next_me, ...)
 	return me;
 }
 
-static struct musicexpr_t *
-musicexpr_simultence(struct musicexpr_t *next_me, ...)
+static struct musicexpr *
+musicexpr_simultence(struct musicexpr *next_me, ...)
 {
 	va_list va;
-	struct musicexpr_t *me;
+	struct musicexpr *me;
 
 	va_start(va, next_me);
 	me = musicexpr_tq(ME_TYPE_SIMULTENCE, next_me, va);
@@ -254,13 +251,13 @@ musicexpr_simultence(struct musicexpr_t *next_me, ...)
 }
 
 static int
-add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
-				 struct musicexpr_t *me,
+add_musicexpr_to_flat_simultence(struct musicexpr *simultence,
+				 struct musicexpr *me,
 				 struct simultence_state *state,
 				 int level)
 {
-	struct musicexpr_t *cloned, *noteoffsetexpr, *offsetexpr, *p,
-			   *scaled_me, *subexpr;
+	struct musicexpr *cloned, *noteoffsetexpr, *offsetexpr, *p;
+	struct musicexpr *scaled_me, *subexpr;
 	float end_offset, new_next_offset, old_offset;
 	size_t i;
 	int noteoffset, ret;
@@ -280,7 +277,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
         case ME_TYPE_ABSNOTE:
 		if ((cloned = musicexpr_clone(me, level + 1)) == NULL)
 			return 1;
-		offsetexpr = malloc(sizeof(struct musicexpr_t));
+		offsetexpr = malloc(sizeof(struct musicexpr));
 		if (offsetexpr == NULL) {
 			warn("malloc in add_musicexpr_to_flat_simultence");
 			musicexpr_free(cloned);
@@ -415,10 +412,10 @@ add_musicexpr_to_flat_simultence(struct musicexpr_t *simultence,
 	return 0;
 }
 
-struct musicexpr_t *
-musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
+struct musicexpr *
+musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 {
-	struct musicexpr_t *rest, *simultence;
+	struct musicexpr *rest, *simultence;
 	struct simultence_state state;
 	int ret;
 
@@ -437,7 +434,7 @@ musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
 	}
 
 	if (state.length > state.length_no_rests) {
-		if ((rest = malloc(sizeof(struct musicexpr_t))) == NULL) {
+		if ((rest = malloc(sizeof(struct musicexpr))) == NULL) {
 			warn("malloc in musicexpr_to_flat_simultence");
 			musicexpr_free(simultence);
 			return NULL;
@@ -461,9 +458,9 @@ musicexpr_to_flat_simultence(struct musicexpr_t *me, int level)
 }
 
 void
-musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
+musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 {
-	struct musicexpr_t *p;
+	struct musicexpr *p;
 
 	/*
 	 * XXX There is probably a common pattern here: do some operation
@@ -515,12 +512,10 @@ musicexpr_apply_noteoffset(struct musicexpr_t *me, int offset, int level)
 	}
 }
 
-static struct musicexpr_t *
-musicexpr_scale_in_time(struct musicexpr_t *me,
-			float target_length,
-			int level)
+static struct musicexpr *
+musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 {
-	struct musicexpr_t *new_me;
+	struct musicexpr *new_me;
 	float me_length;
 
 	assert(target_length > 0);
@@ -555,10 +550,9 @@ musicexpr_scale_in_time(struct musicexpr_t *me,
 }
 
 void
-musicexpr_stretch_length_by_factor(struct musicexpr_t *me,
-				   float factor)
+musicexpr_stretch_length_by_factor(struct musicexpr *me, float factor)
 {
-	struct musicexpr_t *p;
+	struct musicexpr *p;
 
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
@@ -600,9 +594,9 @@ musicexpr_stretch_length_by_factor(struct musicexpr_t *me,
 }
 
 static float
-musicexpr_calc_length(struct musicexpr_t *me)
+musicexpr_calc_length(struct musicexpr *me)
 {
-	struct musicexpr_t *p;
+	struct musicexpr *p;
 	float length;
 
 	assert(me->me_type != ME_TYPE_RELNOTE);
@@ -651,7 +645,7 @@ musicexpr_calc_length(struct musicexpr_t *me)
 }
 
 void
-musicexpr_log(const struct musicexpr_t *me,
+musicexpr_log(const struct musicexpr *me,
 	      int loglevel,
 	      int indentlevel,
 	      char *prefix)
@@ -731,7 +725,7 @@ musicexpr_log(const struct musicexpr_t *me,
 		if ((old_tmpstring = strdup("noteoffsets:")) == NULL)
 			return;
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
- 			ret = asprintf(&tmpstring,
+			ret = asprintf(&tmpstring,
 				       "%s %d",
 				       old_tmpstring,
 				       me->u.noteoffsetexpr.offsets[i]);
@@ -851,7 +845,7 @@ musicexpr_log(const struct musicexpr_t *me,
 }
 
 static void
-musicexpr_log_chordtype(enum chordtype_t chordtype,
+musicexpr_log_chordtype(enum chordtype chordtype,
 			int loglevel,
 			int indentlevel,
 			char *prefix)
@@ -897,19 +891,19 @@ musicexpr_log_chordtype(enum chordtype_t chordtype,
 }
 
 static void
-musicexpr_log_melist(struct melist_t melist,
+musicexpr_log_melist(struct melist melist,
 		     int loglevel,
 		     int indentlevel,
 		     char *prefix)
 {
-	struct musicexpr_t *p;
+	struct musicexpr *p;
 
 	TAILQ_FOREACH(p, &melist, tq)
 		musicexpr_log(p, loglevel, indentlevel + 1, prefix);
 }
 
 void
-musicexpr_free(struct musicexpr_t *me)
+musicexpr_free(struct musicexpr *me)
 {
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -949,9 +943,9 @@ musicexpr_free(struct musicexpr_t *me)
 }
 
 void
-musicexpr_free_melist(struct melist_t melist)
+musicexpr_free_melist(struct melist melist)
 {
-	struct musicexpr_t *p, *q;
+	struct musicexpr *p, *q;
 
 	TAILQ_FOREACH_SAFE(p, &melist, tq, q) {
 		TAILQ_REMOVE(&melist, p, tq);
@@ -959,8 +953,8 @@ musicexpr_free_melist(struct melist_t melist)
 	}
 }
 
-struct musicexpr_t *
-chord_to_noteoffsetexpr(struct chord_t chord, int level)
+struct musicexpr *
+chord_to_noteoffsetexpr(struct chord chord, int level)
 {
 	static const struct {
 		size_t count;
@@ -996,10 +990,10 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 		{ 2, { 0, 7, 12                } }, /* CHORDTYPE_5_8      */
 	};
 
-	struct musicexpr_t *me;
-	enum chordtype_t chordtype;
+	struct musicexpr *me;
+	enum chordtype chordtype;
 
-	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
+	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
 		warn("malloc in chord_to_noteoffsetexpr");
 		return NULL;
 	}
@@ -1018,9 +1012,9 @@ chord_to_noteoffsetexpr(struct chord_t chord, int level)
 }
 
 void
-free_melist(struct musicexpr_t *me)
+free_melist(struct musicexpr *me)
 {
-	struct musicexpr_t *p, *q;
+	struct musicexpr *p, *q;
 
 	assert(me->me_type == ME_TYPE_SEQUENCE
 		 || me->me_type == ME_TYPE_SIMULTENCE);
@@ -1030,7 +1024,7 @@ free_melist(struct musicexpr_t *me)
 }
 
 const char *
-musicexpr_type_to_string(const struct musicexpr_t *me)
+musicexpr_type_to_string(const struct musicexpr *me)
 {
 	static const char *strings[] = {
 		"absnote",		/* ME_TYPE_ABSNOTE */
@@ -1054,18 +1048,18 @@ musicexpr_type_to_string(const struct musicexpr_t *me)
 }
 
 void
-musicexpr_copy(struct musicexpr_t *dst, struct musicexpr_t *src)
+musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
 {
 	dst->me_type = src->me_type;
 	dst->u = src->u;
 }
 
-static struct musicexpr_t *
+static struct musicexpr *
 musicexpr_new_empty(void)
 {
-	struct musicexpr_t *me;
+	struct musicexpr *me;
 
-	if ((me = malloc(sizeof(struct musicexpr_t))) == NULL) {
+	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
 		warn("malloc in musicexpr_new_empty");
 		return NULL;
 	}
