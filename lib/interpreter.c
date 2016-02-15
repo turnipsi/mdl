@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.43 2016/02/15 20:52:27 je Exp $ */
+/* $Id: interpreter.c,v 1.44 2016/02/15 20:54:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,9 +41,9 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 	int level, ret;
 
 	assert(file_fd >= 0);
-	assert(main_socket >= 0);		/* XXX not used yet */
+	assert(main_socket >= 0 || 1);		/* XXX not used yet */
 	assert(sequencer_socket >= 0);
-	assert(server_socket >= 0);		/* XXX not used yet */
+	assert(server_socket >= 0 || 1);	/* XXX not used yet */
 
 	eventstream = NULL;
 	level = 0;
