@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.5 2016/02/13 21:31:31 je Exp $ */
+/* $Id: song.c,v 1.6 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -83,30 +83,25 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 		ret = connect_tracks_to_song(song, me->u.chord.me, level + 1);
 		break;
 	case ME_TYPE_JOINEXPR:
-		ret = connect_tracks_to_song(song,
-					     me->u.joinexpr.a,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.joinexpr.a,
+		    (level + 1));
 		if (ret != 0)
 			break;
-		ret = connect_tracks_to_song(song,
-					     me->u.joinexpr.b,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.joinexpr.b,
+		    (level + 1));
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
-		ret = connect_tracks_to_song(song,
-					     me->u.noteoffsetexpr.me,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.noteoffsetexpr.me,
+		    (level + 1));
 		break;
 	case ME_TYPE_OFFSETEXPR:
-		ret = connect_tracks_to_song(song,
-					     me->u.offsetexpr.me,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.offsetexpr.me,
+		    (level + 1));
 		break;
 	case ME_TYPE_ONTRACK:
 		tmp_track = me->u.ontrack.track;
-		track = mdl_song_find_track_or_new(song,
-						   tmp_track->name,
-						   level);
+		track = mdl_song_find_track_or_new(song, tmp_track->name,
+		    level);
 		if (track == NULL) {
 			ret = 1;
 			break;
@@ -114,15 +109,13 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 		me->u.ontrack.track = track;
 		free(tmp_track->name);
 		free(tmp_track);
-		ret = connect_tracks_to_song(song,
-					     me->u.ontrack.me,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.ontrack.me,
+		    (level + 1));
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
-		ret = connect_tracks_to_song(song,
-					     me->u.scaledexpr.me,
-					     level + 1);
+		ret = connect_tracks_to_song(song, me->u.scaledexpr.me,
+		    (level + 1));
 		break;
 	case ME_TYPE_SEQUENCE:
 	case ME_TYPE_SIMULTENCE:

@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.42 2016/02/13 21:31:30 je Exp $ */
+/* $Id: interpreter.c,v 1.43 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include "compat.h"
+#include "interpreter.h"
 #include "midistream.h"
 #include "musicexpr.h"
 #include "util.h"
@@ -31,13 +32,9 @@
 extern FILE		*yyin;
 extern struct musicexpr	*parsed_expr;
 
-int	yyparse(void);
-
 int
-handle_musicfile_and_socket(int file_fd,
-			    int main_socket,
-			    int sequencer_socket,
-			    int server_socket)
+handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
+    int server_socket)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;
@@ -89,9 +86,8 @@ handle_musicfile_and_socket(int file_fd,
 	}
 
 	mdl_log(1, level, "writing midi stream to sequencer\n");
-	wcount = midi_write_midistream(sequencer_socket,
-				       eventstream,
-				       level + 1);
+	wcount = midi_write_midistream(sequencer_socket, eventstream,
+	    level + 1);
 	if (wcount == -1)
 		ret = 1;
 

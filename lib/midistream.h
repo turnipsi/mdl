@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.2 2016/02/13 21:31:30 je Exp $ */
+/* $Id: midistream.h,v 1.3 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,9 +23,7 @@
 
 #include "musicexpr.h"
 
-struct mdl_stream *
-musicexpr_to_midievents(struct musicexpr *, int);
-
-ssize_t	midi_write_midistream(int, struct mdl_stream *, int);
+struct mdl_stream      *musicexpr_to_midievents(struct musicexpr *, int);
+ssize_t			midi_write_midistream(int, struct mdl_stream *, int);
 
 #endif

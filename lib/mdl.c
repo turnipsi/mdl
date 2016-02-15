@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.45 2016/02/13 19:59:33 je Exp $ */
+/* $Id: mdl.c,v 1.46 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,17 +44,14 @@
 extern char	*malloc_options;
 #endif
 
-static int		get_default_mdldir(char *);
-static int		get_default_socketpath(char *, const char *);
-static int		start_interpreter(int, int, int, int);
-static void		handle_signal(int);
-static int		send_fd_through_socket(int, int);
-static int		setup_sequencer_for_sources(char **,
-						    int,
-						    const char *,
-						    int);
-static int		setup_server_socket(const char *);
-static void __dead	usage(void);
+static int	get_default_mdldir(char *);
+static int	get_default_socketpath(char *, const char *);
+static int	start_interpreter(int, int, int, int);
+static void	handle_signal(int);
+static int	send_fd_through_socket(int, int);
+static int	setup_sequencer_for_sources(char **, int, const char *, int);
+static int	setup_server_socket(const char *);
+static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
 volatile sig_atomic_t mdl_shutdown_main = 0;
@@ -98,7 +95,7 @@ main(int argc, char *argv[])
 	lockfd = -1;
 
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
-		   NULL) == -1)
+	    NULL) == -1)
 		err(1, "pledge");
 
 	signal(SIGINT,  handle_signal);
@@ -115,10 +112,8 @@ main(int argc, char *argv[])
 		case 'd':
 			loglevel = strtonum(optarg, 0, 4, &errstr);
 			if (errstr) {
-				errx(1,
-				     "loglevel %s is not supported: %s\n",
-				     optarg,
-				     errstr);
+				errx(1, "loglevel %s is not supported: %s\n",
+				    optarg, errstr);
 			}
 			break;
 		case 'D':
@@ -151,12 +146,12 @@ main(int argc, char *argv[])
 		if ((lockfd = open(mdldir, fileflags)) == -1) {
 			warn("could not open %s for exclusive lock", mdldir);
 			errx(1, "do you have another instance of" \
-				  " mdl running?");
+			    " mdl running?");
 		}
 	}
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
-	      == -1)
+	    == -1)
 		err(1, "pledge");
 
 	if (get_default_socketpath(server_socketpath, mdldir) != 0)
@@ -174,10 +169,8 @@ main(int argc, char *argv[])
 	if (cflag && musicfilecount > 1)
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
-	ret = setup_sequencer_for_sources(musicfiles,
-					  musicfilecount,
-					  sflag ? server_socketpath : NULL,
-					  lockfd);
+	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
+	    (sflag ? server_socketpath : NULL), lockfd);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -223,14 +216,12 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 }
 
 static int
-setup_sequencer_for_sources(char **files,
-			    int filecount,
-			    const char *socketpath,
-			    int lockfd)
+setup_sequencer_for_sources(char **files, int filecount,
+    const char *socketpath, int lockfd)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-	int server_socket, file_fd, sequencer_status, ret, retvalue,
-	    using_stdin, i;
+	int server_socket, file_fd, sequencer_status, ret, retvalue;
+	int using_stdin, i;
 	pid_t sequencer_pid;
 	char *stdinfiles[] = { "-" };
 	int sequencer_retvalue;
@@ -321,13 +312,11 @@ setup_sequencer_for_sources(char **files,
 			}
 		}
 
-		ret = start_interpreter(file_fd,
-					ms_sp[0],
-					server_socket,
-					lockfd);
+		ret = start_interpreter(file_fd, ms_sp[0], server_socket,
+		    lockfd);
 		if (ret != 0) {
 			warnx("error in handling %s",
-			      using_stdin ? "stdin" : files[i]);
+			    (using_stdin ? "stdin" : files[i]));
 			if (close(file_fd) == -1)
 				warn("error closing %s", files[i]);
 			retvalue = 1;
@@ -365,10 +354,8 @@ finish:
 }
 
 static int
-start_interpreter(int file_fd,
-		  int sequencer_socket,
-		  int server_socket,
-		  int lockfd)
+start_interpreter(int file_fd, int sequencer_socket, int server_socket,
+    int lockfd)
 {
 	int mi_sp[2];	/* main-interpreter socketpair */
 	int is_pipe[2];	/* interpreter-sequencer pipe */
@@ -442,10 +429,8 @@ start_interpreter(int file_fd,
 			goto interpreter_out;
 		}
 
-		ret = handle_musicfile_and_socket(file_fd,
-						  mi_sp[1],
-						  is_pipe[0],
-						  server_socket);
+		ret = handle_musicfile_and_socket(file_fd, mi_sp[1],
+		    is_pipe[0], server_socket);
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
 			warn("error closing music file");
@@ -458,7 +443,7 @@ start_interpreter(int file_fd,
 interpreter_out:
 		if (fflush(NULL) == EOF) {
 			warn("error flushing streams in sequencer"
-			       " before exit");
+			    " before exit");
 		}
 
 		_exit(ret);
@@ -511,15 +496,15 @@ send_fd_through_socket(int fd, int socket)
 	} cmsgbuf;
 
 	memset(&msg, 0, sizeof(msg));
-	msg.msg_control    = &cmsgbuf.buf;
+	msg.msg_control = &cmsgbuf.buf;
 	msg.msg_controllen = sizeof(cmsgbuf.buf);
 
 	bzero(&cmsgbuf, sizeof(cmsgbuf));
 
 	cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_len   = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
 	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type  = SCM_RIGHTS;
+	cmsg->cmsg_type = SCM_RIGHTS;
 
 	*(int *)CMSG_DATA(cmsg) = fd;
 

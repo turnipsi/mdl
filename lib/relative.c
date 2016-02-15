@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.9 2016/02/13 21:31:31 je Exp $ */
+/* $Id: relative.c,v 1.10 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,15 +32,12 @@ struct previous_relative_exprs {
 };
 
 static void	relative_to_absolute(struct musicexpr *,
-				     struct previous_relative_exprs *,
-				     int);
-
+    struct previous_relative_exprs *, int);
 static int	compare_notesyms(enum notesym, enum notesym);
 
 void
-musicexpr_relative_to_absolute(struct song *song,
-			       struct musicexpr *me,
-			       int level)
+musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
+    int level)
 {
 	struct previous_relative_exprs prev_relative_exprs;
 	struct instrument *instrument;
@@ -52,8 +49,8 @@ musicexpr_relative_to_absolute(struct song *song,
 	if (instrument != NULL) {
 		prev_relative_exprs.absnote.instrument = instrument;
 	} else {
-		prev_relative_exprs.absnote.instrument
-		    = get_instrument(INSTR_TONED, "acoustic grand");
+		prev_relative_exprs.absnote.instrument =
+		    get_instrument(INSTR_TONED, "acoustic grand");
 	}
 	assert(prev_relative_exprs.absnote.instrument != NULL);
 
@@ -70,8 +67,7 @@ musicexpr_relative_to_absolute(struct song *song,
 
 static void
 relative_to_absolute(struct musicexpr *me,
-		     struct previous_relative_exprs *prev_exprs,
-		     int level)
+    struct previous_relative_exprs *prev_exprs, int level)
 {
 	struct musicexpr *p;
 	struct absnote absnote;
@@ -84,10 +80,8 @@ relative_to_absolute(struct musicexpr *me,
 	};
 	int first_note_seen, note, c;
 
-	mdl_log(3,
-		level,
-		"rel->abs expression (%s)\n",
-		musicexpr_type_to_string(me));
+	mdl_log(3, level, "rel->abs expression (%s)\n",
+	    musicexpr_type_to_string(me));
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -107,9 +101,8 @@ relative_to_absolute(struct musicexpr *me,
 		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level + 1);
 		break;
 	case ME_TYPE_OFFSETEXPR:
-		relative_to_absolute(me->u.offsetexpr.me,
-				     prev_exprs,
-				     level + 1);
+		relative_to_absolute(me->u.offsetexpr.me, prev_exprs,
+		    (level + 1));
 		break;
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
@@ -128,12 +121,11 @@ relative_to_absolute(struct musicexpr *me,
 		assert(relnote.notesym < NOTE_MAX);
 		assert(relnote.length >= 0);
 
-		note = 12 * (prev_exprs->absnote.note / 12)
-			 + notevalues[relnote.notesym]
-			 + relnote.notemods;
+		note = 12 * (prev_exprs->absnote.note / 12) +
+		    notevalues[relnote.notesym] + relnote.notemods;
 
 		c = compare_notesyms(prev_exprs->absnote.notesym,
-				     relnote.notesym);
+		    relnote.notesym);
 		if (c > 0 && prev_exprs->absnote.note > note) {
 			note += 12;
 		} else if (c < 0 && prev_exprs->absnote.note < note) {
@@ -156,7 +148,7 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_REST:
-		musicexpr_log(me, 3, level + 1, NULL);
+		musicexpr_log(me, 3, (level + 1), NULL);
 
 		if (me->u.rest.length == 0) {
 			me->u.rest.length = prev_exprs->absnote.length;
@@ -183,7 +175,7 @@ relative_to_absolute(struct musicexpr *me,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level + 1);
+			relative_to_absolute(p, prev_exprs, (level + 1));
 			if (!first_note_seen)
 				prev_exprs_copy = *prev_exprs;
 			first_note_seen = 1;
@@ -201,9 +193,8 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_SCALEDEXPR:
-		relative_to_absolute(me->u.scaledexpr.me,
-				     prev_exprs,
-				     level + 1);
+		relative_to_absolute(me->u.scaledexpr.me, prev_exprs,
+		    (level + 1));
 		break;
 	case ME_TYPE_SEQUENCE:
 		/*
@@ -229,7 +220,7 @@ relative_to_absolute(struct musicexpr *me,
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
-			relative_to_absolute(p, &prev_exprs_copy, level + 1);
+			relative_to_absolute(p, &prev_exprs_copy, (level + 1));
 		}
 		*prev_exprs = prev_exprs_copy;
 		break;

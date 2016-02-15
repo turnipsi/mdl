@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.67 2016/02/13 21:31:31 je Exp $ */
+/* $Id: sequencer.c,v 1.68 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -71,23 +71,22 @@ struct songstate {
 volatile sig_atomic_t mdl_shutdown_sequencer = 0;
 
 static void	sequencer_calculate_timeout(struct songstate *,
-					    struct timespec *);
+    struct timespec *);
 static void	sequencer_close(void);
 static void	sequencer_close_songstate(struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(void);
 static void	sequencer_init_songstate(struct songstate *,
-					 enum playback_state);
+    enum playback_state);
 static int	sequencer_noteevent(struct songstate *, struct midievent *);
 static int	sequencer_play_music(struct songstate *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
 static int	sequencer_reset_songstate(struct songstate *);
 static int	sequencer_start_playing(struct songstate *,
-					struct songstate *);
+    struct songstate *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
-					     struct timespec *notetime);
-
+    struct timespec *notetime);
 static int	receive_fd_through_socket(int *, int);
 
 static int
@@ -161,11 +160,10 @@ sequencer_loop(int main_socket)
 	sequencer_init_songstate(reading_song,  READING);
 
 	for (;;) {
-		assert(playback_song->playback_state == IDLE
-			 || playback_song->playback_state == PLAYING);
-		assert(reading_song->playback_state == READING
-			 || reading_song->playback_state
-			      == FREEING_EVENTSTREAM);
+		assert(playback_song->playback_state == IDLE ||
+		    playback_song->playback_state == PLAYING);
+		assert(reading_song->playback_state == READING ||
+		    reading_song->playback_state == FREEING_EVENTSTREAM);
 
 		FD_ZERO(&readfds);
 
@@ -183,20 +181,15 @@ sequencer_loop(int main_socket)
 			timeout_p = NULL;
 		}
 
-		if (main_socket == -1
-		      && interp_fd == -1
-		      && timeout_p == NULL) {
+		if (main_socket == -1 && interp_fd == -1 &&
+		    timeout_p == NULL) {
 			/* Nothing more to do! */
 			retvalue = 0;
 			goto finish;
 		}
 
-		ret = pselect(FD_SETSIZE,
-			      &readfds,
-			      NULL,
-			      NULL,
-			      timeout_p,
-			      &select_sigmask);
+		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, timeout_p,
+		    &select_sigmask);
 		if (ret == -1 && errno != EINTR) {
 			warn("error in select");
 			retvalue = 1;
@@ -220,7 +213,7 @@ sequencer_loop(int main_socket)
 		if (main_socket >= 0 && FD_ISSET(main_socket, &readfds)) {
 			old_interp_fd = interp_fd;
 			ret = receive_fd_through_socket(&interp_fd,
-							main_socket);
+			    main_socket);
 			if (ret == -1) {
 				warnx("error receiving pipe from interpreter"
 					" to sequencer");
@@ -231,16 +224,16 @@ sequencer_loop(int main_socket)
 				main_socket = -1;
 			} else {
 				assert(old_interp_fd != interp_fd);
-				if (old_interp_fd >= 0
-				      && close(old_interp_fd) == -1)
+				if (old_interp_fd >= 0 &&
+				    close(old_interp_fd) == -1)
 					warn("closing old interpreter fd");
 				/*
 				 * We have new interp_fd, make it
 				 * non-blocking and go back to select().
 				 */
 				if (fcntl(interp_fd, F_SETFL, O_NONBLOCK)
-				      == -1) {
-					warn("could not set interp_fd" \
+				    == -1) {
+					warn("could not set interp_fd"
 					       " non-blocking");
 					retvalue = 1;
 					goto finish;
@@ -252,7 +245,7 @@ sequencer_loop(int main_socket)
 
 		if (interp_fd >= 0 && FD_ISSET(interp_fd, &readfds)) {
 			nr = sequencer_read_to_eventstream(reading_song,
-							   interp_fd);
+			    interp_fd);
 			if (nr == -1) {
 				retvalue = 1;
 				goto finish;
@@ -267,7 +260,7 @@ sequencer_loop(int main_socket)
 				playback_song = tmp_song;
 
 				ret = sequencer_start_playing(playback_song,
-							      reading_song);
+				    reading_song);
 				if (ret != 0) {
 					retvalue = 1;
 					goto finish;
@@ -375,9 +368,9 @@ sequencer_play_music(struct songstate *ss)
 			 * If timeout has not been gone to zero,
 			 * it is not our time to play yet.
 			 */
-			if (time_to_play.tv_sec > 0
-			      || (time_to_play.tv_sec == 0
-				   && time_to_play.tv_nsec > 0))
+			if (time_to_play.tv_sec > 0 ||
+			    (time_to_play.tv_sec == 0 &&
+			    time_to_play.tv_nsec > 0))
 				return 0;
 
 			switch(me->eventtype) {
@@ -414,13 +407,13 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me)
 			break;
 		case NOTEOFF:
 			nstate = &ss->notestates[me->u.note.channel]
-						[me->u.note.note];
+			    [me->u.note.note];
 			nstate->state = 0;
 			nstate->velocity = 0;
 			break;
 		case NOTEON:
 			nstate = &ss->notestates[me->u.note.channel]
-						[me->u.note.note];
+			    [me->u.note.note];
 			nstate->state = 1;
 			nstate->velocity = me->u.note.velocity;
 			break;
@@ -447,17 +440,16 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 
 	if (cur_b == NULL || cur_b->readcount == sizeof(cur_b->events)) {
 		if ((new_b = malloc(sizeof(struct eventblock))) == NULL) {
-			warn("malloc failure in" \
-			       " sequencer_read_to_eventstream");
+			warn("malloc failure in"
+			    " sequencer_read_to_eventstream");
 			return -1;
 		}
 
 		new_b->readcount = 0;
 	}
 
-	nr = read(fd,
-		  (char *) new_b->events + new_b->readcount,
-		  sizeof(new_b->events) - new_b->readcount);
+	nr = read(fd, ((char *) new_b->events + new_b->readcount),
+	    (sizeof(new_b->events) - new_b->readcount));
 
 	if (nr == -1) {
 		warn("error in reading to eventstream");
@@ -467,8 +459,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	if (nr == 0) {
 		/* The last event must be SONG_END. */
 		if (!ss->got_song_end) {
-			warnx("received music stream which" \
-				" is not complete (last event not SONG_END)");
+			warnx("received music stream which is not complete"
+			    " (last event not SONG_END)");
 			nr = -1;
 			goto finish;
 		}
@@ -477,8 +469,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 	}
 
 	for (i = new_b->readcount / sizeof(struct midievent);
-	     i < (new_b->readcount + nr) / sizeof(struct midievent);
-	     i++) {
+	    i < (new_b->readcount + nr) / sizeof(struct midievent);
+	    i++) {
 		/* The song end must not come again. */
 		if (ss->got_song_end) {
 			warnx("received music events after song end");
@@ -492,7 +484,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		midievent_log("received", &new_b->events[i], 1);
 
 		if (!midi_check_midievent(new_b->events[i],
-					  ss->time_as_measures)) {
+		    ss->time_as_measures)) {
 			nr = -1;
 			goto finish;
 		}
@@ -523,8 +515,8 @@ sequencer_reset_songstate(struct songstate *ss)
 	struct eventblock *eb;
 	int i;
 
-	assert(ss->playback_state == FREEING_EVENTSTREAM
-		 || ss->playback_state == READING);
+	assert(ss->playback_state == FREEING_EVENTSTREAM ||
+	    ss->playback_state == READING);
 
 	if (ss->playback_state != FREEING_EVENTSTREAM)
 		return 1;
@@ -574,19 +566,16 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 			switch (me->eventtype) {
 			case NOTEON:
 				ss->notestates[me->u.note.channel]
-					      [me->u.note.note]
-				    .state = 1;
+				    [me->u.note.note].state = 1;
 				ss->notestates[me->u.note.channel]
-					      [me->u.note.note]
-				    .velocity = me->u.note.velocity;
+				    [me->u.note.note].velocity =
+				    me->u.note.velocity;
 				break;
 			case NOTEOFF:
 				ss->notestates[me->u.note.channel]
-					      [me->u.note.note]
-				    .state = 0;
+				    [me->u.note.note].state = 0;
 				ss->notestates[me->u.note.channel]
-					      [me->u.note.note]
-				    .velocity = 0;
+				    [me->u.note.note].velocity = 0;
 				break;
 			default:
 				assert(0);
@@ -603,20 +592,20 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->notestates[c][n];
-			new =     ss->notestates[c][n];
+			new = ss->notestates[c][n];
 
 			note_off.eventtype = NOTEOFF;
-			note_off.u.note.channel   = c;
-			note_off.u.note.note      = n;
-			note_off.u.note.velocity  = 0;
+			note_off.u.note.channel = c;
+			note_off.u.note.note = n;
+			note_off.u.note.velocity = 0;
 
 			note_on.eventtype = NOTEON;
-			note_on.u.note.channel   = c;
-			note_on.u.note.note      = n;
-			note_on.u.note.velocity  = new.velocity;
+			note_on.u.note.channel = c;
+			note_on.u.note.note = n;
+			note_on.u.note.velocity = new.velocity;
 
-			if (old.state && new.state
-			     && old.velocity != new.velocity) {
+			if (old.state && new.state &&
+			    old.velocity != new.velocity) {
 				/*
 				 * Note is playing in different velocity,
 				 * so play the note again.
@@ -643,73 +632,67 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 			 * sequencer_noteevent() should also have
 			 * a side effect to make these true:
 			 */
-			assert(
-			  old_ss->notestates[c][n].state
-			      == ss->notestates[c][n].state
-			    && old_ss->notestates[c][n].velocity
-				 == ss->notestates[c][n].velocity
+			assert(old_ss->notestates[c][n].state ==
+			    ss->notestates[c][n].state &&
+			    old_ss->notestates[c][n].velocity ==
+			    ss->notestates[c][n].velocity
 			);
 		}
 	}
 
-	ret = clock_gettime(CLOCK_MONOTONIC,
-			    &ss->latest_tempo_change_as_time);
+	ret = clock_gettime(CLOCK_MONOTONIC, &ss->latest_tempo_change_as_time);
 	assert(ret == 0);
 
-	    ss->playback_state = PLAYING;
+	ss->playback_state = PLAYING;
 	old_ss->playback_state = FREEING_EVENTSTREAM;
 
 	return 0;
 }
 
 static void
-sequencer_time_for_next_note(struct songstate *ss,
-			     struct timespec *notetime)
+sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 {
 	struct midievent next_midievent;
 	struct timespec time_for_note_since_latest_tempo_change;
-	float measures_for_note_since_latest_tempo_change,
-	      time_for_note_since_latest_tempo_change_in_ns;
+	float measures_for_note_since_latest_tempo_change;
+	float time_for_note_since_latest_tempo_change_in_ns;
 
 	assert(ss != NULL);
 	assert(ss->current_event.block != NULL);
-	assert(0 <= ss->current_event.index
-		 && ss->current_event.index < EVENTBLOCKCOUNT);
-	assert(ss->latest_tempo_change_as_time.tv_sec > 0
-		 || ss->latest_tempo_change_as_time.tv_nsec > 0);
+	assert(0 <= ss->current_event.index &&
+	    ss->current_event.index < EVENTBLOCKCOUNT);
+	assert(ss->latest_tempo_change_as_time.tv_sec > 0 ||
+	    ss->latest_tempo_change_as_time.tv_nsec > 0);
 	assert(ss->playback_state == PLAYING);
 	assert(ss->tempo > 0);
 
-	next_midievent = ss->current_event.block->events[
-			   ss->current_event.index
-			 ];
+	next_midievent =
+	    ss->current_event.block->events[ ss->current_event.index ];
 
-	measures_for_note_since_latest_tempo_change
-	    = next_midievent.time_as_measures
-		- ss->latest_tempo_change_as_measures;
+	measures_for_note_since_latest_tempo_change =
+	    next_midievent.time_as_measures -
+	    ss->latest_tempo_change_as_measures;
 
-	time_for_note_since_latest_tempo_change_in_ns
-	    = (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo))
-		* measures_for_note_since_latest_tempo_change;
+	time_for_note_since_latest_tempo_change_in_ns =
+	    (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo)) *
+	    measures_for_note_since_latest_tempo_change;
 
-	time_for_note_since_latest_tempo_change.tv_nsec
-	    = fmodf(time_for_note_since_latest_tempo_change_in_ns,
-		    1000000000.0);
+	time_for_note_since_latest_tempo_change.tv_nsec =
+	    fmodf(time_for_note_since_latest_tempo_change_in_ns, 1000000000.0);
 
 	/*
 	 * This is tricky to get right... naively dividing
 	 * time_for_note_since_latest_tempo_change_in_ns / 1000000000.0
 	 * does not always work, because of floating point rounding errors.
 	 */
-	time_for_note_since_latest_tempo_change.tv_sec
-	    = rintf((time_for_note_since_latest_tempo_change_in_ns
-		       - time_for_note_since_latest_tempo_change.tv_nsec)
-			   / 1000000000.0);
+	time_for_note_since_latest_tempo_change.tv_sec =
+	    rintf((time_for_note_since_latest_tempo_change_in_ns -
+	    time_for_note_since_latest_tempo_change.tv_nsec) / 1000000000.0);
 
-	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec
-			     + ss->latest_tempo_change_as_time.tv_sec;
-	notetime->tv_nsec = time_for_note_since_latest_tempo_change.tv_nsec
-			      + ss->latest_tempo_change_as_time.tv_nsec;
+	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec +
+	    ss->latest_tempo_change_as_time.tv_sec;
+	notetime->tv_nsec = time_for_note_since_latest_tempo_change.tv_nsec +
+	    ss->latest_tempo_change_as_time.tv_nsec;
 
 	if (notetime->tv_nsec >= 1000000000) {
 		notetime->tv_nsec -= 1000000000;
@@ -733,12 +716,12 @@ sequencer_close_songstate(struct songstate *ss)
 		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
 			if (ss->notestates[c][n].state) {
 				note_off.eventtype = NOTEOFF;
-				note_off.u.note.channel   = c;
-				note_off.u.note.note      = n;
-				note_off.u.note.velocity  = 0;
+				note_off.u.note.channel = c;
+				note_off.u.note.note = n;
+				note_off.u.note.velocity = 0;
 				if (sequencer_noteevent(ss, &note_off) != 0)
 					warnx("error in turning off note"
-						" %d on channel %d", n, c);
+					    " %d on channel %d", n, c);
 			}
 }
 
@@ -773,9 +756,8 @@ receive_fd_through_socket(int *received_fd, int socket)
 	if (cmsg == NULL)
 		return 0;
 
-	if (   cmsg->cmsg_len   == CMSG_LEN(sizeof(int))
-	    && cmsg->cmsg_level == SOL_SOCKET
-	    && cmsg->cmsg_type  == SCM_RIGHTS) {
+	if (cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
+	    cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
 		*received_fd = *(int *)CMSG_DATA(cmsg);
 		return 1;
 	}

@@ -1,4 +1,4 @@
-/* $Id: interpreter.h,v 1.4 2015/10/24 19:13:29 je Exp $ */
+/* $Id: interpreter.h,v 1.5 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,5 +20,6 @@
 #define MDL_MUSICINTERP_H
 
 int	handle_musicfile_and_socket(int, int, int, int);
+int	yyparse(void);
 
 #endif

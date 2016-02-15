@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.18 2016/02/13 21:31:31 je Exp $ */
+/* $Id: util.c,v 1.19 2016/02/15 20:52:27 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,10 +46,7 @@ mdl_log(int msgloglevel, int indentlevel, const char *fmt, ...)
 	if (msgloglevel > loglevel)
 		return;
 
-	ret = printf("%s/%s(%d): ",
-		     __progname,
-		     mdl_process_type,
-		     msgloglevel);
+	ret = printf("%s/%s(%d): ", __progname, mdl_process_type, msgloglevel);
 	if (ret < 0)
 		return;
 
@@ -97,7 +94,7 @@ mdl_stream_new(enum streamtype s_type)
 		break;
 	case TRACKMIDIEVENTSTREAM:
 		s->trackmidinotes = calloc(s->slotcount,
-					   sizeof(struct trackmidinote));
+		    sizeof(struct trackmidinote));
 		if (s->trackmidinotes == NULL) {
 			warn("calloc in mdl_stream_new");
 			free(s);
@@ -122,9 +119,8 @@ mdl_stream_increment(struct mdl_stream *s)
 		s->slotcount *= 2;
 		switch (s->s_type) {
 		case MIDIEVENTSTREAM:
-			new_items = reallocarray(s->midievents,
-						 s->slotcount,
-						 sizeof(struct midievent));
+			new_items = reallocarray(s->midievents, s->slotcount,
+			    sizeof(struct midievent));
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");
 				return 1;
@@ -132,11 +128,8 @@ mdl_stream_increment(struct mdl_stream *s)
 			s->midievents = new_items;
 			break;
 		case OFFSETEXPRSTREAM:
-			new_items
-			    = reallocarray(s->mexprs,
-					   s->slotcount,
-					   sizeof(struct offsetexpr));
-
+			new_items = reallocarray(s->mexprs, s->slotcount,
+			    sizeof(struct offsetexpr));
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");
 				return 1;
@@ -144,11 +137,8 @@ mdl_stream_increment(struct mdl_stream *s)
 			s->mexprs = new_items;
 			break;
 		case TRACKMIDIEVENTSTREAM:
-			new_items
-			    = reallocarray(s->trackmidinotes,
-					   s->slotcount,
-					   sizeof(struct trackmidinote));
-
+			new_items = reallocarray(s->trackmidinotes,
+			    s->slotcount, sizeof(struct trackmidinote));
 			if (new_items == NULL) {
 				warn("reallocarray in mdl_stream_increment");
 				return 1;
