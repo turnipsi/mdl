@@ -1,4 +1,4 @@
-/* $Id: compat.c,v 1.1 2015/11/09 20:15:07 je Exp $ */
+/* $Id: compat.c,v 1.2 2016/02/21 20:26:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,7 +18,7 @@
 
 #include "compat.h"
 
-#ifdef SANDBOX_NONE
+#ifdef MDL_SANDBOX_NONE
 int
 pledge(const char *request, const char *paths[])
 {

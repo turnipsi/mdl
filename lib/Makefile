@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.25 2016/02/13 19:59:33 je Exp $
+# $Id: Makefile,v 1.26 2016/02/21 20:26:20 je Exp $
 
 PROG=	mdl
 SRCS=	compat.c interpreter.c instrument.c joinexpr.c mdl.c midi.c \
@@ -14,5 +14,9 @@ BINDIR=	${PREFIX}/bin
 MANDIR=	${PREFIX}/man/man
 
 COPTS+=	-g -Wall -W -Wpointer-arith -Wbad-function-cast
+
+.if "${SANDBOX}" == "no"
+COPTS+=	-DMDL_SANDBOX_NONE
+.endif
 
 .include <bsd.prog.mk>
