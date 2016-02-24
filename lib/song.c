@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.6 2016/02/15 20:52:27 je Exp $ */
+/* $Id: song.c,v 1.7 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -170,7 +170,7 @@ mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 
 	SLIST_INSERT_HEAD(&song->tracklist, track, sl);
 
-	mdl_log(2, level, "added a new track %s\n", track->name);
+	mdl_log(MDLLOG_SONG, level, "added a new track %s\n", track->name);
 
 	return track;
 }

@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.17 2016/02/13 21:31:31 je Exp $ */
+/* $Id: util.h,v 1.18 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,19 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+enum logtype {
+	MDLLOG_EXPRCLONING,
+	MDLLOG_EXPRCONV,
+	MDLLOG_JOINS,
+	MDLLOG_MIDI,
+	MDLLOG_MIDISTREAM,
+	MDLLOG_PARSING,
+	MDLLOG_PROCESS,
+	MDLLOG_RELATIVE,
+	MDLLOG_SONG,
+	MDLLOG_TYPECOUNT,	/* not a logtype */
+};
+
 struct mdl_stream {
 	size_t count, slotcount;
 	enum streamtype {
@@ -38,7 +51,8 @@ struct mdl_stream {
 	};
 };
 
-void	mdl_log(int, int, const char *, ...);
+void	mdl_log(enum logtype, int, const char *, ...);
+int	setup_logging_opts(char *);
 
 struct mdl_stream      *mdl_stream_new(enum streamtype);
 int			mdl_stream_increment(struct mdl_stream *);

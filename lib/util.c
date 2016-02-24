@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.19 2016/02/15 20:52:27 je Exp $ */
+/* $Id: util.c,v 1.20 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "midi.h"
@@ -32,21 +33,89 @@
 extern char *mdl_process_type;
 extern char *__progname;
 
-int loglevel = 0;
+u_int32_t logopts;
+
+static const char *logtype_strings[] = {
+	"exprcloning",	/* MDLLOG_EXPRCLONING */
+	"exprconv",	/* MDLLOG_EXPRCONV    */
+	"joins",	/* MDLLOG_JOINS       */
+	"midi",		/* MDLLOG_MIDI        */
+	"midistream",	/* MDLLOG_MIDISTREAM  */
+	"parsing",	/* MDLLOG_PARSING     */
+	"process",	/* MDLLOG_PROCESS     */
+	"relative",	/* MDLLOG_RELATIVE    */
+	"song",		/* MDLLOG_SONG        */
+};
+
+int
+setup_logging_opts(char *optstring)
+{
+	char *opt;
+	int found, logtype, loglevel;
+
+	logopts = 0;
+
+	for (;;) {
+		if ((opt = strsep(&optstring, ",")) == NULL)
+			break;
+
+		found = 0;
+
+		for (logtype = 0; logtype < MDLLOG_TYPECOUNT; logtype++) {
+			if (strcmp(opt, logtype_strings[logtype]) == 0) {
+				logopts |= (1 << logtype);
+				found = 1;
+				break;
+			}
+		}
+
+		if (!found) {
+			loglevel = strtonum(opt, 1, 4, NULL);
+			if (loglevel == 0) {
+				warnx("unknown debugging option: %s", opt);
+				return -1;
+			}
+
+			if (loglevel >= 1) {
+				logopts |= (1 << MDLLOG_PROCESS)
+				    | (1 << MDLLOG_PARSING);
+			}
+
+			if (loglevel >= 2) {
+				logopts |= (1 << MDLLOG_RELATIVE)
+				    | (1 << MDLLOG_SONG);
+			}
+
+			if (loglevel >= 3) {
+				logopts |= (1 << MDLLOG_MIDI)
+				    | (1 << MDLLOG_MIDISTREAM);
+			}
+
+			if (loglevel >= 4) {
+				logopts |= (1 << MDLLOG_EXPRCLONING)
+				    | (1 << MDLLOG_EXPRCONV)
+				    | (1 << MDLLOG_JOINS);
+			}
+		}
+	}
+
+	return 0;
+}
 
 void
-mdl_log(int msgloglevel, int indentlevel, const char *fmt, ...)
+mdl_log(enum logtype logtype, int indentlevel, const char *fmt, ...)
 {
 	va_list va;
 	int ret, i;
 
-	assert(msgloglevel >= 0);
+	assert(logtype < MDLLOG_TYPECOUNT);
 	assert(indentlevel >= 0);
 
-	if (msgloglevel > loglevel)
+	if (((1 << logtype) & logopts) == 0)
 		return;
 
-	ret = printf("%s/%s(%d): ", __progname, mdl_process_type, msgloglevel);
+	ret = printf("%s/%s(%s): ", __progname, mdl_process_type,
+	    logtype_strings[logtype]);
 	if (ret < 0)
 		return;
 
@@ -115,7 +184,8 @@ mdl_stream_increment(struct mdl_stream *s)
 
 	s->count += 1;
 	if (s->count == s->slotcount) {
-		mdl_log(2, 0, "mdl_stream now contains %d items\n", s->count);
+		mdl_log(MDLLOG_MIDISTREAM, 0,
+		    "mdl_stream now contains %d items\n", s->count);
 		s->slotcount *= 2;
 		switch (s->s_type) {
 		case MIDIEVENTSTREAM:

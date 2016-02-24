@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.46 2016/02/15 20:52:27 je Exp $ */
+/* $Id: mdl.c,v 1.47 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,7 +81,6 @@ main(int argc, char *argv[])
 {
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	const char *errstr;
 	int musicfilecount, ch, cflag, sflag, fileflags, lockfd;
 	size_t ret;
 
@@ -110,11 +109,8 @@ main(int argc, char *argv[])
 			cflag = 1;
 			break;
 		case 'd':
-			loglevel = strtonum(optarg, 0, 4, &errstr);
-			if (errstr) {
-				errx(1, "loglevel %s is not supported: %s\n",
-				    optarg, errstr);
-			}
+			if (setup_logging_opts(optarg) == -1)
+				errx(1, "error in logging opts");
 			break;
 		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
@@ -131,7 +127,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	mdl_log(1, 0, "new main process, pid %d\n", getpid());
+	mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
 	if ((mkdir(mdldir, 0755) == -1) && errno != EEXIST)
 		err(1, "error creating %s", mdldir);
@@ -253,7 +249,8 @@ setup_sequencer_for_sources(char **files, int filecount,
 		 * We are in sequencer process, start sequencer loop.
 		 */
 		mdl_process_type = "seq";
-		mdl_log(1, 0, "new sequencer process, pid %d\n", getpid());
+		mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
+		    getpid());
 		/*
 		 * XXX We should close all file descriptors that sequencer
 		 * XXX does not need... does this do that?
@@ -402,7 +399,8 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 		 * We are in the interpreter process.
 		 */
 		mdl_process_type = "interp";
-		mdl_log(1, 0, "new interpreter process, pid %d\n", getpid());
+		mdl_log(MDLLOG_PROCESS, 0,
+		    "new interpreter process, pid %d\n", getpid());
 
 		/*
 		 * Be strict here when closing file descriptors so that we

@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.10 2016/02/15 20:52:27 je Exp $ */
+/* $Id: relative.c,v 1.11 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,7 +42,8 @@ musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	struct previous_relative_exprs prev_relative_exprs;
 	struct instrument *instrument;
 
-	mdl_log(2, level, "converting relative expression to absolute\n");
+	mdl_log(MDLLOG_RELATIVE, level,
+	    "converting relative expression to absolute\n");
 
 	/* Set default values for the first absolute note. */
 	instrument = track_get_default_instrument(song->default_track);
@@ -80,7 +81,7 @@ relative_to_absolute(struct musicexpr *me,
 	};
 	int first_note_seen, note, c;
 
-	mdl_log(3, level, "rel->abs expression (%s)\n",
+	mdl_log(MDLLOG_RELATIVE, level, "rel->abs expression (%s)\n",
 	    musicexpr_type_to_string(me));
 
 	switch (me->me_type) {
@@ -114,7 +115,7 @@ relative_to_absolute(struct musicexpr *me,
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_RELNOTE:
-		musicexpr_log(me, 3, level + 1, NULL);
+		musicexpr_log(me, MDLLOG_RELATIVE, level + 1, NULL);
 
 		relnote = me->u.relnote;
 
@@ -148,7 +149,7 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_REST:
-		musicexpr_log(me, 3, (level + 1), NULL);
+		musicexpr_log(me, MDLLOG_RELATIVE, (level + 1), NULL);
 
 		if (me->u.rest.length == 0) {
 			me->u.rest.length = prev_exprs->absnote.length;
@@ -230,7 +231,7 @@ relative_to_absolute(struct musicexpr *me,
 	}
 
 	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)
-		musicexpr_log(me, 3, level + 2, "--> ");
+		musicexpr_log(me, MDLLOG_RELATIVE, level + 2, "--> ");
 }
 
 /*

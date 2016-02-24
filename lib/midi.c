@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.16 2016/02/15 20:52:27 je Exp $ */
+/* $Id: midi.c,v 1.17 2016/02/24 20:29:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -164,7 +164,8 @@ midi_send_midievent(struct midievent *me)
 				: MIDI_NOTEOFF_BASE;
 		velocity = (me->eventtype == NOTEON) ? me->u.note.velocity : 0;
 
-		mdl_log(2, 0, "sending \"%s\": notevalue=%d channel=%d"
+		mdl_log(MDLLOG_MIDI, 0,
+		    "sending \"%s\": notevalue=%d channel=%d"
 		    " velocity=%d clock=%d.%.0f\n",
 		    (me->eventtype == NOTEON ? "note on" : "note off"),
 		    me->u.note.note, me->u.note.channel, velocity,
@@ -199,21 +200,23 @@ midievent_log(const char *prefix, struct midievent *midievent, int level)
 {
 	switch (midievent->eventtype) {
 	case INSTRUMENT_CHANGE:
-		mdl_log(2, level, "%s instrument change time=%.3f channel=%d"
+		mdl_log(MDLLOG_MIDI, level,
+		    "%s instrument change time=%.3f channel=%d"
 		    " instrument=%d\n", prefix, midievent->time_as_measures,
 		    midievent->u.instrument_change.channel,
 		    midievent->u.instrument_change.code);
 		break;
 	case NOTEOFF:
 	case NOTEON:
-		mdl_log(2, level, "%s %s time=%.3f channel=%d note=%d"
-		    " velocity=%d\n", prefix,
+		mdl_log(MDLLOG_MIDI, level,
+		    "%s %s time=%.3f channel=%d note=%d velocity=%d\n",
+		    prefix,
 		    (midievent->eventtype == NOTEOFF ? "noteoff" : "noteon"),
 		    midievent->time_as_measures, midievent->u.note.channel,
 		    midievent->u.note.note, midievent->u.note.velocity);
 		break;
 	case SONG_END:
-		mdl_log(2, level, "%s song end time=%.3f\n", prefix,
+		mdl_log(MDLLOG_MIDI, level, "%s song end time=%.3f\n", prefix,
 		    midievent->time_as_measures);
 		break;
 	default:
