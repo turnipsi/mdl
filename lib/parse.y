@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.44 2016/02/13 21:31:30 je Exp $
+/* $Id: parse.y,v 1.45 2016/02/27 20:47:36 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -105,7 +105,6 @@ static void    *malloc_musicexpr(void);
 			SIMULTENCE_END
 
 %right			TRACK_OPERATOR
-
 %left			JOINEXPR
 
 %type	<musicexpr>	grammar musicexpr relsimultence_expr

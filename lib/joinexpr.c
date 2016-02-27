@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.35 2016/02/27 20:21:42 je Exp $ */
+/* $Id: joinexpr.c,v 1.36 2016/02/27 20:47:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -194,9 +194,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 			unimplemented();
 			break;
 		case ME_TYPE_ONTRACK:
-			/* XXX joining should be tried if tracks are the
-			 * XXX same */
-			unimplemented();
+			/* fallthrough to indirect joins */
 			break;
 		case ME_TYPE_REST:
 			mdl_log(MDLLOG_JOINS, level, "joining two rests\n");
@@ -232,6 +230,19 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 		/* Rests are incompatible with everything else. */
 		mdl_log(MDLLOG_JOINS, level,
 		    "joining rest and some --> sequence\n");
+		return musicexpr_sequence(a, b, NULL);
+	}
+
+	if (at == ME_TYPE_ONTRACK || bt == ME_TYPE_ONTRACK) {
+		/*
+		 * Refuse to join expressions where one or both are track
+		 * expressions.  Some of those could be joined, but perhaps
+		 * we do not want to deal with that.  Syntax error might be
+		 * in place if this is tried?
+		 */
+		mdl_log(MDLLOG_JOINS, level,
+		    "refusing to join expressions where one expression is a"
+		    " track expression\n");
 		return musicexpr_sequence(a, b, NULL);
 	}
 
