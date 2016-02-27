@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.74 2016/02/24 20:29:08 je Exp $ */
+/* $Id: musicexpr.c,v 1.75 2016/02/27 20:21:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -322,8 +322,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr *simultence,
 		state->next_offset = end_offset;
 		break;
         case ME_TYPE_SCALEDEXPR:
-		scaled_me = musicexpr_scale_in_time(me->u.scaledexpr.me,
-		    me->u.scaledexpr.length, (level + 1));
+		scaled_me = musicexpr_scaledexpr_unscale(&me->u.scaledexpr,
+		    (level + 1));
 		if (scaled_me == NULL)
 			return 1;
 		ret = add_musicexpr_to_flat_simultence(simultence, scaled_me,
@@ -463,6 +463,12 @@ musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 	}
 }
 
+struct musicexpr *
+musicexpr_scaledexpr_unscale(struct scaledexpr *se, int level)
+{
+	return musicexpr_scale_in_time(se->me, se->length, level);
+}
+
 static struct musicexpr *
 musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 {
@@ -486,7 +492,7 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 	me_length = musicexpr_calc_length(me);
 	assert(me_length >= MINIMUM_MUSICEXPR_LENGTH);
 
-	if ((new_me = musicexpr_clone(me, level + 1)) == NULL)
+	if ((new_me = musicexpr_clone(me, (level + 1))) == NULL)
 		return NULL;
 
 	musicexpr_stretch_length_by_factor(new_me,
@@ -533,6 +539,7 @@ musicexpr_stretch_length_by_factor(struct musicexpr *me, float factor)
         case ME_TYPE_OFFSETEXPR:
 		musicexpr_stretch_length_by_factor(me->u.offsetexpr.me,
 		    factor);
+		me->u.offsetexpr.offset *= factor;
 		break;
 	default:
 		assert(0);

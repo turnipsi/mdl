@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.20 2016/02/24 20:29:08 je Exp $ */
+/* $Id: util.c,v 1.21 2016/02/27 20:21:42 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -114,6 +114,7 @@ mdl_log(enum logtype logtype, int indentlevel, const char *fmt, ...)
 	if (((1 << logtype) & logopts) == 0)
 		return;
 
+        /* XXX variable logtype strings mess up indents */
 	ret = printf("%s/%s(%s): ", __progname, mdl_process_type,
 	    logtype_strings[logtype]);
 	if (ret < 0)
