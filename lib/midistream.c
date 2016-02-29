@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.18 2016/02/24 20:29:08 je Exp $ */
+/* $Id: midistream.c,v 1.19 2016/02/29 21:09:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -55,14 +55,14 @@ struct mdl_stream *
 musicexpr_to_midievents(struct musicexpr *me, int level)
 {
 	struct mdl_stream *offset_es, *midi_es;
-	struct musicexpr *me_workcopy, *simultence, *p;
+	struct musicexpr *me_workcopy, *flatme, *p;
 	struct song *song;
 
 	mdl_log(MDLLOG_MIDISTREAM, level,
 	    "converting music expression to midi stream\n");
 
 	midi_es = NULL;
-	simultence = NULL;
+	flatme = NULL;
 
 	if ((offset_es = offsetexprstream_new()) == NULL) {
 		warnx("could not setup new offsetexprstream");
@@ -98,8 +98,8 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 
 	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
 	    "converting expression to a (flat) simultence\n");
-	simultence = musicexpr_to_flat_simultence(me_workcopy, level + 1);
-	if (simultence == NULL) {
+	flatme = musicexpr_to_flat_simultence(me_workcopy, level + 1);
+	if (flatme == NULL) {
 		warnx("Could not flatten music expression to create offset"
 		    " expression stream");
 		goto finish;
@@ -107,7 +107,7 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 
 	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
 	    "making offset expression stream\n");
-	TAILQ_FOREACH(p, &simultence->u.melist, tq) {
+	TAILQ_FOREACH(p, &flatme->u.flatsimultence.me->u.melist, tq) {
 		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		offset_es->mexprs[ offset_es->count ] = p->u.offsetexpr;
 		if (mdl_stream_increment(offset_es) != 0)
@@ -119,8 +119,8 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 finish:
 	mdl_stream_free(offset_es);
 
-	if (simultence != NULL)
-		musicexpr_free(simultence);
+	if (flatme != NULL)
+		musicexpr_free(flatme);
 
 	musicexpr_free(me_workcopy);
 
@@ -358,6 +358,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 		assert(instr_tracks[i].notecount == 0);
 
 	/* Add SONG_END midievent. */
+	/* XXX This should use information from flatsimultence length,
+	 * XXX so we can have a rest at the end. */
 	midievent = &midi_es->midievents[ midi_es->count ];
 	bzero(midievent, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;

@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.36 2016/02/27 20:47:36 je Exp $ */
+/* $Id: joinexpr.c,v 1.37 2016/02/29 21:09:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -284,8 +284,8 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 		tmp_b = musicexpr_to_flat_simultence(b, (level + 1));
 	}
 
-	if (tmp_a->me_type == ME_TYPE_SIMULTENCE &&
-	    tmp_a->me_type == ME_TYPE_SIMULTENCE) {
+	if (tmp_a->me_type == ME_TYPE_FLATSIMULTENCE &&
+	    tmp_a->me_type == ME_TYPE_FLATSIMULTENCE) {
 		tmp_me = join_flat_simultences(tmp_a, tmp_b, (level + 1));
 	} else {
 		tmp_me = join_two_musicexprs(tmp_a, tmp_b, level);
@@ -421,38 +421,21 @@ join_sequences(struct musicexpr *a, struct musicexpr *b, int level)
 static struct musicexpr *
 join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 {
-	struct musicexpr *p, *q, *r;
+	struct musicexpr *p, *q, *r, *sim_a, *sim_b;
 	struct offsetexpr *p_me, *q_me;
-	float prev_note_end, next_note_start, a_length;
+	float prev_note_end, next_note_start;
 
-	a_length = 0.0;
+	assert(a->me_type == ME_TYPE_FLATSIMULTENCE);
+	assert(b->me_type == ME_TYPE_FLATSIMULTENCE);
 
-	/* First find length of "a", rests can be removed. */
-	TAILQ_FOREACH_SAFE(p, &a->u.melist, tq, r) {
-		assert(p->me_type == ME_TYPE_OFFSETEXPR);
-		p_me = &p->u.offsetexpr;
-
-		assert(p_me->me->me_type == ME_TYPE_ABSNOTE ||
-		    p_me->me->me_type == ME_TYPE_REST);
-
-		if (p_me->me->me_type == ME_TYPE_REST) {
-			a_length = MAX(a_length,
-			    (p_me->offset + p_me->me->u.rest.length));
-
-			TAILQ_REMOVE(&a->u.melist, p, tq);
-			musicexpr_free(p);
-			continue;
-		}
-
-		a_length = MAX(a_length,
-		    (p_me->offset + p_me->me->u.absnote.length));
-	}
+	sim_a = a->u.flatsimultence.me;
+	sim_b = b->u.flatsimultence.me;
 
 	/*
 	 * Join notes when we can.  This is inefficient with simultences
 	 * with lots of notes, but hopefully is not misused much.
 	 */
-	TAILQ_FOREACH(p, &a->u.melist, tq) {
+	TAILQ_FOREACH(p, &sim_a->u.melist, tq) {
 		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		p_me = &p->u.offsetexpr;
 
@@ -460,20 +443,11 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 
 		prev_note_end = p_me->offset + p_me->me->u.absnote.length;
 
-		TAILQ_FOREACH_SAFE(q, &b->u.melist, tq, r) {
+		TAILQ_FOREACH_SAFE(q, &sim_b->u.melist, tq, r) {
 			assert(q->me_type == ME_TYPE_OFFSETEXPR);
 			q_me = &q->u.offsetexpr;
 
-			assert(q_me->me->me_type == ME_TYPE_ABSNOTE ||
-			    q_me->me->me_type == ME_TYPE_REST);
-
-			if (q_me->me->me_type == ME_TYPE_REST) {
-				/*
-				 * This rest can be passed on as is to
-				 * joined simultence (with offset change).
-				 */
-				continue;
-			}
+			assert(q_me->me->me_type == ME_TYPE_ABSNOTE);
 
 			if (p_me->me->u.absnote.note !=
 			    q_me->me->u.absnote.note)
@@ -489,7 +463,8 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 			 * to join to music expression "a" q_me->offset
 			 * must be zero or negative.
 			 */
-			next_note_start = a_length + q_me->offset;
+			next_note_start = a->u.flatsimultence.length
+			    + q_me->offset;
 
 			if (fabs(prev_note_end - next_note_start) >=
 			    MINIMUM_MUSICEXPR_LENGTH)
@@ -507,9 +482,12 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 	}
 
 	TAILQ_FOREACH(q, &b->u.melist, tq)
-		q->u.offsetexpr.offset += a_length;
+		q->u.offsetexpr.offset += a->u.flatsimultence.length;
 
 	TAILQ_CONCAT(&a->u.melist, &b->u.melist, tq);
+
+	a->u.flatsimultence.length += b->u.flatsimultence.length;
+
 	musicexpr_free(b);
 
 	return a;

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.57 2016/02/27 20:21:42 je Exp $ */
+/* $Id: musicexpr.h,v 1.58 2016/02/29 21:09:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,6 +31,7 @@ enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
 	ME_TYPE_CHORD,
 	ME_TYPE_EMPTY,
+	ME_TYPE_FLATSIMULTENCE,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_OFFSETEXPR,
@@ -132,11 +133,17 @@ struct ontrack {
 
 TAILQ_HEAD(melist, musicexpr);
 
+struct flatsimultence {
+	struct musicexpr *me;
+	float length;
+};
+
 struct musicexpr {
 	enum musicexpr_type me_type;
 	union {
 		struct absnote		absnote;
 		struct chord		chord;
+		struct flatsimultence	flatsimultence;
 		struct joinexpr		joinexpr;
 		struct melist		melist;
 		struct noteoffsetexpr	noteoffsetexpr;
