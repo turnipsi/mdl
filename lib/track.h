@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.2 2016/02/13 21:31:31 je Exp $ */
+/* $Id: track.h,v 1.3 2016/03/03 20:10:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,7 +28,9 @@ struct track {
 	SLIST_ENTRY(track) sl;
 };
 
+__BEGIN_DECLS
 struct instrument *
 track_get_default_instrument(struct track *);
+__END_DECLS
 
-#endif
+#endif /* !MDL_TRACK_H */

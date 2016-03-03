@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.18 2016/02/24 20:29:08 je Exp $ */
+/* $Id: util.h,v 1.19 2016/03/03 20:10:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,6 +51,7 @@ struct mdl_stream {
 	};
 };
 
+__BEGIN_DECLS
 void	mdl_log(enum logtype, int, const char *, ...);
 int	setup_logging_opts(char *);
 
@@ -58,5 +59,6 @@ struct mdl_stream      *mdl_stream_new(enum streamtype);
 int			mdl_stream_increment(struct mdl_stream *);
 void			mdl_stream_free(struct mdl_stream *);
 void __dead		unimplemented(void);
+__END_DECLS
 
-#endif
+#endif /* !MDL_UTIL_H */

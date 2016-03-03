@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.8 2015/10/24 19:13:29 je Exp $ */
+/* $Id: sequencer.h,v 1.9 2016/03/03 20:10:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,8 @@
 #ifndef MDL_SEQUENCER_H
 #define MDL_SEQUENCER_H
 
+__BEGIN_DECLS
 int	sequencer_loop(int);
+__END_DECLS
 
-#endif
+#endif /* !MDL_SEQUENCER_H */

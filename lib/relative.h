@@ -1,4 +1,4 @@
-/* $Id: relative.h,v 1.3 2016/02/13 21:31:31 je Exp $ */
+/* $Id: relative.h,v 1.4 2016/03/03 20:10:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,6 +22,8 @@
 #include "musicexpr.h"
 #include "song.h"
 
+__BEGIN_DECLS
 void	musicexpr_relative_to_absolute(struct song *, struct musicexpr *, int);
+__END_DECLS
 
-#endif
+#endif /* !MDL_RELATIVE_H */

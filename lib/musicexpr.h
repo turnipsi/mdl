@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.58 2016/02/29 21:09:29 je Exp $ */
+/* $Id: musicexpr.h,v 1.59 2016/03/03 20:10:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -156,6 +156,7 @@ struct musicexpr {
 	TAILQ_ENTRY(musicexpr) tq;
 };
 
+__BEGIN_DECLS
 void	musicexpr_free(struct musicexpr *);
 void	musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
 
@@ -170,5 +171,6 @@ void			free_melist(struct musicexpr *);
 void			musicexpr_copy(struct musicexpr *, struct musicexpr *);
 void			musicexpr_apply_noteoffset(struct musicexpr *, int,
     int);
+__END_DECLS
 
-#endif
+#endif /* !MDL_MUSICEXPR_H */
