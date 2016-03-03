@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.3 2016/03/03 20:10:16 je Exp $ */
+/* $Id: compat.h,v 1.4 2016/03/03 20:13:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,6 @@
 __BEGIN_DECLS
 int pledge(const char *, const char *[]);
 __END_DECLS
-#endif
+#endif /* SANDBOX_NONE */
 
 #endif /* !MDL_COMPAT_H */

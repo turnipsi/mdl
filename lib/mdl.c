@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.47 2016/02/24 20:29:08 je Exp $ */
+/* $Id: mdl.c,v 1.48 2016/03/03 20:13:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,7 +42,7 @@
 
 #ifndef NDEBUG
 extern char	*malloc_options;
-#endif
+#endif /* !NDEBUG */
 
 static int	get_default_mdldir(char *);
 static int	get_default_socketpath(char *, const char *);
@@ -86,7 +86,7 @@ main(int argc, char *argv[])
 
 #ifndef NDEBUG
 	malloc_options = (char *) "AFGJPS";
-#endif
+#endif /* !NDEBUG */
 
 	mdl_process_type = "main";
 

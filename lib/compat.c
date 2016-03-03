@@ -1,4 +1,4 @@
-/* $Id: compat.c,v 1.2 2016/02/21 20:26:20 je Exp $ */
+/* $Id: compat.c,v 1.3 2016/03/03 20:13:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,4 +24,4 @@ pledge(const char *request, const char *paths[])
 {
 	return 0;
 }
-#endif
+#endif /* MDL_SANDBOX_NONE */
