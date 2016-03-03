@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.19 2016/02/29 21:09:29 je Exp $ */
+/* $Id: midistream.c,v 1.20 2016/03/03 20:32:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,9 +44,9 @@ struct miditracks {
 static struct mdl_stream *midi_eventstream_new(void);
 static struct mdl_stream *offsetexprstream_new(void);
 static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
-    int);
+    float, int);
 static struct mdl_stream *trackmidievents_to_midievents(struct mdl_stream *,
-    int);
+    float, int);
 static int add_musicexpr_to_trackmidievents(struct mdl_stream *,
     const struct musicexpr *, float, int);
 static int compare_trackmidievents(const void *, const void *);
@@ -114,7 +114,8 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 			goto finish;
 	}
 
-	midi_es = offsetexprstream_to_midievents(offset_es, level + 1);
+	midi_es = offsetexprstream_to_midievents(offset_es,
+	    flatme->u.flatsimultence.length, (level + 1));
 
 finish:
 	mdl_stream_free(offset_es);
@@ -178,7 +179,8 @@ trackmidi_eventstream_new(void)
 }
 
 static struct mdl_stream *
-offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
+offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
+    int level)
 {
 	struct mdl_stream *midi_es, *trackmidi_es;
 	struct musicexpr *me;
@@ -214,7 +216,8 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, int level)
 		goto error;
 	}
 
-	midi_es = trackmidievents_to_midievents(trackmidi_es, level);
+	midi_es = trackmidievents_to_midievents(trackmidi_es, song_length,
+	    level);
 	if (midi_es == NULL)
 		goto error;
 
@@ -233,7 +236,8 @@ error:
 }
 
 static struct mdl_stream *
-trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
+trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
+    float song_length, int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
@@ -357,13 +361,14 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es, int level)
 	for (i = 0; i < INSTRUMENT_CHANNEL_COUNT; i++)
 		assert(instr_tracks[i].notecount == 0);
 
+	assert(song_length >= 0.0);
+	assert(song_length >= tmn.time_as_measures);
+
 	/* Add SONG_END midievent. */
-	/* XXX This should use information from flatsimultence length,
-	 * XXX so we can have a rest at the end. */
 	midievent = &midi_es->midievents[ midi_es->count ];
 	bzero(midievent, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;
-	midievent->time_as_measures = tmn.time_as_measures;
+	midievent->time_as_measures = song_length;
 
 	midievent_log("sending", midievent, level + 1);
 
