@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.20 2016/03/03 20:32:49 je Exp $ */
+/* $Id: midistream.c,v 1.21 2016/03/03 21:02:24 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -55,7 +55,7 @@ struct mdl_stream *
 musicexpr_to_midievents(struct musicexpr *me, int level)
 {
 	struct mdl_stream *offset_es, *midi_es;
-	struct musicexpr *me_workcopy, *flatme, *p;
+	struct musicexpr *flatme, *p;
 	struct song *song;
 
 	mdl_log(MDLLOG_MIDISTREAM, level,
@@ -69,16 +69,9 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	if ((me_workcopy = musicexpr_clone(me, level + 1)) == NULL) {
-		warnx("could not clone music expressions");
-		mdl_stream_free(offset_es);
-		return NULL;
-	}
-
-	song = mdl_song_new(me_workcopy, level + 1);
+	song = mdl_song_new(me, level + 1);
 	if (song == NULL) {
 		warnx("could not create a new song");
-		musicexpr_free(me_workcopy);
 		mdl_stream_free(offset_es);
 		return NULL;
 	}
@@ -87,18 +80,18 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 	 * First convert relative->absolute,
 	 * joinexpr_musicexpr() can not handle relative expressions.
 	 */
-	musicexpr_relative_to_absolute(song, me_workcopy, level + 1);
+	musicexpr_relative_to_absolute(song, me, level + 1);
 
 	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
 	    "joining all music expressions\n");
-	if (joinexpr_musicexpr(me_workcopy, level + 1) != 0) {
+	if (joinexpr_musicexpr(me, level + 1) != 0) {
 		warnx("error occurred in joining music expressions");
 		goto finish;
 	}
 
 	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
 	    "converting expression to a (flat) simultence\n");
-	flatme = musicexpr_to_flat_simultence(me_workcopy, level + 1);
+	flatme = musicexpr_to_flat_simultence(me, level + 1);
 	if (flatme == NULL) {
 		warnx("Could not flatten music expression to create offset"
 		    " expression stream");
@@ -122,8 +115,6 @@ finish:
 
 	if (flatme != NULL)
 		musicexpr_free(flatme);
-
-	musicexpr_free(me_workcopy);
 
 	return midi_es;
 }
