@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.45 2016/02/24 20:29:08 je Exp $ */
+/* $Id: interpreter.c,v 1.46 2016/03/03 20:54:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,12 +68,6 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 	 * If yyparse() returned ok, we should have parsed_expr != NULL
 	 * and available for us now.
 	 */
-
-	if (parsed_expr->me_type != ME_TYPE_SEQUENCE) {
-		warnx("expected sequence");
-		ret = 1;
-		goto finish;
-	}
 
 	mdl_log(MDLLOG_PARSING, level, "parse ok, got parse result:\n");
 	musicexpr_log(parsed_expr, MDLLOG_PARSING, (level + 1), NULL);

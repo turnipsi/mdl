@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.45 2016/02/27 20:47:36 je Exp $
+/* $Id: parse.y,v 1.46 2016/03/03 20:54:57 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -123,6 +123,14 @@ static void    *malloc_musicexpr(void);
 
 grammar:
 	sequence_expr { parsed_expr = $1; }
+	| /* empty */ {
+		if ((parsed_expr = malloc_musicexpr()) == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		parsed_expr->me_type = ME_TYPE_EMPTY;
+	}
 	;
 
 musicexpr:
