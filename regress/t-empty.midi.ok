@@ -1,0 +1,3 @@
+mdl/interp(midi):     sending song end time=0.000
+mdl/interp(midi): writing midi stream to sequencer
+mdl/seq(midi):   received song end time=0.000

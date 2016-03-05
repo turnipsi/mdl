@@ -1,19 +1,30 @@
-# $Id: Makefile,v 1.3 2016/03/05 13:26:47 je Exp $
+# $Id: Makefile,v 1.4 2016/03/05 20:37:33 je Exp $
 
-MDL?=	mdl
+MDL?=	${.CURDIR}/../src/mdl
 
-REGRESS_TARGETS=t-empty.parsing t-simple1.parsing t-simple2.parsing
+MIDI_TESTS=t-empty
+MIDISTREAM_TESTS=t-empty t-simple1
+PARSING_TESTS=t-empty t-simple1 t-simple2
+RELATIVE_TESTS=t-empty t-simple1 t-simple2
 
-.SUFFIXES: .in .parsing
+REGRESS_TARGETS=${PARSING_TESTS:S/$/.parsing/}       \
+		${RELATIVE_TESTS:S/$/.relative/}     \
+		${MIDISTREAM_TESTS:S/$/.midistream/} \
+		${MIDI_TESTS:S/$/.midi/}
 
-#   .in: input file
-# .*.ok: desired result
+DEBUGOPTS=midi midistream parsing relative
 
-.in.parsing:
+.SUFFIXES: .in ${DEBUGOPTS:S/^/./}
+
+# .in: input file
+# .${DEBUGOPT}.ok: desired result
+.for DEBUGOPT in ${DEBUGOPTS}
+  .in.${DEBUGOPT}:
 	@echo $@
-	@${MDL} -d parsing ${.CURDIR}/$*.in > $@.out
+	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.in > $@.out
 	@cmp -s ${.CURDIR}/$@.ok $@.out \
 		|| { diff -u ${.CURDIR}/$@.ok ${.OBJDIR}/$@.out; false; }
+.endfor
 
 .PHONY: ${REGRESS_TARGETS}
 
