@@ -1,24 +1,22 @@
-# $Id: Makefile,v 1.2 2016/03/04 20:39:59 je Exp $
+# $Id: Makefile,v 1.3 2016/03/05 13:26:47 je Exp $
 
 MDL?=	mdl
 
-REGRESS_TARGETS=t-empty t-simple1 t-simple2
+REGRESS_TARGETS=t-empty.parsing t-simple1.parsing t-simple2.parsing
 
-.SUFFIXES: .in
+.SUFFIXES: .in .parsing
 
 #   .in: input file
 # .*.ok: desired result
 
-.in:
-	@echo ${*}
-	@${MDL} -d parsing ${.CURDIR}/${*}.in > ${*}.parsing.log
-	@cmp -s ${.CURDIR}/${*}.parsing.ok ${*}.parsing.log \
-		|| { diff -u ${.CURDIR}/${*}.parsing.ok \
-			     ${.OBJDIR}/${*}.parsing.log; \
-		     false; }
+.in.parsing:
+	@echo $@
+	@${MDL} -d parsing ${.CURDIR}/$*.in > $@.out
+	@cmp -s ${.CURDIR}/$@.ok $@.out \
+		|| { diff -u ${.CURDIR}/$@.ok ${.OBJDIR}/$@.out; false; }
 
 .PHONY: ${REGRESS_TARGETS}
 
-CLEANFILES+=*.log
+CLEANFILES+=*.out
 
 .include <bsd.regress.mk>
