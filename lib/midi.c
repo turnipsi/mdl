@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.17 2016/02/24 20:29:08 je Exp $ */
+/* $Id: midi.c,v 1.18 2016/03/06 19:18:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -132,7 +132,7 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 }
 
 int
-midi_send_midievent(struct midievent *me)
+midi_send_midievent(struct midievent *me, int dry_run)
 {
 	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
@@ -178,6 +178,10 @@ midi_send_midievent(struct midievent *me)
 	default:
 		assert(0);
 	}
+
+	/* Do not actually send any midi event when dry_run is set. */
+	if (dry_run)
+		return 0;
 
 	ret = mio_write(mio, midievent, midievent_size);
 	if (ret != midievent_size) {

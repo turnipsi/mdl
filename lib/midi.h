@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.13 2016/03/03 20:10:16 je Exp $ */
+/* $Id: midi.h,v 1.14 2016/03/06 19:18:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,7 +61,7 @@ struct midievent {
 __BEGIN_DECLS
 int	midi_open_device(void);
 int	midi_check_midievent(struct midievent, float);
-int	midi_send_midievent(struct midievent *);
+int	midi_send_midievent(struct midievent *, int);
 void	midi_close_device(void);
 
 void	midievent_log(const char *, struct midievent *, int);

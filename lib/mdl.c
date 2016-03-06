@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.48 2016/03/03 20:13:33 je Exp $ */
+/* $Id: mdl.c,v 1.49 2016/03/06 19:18:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,7 +49,8 @@ static int	get_default_socketpath(char *, const char *);
 static int	start_interpreter(int, int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
-static int	setup_sequencer_for_sources(char **, int, const char *, int);
+static int	setup_sequencer_for_sources(char **, int, const char *, int,
+    int);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -81,7 +82,7 @@ main(int argc, char *argv[])
 {
 	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
 	char **musicfiles;
-	int musicfilecount, ch, cflag, sflag, fileflags, lockfd;
+	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
 	size_t ret;
 
 #ifndef NDEBUG
@@ -90,7 +91,7 @@ main(int argc, char *argv[])
 
 	mdl_process_type = "main";
 
-	cflag = sflag = 0;
+	cflag = nflag = sflag = 0;
 	lockfd = -1;
 
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
@@ -103,7 +104,7 @@ main(int argc, char *argv[])
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
-	while ((ch = getopt(argc, argv, "cd:D:s")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:D:ns")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
@@ -115,6 +116,9 @@ main(int argc, char *argv[])
 		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
 				errx(1, "mdldir too long");
+			break;
+		case 'n':
+			nflag = 1;
 			break;
 		case 's':
 			sflag = 1;
@@ -166,7 +170,7 @@ main(int argc, char *argv[])
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
 	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    (sflag ? server_socketpath : NULL), lockfd);
+	    (sflag ? server_socketpath : NULL), lockfd, nflag);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -213,7 +217,7 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 
 static int
 setup_sequencer_for_sources(char **files, int filecount,
-    const char *socketpath, int lockfd)
+    const char *socketpath, int lockfd, int dry_run)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
 	int server_socket, file_fd, sequencer_status, ret, retvalue;
@@ -259,7 +263,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first endpoint of ms_sp");
-		sequencer_retvalue = sequencer_loop(ms_sp[1]);
+		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
 		if (fflush(NULL) == EOF) {

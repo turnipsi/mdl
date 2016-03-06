@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.4 2016/03/05 20:37:33 je Exp $
+# $Id: Makefile,v 1.5 2016/03/06 19:18:03 je Exp $
 
-MDL?=	${.CURDIR}/../src/mdl
+MDL?=	${.CURDIR}/../src/mdl -n
 
 MIDI_TESTS=t-empty
 MIDISTREAM_TESTS=t-empty t-simple1

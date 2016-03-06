@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.69 2016/02/24 20:29:08 je Exp $ */
+/* $Id: sequencer.c,v 1.70 2016/03/06 19:18:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,6 +57,10 @@ struct notestate {
 
 enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
 
+struct sequencer_params {
+	int dry_run;
+};
+
 struct songstate {
 	struct notestate notestates[MIDI_CHANNEL_COUNT][MIDI_NOTE_COUNT];
 	struct eventstream es;
@@ -71,20 +75,23 @@ struct songstate {
 volatile sig_atomic_t mdl_shutdown_sequencer = 0;
 
 static void	sequencer_calculate_timeout(struct songstate *,
-    struct timespec *);
+    struct timespec *, struct sequencer_params *);
 static void	sequencer_close(void);
-static void	sequencer_close_songstate(struct songstate *);
+static void	sequencer_close_songstate(struct songstate *,
+    struct sequencer_params *);
 static void	sequencer_free_songstate(struct songstate *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(void);
 static void	sequencer_init_songstate(struct songstate *,
     enum playback_state);
-static int	sequencer_noteevent(struct songstate *, struct midievent *);
-static int	sequencer_play_music(struct songstate *);
+static int	sequencer_noteevent(struct songstate *, struct midievent *,
+    struct sequencer_params *);
+static int	sequencer_play_music(struct songstate *,
+    struct sequencer_params *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
 static int	sequencer_reset_songstate(struct songstate *);
 static int	sequencer_start_playing(struct songstate *,
-    struct songstate *);
+    struct songstate *, struct sequencer_params *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
 static int	receive_fd_through_socket(int *, int);
@@ -105,10 +112,11 @@ sequencer_handle_signal(int signo)
 }
 
 int
-sequencer_loop(int main_socket)
+sequencer_loop(int main_socket, int dry_run)
 {
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
+	struct sequencer_params seq_params;
 	fd_set readfds;
 	int retvalue, interp_fd, old_interp_fd, ret, nr;
 	struct timespec timeout, *timeout_p;
@@ -124,6 +132,8 @@ sequencer_loop(int main_socket)
 	}
 
 	retvalue = 0;
+
+	seq_params.dry_run = dry_run;
 
 	interp_fd = -1;
 	playback_song = &song1;
@@ -157,7 +167,7 @@ sequencer_loop(int main_socket)
 	(void) sigemptyset(&select_sigmask);
 
 	sequencer_init_songstate(playback_song, IDLE);
-	sequencer_init_songstate(reading_song,  READING);
+	sequencer_init_songstate(reading_song, READING);
 
 	for (;;) {
 		assert(playback_song->playback_state == IDLE ||
@@ -175,7 +185,8 @@ sequencer_loop(int main_socket)
 			FD_SET(interp_fd, &readfds);
 
 		if (playback_song->playback_state == PLAYING) {
-			sequencer_calculate_timeout(playback_song, &timeout);
+			sequencer_calculate_timeout(playback_song,
+			    &timeout, &seq_params);
 			timeout_p = &timeout;
 		} else {
 			timeout_p = NULL;
@@ -204,7 +215,8 @@ sequencer_loop(int main_socket)
 		}
 
 		if (playback_song->playback_state == PLAYING) {
-			if (sequencer_play_music(playback_song) != 0) {
+			ret = sequencer_play_music(playback_song, &seq_params);
+			if (ret != 0) {
 				warnx("error when playing music");
 				retvalue = 1;
 				goto finish;
@@ -261,7 +273,7 @@ sequencer_loop(int main_socket)
 				playback_song = tmp_song;
 
 				ret = sequencer_start_playing(playback_song,
-				    reading_song);
+				    reading_song, &seq_params);
 				if (ret != 0) {
 					retvalue = 1;
 					goto finish;
@@ -278,7 +290,7 @@ finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
 		warn("closing interpreter fd");
 
-	sequencer_close_songstate(playback_song);
+	sequencer_close_songstate(playback_song, &seq_params);
 
 	sequencer_free_songstate(playback_song);
 	sequencer_free_songstate(reading_song);
@@ -308,10 +320,17 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state ps)
 }
 
 static void
-sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout)
+sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout,
+    struct sequencer_params *seq_params)
 {
 	struct timespec current_time, notetime;
 	int ret;
+
+	if (seq_params->dry_run) {
+		timeout->tv_sec = 0;
+		timeout->tv_nsec = 0;
+		return;
+	}
 
 	sequencer_time_for_next_note(ss, &notetime);
 
@@ -345,7 +364,7 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_play_music(struct songstate *ss)
+sequencer_play_music(struct songstate *ss, struct sequencer_params *seq_params)
 {
 	struct eventpointer *ce;
 	struct midievent *me;
@@ -363,7 +382,8 @@ sequencer_play_music(struct songstate *ss)
 				return 0;
 			}
 
-			sequencer_calculate_timeout(ss, &time_to_play);
+			sequencer_calculate_timeout(ss, &time_to_play,
+			    seq_params);
 
 			/*
 			 * If timeout has not been gone to zero,
@@ -378,7 +398,8 @@ sequencer_play_music(struct songstate *ss)
 			case INSTRUMENT_CHANGE:
 			case NOTEOFF:
 			case NOTEON:
-				if ((ret = sequencer_noteevent(ss, me)) != 0)
+				ret = sequencer_noteevent(ss, me, seq_params);
+				if (ret != 0)
 					return ret;
 				break;
 			default:
@@ -395,12 +416,13 @@ sequencer_play_music(struct songstate *ss)
 }
 
 static int
-sequencer_noteevent(struct songstate *ss, struct midievent *me)
+sequencer_noteevent(struct songstate *ss, struct midievent *me,
+    struct sequencer_params *seq_params)
 {
 	int ret;
 	struct notestate *nstate;
 
-	ret = midi_send_midievent(me);
+	ret = midi_send_midievent(me, seq_params->dry_run);
 	if (ret == 0) {
 		switch (me->eventtype) {
 		case INSTRUMENT_CHANGE:
@@ -543,7 +565,8 @@ sequencer_reset_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
+sequencer_start_playing(struct songstate *ss, struct songstate *old_ss,
+    struct sequencer_params *seq_params)
 {
 	struct notestate old, new;
 	struct eventpointer ce;
@@ -611,20 +634,24 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss)
 				 * Note is playing in different velocity,
 				 * so play the note again.
 				 */
-				ret = sequencer_noteevent(ss, &note_off);
+				ret = sequencer_noteevent(ss, &note_off,
+				    seq_params);
 				if (ret != 0)
 					return ret;
-				ret = sequencer_noteevent(ss, &note_on);
+				ret = sequencer_noteevent(ss, &note_on,
+				    seq_params);
 				if (ret != 0)
 					return ret;
 			} else if (old.state && !new.state) {
 				/* Note is playing, but should no longer be. */
-				ret = sequencer_noteevent(ss, &note_off);
+				ret = sequencer_noteevent(ss, &note_off,
+				    seq_params);
 				if (ret != 0)
 					return ret;
 			} else if (!old.state && new.state) {
 				/* Note is not playing, but should be. */
-				ret = sequencer_noteevent(ss, &note_on);
+				ret = sequencer_noteevent(ss, &note_on,
+				    seq_params);
 				if (ret != 0)
 					return ret;
 			}
@@ -708,10 +735,11 @@ sequencer_close(void)
 }
 
 static void
-sequencer_close_songstate(struct songstate *ss)
+sequencer_close_songstate(struct songstate *ss,
+    struct sequencer_params *seq_params)
 {
 	struct midievent note_off;
-	int c, n;
+	int c, n, ret;
 
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++)
 		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
@@ -720,7 +748,9 @@ sequencer_close_songstate(struct songstate *ss)
 				note_off.u.note.channel = c;
 				note_off.u.note.note = n;
 				note_off.u.note.velocity = 0;
-				if (sequencer_noteevent(ss, &note_off) != 0)
+				ret = sequencer_noteevent(ss, &note_off,
+				    seq_params);
+				if (ret != 0)
 					warnx("error in turning off note"
 					    " %d on channel %d", n, c);
 			}

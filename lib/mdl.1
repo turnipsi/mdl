@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.9 2015/12/06 21:03:13 je Exp $
+.\"	$Id: mdl.1,v 1.10 2016/03/06 19:18:04 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: December 6 2015 $
+.Dd $Mdocdate: March 6 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,7 +24,7 @@
 .Nd a music description language with a midi sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl cs
+.Op Fl cns
 .Op Fl d Ar debuglevel
 .Op Fl D Ar mdl-directory
 .Op Ar
@@ -71,6 +71,9 @@ Setting this option allows running multiple instances of
 even when
 .Ar -s
 option is set.
+.It Fl n
+Dry run.
+Do everything else but do not actually play music.
 .It Fl s
 Open a listening socket to accept music descriptions (server-mode).
 .El
