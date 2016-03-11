@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.21 2016/02/27 20:21:42 je Exp $ */
+/* $Id: util.c,v 1.22 2016/03/11 20:50:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,11 +29,19 @@
 #include "util.h"
 
 #define DEFAULT_SLOTCOUNT 1024
+#define INDENTLEVELS 128
 
 extern char *mdl_process_type;
 extern char *__progname;
 
-u_int32_t logopts;
+struct {
+	int initialized;
+	u_int32_t opts;
+	struct {
+		char *msg;
+		enum logtype type;
+	} messages[INDENTLEVELS];
+} logstate = { 0, 0, {} };
 
 static const char *logtype_strings[] = {
 	"exprcloning",	/* MDLLOG_EXPRCLONING */
@@ -47,13 +55,28 @@ static const char *logtype_strings[] = {
 	"song",		/* MDLLOG_SONG        */
 };
 
+void
+mdl_logging_init(void)
+{
+	int i;
+
+	logstate.opts = 0;
+
+	for (i = 0; i < INDENTLEVELS; i++)
+		logstate.messages[i].msg = NULL;
+
+	logstate.initialized = 1;
+}
+
 int
-setup_logging_opts(char *optstring)
+mdl_logging_setopts(char *optstring)
 {
 	char *opt;
 	int found, logtype, loglevel;
 
-	logopts = 0;
+	assert(logstate.initialized);
+
+	logstate.opts = 0;
 
 	for (;;) {
 		if ((opt = strsep(&optstring, ",")) == NULL)
@@ -63,7 +86,7 @@ setup_logging_opts(char *optstring)
 
 		for (logtype = 0; logtype < MDLLOG_TYPECOUNT; logtype++) {
 			if (strcmp(opt, logtype_strings[logtype]) == 0) {
-				logopts |= (1 << logtype);
+				logstate.opts |= (1 << logtype);
 				found = 1;
 				break;
 			}
@@ -77,22 +100,22 @@ setup_logging_opts(char *optstring)
 			}
 
 			if (loglevel >= 1) {
-				logopts |= (1 << MDLLOG_PROCESS)
+				logstate.opts |= (1 << MDLLOG_PROCESS)
 				    | (1 << MDLLOG_PARSING);
 			}
 
 			if (loglevel >= 2) {
-				logopts |= (1 << MDLLOG_RELATIVE)
+				logstate.opts |= (1 << MDLLOG_RELATIVE)
 				    | (1 << MDLLOG_SONG);
 			}
 
 			if (loglevel >= 3) {
-				logopts |= (1 << MDLLOG_MIDI)
+				logstate.opts |= (1 << MDLLOG_MIDI)
 				    | (1 << MDLLOG_MIDISTREAM);
 			}
 
 			if (loglevel >= 4) {
-				logopts |= (1 << MDLLOG_EXPRCLONING)
+				logstate.opts |= (1 << MDLLOG_EXPRCLONING)
 				    | (1 << MDLLOG_EXPRCONV)
 				    | (1 << MDLLOG_JOINS);
 			}
@@ -103,32 +126,88 @@ setup_logging_opts(char *optstring)
 }
 
 void
+mdl_logging_clear(void)
+{
+	int i;
+
+	assert(logstate.initialized);
+
+	for (i = 0; i < INDENTLEVELS; i++)
+		if (logstate.messages[i].msg != NULL) {
+			free(logstate.messages[i].msg);
+			logstate.messages[i].msg = NULL;
+		}
+}
+
+void
+mdl_logging_close(void)
+{
+	assert(logstate.initialized);
+
+	mdl_logging_clear();
+
+	logstate.initialized = 0;
+	logstate.opts = 0;
+}
+
+void
 mdl_log(enum logtype logtype, int indentlevel, const char *fmt, ...)
 {
 	va_list va;
-	int ret, i;
+	int padding_length, ret, i;
+
+	assert(logstate.initialized);
 
 	assert(logtype < MDLLOG_TYPECOUNT);
 	assert(indentlevel >= 0);
 
-	if (((1 << logtype) & logopts) == 0)
+	if (indentlevel >= INDENTLEVELS) {
+		warnx("maximum indentlevel reached: %d (maximum is %d)",
+		    indentlevel, INDENTLEVELS);
 		return;
+	}
 
-        /* XXX variable logtype strings mess up indents */
-	ret = printf("%s/%s(%s): ", __progname, mdl_process_type,
-	    logtype_strings[logtype]);
-	if (ret < 0)
-		return;
-
-	for (i = 0; i < indentlevel; i++) {
-		ret = printf("  ");
-		if (ret < 0)
-			return;
+	if (logstate.messages[indentlevel].msg != NULL) {
+		free(logstate.messages[indentlevel].msg);
+		logstate.messages[indentlevel].msg = NULL;
 	}
 
 	va_start(va, fmt);
-	(void) vprintf(fmt, va);
+	ret = vasprintf(&logstate.messages[indentlevel].msg, fmt, va);
 	va_end(va);
+	if (ret == -1) {
+		warnx("vasprintf error in mdl_log");
+		logstate.messages[indentlevel].msg = NULL;
+		return;
+	}
+
+	logstate.messages[indentlevel].type = logtype;
+
+	if (((1 << logtype) & logstate.opts) == 0)
+		return;
+
+	for (i = 0; i <= indentlevel; i++) {
+		if (logstate.messages[i].msg != NULL) {
+			padding_length = sizeof("exprcloning") +
+			    sizeof("interp") - strlen(mdl_process_type) - 1;
+			assert(padding_length >= 0);
+			ret = printf("%s.%s.%-*s: %*s%s", __progname,
+			    mdl_process_type, padding_length,
+			    logtype_strings[ logstate.messages[i].type ],
+			    (2 * i), "", logstate.messages[i].msg);
+			if (ret < 0) {
+				warnx("printf error in mdl_log");
+				break;
+			}
+		}
+	}
+
+	for (i = 0; i < INDENTLEVELS; i++) {
+		if (logstate.messages[i].msg != NULL) {
+			free(logstate.messages[i].msg);
+			logstate.messages[i].msg = NULL;
+		}
+	}
 }
 
 struct mdl_stream *

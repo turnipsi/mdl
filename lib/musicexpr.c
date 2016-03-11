@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.76 2016/02/29 21:09:29 je Exp $ */
+/* $Id: musicexpr.c,v 1.77 2016/03/11 20:50:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -617,7 +617,7 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
 		    me->u.absnote.track->name);
 		break;
 	case ME_TYPE_CHORD:
-		mdl_log(logtype, indentlevel, "%s%s%s\n", prefix,
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix,
 		    metype_string);
 		musicexpr_log_chordtype(me->u.chord.chordtype, logtype,
 		    (indentlevel + 1), prefix);

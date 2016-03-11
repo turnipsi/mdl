@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.49 2016/03/06 19:18:04 je Exp $ */
+/* $Id: mdl.c,v 1.50 2016/03/11 20:50:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -101,6 +101,8 @@ main(int argc, char *argv[])
 	signal(SIGINT,  handle_signal);
 	signal(SIGTERM, handle_signal);
 
+	mdl_logging_init();
+
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
@@ -110,8 +112,8 @@ main(int argc, char *argv[])
 			cflag = 1;
 			break;
 		case 'd':
-			if (setup_logging_opts(optarg) == -1)
-				errx(1, "error in logging opts");
+			if (mdl_logging_setopts(optarg) == -1)
+				errx(1, "error in setting logging opts");
 			break;
 		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
@@ -176,6 +178,8 @@ main(int argc, char *argv[])
 
 	if (lockfd >= 0 && close(lockfd) == -1)
 		warn("error closing lockfd");
+
+	mdl_logging_close();
 
 	return 0;
 }
@@ -252,6 +256,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		/*
 		 * We are in sequencer process, start sequencer loop.
 		 */
+		mdl_logging_clear();
 		mdl_process_type = "seq";
 		mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
 		    getpid());
@@ -270,6 +275,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 			warn("error flushing streams in sequencer"
 			       " before exit");
 		}
+		mdl_logging_close();
 		_exit(sequencer_retvalue);
 	}
 
@@ -402,6 +408,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 		/*
 		 * We are in the interpreter process.
 		 */
+		mdl_logging_clear();
 		mdl_process_type = "interp";
 		mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
@@ -447,6 +454,8 @@ interpreter_out:
 			warn("error flushing streams in sequencer"
 			    " before exit");
 		}
+
+		mdl_logging_close();
 
 		_exit(ret);
 	}
