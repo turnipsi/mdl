@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.59 2016/03/03 20:10:16 je Exp $ */
+/* $Id: musicexpr.h,v 1.60 2016/03/12 21:00:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -84,26 +84,27 @@ enum chordtype {
 };
 
 struct absnote {
-	struct instrument *instrument;
-	struct track *track;
-	enum notesym notesym;
-	float length;
-	int note;
+	struct instrument      *instrument;
+	struct track	       *track;
+	enum notesym		notesym;
+	float			length;
+	int			note;
 };
 
 struct relnote {
-	enum notesym notesym;
-	float length;
-	int notemods, octavemods;
+	enum notesym	notesym;
+	float		length;
+	int		notemods
+	int		octavemods;
 };
 
 struct rest {
-	float length;
+	float	length;
 };
 
 struct chord {
-	enum chordtype chordtype;
-	struct musicexpr *me;
+	enum chordtype		chordtype;
+	struct musicexpr       *me;
 };
 
 struct noteoffsetexpr {
@@ -118,28 +119,29 @@ struct offsetexpr {
 };
 
 struct joinexpr {
-	struct musicexpr *a, *b;
+	struct musicexpr       *a;
+	struct musicexpr       *b;
 };
 
 struct scaledexpr {
-	struct musicexpr *me;
-	float length;
+	struct musicexpr       *me;
+	float			length;
 };
 
 struct ontrack {
-	struct musicexpr *me;
-	struct track *track;
+	struct musicexpr       *me;
+	struct track           *track;
 };
 
 TAILQ_HEAD(melist, musicexpr);
 
 struct flatsimultence {
-	struct musicexpr *me;
-	float length;
+	struct musicexpr       *me;
+	float			length;
 };
 
 struct musicexpr {
-	enum musicexpr_type me_type;
+	enum musicexpr_type	me_type;
 	union {
 		struct absnote		absnote;
 		struct chord		chord;
