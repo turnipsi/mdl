@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.46 2016/03/03 20:54:57 je Exp $ */
+/* $Id: interpreter.c,v 1.47 2016/03/12 20:38:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -79,7 +79,8 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDI, level, "writing midi stream to sequencer\n");
+	mdl_log(MDLLOG_MIDISTREAM, level,
+	    "writing midi stream to sequencer\n");
 	wcount = midi_write_midistream(sequencer_socket, eventstream,
 	    level + 1);
 	if (wcount == -1)

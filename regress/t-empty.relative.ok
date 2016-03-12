@@ -1,2 +1,3 @@
-mdl/interp(relative):   converting relative expression to absolute
-mdl/interp(relative):     rel->abs expression (empty)
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.relative    :   converting relative expression to absolute
+mdl.interp.relative    :     rel->abs expression (empty)

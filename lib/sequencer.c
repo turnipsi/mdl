@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.70 2016/03/06 19:18:04 je Exp $ */
+/* $Id: sequencer.c,v 1.71 2016/03/12 20:38:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -504,7 +504,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		if (new_b->events[i].eventtype == SONG_END)
 			ss->got_song_end = 1;
 
-		midievent_log("received", &new_b->events[i], 1);
+		midievent_log("received", &new_b->events[i], 0);
 
 		if (!midi_check_midievent(new_b->events[i],
 		    ss->time_as_measures)) {
