@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.77 2016/03/11 20:50:08 je Exp $ */
+/* $Id: musicexpr.c,v 1.78 2016/03/13 21:19:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,6 +51,7 @@ musicexpr_clone(struct musicexpr *me, int level)
 {
 	struct musicexpr *cloned;
 	int ret;
+	char *me_id;
 
 	cloned = malloc(sizeof(struct musicexpr));
 	if (cloned == NULL) {
@@ -58,11 +59,15 @@ musicexpr_clone(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	musicexpr_copy(cloned, me);
+	if ((me_id = musicexpr_id_string(me)) != NULL) {
+		mdl_log(MDLLOG_EXPRCLONING, level, "cloning expression %s\n",
+		    me_id);
+		free(me_id);
+	}
 
-	mdl_log(MDLLOG_EXPRCLONING, level, "cloning expression %p (%s)\n", me,
-	    musicexpr_type_to_string(me));
 	musicexpr_log(me, 4, (level + 1), NULL);
+
+	musicexpr_copy(cloned, me);
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -247,15 +252,19 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	float end_offset, new_next_offset, old_offset;
 	size_t i;
 	int noteoffset, ret;
+	char *me_id;
 
 	assert(me->me_type != ME_TYPE_JOINEXPR);
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
 	new_next_offset = old_offset = *next_offset;
 
-	mdl_log(MDLLOG_EXPRCONV, level,
-	    "handling musicexpr %p/%s in flatsimultence conversion\n", me,
-	    musicexpr_type_to_string(me));
+	if ((me_id = musicexpr_id_string(me)) != NULL) {
+		mdl_log(MDLLOG_EXPRCONV, level,
+		    "handling musicexpr %s in flatsimultence conversion\n",
+		    me_id);
+		free(me_id);
+	}
 
 	switch (me->me_type) {
         case ME_TYPE_ABSNOTE:
@@ -469,18 +478,21 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 {
 	struct musicexpr *new_me;
 	float me_length;
+	char *me_id;
 
 	assert(target_length > 0);
 
-	mdl_log(MDLLOG_EXPRCONV, level,
-	    "scaling musicexpr %p/%s to target length %.3f\n",
-	    me, musicexpr_type_to_string(me), target_length);
+	if ((me_id = musicexpr_id_string(me)) != NULL) {
+		mdl_log(MDLLOG_EXPRCONV, level,
+		    "scaling musicexpr %s to target length %.3f\n", me_id,
+		    target_length);
+		free(me_id);
+	}
 
 	if (target_length < MINIMUM_MUSICEXPR_LENGTH) {
 		mdl_log(MDLLOG_EXPRCONV, (level + 1),
 		    "target length %.3f is too short,"
-		    " returning an empty expression\n", me,
-		    musicexpr_type_to_string(me), target_length);
+		     " returning an empty expression\n", target_length);
 		return musicexpr_new_empty();
 	}
 
@@ -596,50 +608,50 @@ void
 musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
     char *prefix)
 {
-	const char *metype_string;
-	char *old_tmpstring, *tmpstring;
-	char default_prefix[] = "";
 	size_t i;
 	int ret;
+	char *me_id, *old_tmpstring, *tmpstring;
 
-	metype_string = musicexpr_type_to_string(me);
+	if ((me_id = musicexpr_id_string(me)) == NULL)
+		return;
 
 	if (prefix == NULL)
-		prefix = default_prefix;
+		prefix = "";
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 		mdl_log(logtype, indentlevel,
 		    "%s%s notesym=%d note=%d length=%.3f instrument=\"%s\""
-		    " track=\"%s\"\n", prefix, metype_string,
+		    " track=\"%s\"\n", prefix, me_id,
 		    me->u.absnote.notesym, me->u.absnote.note,
 		    me->u.absnote.length, me->u.absnote.instrument->name,
 		    me->u.absnote.track->name);
 		break;
 	case ME_TYPE_CHORD:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix,
-		    metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log_chordtype(me->u.chord.chordtype, logtype,
 		    (indentlevel + 1), prefix);
 		musicexpr_log(me->u.chord.me, logtype, (indentlevel + 1),
 		    prefix);
 		break;
 	case ME_TYPE_EMPTY:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix, metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		break;
 	case ME_TYPE_JOINEXPR:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix, metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log(me->u.joinexpr.a, logtype, (indentlevel + 1),
 		    prefix);
 		musicexpr_log(me->u.joinexpr.b, logtype, (indentlevel + 1),
 		    prefix);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix, metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log(me->u.noteoffsetexpr.me, logtype,
 		    (indentlevel + 1), prefix);
-		if ((old_tmpstring = strdup("noteoffsets:")) == NULL)
+		if ((old_tmpstring = strdup("noteoffsets:")) == NULL) {
+			free(me_id);
 			return;
+		}
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
 			ret = asprintf(&tmpstring, "%s %d", old_tmpstring,
 			    me->u.noteoffsetexpr.offsets[i]);
@@ -658,53 +670,55 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
 		break;
 	case ME_TYPE_ONTRACK:
 		mdl_log(logtype, indentlevel, "%s%s track=%s\n", prefix,
-		     metype_string, me->u.ontrack.track->name);
+		     me_id, me->u.ontrack.track->name);
 		musicexpr_log(me->u.ontrack.me, logtype, (indentlevel + 1),
 		     prefix);
 		break;
 	case ME_TYPE_RELNOTE:
 		mdl_log(logtype, indentlevel,
 		    "%s%s notesym=%d notemods=%d length=%.3f octavemods=%d\n",
-		    prefix, metype_string, me->u.relnote.notesym,
+		    prefix, me_id, me->u.relnote.notesym,
 		    me->u.relnote.notemods, me->u.relnote.length,
 		    me->u.relnote.octavemods);
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
 		mdl_log(logtype, indentlevel, "%s%s length=%.3f\n", prefix,
-		    metype_string, me->u.scaledexpr.length);
+		    me_id, me->u.scaledexpr.length);
 		musicexpr_log(me->u.scaledexpr.me, logtype, (indentlevel + 1),
 		    prefix);
 		break;
 	case ME_TYPE_REST:
 		mdl_log(logtype, indentlevel, "%s%s length=%.3f\n", prefix,
-		    metype_string, me->u.rest.length);
+		    me_id, me->u.rest.length);
 		break;
 	case ME_TYPE_SCALEDEXPR:
 		mdl_log(logtype, indentlevel, "%s%s length=%.3f\n", prefix,
-		    metype_string, me->u.scaledexpr.length);
+		    me_id, me->u.scaledexpr.length);
 		musicexpr_log(me->u.scaledexpr.me, logtype, (indentlevel + 1),
 		    prefix);
 		break;
 	case ME_TYPE_SEQUENCE:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix, metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log_melist(me->u.melist, logtype, indentlevel,
 		    prefix);
 		break;
 	case ME_TYPE_SIMULTENCE:
-		mdl_log(logtype, indentlevel, "%s%s\n", prefix, metype_string);
+		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log_melist(me->u.melist, logtype, indentlevel,
 		    prefix);
 		break;
 	case ME_TYPE_OFFSETEXPR:
 		mdl_log(logtype, indentlevel, "%s%s offset=%.3f\n", prefix,
-		     metype_string, me->u.offsetexpr.offset);
+		     me_id, me->u.offsetexpr.offset);
 		musicexpr_log(me->u.offsetexpr.me, logtype, (indentlevel + 1),
 		     prefix);
 		break;
 	default:
 		assert(0);
 	}
+
+	free(me_id);
 }
 
 static void
@@ -882,8 +896,8 @@ free_melist(struct musicexpr *me)
 		TAILQ_REMOVE(&me->u.melist, p, tq);
 }
 
-const char *
-musicexpr_type_to_string(const struct musicexpr *me)
+char *
+musicexpr_id_string(const struct musicexpr *me)
 {
 	static const char *strings[] = {
 		"absnote",		/* ME_TYPE_ABSNOTE */
@@ -901,17 +915,29 @@ musicexpr_type_to_string(const struct musicexpr *me)
 		"sequence",		/* ME_TYPE_SEQUENCE */
 		"simultence",		/* ME_TYPE_SIMULTENCE */
 	};
+	char *id_string;
+	int ret;
 
+	assert(me != NULL);
 	assert(me->me_type < ME_TYPE_COUNT);
 
-	return strings[me->me_type];
+	ret = asprintf(&id_string, "%s:%d:%d,%d:%d,%d",
+	    strings[me->me_type], me->id.id, me->id.startrow,
+	    me->id.startcolumn, me->id.endrow, me->id.endcolumn);
+	if (ret == -1) {
+		warnx("error in asprintf in musicexpr_id_string()");
+		return NULL;
+	}
+
+	return id_string;
 }
 
 void
 musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
 {
+	dst->id      = src->id;
 	dst->me_type = src->me_type;
-	dst->u = src->u;
+	dst->u       = src->u;
 }
 
 static struct musicexpr *

@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.37 2016/02/29 21:09:29 je Exp $ */
+/* $Id: joinexpr.c,v 1.38 2016/03/13 21:19:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -40,6 +40,7 @@ int
 joinexpr_musicexpr(struct musicexpr *me, int level)
 {
 	struct musicexpr *joined_me, *p;
+	char *me_id;
 	int ret;
 
 	ret = 0;
@@ -47,9 +48,11 @@ joinexpr_musicexpr(struct musicexpr *me, int level)
 	assert(me->me_type != ME_TYPE_RELNOTE);
 	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
-	mdl_log(MDLLOG_JOINS, level,
-	    "joining possible subexpressions in %p (%s)\n", me,
-	    musicexpr_type_to_string(me));
+	if ((me_id = musicexpr_id_string(me)) != NULL) {
+		mdl_log(MDLLOG_JOINS, level,
+		    "joining possible subexpressions in %s\n", me_id);
+		free(me_id);
+	}
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -114,13 +117,22 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 {
 	struct musicexpr *tmp_a, *tmp_b, *tmp_me;
 	enum musicexpr_type at, bt;
-
-	mdl_log(MDLLOG_JOINS, level, "joining expressions %p/%s and %p/%s\n",
-	    a, musicexpr_type_to_string(a), b, musicexpr_type_to_string(b));
-	level += 1;
+	char *a_id, *b_id;
 
 	if (a == NULL || b == NULL)
 		return NULL;
+
+	if ((a_id = musicexpr_id_string(a)) != NULL) {
+		if ((b_id = musicexpr_id_string(a)) != NULL) {
+			mdl_log(MDLLOG_JOINS, level,
+			    "joining expressions %s and %s\n",
+			    a_id, b_id);
+			free(b_id);
+		}
+		free(a_id);
+	}
+
+	level += 1;
 
 	at = a->me_type;
 	bt = b->me_type;

@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.12 2016/03/03 19:32:36 je Exp $ */
+/* $Id: relative.c,v 1.13 2016/03/13 21:19:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,9 +81,13 @@ relative_to_absolute(struct musicexpr *me,
 		0, 2, 4, 5, 7, 9, 11,
 	};
 	int first_note_seen, note, c;
+	char *me_id;
 
-	mdl_log(MDLLOG_RELATIVE, level, "rel->abs expression (%s)\n",
-	    musicexpr_type_to_string(me));
+	if ((me_id = musicexpr_id_string(me)) != NULL) {
+		mdl_log(MDLLOG_RELATIVE, level, "rel->abs for expression %s\n",
+		    me_id);
+		free(me_id);
+	}
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.60 2016/03/12 21:00:15 je Exp $ */
+/* $Id: musicexpr.h,v 1.61 2016/03/13 21:19:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -94,7 +94,7 @@ struct absnote {
 struct relnote {
 	enum notesym	notesym;
 	float		length;
-	int		notemods
+	int		notemods;
 	int		octavemods;
 };
 
@@ -140,7 +140,16 @@ struct flatsimultence {
 	float			length;
 };
 
+struct musicexpr_id {
+	int id;
+	int startcolumn;
+	int startrow;
+	int endcolumn;
+	int endrow;
+};
+
 struct musicexpr {
+	struct musicexpr_id	id;
 	enum musicexpr_type	me_type;
 	union {
 		struct absnote		absnote;
@@ -167,7 +176,7 @@ struct musicexpr       *musicexpr_sequence(struct musicexpr *, ...);
 struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);
 struct musicexpr       *musicexpr_to_flat_simultence(struct musicexpr *, int);
 struct musicexpr       *musicexpr_scaledexpr_unscale(struct scaledexpr *, int);
-const char	       *musicexpr_type_to_string(const struct musicexpr *);
+char		       *musicexpr_id_string(const struct musicexpr *);
 void			musicexpr_free_melist(struct melist);
 void			free_melist(struct musicexpr *);
 void			musicexpr_copy(struct musicexpr *, struct musicexpr *);
