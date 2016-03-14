@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.22 2016/03/11 20:50:08 je Exp $ */
+/* $Id: util.c,v 1.23 2016/03/14 20:38:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -84,6 +84,14 @@ mdl_logging_setopts(char *optstring)
 
 		found = 0;
 
+		if (strcmp(opt, "all") == 0) {
+			for (logtype = 0; logtype < MDLLOG_TYPECOUNT;
+			    logtype++) {
+				logstate.opts |= (1 << logtype);
+			}
+			continue;
+		}
+
 		for (logtype = 0; logtype < MDLLOG_TYPECOUNT; logtype++) {
 			if (strcmp(opt, logtype_strings[logtype]) == 0) {
 				logstate.opts |= (1 << logtype);
@@ -92,33 +100,34 @@ mdl_logging_setopts(char *optstring)
 			}
 		}
 
-		if (!found) {
-			loglevel = strtonum(opt, 1, 4, NULL);
-			if (loglevel == 0) {
-				warnx("unknown debugging option: %s", opt);
-				return -1;
-			}
+		if (found)
+			continue;
 
-			if (loglevel >= 1) {
-				logstate.opts |= (1 << MDLLOG_PROCESS)
-				    | (1 << MDLLOG_PARSING);
-			}
+		loglevel = strtonum(opt, 1, 4, NULL);
+		if (loglevel == 0) {
+			warnx("unknown debugging option: %s", opt);
+			return -1;
+		}
 
-			if (loglevel >= 2) {
-				logstate.opts |= (1 << MDLLOG_RELATIVE)
-				    | (1 << MDLLOG_SONG);
-			}
+		if (loglevel >= 1) {
+			logstate.opts |= (1 << MDLLOG_PROCESS)
+			    | (1 << MDLLOG_PARSING);
+		}
 
-			if (loglevel >= 3) {
-				logstate.opts |= (1 << MDLLOG_MIDI)
-				    | (1 << MDLLOG_MIDISTREAM);
-			}
+		if (loglevel >= 2) {
+			logstate.opts |= (1 << MDLLOG_RELATIVE)
+			    | (1 << MDLLOG_SONG);
+		}
 
-			if (loglevel >= 4) {
-				logstate.opts |= (1 << MDLLOG_EXPRCLONING)
-				    | (1 << MDLLOG_EXPRCONV)
-				    | (1 << MDLLOG_JOINS);
-			}
+		if (loglevel >= 3) {
+			logstate.opts |= (1 << MDLLOG_MIDI)
+			    | (1 << MDLLOG_MIDISTREAM);
+		}
+
+		if (loglevel >= 4) {
+			logstate.opts |= (1 << MDLLOG_EXPRCLONING)
+			    | (1 << MDLLOG_EXPRCONV)
+			    | (1 << MDLLOG_JOINS);
 		}
 	}
 
