@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.47 2016/03/13 21:19:08 je Exp $
+/* $Id: parse.y,v 1.48 2016/03/14 20:59:01 je Exp $
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,21 +18,17 @@
 
 %{
 #include <err.h>
-#include <limits.h>
 #include <stdarg.h>
 
 #include "musicexpr.h"
 
 struct musicexpr *parsed_expr = NULL;
 
-int musicexpr_id_counter = 0;
-
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
 int	yyparse(void);
 
 static float countlength(int, int);
-static struct musicexpr *new_musicexpr(void);
 
 %}
 
@@ -127,52 +123,47 @@ static struct musicexpr *new_musicexpr(void);
 grammar:
 	sequence_expr { parsed_expr = $1; }
 	| /* empty */ {
-		if ((parsed_expr = new_musicexpr()) == NULL) {
+		if ((parsed_expr = musicexpr_new(ME_TYPE_EMPTY)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		parsed_expr->me_type = ME_TYPE_EMPTY;
 	}
 	;
 
 musicexpr:
 	chord {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_CHORD)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_CHORD;
 		$$->u.chord = $1;
 	  }
 	| joinexpr {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_JOINEXPR)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_JOINEXPR;
 		$$->u.joinexpr = $1;
 
 	  }
 	| relnote {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_RELNOTE)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_RELNOTE;
 		$$->u.relnote = $1;
 	  }
 	| relsimultence_expr { $$ = $1; }
 	| rest {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_REST)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_REST;
 		$$->u.rest = $1;
 	  }
 	| SEQUENCE_START sequence_expr SEQUENCE_END { $$ = $2; }
@@ -183,12 +174,11 @@ musicexpr:
 chord:
 	relnote chordtype {
 		$$.chordtype = $2;
-		if (($$.me = new_musicexpr()) == NULL) {
+		if (($$.me = musicexpr_new(ME_TYPE_RELNOTE)) == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$.me->me_type = ME_TYPE_RELNOTE;
 		$$.me->u.relnote = $1;
 	}
 	;
@@ -218,13 +208,12 @@ relnote:
 
 relsimultence_expr:
 	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_RELSIMULTENCE)) == NULL) {
 			musicexpr_free($2);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_RELSIMULTENCE;
 		$$->u.scaledexpr.me = $2;
 		$$->u.scaledexpr.length = $4;
 	  }
@@ -237,40 +226,37 @@ rest:
 
 sequence_expr:
 	expression_list {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_SEQUENCE)) == NULL) {
 			musicexpr_free_melist($1);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_SEQUENCE;
 		$$->u.melist = $1;
 	}
 	;
 
 simultence_expr:
 	expression_list {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_SIMULTENCE)) == NULL) {
 			musicexpr_free_melist($1);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_SIMULTENCE;
 		$$->u.melist = $1;
 	  }
 	;
 
 track_expr:
 	QUOTED_STRING TRACK_OPERATOR musicexpr {
-		if (($$ = new_musicexpr()) == NULL) {
+		if (($$ = musicexpr_new(ME_TYPE_ONTRACK)) == NULL) {
 			free($1);
 			musicexpr_free($3);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->me_type = ME_TYPE_ONTRACK;
 		$$->u.ontrack.me = $3;
 		$$->u.ontrack.track = malloc(sizeof(struct track));
 		if ($$->u.ontrack.track == NULL) {
@@ -378,30 +364,6 @@ countlength(int lengthbase, int dotcount)
 	}
 
 	return length;
-}
-
-static struct musicexpr *
-new_musicexpr(void)
-{
-	struct musicexpr *me;
-
-	if (musicexpr_id_counter == INT_MAX) {
-		warnx("%s", "musicexpr id counter overflow");
-		return NULL;
-	}
-
-	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("%s", "malloc error");
-		return NULL;
-	}
-
-	me->id.id = musicexpr_id_counter++;
-	me->id.startcolumn = 0;
-	me->id.startrow = 0;
-	me->id.endcolumn = 0;
-	me->id.endrow = 0;
-
-	return me;
 }
 
 void

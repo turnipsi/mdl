@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.78 2016/03/13 21:19:08 je Exp $ */
+/* $Id: musicexpr.c,v 1.79 2016/03/14 20:59:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,7 @@
 
 #include <assert.h>
 #include <err.h>
+#include <limits.h>
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -29,6 +30,8 @@
 #include "joinexpr.h"
 #include "musicexpr.h"
 #include "util.h"
+
+int musicexpr_id_counter = 0;
 
 static int	musicexpr_clone_melist(struct melist *, struct melist, int);
 static void	musicexpr_log_chordtype(enum chordtype, enum logtype, int,
@@ -44,7 +47,6 @@ static struct musicexpr *musicexpr_scale_in_time(struct musicexpr *, float,
     int);
 static float	musicexpr_calc_length(struct musicexpr *);
 void		musicexpr_stretch_length_by_factor(struct musicexpr *, float);
-static struct musicexpr *musicexpr_new_empty(void);
 
 struct musicexpr *
 musicexpr_clone(struct musicexpr *me, int level)
@@ -493,7 +495,7 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 		mdl_log(MDLLOG_EXPRCONV, (level + 1),
 		    "target length %.3f is too short,"
 		     " returning an empty expression\n", target_length);
-		return musicexpr_new_empty();
+		return musicexpr_new(ME_TYPE_EMPTY);
 	}
 
 	me_length = musicexpr_calc_length(me);
@@ -940,17 +942,28 @@ musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
 	dst->u       = src->u;
 }
 
-static struct musicexpr *
-musicexpr_new_empty(void)
+struct musicexpr *
+musicexpr_new(enum musicexpr_type me_type)
 {
 	struct musicexpr *me;
 
-	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("malloc in musicexpr_new_empty");
+	if (musicexpr_id_counter == INT_MAX) {
+		warnx("%s", "musicexpr id counter overflow");
 		return NULL;
 	}
 
-	me->me_type = ME_TYPE_EMPTY;
+	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
+		warn("%s", "malloc error");
+		return NULL;
+	}
+
+	me->me_type = me_type;
+
+	me->id.id = musicexpr_id_counter++;
+	me->id.startcolumn = 0;
+	me->id.startrow = 0;
+	me->id.endcolumn = 0;
+	me->id.endrow = 0;
 
 	return me;
 }
