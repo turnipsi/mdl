@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.38 2016/03/13 21:19:08 je Exp $ */
+/* $Id: joinexpr.c,v 1.39 2016/03/14 21:21:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -404,15 +404,12 @@ join_sequences(struct musicexpr *a, struct musicexpr *b, int level)
 		return a;
 	}
 
-	if ((joined_expr = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("malloc in join_sequences");
+	if ((joined_expr = musicexpr_new(ME_TYPE_JOINEXPR)) == NULL)
 		return NULL;
-	}
 
 	last_of_a = TAILQ_LAST(&a->u.melist, melist);
 	first_of_b = TAILQ_FIRST(&b->u.melist);
 
-	joined_expr->me_type = ME_TYPE_JOINEXPR;
 	joined_expr->u.joinexpr.a = last_of_a;
 	joined_expr->u.joinexpr.b = first_of_b;
 

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.79 2016/03/14 20:59:01 je Exp $ */
+/* $Id: musicexpr.c,v 1.80 2016/03/14 21:21:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -69,6 +69,8 @@ musicexpr_clone(struct musicexpr *me, int level)
 
 	musicexpr_log(me, 4, (level + 1), NULL);
 
+	/* XXX This also copies/clones the musicexpression id, I am not sure
+	 * XXX if this is the wanted behaviour. */
 	musicexpr_copy(cloned, me);
 
 	switch (me->me_type) {
@@ -198,14 +200,10 @@ musicexpr_tq(enum musicexpr_type me_type, struct musicexpr *listitem,
 {
 	struct musicexpr *me;
 
-	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
-		warnx("malloc in musicexpr_tq");
-		return NULL;
-	}
-
 	assert(me_type == ME_TYPE_SEQUENCE || me_type == ME_TYPE_SIMULTENCE);
 
-	me->me_type = me_type;
+	if ((me = musicexpr_new(me_type)) == NULL)
+		return NULL;
 
 	TAILQ_INIT(&me->u.melist);
 
@@ -254,36 +252,42 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	float end_offset, new_next_offset, old_offset;
 	size_t i;
 	int noteoffset, ret;
-	char *me_id;
+	char *me_id1, *me_id2;
 
 	assert(me->me_type != ME_TYPE_JOINEXPR);
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
 	new_next_offset = old_offset = *next_offset;
 
-	if ((me_id = musicexpr_id_string(me)) != NULL) {
+	if ((me_id1 = musicexpr_id_string(me)) != NULL) {
 		mdl_log(MDLLOG_EXPRCONV, level,
 		    "handling musicexpr %s in flatsimultence conversion\n",
-		    me_id);
-		free(me_id);
+		    me_id1);
+		free(me_id1);
 	}
 
 	switch (me->me_type) {
         case ME_TYPE_ABSNOTE:
 		if ((cloned = musicexpr_clone(me, (level + 1))) == NULL)
 			return 1;
-		offsetexpr = malloc(sizeof(struct musicexpr));
+		offsetexpr = musicexpr_new(ME_TYPE_OFFSETEXPR);
 		if (offsetexpr == NULL) {
-			warn("malloc in add_musicexpr_to_flat_simultence");
 			musicexpr_free(cloned);
+			return 1;
 		}
-		offsetexpr->me_type = ME_TYPE_OFFSETEXPR;
 		offsetexpr->u.offsetexpr.me = cloned;
 		offsetexpr->u.offsetexpr.offset = *next_offset;
 
-		mdl_log(MDLLOG_EXPRCONV, level + 1,
-		    "adding expression %p to flatsimultence %p\n", offsetexpr,
-		    flatme);
+		if ((me_id1 = musicexpr_id_string(offsetexpr)) != NULL) {
+			if ((me_id2 = musicexpr_id_string(flatme)) != NULL) {
+				mdl_log(MDLLOG_EXPRCONV, level + 1,
+				    "adding expression %s to flatsimultence"
+				    " %s\n", me_id1, me_id2);
+				free(me_id2);
+			}
+			free(me_id1);
+		}
+
 		musicexpr_log(offsetexpr, 3, level + 2, NULL);
 		TAILQ_INSERT_TAIL(&flatme->u.flatsimultence.me->u.melist,
 		    offsetexpr, tq);
@@ -393,10 +397,8 @@ musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 
 	next_offset = 0;
 
-	if ((flatme = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("malloc in musicexpr_to_flat_simultence");
+	if ((flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE)) == NULL)
 		return NULL;
-	}
 
 	flatme->me_type = ME_TYPE_FLATSIMULTENCE;
 	flatme->u.flatsimultence.length = 0.0;
@@ -868,17 +870,14 @@ chord_to_noteoffsetexpr(struct chord chord, int level)
 	struct musicexpr *me;
 	enum chordtype chordtype;
 
-	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("malloc in chord_to_noteoffsetexpr");
+	if ((me = musicexpr_new(ME_TYPE_NOTEOFFSETEXPR)) == NULL)
 		return NULL;
-	}
 
 	chordtype = chord.chordtype;
 
 	assert(chord.me->me_type == ME_TYPE_ABSNOTE);
 	assert(chordtype < CHORDTYPE_MAX);
 
-	me->me_type                  = ME_TYPE_NOTEOFFSETEXPR;
 	me->u.noteoffsetexpr.me      = musicexpr_clone(chord.me, level);
 	me->u.noteoffsetexpr.count   = chord_noteoffsets[chordtype].count;
 	me->u.noteoffsetexpr.offsets = chord_noteoffsets[chordtype].offsets;
@@ -953,7 +952,7 @@ musicexpr_new(enum musicexpr_type me_type)
 	}
 
 	if ((me = malloc(sizeof(struct musicexpr))) == NULL) {
-		warn("%s", "malloc error");
+		warn("%s", "malloc error in musicexpr_new");
 		return NULL;
 	}
 
