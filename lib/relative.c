@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.13 2016/03/13 21:19:08 je Exp $ */
+/* $Id: relative.c,v 1.14 2016/03/14 20:35:55 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,7 @@
 #include <sys/queue.h>
 
 #include <assert.h>
+#include <stdlib.h>
 
 #include "instrument.h"
 #include "musicexpr.h"
