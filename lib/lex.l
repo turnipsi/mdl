@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.20 2016/03/15 09:45:58 je Exp $ */
+/* $Id: lex.l,v 1.21 2016/03/15 21:17:55 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,26 +22,29 @@
 #include <string.h>
 
 #include "musicexpr.h"
+#include "parse.h"
 #include "y.tab.h"
 
 %}
 
 %option noyywrap
 
-%x quotedstring
+%x quoted
 
 %%
-\"			BEGIN(quotedstring);
+\"			BEGIN(quoted);
 
-<quotedstring>[[:alnum:] ]+	{
-					yylval.string = strdup(yytext);
-					if (yylval.string == NULL) {
-						/* XXX error handling */
-					}
-					return QUOTED_STRING;
+<quoted>[[:alnum:] ]+	{
+				yylval.string = strdup(yytext);
+				if (yylval.string == NULL) {
+					yyerror("strdup failed for %s",
+					    yytext);
+					yyterminate();
 				}
+				return QUOTED_STRING;
+			}
 
-<quotedstring>\"	BEGIN(INITIAL);
+<quoted>\"	BEGIN(INITIAL);
 
 [ \t\n]+es { return NOTETOKEN_ES; }
 
@@ -60,11 +63,15 @@ r	{ return RESTTOKEN; }
 
 \.+		{ yylval.i = strlen(yytext); return LENGTHDOT; }
 [1-9][0-9]*	{
-			/* XXX error handling */
-			/* things later presume this is > 0,
+			/* Things later presume this is > 0,
 			 * so do not change this to allow zero without
-			 * thinking the implications */
+			 * thinking the implications. */
 			yylval.i = strtonum(yytext, 1, INT_MAX, NULL);
+			if (yylval.i == 0) {
+				yyerror("invalid numeric conversion for %s",
+				    yytext);
+				yyterminate();
+			}
 			return LENGTHNUMBER;
 		}
 '+		{ yylval.i = strlen(yytext); return OCTAVEUP; }
@@ -115,4 +122,9 @@ r	{ return RESTTOKEN; }
 ::		{ return TRACK_OPERATOR; }
 
 [ \t\n]+	{}
+
+<*>.|\n		{
+			yyerror("unknown token: %s", yytext);
+			yyterminate();
+		}
 %%

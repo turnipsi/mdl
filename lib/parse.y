@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.48 2016/03/14 20:59:01 je Exp $
+/* $Id: parse.y,v 1.49 2016/03/15 21:17:55 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,15 +18,14 @@
 
 %{
 #include <err.h>
+#include <limits.h>
 #include <stdarg.h>
 
 #include "musicexpr.h"
+#include "parse.h"
 
 struct musicexpr *parsed_expr = NULL;
-
-void	yyerror(const char *fmt, ...);
-int	yylex(void);
-int	yyparse(void);
+unsigned int	parse_errors = 0;
 
 static float countlength(int, int);
 
@@ -370,6 +369,9 @@ void
 yyerror(const char *fmt, ...)
 {
 	va_list va;
+
+	if (parse_errors < UINT_MAX)
+		parse_errors++;
 
 	va_start(va, fmt);
 	vwarnx(fmt, va);

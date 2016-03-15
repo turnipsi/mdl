@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.47 2016/03/12 20:38:58 je Exp $ */
+/* $Id: interpreter.c,v 1.48 2016/03/15 21:17:55 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,6 +31,7 @@
 
 extern FILE		*yyin;
 extern struct musicexpr	*parsed_expr;
+extern unsigned int	 parse_errors;
 
 int
 handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
@@ -59,7 +60,7 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 		return 1;
 	}
 
-	if (yyparse() != 0) {
+	if (yyparse() != 0 || parse_errors > 0) {
 		warnx("yyparse returned error");
 		return 1;
 	}
