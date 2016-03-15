@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.19 2016/02/12 20:44:04 je Exp $ */
+/* $Id: lex.l,v 1.20 2016/03/15 09:45:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,8 +24,9 @@
 #include "musicexpr.h"
 #include "y.tab.h"
 
-int	yywrap(void);
 %}
+
+%option noyywrap
 
 %x quotedstring
 
@@ -115,10 +116,3 @@ r	{ return RESTTOKEN; }
 
 [ \t\n]+	{}
 %%
-
-/* XXX I do not know why I need this */
-int
-yywrap(void)
-{
-	return 1;
-}
