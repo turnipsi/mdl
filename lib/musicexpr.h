@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.62 2016/03/14 20:59:01 je Exp $ */
+/* $Id: musicexpr.h,v 1.63 2016/03/16 10:47:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -140,12 +140,16 @@ struct flatsimultence {
 	float			length;
 };
 
+struct musicexpr_textloc {
+	int first_line;
+	int last_line;
+	int first_column;
+	int last_column;
+};
+
 struct musicexpr_id {
 	int id;
-	int startcolumn;
-	int startrow;
-	int endcolumn;
-	int endrow;
+	struct musicexpr_textloc textloc;
 };
 
 struct musicexpr {
@@ -171,7 +175,8 @@ __BEGIN_DECLS
 void	musicexpr_free(struct musicexpr *);
 void	musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
 
-struct musicexpr       *musicexpr_new(enum musicexpr_type);
+struct musicexpr       *musicexpr_new(enum musicexpr_type,
+    struct musicexpr_textloc *);
 struct musicexpr       *musicexpr_clone(struct musicexpr *, int);
 struct musicexpr       *musicexpr_sequence(struct musicexpr *, ...);
 struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);

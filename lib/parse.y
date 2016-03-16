@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.49 2016/03/15 21:17:55 je Exp $ */
+/* $Id: parse.y,v 1.50 2016/03/16 10:47:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,6 +26,8 @@
 
 struct musicexpr *parsed_expr = NULL;
 unsigned int	parse_errors = 0;
+
+extern struct musicexpr_textloc mdl_lexer_textloc;
 
 static float countlength(int, int);
 
@@ -122,7 +124,8 @@ static float countlength(int, int);
 grammar:
 	sequence_expr { parsed_expr = $1; }
 	| /* empty */ {
-		if ((parsed_expr = musicexpr_new(ME_TYPE_EMPTY)) == NULL) {
+		parsed_expr = musicexpr_new(ME_TYPE_EMPTY, &mdl_lexer_textloc);
+		if (parsed_expr == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -132,7 +135,8 @@ grammar:
 
 musicexpr:
 	chord {
-		if (($$ = musicexpr_new(ME_TYPE_CHORD)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_CHORD, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -140,7 +144,8 @@ musicexpr:
 		$$->u.chord = $1;
 	  }
 	| joinexpr {
-		if (($$ = musicexpr_new(ME_TYPE_JOINEXPR)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_JOINEXPR, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -149,7 +154,8 @@ musicexpr:
 
 	  }
 	| relnote {
-		if (($$ = musicexpr_new(ME_TYPE_RELNOTE)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_RELNOTE, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -158,7 +164,8 @@ musicexpr:
 	  }
 	| relsimultence_expr { $$ = $1; }
 	| rest {
-		if (($$ = musicexpr_new(ME_TYPE_REST)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_REST, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -173,7 +180,8 @@ musicexpr:
 chord:
 	relnote chordtype {
 		$$.chordtype = $2;
-		if (($$.me = musicexpr_new(ME_TYPE_RELNOTE)) == NULL) {
+		$$.me = musicexpr_new(ME_TYPE_RELNOTE, &mdl_lexer_textloc);
+		if ($$.me == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -207,7 +215,8 @@ relnote:
 
 relsimultence_expr:
 	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
-		if (($$ = musicexpr_new(ME_TYPE_RELSIMULTENCE)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_RELSIMULTENCE, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			musicexpr_free($2);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -225,7 +234,8 @@ rest:
 
 sequence_expr:
 	expression_list {
-		if (($$ = musicexpr_new(ME_TYPE_SEQUENCE)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_SEQUENCE, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			musicexpr_free_melist($1);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -237,7 +247,8 @@ sequence_expr:
 
 simultence_expr:
 	expression_list {
-		if (($$ = musicexpr_new(ME_TYPE_SIMULTENCE)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_SIMULTENCE, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			musicexpr_free_melist($1);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -249,7 +260,8 @@ simultence_expr:
 
 track_expr:
 	QUOTED_STRING TRACK_OPERATOR musicexpr {
-		if (($$ = musicexpr_new(ME_TYPE_ONTRACK)) == NULL) {
+		$$ = musicexpr_new(ME_TYPE_ONTRACK, &mdl_lexer_textloc);
+		if ($$ == NULL) {
 			free($1);
 			musicexpr_free($3);
 			/* XXX YYERROR and memory leaks?

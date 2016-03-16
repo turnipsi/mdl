@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.80 2016/03/14 21:21:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.81 2016/03/16 10:47:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -202,7 +202,7 @@ musicexpr_tq(enum musicexpr_type me_type, struct musicexpr *listitem,
 
 	assert(me_type == ME_TYPE_SEQUENCE || me_type == ME_TYPE_SIMULTENCE);
 
-	if ((me = musicexpr_new(me_type)) == NULL)
+	if ((me = musicexpr_new(me_type, NULL)) == NULL)
 		return NULL;
 
 	TAILQ_INIT(&me->u.melist);
@@ -270,7 +270,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
         case ME_TYPE_ABSNOTE:
 		if ((cloned = musicexpr_clone(me, (level + 1))) == NULL)
 			return 1;
-		offsetexpr = musicexpr_new(ME_TYPE_OFFSETEXPR);
+		offsetexpr = musicexpr_new(ME_TYPE_OFFSETEXPR, NULL);
 		if (offsetexpr == NULL) {
 			musicexpr_free(cloned);
 			return 1;
@@ -397,7 +397,7 @@ musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 
 	next_offset = 0;
 
-	if ((flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE)) == NULL)
+	if ((flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE, NULL)) == NULL)
 		return NULL;
 
 	flatme->me_type = ME_TYPE_FLATSIMULTENCE;
@@ -497,7 +497,7 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 		mdl_log(MDLLOG_EXPRCONV, (level + 1),
 		    "target length %.3f is too short,"
 		     " returning an empty expression\n", target_length);
-		return musicexpr_new(ME_TYPE_EMPTY);
+		return musicexpr_new(ME_TYPE_EMPTY, NULL);
 	}
 
 	me_length = musicexpr_calc_length(me);
@@ -870,7 +870,7 @@ chord_to_noteoffsetexpr(struct chord chord, int level)
 	struct musicexpr *me;
 	enum chordtype chordtype;
 
-	if ((me = musicexpr_new(ME_TYPE_NOTEOFFSETEXPR)) == NULL)
+	if ((me = musicexpr_new(ME_TYPE_NOTEOFFSETEXPR, NULL)) == NULL)
 		return NULL;
 
 	chordtype = chord.chordtype;
@@ -923,8 +923,9 @@ musicexpr_id_string(const struct musicexpr *me)
 	assert(me->me_type < ME_TYPE_COUNT);
 
 	ret = asprintf(&id_string, "%s:%d:%d,%d:%d,%d",
-	    strings[me->me_type], me->id.id, me->id.startrow,
-	    me->id.startcolumn, me->id.endrow, me->id.endcolumn);
+	    strings[me->me_type], me->id.id, me->id.textloc.first_line,
+	    me->id.textloc.first_column, me->id.textloc.last_line,
+	    me->id.textloc.last_column);
 	if (ret == -1) {
 		warnx("error in asprintf in musicexpr_id_string()");
 		return NULL;
@@ -942,7 +943,7 @@ musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
 }
 
 struct musicexpr *
-musicexpr_new(enum musicexpr_type me_type)
+musicexpr_new(enum musicexpr_type me_type, struct musicexpr_textloc *textloc)
 {
 	struct musicexpr *me;
 
@@ -959,10 +960,15 @@ musicexpr_new(enum musicexpr_type me_type)
 	me->me_type = me_type;
 
 	me->id.id = musicexpr_id_counter++;
-	me->id.startcolumn = 0;
-	me->id.startrow = 0;
-	me->id.endcolumn = 0;
-	me->id.endrow = 0;
+
+	if (textloc != NULL) {
+		me->id.textloc = *textloc;
+	} else {
+		me->id.textloc.first_line   = 0;
+		me->id.textloc.first_column = 0;
+		me->id.textloc.last_line    = 0;
+		me->id.textloc.last_column  = 0;
+	}
 
 	return me;
 }

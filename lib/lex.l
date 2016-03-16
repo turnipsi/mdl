@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.21 2016/03/15 21:17:55 je Exp $ */
+/* $Id: lex.l,v 1.22 2016/03/16 10:47:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,6 +24,12 @@
 #include "musicexpr.h"
 #include "parse.h"
 #include "y.tab.h"
+
+struct musicexpr_textloc mdl_lexer_textloc;
+
+static void	update_locations(void);
+
+#define YY_USER_ACTION update_locations();
 
 %}
 
@@ -128,3 +134,28 @@ r	{ return RESTTOKEN; }
 			yyterminate();
 		}
 %%
+
+static void
+update_locations(void)
+{
+	static int current_line = 1;
+	static int current_column = 1;
+	char *s;
+
+	/* XXX check this more carefully */
+
+	mdl_lexer_textloc.first_line = current_line;
+	mdl_lexer_textloc.first_column = current_column;
+
+	for (s = yytext; *s != '\0'; s++) {
+		if (*s == '\n') {
+			current_line++;
+			current_column = 1;
+		} else {
+			current_column++;
+		}
+	}
+
+	mdl_lexer_textloc.last_line = current_line;
+	mdl_lexer_textloc.last_column = current_column - 1;
+}

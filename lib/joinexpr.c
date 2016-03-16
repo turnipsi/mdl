@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.39 2016/03/14 21:21:36 je Exp $ */
+/* $Id: joinexpr.c,v 1.40 2016/03/16 10:47:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -404,7 +404,7 @@ join_sequences(struct musicexpr *a, struct musicexpr *b, int level)
 		return a;
 	}
 
-	if ((joined_expr = musicexpr_new(ME_TYPE_JOINEXPR)) == NULL)
+	if ((joined_expr = musicexpr_new(ME_TYPE_JOINEXPR, NULL)) == NULL)
 		return NULL;
 
 	last_of_a = TAILQ_LAST(&a->u.melist, melist);
