@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.22 2016/03/16 10:47:58 je Exp $ */
+/* $Id: lex.l,v 1.23 2016/03/18 21:21:28 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,7 @@
 #include "parse.h"
 #include "y.tab.h"
 
-struct musicexpr_textloc mdl_lexer_textloc;
+struct textloc mdl_lexer_textloc;
 
 static void	update_locations(void);
 
@@ -41,8 +41,8 @@ static void	update_locations(void);
 \"			BEGIN(quoted);
 
 <quoted>[[:alnum:] ]+	{
-				yylval.string = strdup(yytext);
-				if (yylval.string == NULL) {
+				yylval.string.expr = strdup(yytext);
+				if (yylval.string.expr == NULL) {
 					yyerror("strdup failed for %s",
 					    yytext);
 					yyterminate();
@@ -54,8 +54,8 @@ static void	update_locations(void);
 
 [ \t\n]+es { return NOTETOKEN_ES; }
 
-(es)+	{ yylval.i = strlen(yytext) / 2; return NOTEMOD_ES; }
-(is)+	{ yylval.i = strlen(yytext) / 2; return NOTEMOD_IS; }
+(es)+	{ yylval.i.expr = strlen(yytext) / 2; return NOTEMOD_ES; }
+(is)+	{ yylval.i.expr = strlen(yytext) / 2; return NOTEMOD_IS; }
 
 c	{ return NOTETOKEN_C; }
 d	{ return NOTETOKEN_D; }
@@ -67,21 +67,21 @@ b	{ return NOTETOKEN_B; }
 
 r	{ return RESTTOKEN; }
 
-\.+		{ yylval.i = strlen(yytext); return LENGTHDOT; }
+\.+		{ yylval.i.expr = strlen(yytext); return LENGTHDOT; }
 [1-9][0-9]*	{
 			/* Things later presume this is > 0,
 			 * so do not change this to allow zero without
 			 * thinking the implications. */
-			yylval.i = strtonum(yytext, 1, INT_MAX, NULL);
-			if (yylval.i == 0) {
+			yylval.i.expr = strtonum(yytext, 1, INT_MAX, NULL);
+			if (yylval.i.expr == 0) {
 				yyerror("invalid numeric conversion for %s",
 				    yytext);
 				yyterminate();
 			}
 			return LENGTHNUMBER;
 		}
-'+		{ yylval.i = strlen(yytext); return OCTAVEUP; }
-,+		{ yylval.i = strlen(yytext); return OCTAVEDOWN; }
+'+		{ yylval.i.expr = strlen(yytext); return OCTAVEUP; }
+,+		{ yylval.i.expr = strlen(yytext); return OCTAVEDOWN; }
 
 ~		{ return JOINEXPR; }
 
@@ -141,8 +141,6 @@ update_locations(void)
 	static int current_line = 1;
 	static int current_column = 1;
 	char *s;
-
-	/* XXX check this more carefully */
 
 	mdl_lexer_textloc.first_line = current_line;
 	mdl_lexer_textloc.first_column = current_column;

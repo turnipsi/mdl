@@ -1,7 +1,7 @@
-/* $Id: musicexpr.h,v 1.63 2016/03/16 10:47:58 je Exp $ */
+/* $Id: musicexpr.h,v 1.64 2016/03/18 21:21:28 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -140,7 +140,7 @@ struct flatsimultence {
 	float			length;
 };
 
-struct musicexpr_textloc {
+struct textloc {
 	int first_line;
 	int last_line;
 	int first_column;
@@ -149,7 +149,7 @@ struct musicexpr_textloc {
 
 struct musicexpr_id {
 	int id;
-	struct musicexpr_textloc textloc;
+	struct textloc textloc;
 };
 
 struct musicexpr {
@@ -176,7 +176,7 @@ void	musicexpr_free(struct musicexpr *);
 void	musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
 
 struct musicexpr       *musicexpr_new(enum musicexpr_type,
-    struct musicexpr_textloc *);
+    struct textloc);
 struct musicexpr       *musicexpr_clone(struct musicexpr *, int);
 struct musicexpr       *musicexpr_sequence(struct musicexpr *, ...);
 struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);
@@ -188,6 +188,9 @@ void			free_melist(struct musicexpr *);
 void			musicexpr_copy(struct musicexpr *, struct musicexpr *);
 void			musicexpr_apply_noteoffset(struct musicexpr *, int,
     int);
+struct textloc textloc_zero(void);
+struct textloc join_textlocs(struct textloc,
+    struct textloc);
 __END_DECLS
 
 #endif /* !MDL_MUSICEXPR_H */

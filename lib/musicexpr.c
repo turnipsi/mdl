@@ -1,7 +1,7 @@
-/* $Id: musicexpr.c,v 1.81 2016/03/16 10:47:58 je Exp $ */
+/* $Id: musicexpr.c,v 1.82 2016/03/18 21:21:28 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -202,7 +202,7 @@ musicexpr_tq(enum musicexpr_type me_type, struct musicexpr *listitem,
 
 	assert(me_type == ME_TYPE_SEQUENCE || me_type == ME_TYPE_SIMULTENCE);
 
-	if ((me = musicexpr_new(me_type, NULL)) == NULL)
+	if ((me = musicexpr_new(me_type, textloc_zero())) == NULL)
 		return NULL;
 
 	TAILQ_INIT(&me->u.melist);
@@ -270,7 +270,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
         case ME_TYPE_ABSNOTE:
 		if ((cloned = musicexpr_clone(me, (level + 1))) == NULL)
 			return 1;
-		offsetexpr = musicexpr_new(ME_TYPE_OFFSETEXPR, NULL);
+		offsetexpr = musicexpr_new(ME_TYPE_OFFSETEXPR, textloc_zero());
 		if (offsetexpr == NULL) {
 			musicexpr_free(cloned);
 			return 1;
@@ -397,7 +397,8 @@ musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 
 	next_offset = 0;
 
-	if ((flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE, NULL)) == NULL)
+	flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE, textloc_zero());
+	if (flatme == NULL)
 		return NULL;
 
 	flatme->me_type = ME_TYPE_FLATSIMULTENCE;
@@ -497,7 +498,7 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 		mdl_log(MDLLOG_EXPRCONV, (level + 1),
 		    "target length %.3f is too short,"
 		     " returning an empty expression\n", target_length);
-		return musicexpr_new(ME_TYPE_EMPTY, NULL);
+		return musicexpr_new(ME_TYPE_EMPTY, textloc_zero());
 	}
 
 	me_length = musicexpr_calc_length(me);
@@ -870,7 +871,8 @@ chord_to_noteoffsetexpr(struct chord chord, int level)
 	struct musicexpr *me;
 	enum chordtype chordtype;
 
-	if ((me = musicexpr_new(ME_TYPE_NOTEOFFSETEXPR, NULL)) == NULL)
+	me = musicexpr_new(ME_TYPE_NOTEOFFSETEXPR, textloc_zero());
+	if (me == NULL)
 		return NULL;
 
 	chordtype = chord.chordtype;
@@ -943,7 +945,7 @@ musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
 }
 
 struct musicexpr *
-musicexpr_new(enum musicexpr_type me_type, struct musicexpr_textloc *textloc)
+musicexpr_new(enum musicexpr_type me_type, struct textloc textloc)
 {
 	struct musicexpr *me;
 
@@ -958,17 +960,51 @@ musicexpr_new(enum musicexpr_type me_type, struct musicexpr_textloc *textloc)
 	}
 
 	me->me_type = me_type;
-
 	me->id.id = musicexpr_id_counter++;
-
-	if (textloc != NULL) {
-		me->id.textloc = *textloc;
-	} else {
-		me->id.textloc.first_line   = 0;
-		me->id.textloc.first_column = 0;
-		me->id.textloc.last_line    = 0;
-		me->id.textloc.last_column  = 0;
-	}
+	me->id.textloc = textloc;
 
 	return me;
+}
+
+struct textloc
+textloc_zero(void)
+{
+	struct textloc x;
+
+	x.first_line   = 0;
+	x.first_column = 0;
+	x.last_line    = 0;
+	x.last_column  = 0;
+
+	return x;
+}
+
+struct textloc
+join_textlocs(struct textloc a, struct textloc b)
+{
+	struct textloc x;
+
+	if (a.first_line < b.first_line) {
+		x.first_line   = a.first_line;
+		x.first_column = a.first_column;
+	} else if (a.first_line > b.first_line) {
+		x.first_line   = b.first_line;
+		x.first_column = b.first_column;
+	} else {
+		x.first_line = a.first_line;
+		x.first_column = MIN(a.first_column, b.first_column);
+	}
+
+	if (a.last_line < b.last_line) {
+		x.last_line   = b.last_line;
+		x.last_column = b.last_column;
+	} else if (a.last_line > b.last_line) {
+		x.last_line   = a.last_line;
+		x.last_column = a.last_column;
+	} else {
+		x.last_line = a.last_line;
+		x.last_column = MAX(a.last_column, b.last_column);
+	}
+
+	return x;
 }
