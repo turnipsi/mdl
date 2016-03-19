@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.82 2016/03/18 21:21:28 je Exp $ */
+/* $Id: musicexpr.c,v 1.83 2016/03/19 21:54:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -979,10 +979,17 @@ textloc_zero(void)
 	return x;
 }
 
+/* XXX this should probably take variable length arguments */
 struct textloc
 join_textlocs(struct textloc a, struct textloc b)
 {
 	struct textloc x;
+
+	if (a.first_line == 0)
+		return b;
+
+	if (b.first_line == 0)
+		return a;
 
 	if (a.first_line < b.first_line) {
 		x.first_line   = a.first_line;

@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.51 2016/03/18 21:21:28 je Exp $ */
+/* $Id: parse.y,v 1.52 2016/03/19 21:54:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,8 +26,6 @@
 
 struct musicexpr *parsed_expr = NULL;
 unsigned int	parse_errors = 0;
-
-extern struct textloc mdl_lexer_textloc;
 
 static float countlength(int, int);
 
@@ -97,19 +95,13 @@ static float countlength(int, int);
 	} textloc;
 }
 
-%token	<notesym>	NOTETOKEN_C
-			NOTETOKEN_D
+%token	<notesym>	NOTETOKEN
 			NOTETOKEN_ES
-			NOTETOKEN_E
-			NOTETOKEN_F
-			NOTETOKEN_G
-			NOTETOKEN_A
-			NOTETOKEN_B
 
 %token	<i>		NOTEMOD_ES
 			NOTEMOD_IS
 
-%token			RESTTOKEN
+%token	<textloc>	RESTTOKEN
 %token	<i>		LENGTHDOT
 %token	<i>		LENGTHNUMBER
 %token	<i>		OCTAVEUP
@@ -117,44 +109,17 @@ static float countlength(int, int);
 
 %token	<string>	QUOTED_STRING
 
-%token	<chordtype>	CHORDTOKEN_NONE
-			CHORDTOKEN_MAJ
-			CHORDTOKEN_MIN
-			CHORDTOKEN_AUG
-			CHORDTOKEN_DIM
-			CHORDTOKEN_7
-			CHORDTOKEN_MAJ7
-			CHORDTOKEN_MIN7
-			CHORDTOKEN_DIM7
-			CHORDTOKEN_AUG7
-			CHORDTOKEN_DIM5MIN7
-			CHORDTOKEN_MIN5MAJ7
-			CHORDTOKEN_MAJ6
-			CHORDTOKEN_MIN6
-			CHORDTOKEN_9
-			CHORDTOKEN_MAJ9
-			CHORDTOKEN_MIN9
-			CHORDTOKEN_11
-			CHORDTOKEN_MAJ11
-			CHORDTOKEN_MIN11
-			CHORDTOKEN_13
-			CHORDTOKEN_13_11
-			CHORDTOKEN_MAJ13_11
-			CHORDTOKEN_MIN13_11
-			CHORDTOKEN_SUS2
-			CHORDTOKEN_SUS4
-			CHORDTOKEN_5
-			CHORDTOKEN_5_8
+%token	<chordtype>	CHORDTOKEN
 
-%token			RELSIMULTENCE_START
+%token	<textloc>	RELSIMULTENCE_START
 			RELSIMULTENCE_END
 			SEQUENCE_START
 			SEQUENCE_END
 			SIMULTENCE_START
 			SIMULTENCE_END
 
-%right			TRACK_OPERATOR
-%left			JOINEXPR
+%right	<textloc>	TRACK_OPERATOR
+%left	<textloc>	JOINEXPR
 
 %type	<musicexpr>	grammar musicexpr relsimultence_expr
 			sequence_expr simultence_expr track_expr
@@ -162,12 +127,9 @@ static float countlength(int, int);
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<chord>		chord
-%type	<chordtype>	chordtype
 %type	<rest>		rest
-%type	<notesym>	notesym
 %type	<i>		notemods octavemods lengthdots
 %type	<f>		notelength
-%type	<textloc>	relsimultence_start relsimultence_end resttoken
 
 %%
 
@@ -228,16 +190,16 @@ musicexpr:
 	;
 
 chord:
-	relnote chordtype {
+	relnote CHORDTOKEN {
 		$$.expr.chordtype = $2.expr;
-		$$.expr.me = musicexpr_new(ME_TYPE_RELNOTE,
-		    join_textlocs($1.textloc, $2.textloc));
+		$$.expr.me = musicexpr_new(ME_TYPE_RELNOTE, $1.textloc);
 		if ($$.expr.me == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$.expr.me->u.relnote = $1.expr;
+		$$.textloc = join_textlocs($1.textloc, $2.textloc);
 	}
 	;
 
@@ -250,29 +212,49 @@ joinexpr:
 	;
 
 relnote:
-	notesym notemods octavemods notelength {
+	NOTETOKEN notemods octavemods notelength {
+		struct textloc tl;
+
 		$$.expr.notesym    = $1.expr;
 		$$.expr.notemods   = $2.expr;
 		$$.expr.octavemods = $3.expr;
 		$$.expr.length     = $4.expr;
 
-		$$.textloc = join_textlocs($1.textloc, $4.textloc);
+		tl = $1.textloc;
+		tl = join_textlocs(tl, $2.textloc);
+		tl = join_textlocs(tl, $3.textloc);
+		tl = join_textlocs(tl, $4.textloc);
+
+		$$.textloc = tl;
 	  }
 	| NOTETOKEN_ES notemods octavemods notelength {
-		/* "es" is a special case */
-		$$.expr.notesym    = NOTE_E;
-		$$.expr.notemods   = - $1.expr;
-		$$.expr.octavemods = $2.expr;
-		$$.expr.length     = $3.expr;
+		struct textloc tl;
 
-		$$.textloc = join_textlocs($1.textloc, $4.textloc);
+		/* "es" is a special case */
+		$$.expr.notesym    = $1.expr;
+		$$.expr.notemods   = $2.expr - 1;
+		$$.expr.octavemods = $3.expr;
+		$$.expr.length     = $4.expr;
+
+		tl = $1.textloc;
+		tl = join_textlocs(tl, $2.textloc);
+		tl = join_textlocs(tl, $3.textloc);
+		tl = join_textlocs(tl, $4.textloc);
+
+		$$.textloc = tl;
 	}
 	;
 
 relsimultence_expr:
-	relsimultence_start simultence_expr relsimultence_end notelength {
-		$$ = musicexpr_new(ME_TYPE_RELSIMULTENCE,
-		    join_textlocs($1.textloc, $4.textloc));
+	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
+		struct textloc tl;
+
+		tl = $1.textloc;
+		tl = join_textlocs(tl, $2->id.textloc);
+		tl = join_textlocs(tl, $3.textloc);
+		tl = join_textlocs(tl, $4.textloc);
+
+		$$ = musicexpr_new(ME_TYPE_RELSIMULTENCE, tl);
 		if ($$ == NULL) {
 			musicexpr_free($2);
 			/* XXX YYERROR and memory leaks?
@@ -284,12 +266,8 @@ relsimultence_expr:
 	  }
 	;
 
-relsimultence_start: RELSIMULTENCE_START { $$.textloc = mdl_lexer_textloc; };
-relsimultence_end:   RELSIMULTENCE_END   { $$.textloc = mdl_lexer_textloc; };
-resttoken:           RESTTOKEN           { $$.textloc = mdl_lexer_textloc; };
-
 rest:
-	resttoken notelength {
+	RESTTOKEN notelength {
 		$$.expr.length = $2.expr;
 		$$.textloc = join_textlocs($1.textloc, $2.textloc);
 	};
@@ -322,8 +300,13 @@ simultence_expr:
 
 track_expr:
 	QUOTED_STRING TRACK_OPERATOR musicexpr {
-		$$ = musicexpr_new(ME_TYPE_ONTRACK,
-		    join_textlocs($1.textloc, $3->id.textloc));
+		struct textloc tl;
+
+		tl = $1.textloc;
+		tl = join_textlocs(tl, $2.textloc);
+		tl = join_textlocs(tl, $3->id.textloc);
+
+		$$ = musicexpr_new(ME_TYPE_ONTRACK, tl);
 		if ($$ == NULL) {
 			free($1.expr);
 			musicexpr_free($3);
@@ -358,25 +341,16 @@ expression_list:
 	  }
 	;
 
-notesym:
-	NOTETOKEN_C   { $$.expr = NOTE_C; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_D { $$.expr = NOTE_D; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_E { $$.expr = NOTE_E; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_F { $$.expr = NOTE_F; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_G { $$.expr = NOTE_G; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_A { $$.expr = NOTE_A; $$.textloc = mdl_lexer_textloc; }
-	| NOTETOKEN_B { $$.expr = NOTE_B; $$.textloc = mdl_lexer_textloc; }
-
 notemods:
-	NOTEMOD_IS    { $$.expr = + $1.expr; $$.textloc = mdl_lexer_textloc; }
-	| NOTEMOD_ES  { $$.expr = - $1.expr; $$.textloc = mdl_lexer_textloc; }
-	| /* empty */ { $$.expr = 0;         $$.textloc = mdl_lexer_textloc; }
+	NOTEMOD_IS    { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
+	| NOTEMOD_ES  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
+	| /* empty */ { $$.expr = 0;         $$.textloc = textloc_zero(); }
 	;
 
 octavemods:
-	OCTAVEUP      { $$.expr = + $1.expr; $$.textloc = mdl_lexer_textloc; }
-	| OCTAVEDOWN  { $$.expr = - $1.expr; $$.textloc = mdl_lexer_textloc; }
-	| /* empty */ { $$.expr = 0;         $$.textloc = mdl_lexer_textloc; }
+	OCTAVEUP      { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
+	| OCTAVEDOWN  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
+	| /* empty */ { $$.expr = 0;         $$.textloc = textloc_zero(); }
 	;
 
 notelength:
@@ -384,127 +358,12 @@ notelength:
 		$$.expr = countlength($1.expr, $2.expr);
 		$$.textloc = join_textlocs($1.textloc, $2.textloc);
 	  }
-	| /* empty */ { $$.expr = 0.0; $$.textloc = mdl_lexer_textloc; }
+	| /* empty */ { $$.expr = 0.0; $$.textloc = textloc_zero(); }
 	;
 
 lengthdots:
 	LENGTHDOT     { $$.expr = $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */ { $$.expr = 0;       $$.textloc = mdl_lexer_textloc; }
-	;
-
-chordtype:
-	CHORDTOKEN_NONE	{
-		$$.expr = CHORDTYPE_NONE;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ {
-		$$.expr = CHORDTYPE_MAJ;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN {
-		$$.expr = CHORDTYPE_MIN;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_AUG {
-		$$.expr = CHORDTYPE_AUG;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_DIM {
-		$$.expr = CHORDTYPE_DIM;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_7 {
-		$$.expr = CHORDTYPE_7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ7 {
-		$$.expr = CHORDTYPE_MAJ7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN7 {
-		$$.expr = CHORDTYPE_MIN7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_DIM7 {
-		$$.expr = CHORDTYPE_DIM7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_AUG7 {
-		$$.expr = CHORDTYPE_AUG7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_DIM5MIN7 {
-		$$.expr = CHORDTYPE_DIM5MIN7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN5MAJ7 {
-		$$.expr = CHORDTYPE_MIN5MAJ7;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ6 {
-		$$.expr = CHORDTYPE_MAJ6;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN6 {
-		$$.expr = CHORDTYPE_MIN6;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_9 {
-		$$.expr = CHORDTYPE_9;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ9 {
-		$$.expr = CHORDTYPE_MAJ9;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN9 {
-		$$.expr = CHORDTYPE_MIN9;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_11 {
-		$$.expr = CHORDTYPE_11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ11 {
-		$$.expr = CHORDTYPE_MAJ11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN11 {
-		$$.expr = CHORDTYPE_MIN11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_13 {
-		$$.expr = CHORDTYPE_13;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_13_11 {
-		$$.expr = CHORDTYPE_13_11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MAJ13_11 {
-		$$.expr = CHORDTYPE_MAJ13_11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_MIN13_11 {
-		$$.expr = CHORDTYPE_MIN13_11;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_SUS2 {
-		$$.expr = CHORDTYPE_SUS2;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_SUS4 {
-		$$.expr = CHORDTYPE_SUS4;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_5 {
-		$$.expr = CHORDTYPE_5;
-		$$.textloc = mdl_lexer_textloc;
-	}
-	| CHORDTOKEN_5_8 {
-		$$.expr = CHORDTYPE_5_8;
-		$$.textloc = mdl_lexer_textloc;
-	}
+	| /* empty */ { $$.expr = 0;       $$.textloc = textloc_zero(); }
 	;
 
 %%

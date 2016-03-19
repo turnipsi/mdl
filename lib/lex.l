@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.23 2016/03/18 21:21:28 je Exp $ */
+/* $Id: lex.l,v 1.24 2016/03/19 21:54:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,11 +25,10 @@
 #include "parse.h"
 #include "y.tab.h"
 
-struct textloc mdl_lexer_textloc;
-
-static void	update_locations(void);
-
-#define YY_USER_ACTION update_locations();
+static int	new_chordtype(enum chordtype);
+static int	new_notesym(enum notesym);
+static int	new_texttoken(int);
+static void	update_textloc(struct textloc *);
 
 %}
 
@@ -38,9 +37,11 @@ static void	update_locations(void);
 %x quoted
 
 %%
-\"			BEGIN(quoted);
+\"			{ update_textloc(NULL); BEGIN(quoted); }
 
 <quoted>[[:alnum:] ]+	{
+				/* XXX "-characters do not go into textloc */
+				update_textloc(&yylval.string.textloc);
 				yylval.string.expr = strdup(yytext);
 				if (yylval.string.expr == NULL) {
 					yyerror("strdup failed for %s",
@@ -50,25 +51,43 @@ static void	update_locations(void);
 				return QUOTED_STRING;
 			}
 
-<quoted>\"	BEGIN(INITIAL);
+<quoted>\"	{ update_textloc(NULL); BEGIN(INITIAL); }
 
-[ \t\n]+es { return NOTETOKEN_ES; }
+[ \t\n]+es	{
+			update_textloc(&yylval.notesym.textloc);
+			yylval.notesym.expr = NOTE_E;
+			return NOTETOKEN_ES;
+		}
 
-(es)+	{ yylval.i.expr = strlen(yytext) / 2; return NOTEMOD_ES; }
-(is)+	{ yylval.i.expr = strlen(yytext) / 2; return NOTEMOD_IS; }
+(es)+	{
+		update_textloc(&yylval.i.textloc);
+		yylval.i.expr = strlen(yytext) / 2;
+		return NOTEMOD_ES;
+	}
+(is)+	{
+		update_textloc(&yylval.i.textloc);
+		yylval.i.expr = strlen(yytext) / 2;
+		return NOTEMOD_IS;
+	}
 
-c	{ return NOTETOKEN_C; }
-d	{ return NOTETOKEN_D; }
-e	{ return NOTETOKEN_E; }
-f	{ return NOTETOKEN_F; }
-g	{ return NOTETOKEN_G; }
-a	{ return NOTETOKEN_A; }
-b	{ return NOTETOKEN_B; }
+c	{ return new_notesym(NOTE_C); }
+d	{ return new_notesym(NOTE_D); }
+e	{ return new_notesym(NOTE_E); }
+f	{ return new_notesym(NOTE_F); }
+g	{ return new_notesym(NOTE_G); }
+a	{ return new_notesym(NOTE_A); }
+b	{ return new_notesym(NOTE_B); }
 
-r	{ return RESTTOKEN; }
+r	{ update_textloc(&yylval.textloc.textloc); return RESTTOKEN; }
 
-\.+		{ yylval.i.expr = strlen(yytext); return LENGTHDOT; }
+\.+	{
+		update_textloc(&yylval.i.textloc);
+		yylval.i.expr = strlen(yytext);
+		return LENGTHDOT;
+	}
+
 [1-9][0-9]*	{
+			update_textloc(&yylval.i.textloc);
 			/* Things later presume this is > 0,
 			 * so do not change this to allow zero without
 			 * thinking the implications. */
@@ -80,70 +99,104 @@ r	{ return RESTTOKEN; }
 			}
 			return LENGTHNUMBER;
 		}
-'+		{ yylval.i.expr = strlen(yytext); return OCTAVEUP; }
-,+		{ yylval.i.expr = strlen(yytext); return OCTAVEDOWN; }
+'+		{
+			update_textloc(&yylval.i.textloc);
+			yylval.i.expr = strlen(yytext);
+			return OCTAVEUP;
+		}
+,+		{
+			update_textloc(&yylval.i.textloc);
+			yylval.i.expr = strlen(yytext);
+			return OCTAVEDOWN;
+		}
 
-~		{ return JOINEXPR; }
+~		{ update_textloc(&yylval.textloc.textloc); return JOINEXPR; }
 
-:5		{ return CHORDTOKEN_MAJ;      }
-:m		{ return CHORDTOKEN_MIN;      }
-:m5		{ return CHORDTOKEN_MIN;      }
-:aug		{ return CHORDTOKEN_AUG;      }
-:dim		{ return CHORDTOKEN_DIM;      }
-:7		{ return CHORDTOKEN_7;        }
-:maj7		{ return CHORDTOKEN_MAJ7;     }
-:maj		{ return CHORDTOKEN_MAJ7;     }
-:m7		{ return CHORDTOKEN_MIN7;     }
-:dim7		{ return CHORDTOKEN_DIM7;     }
-:aug7		{ return CHORDTOKEN_AUG7;     }
-:m7\.5-		{ return CHORDTOKEN_DIM5MIN7; }
-:m7\+		{ return CHORDTOKEN_MIN5MAJ7; }
-:6		{ return CHORDTOKEN_MAJ6;     }
-:m6		{ return CHORDTOKEN_MIN6;     }
-:9		{ return CHORDTOKEN_9;        }
-:maj9		{ return CHORDTOKEN_MAJ9;     }
-:m9		{ return CHORDTOKEN_MIN9;     }
-:11		{ return CHORDTOKEN_11;       }
-:maj11		{ return CHORDTOKEN_MAJ11;    }
-:m11		{ return CHORDTOKEN_MIN11;    }
-:13		{ return CHORDTOKEN_13;       }
-:13\.11		{ return CHORDTOKEN_13_11;    }
-:maj13\.11	{ return CHORDTOKEN_MAJ13_11; }
-:m13\.11	{ return CHORDTOKEN_MIN13_11; }
-:sus2		{ return CHORDTOKEN_SUS2;     }
-:sus4		{ return CHORDTOKEN_SUS4;     }
-:1\.5		{ return CHORDTOKEN_5;        }
-:1\.5\.8	{ return CHORDTOKEN_5_8;      }
-:		{ return CHORDTOKEN_NONE;     }
+:5		{ return new_chordtype(CHORDTYPE_MAJ);      }
+:m		{ return new_chordtype(CHORDTYPE_MIN);      }
+:m5		{ return new_chordtype(CHORDTYPE_MIN);      }
+:aug		{ return new_chordtype(CHORDTYPE_AUG);      }
+:dim		{ return new_chordtype(CHORDTYPE_DIM);      }
+:7		{ return new_chordtype(CHORDTYPE_7);        }
+:maj7		{ return new_chordtype(CHORDTYPE_MAJ7);     }
+:maj		{ return new_chordtype(CHORDTYPE_MAJ7);     }
+:m7		{ return new_chordtype(CHORDTYPE_MIN7);     }
+:dim7		{ return new_chordtype(CHORDTYPE_DIM7);     }
+:aug7		{ return new_chordtype(CHORDTYPE_AUG7);     }
+:m7\.5-		{ return new_chordtype(CHORDTYPE_DIM5MIN7); }
+:m7\+		{ return new_chordtype(CHORDTYPE_MIN5MAJ7); }
+:6		{ return new_chordtype(CHORDTYPE_MAJ6);     }
+:m6		{ return new_chordtype(CHORDTYPE_MIN6);     }
+:9		{ return new_chordtype(CHORDTYPE_9);        }
+:maj9		{ return new_chordtype(CHORDTYPE_MAJ9);     }
+:m9		{ return new_chordtype(CHORDTYPE_MIN9);     }
+:11		{ return new_chordtype(CHORDTYPE_11);       }
+:maj11		{ return new_chordtype(CHORDTYPE_MAJ11);    }
+:m11		{ return new_chordtype(CHORDTYPE_MIN11);    }
+:13		{ return new_chordtype(CHORDTYPE_13);       }
+:13\.11		{ return new_chordtype(CHORDTYPE_13_11);    }
+:maj13\.11	{ return new_chordtype(CHORDTYPE_MAJ13_11); }
+:m13\.11	{ return new_chordtype(CHORDTYPE_MIN13_11); }
+:sus2		{ return new_chordtype(CHORDTYPE_SUS2);     }
+:sus4		{ return new_chordtype(CHORDTYPE_SUS4);     }
+:1\.5		{ return new_chordtype(CHORDTYPE_5);        }
+:1\.5\.8	{ return new_chordtype(CHORDTYPE_5_8);      }
+:		{ return new_chordtype(CHORDTYPE_NONE);     }
 
-\{		{ return SEQUENCE_START; }
-\}		{ return SEQUENCE_END;   }
+\{		{ return new_texttoken(SEQUENCE_START); }
+\}		{ return new_texttoken(SEQUENCE_END);   }
 
-\<\<		{ return SIMULTENCE_START; }
-\>\>		{ return SIMULTENCE_END;   }
+\<\<		{ return new_texttoken(SIMULTENCE_START); }
+\>\>		{ return new_texttoken(SIMULTENCE_END);   }
 
-\<		{ return RELSIMULTENCE_START; }
-\>		{ return RELSIMULTENCE_END;   }
+\<		{ return new_texttoken(RELSIMULTENCE_START); }
+\>		{ return new_texttoken(RELSIMULTENCE_END);   }
 
-::		{ return TRACK_OPERATOR; }
+::		{ return new_texttoken(TRACK_OPERATOR); }
 
-[ \t\n]+	{}
+[ \t\n]+	{ update_textloc(NULL); }
 
 <*>.|\n		{
+			/* XXX add current textloc to error message */
 			yyerror("unknown token: %s", yytext);
 			yyterminate();
 		}
 %%
 
+static int
+new_chordtype(enum chordtype chordtype)
+{
+	update_textloc(&yylval.chordtype.textloc);
+	yylval.chordtype.expr = chordtype;
+	return CHORDTOKEN;
+}
+
+static int
+new_notesym(enum notesym notesym)
+{
+	update_textloc(&yylval.notesym.textloc);
+	yylval.notesym.expr = notesym;
+	return NOTETOKEN;
+}
+
+static int
+new_texttoken(int token)
+{
+	update_textloc(&yylval.textloc.textloc);
+	return token;
+}
+
 static void
-update_locations(void)
+update_textloc(struct textloc *tl)
 {
 	static int current_line = 1;
 	static int current_column = 1;
 	char *s;
 
-	mdl_lexer_textloc.first_line = current_line;
-	mdl_lexer_textloc.first_column = current_column;
+	if (tl != NULL) {
+		tl->first_line = current_line;
+		tl->first_column = current_column;
+	}
 
 	for (s = yytext; *s != '\0'; s++) {
 		if (*s == '\n') {
@@ -154,6 +207,8 @@ update_locations(void)
 		}
 	}
 
-	mdl_lexer_textloc.last_line = current_line;
-	mdl_lexer_textloc.last_column = current_column - 1;
+	if (tl != NULL) {
+		tl->last_line = current_line;
+		tl->last_column = current_column - 1;
+	}
 }
