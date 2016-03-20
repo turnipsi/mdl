@@ -1,18 +1,34 @@
-# $Id: Makefile,v 1.5 2016/03/06 19:18:03 je Exp $
+# $Id: Makefile,v 1.6 2016/03/20 21:11:37 je Exp $
 
 MDL?=	${.CURDIR}/../src/mdl -n
 
-MIDI_TESTS=t-empty
-MIDISTREAM_TESTS=t-empty t-simple1
-PARSING_TESTS=t-empty t-simple1 t-simple2
-RELATIVE_TESTS=t-empty t-simple1 t-simple2
+TEST_INPUTS=	t-big-jumps                    \
+		t-chord-joining                \
+		t-chordmodifiers               \
+		t-chords-with-big-jumps        \
+		t-chords-with-variable-lengths \
+		t-empty                        \
+		t-join-notes                   \
+		t-join-notes-and-rests         \
+		t-length-changes               \
+		t-many-basic-lengths           \
+		t-notes-and-rests              \
+		t-rest                         \
+		t-simple-notes                 \
+		t-single-note                  \
+		t-some-extended-lengths
 
-REGRESS_TARGETS=${PARSING_TESTS:S/$/.parsing/}       \
-		${RELATIVE_TESTS:S/$/.relative/}     \
-		${MIDISTREAM_TESTS:S/$/.midistream/} \
-		${MIDI_TESTS:S/$/.midi/}
+# XXX t-unjoinable-chords-joining
+# XXX t-unjoinable-notes-joining
 
-DEBUGOPTS=midi midistream parsing relative
+DEBUGOPTS=parsing relative midistream
+
+REGRESS_TARGETS=
+.for TEST_INPUT in ${TEST_INPUTS}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.parsing/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.relative/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.midistream/}
+.endfor
 
 .SUFFIXES: .in ${DEBUGOPTS:S/^/./}
 
@@ -22,8 +38,9 @@ DEBUGOPTS=midi midistream parsing relative
   .in.${DEBUGOPT}:
 	@echo $@
 	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.in > $@.out
-	@cmp -s ${.CURDIR}/$@.ok $@.out \
-		|| { diff -u ${.CURDIR}/$@.ok ${.OBJDIR}/$@.out; false; }
+	@cmp -s ${.CURDIR}/expected/$@.ok $@.out \
+		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.out; \
+		     false; }
 .endfor
 
 .PHONY: ${REGRESS_TARGETS}

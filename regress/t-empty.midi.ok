@@ -1,4 +1,0 @@
-mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.midistream  :   adding midievents to send queue:
-mdl.interp.midi        :     sending song end time=0.000
-mdl.seq.midi           : received song end time=0.000

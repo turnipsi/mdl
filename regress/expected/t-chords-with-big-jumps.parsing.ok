@@ -1,0 +1,14 @@
+mdl.interp.parsing     : parse ok, got parse result:
+mdl.interp.parsing     :   sequence:8:1,1:1,19
+mdl.interp.parsing     :     chord:1:1,1:1,4
+mdl.interp.parsing     :       chordtype 5
+mdl.interp.parsing     :       relnote:0:1,1:1,2 notesym=0 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :     chord:3:1,6:1,9
+mdl.interp.parsing     :       chordtype 5
+mdl.interp.parsing     :       relnote:2:1,6:1,7 notesym=4 notemods=0 length=0.000 octavemods=1
+mdl.interp.parsing     :     chord:5:1,11:1,14
+mdl.interp.parsing     :       chordtype m
+mdl.interp.parsing     :       relnote:4:1,11:1,12 notesym=5 notemods=0 length=0.000 octavemods=-1
+mdl.interp.parsing     :     chord:7:1,16:1,19
+mdl.interp.parsing     :       chordtype 5
+mdl.interp.parsing     :       relnote:6:1,16:1,17 notesym=3 notemods=0 length=0.000 octavemods=1
