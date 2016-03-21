@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2016/03/20 21:11:37 je Exp $
+# $Id: Makefile,v 1.7 2016/03/21 21:20:44 je Exp $
 
 MDL?=	${.CURDIR}/../src/mdl -n
 
@@ -37,14 +37,21 @@ REGRESS_TARGETS=
 .for DEBUGOPT in ${DEBUGOPTS}
   .in.${DEBUGOPT}:
 	@echo $@
-	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.in > $@.out
-	@cmp -s ${.CURDIR}/expected/$@.ok $@.out \
-		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.out; \
+	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.in > $@.log
+	@cmp -s ${.CURDIR}/expected/$@.ok $@.log \
+		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.log; \
 		     false; }
 .endfor
 
 .PHONY: ${REGRESS_TARGETS}
 
-CLEANFILES+=*.out
+.PHONY: accept-regressions
+accept-regressions:
+	for log in ${.OBJDIR}/*.log; do \
+	    test -e "$$log" || continue; \
+	    mv "$$log" "${.CURDIR}/expected/$$(basename $$log .log).ok"; \
+	done
+
+CLEANFILES+=*.log
 
 .include <bsd.regress.mk>
