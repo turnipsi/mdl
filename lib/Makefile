@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.26 2016/02/21 20:26:20 je Exp $
+# $Id: Makefile,v 1.27 2016/03/22 19:58:07 je Exp $
 
 PROG=	mdl
 SRCS=	compat.c interpreter.c instrument.c joinexpr.c mdl.c midi.c \
@@ -12,6 +12,8 @@ PREFIX ?= /usr/local
 
 BINDIR=	${PREFIX}/bin
 MANDIR=	${PREFIX}/man/man
+
+CFLAGS+=	-I${.CURDIR}
 
 COPTS+=	-g -Wall -W -Wpointer-arith -Wbad-function-cast
 

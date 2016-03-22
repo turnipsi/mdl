@@ -1,6 +1,12 @@
-# $Id: Makefile,v 1.10 2016/03/22 11:04:00 je Exp $
+# $Id: Makefile,v 1.11 2016/03/22 19:58:06 je Exp $
 
-MDL?=	${.CURDIR}/../src/mdl -n
+.ifndef MDL
+.  if exists(${.CURDIR}/../src/obj/mdl)
+MDL=	${.CURDIR}/../src/obj/mdl -n
+.  else
+MDL=	${.CURDIR}/../src/mdl -n
+.  endif
+.endif
 
 TEST_INPUTS=	t-big-jumps                        \
 		t-chord-joining                    \

@@ -1,4 +1,5 @@
 lex.c
 mdl
+obj
 parse.c
 y.tab.h
