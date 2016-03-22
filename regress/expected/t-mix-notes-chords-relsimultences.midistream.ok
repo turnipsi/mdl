@@ -1,0 +1,86 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.midistream  :   joining all music expressions
+mdl.interp.midistream  :   converting expression to a (flat) simultence
+mdl.interp.exprconv    :   handling musicexpr sequence:10:1,1:1,20 in flatsimultence conversion
+mdl.interp.exprconv    :     handling musicexpr absnote:0:1,1:1,2 in flatsimultence conversion
+mdl.interp.exprcloning :       cloning expression absnote:0:1,1:1,2
+mdl.interp.midistream  :         absnote:0:1,1:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :     handling musicexpr absnote:1:1,4:1,5 in flatsimultence conversion
+mdl.interp.exprcloning :       cloning expression absnote:1:1,4:1,5
+mdl.interp.midistream  :         absnote:1:1,4:1,5 notesym=2 note=64 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :     handling musicexpr scaledexpr:5:1,7:1,11 in flatsimultence conversion
+mdl.interp.exprconv    :       scaling musicexpr simultence:4:1,8:1,10 to target length 0.125
+mdl.interp.exprcloning :         cloning expression simultence:4:1,8:1,10
+mdl.interp.midistream  :           simultence:4:1,8:1,10
+mdl.interp.midistream  :             absnote:2:1,8:1,8 notesym=3 note=65 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :             absnote:3:1,10:1,10 notesym=5 note=69 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :           cloning expression absnote:2:1,8:1,8
+mdl.interp.midistream  :             absnote:2:1,8:1,8 notesym=3 note=65 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :           cloning expression absnote:3:1,10:1,10
+mdl.interp.midistream  :             absnote:3:1,10:1,10 notesym=5 note=69 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :       handling musicexpr simultence:4:1,8:1,10 in flatsimultence conversion
+mdl.interp.exprconv    :         handling musicexpr absnote:2:1,8:1,8 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:2:1,8:1,8
+mdl.interp.midistream  :             absnote:2:1,8:1,8 notesym=3 note=65 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:3:1,10:1,10 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:3:1,10:1,10
+mdl.interp.midistream  :             absnote:3:1,10:1,10 notesym=5 note=69 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :     cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :       absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:6:1,13:1,14 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :             absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:6:1,13:1,14 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :             absnote:6:1,13:1,14 notesym=2 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:6:1,13:1,14 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:6:1,13:1,14
+mdl.interp.midistream  :             absnote:6:1,13:1,14 notesym=2 note=71 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :     cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :       absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:8:1,18:1,18 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :             absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:8:1,18:1,18 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :             absnote:8:1,18:1,18 notesym=1 note=66 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprcloning :       cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         handling musicexpr absnote:8:1,18:1,18 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:8:1,18:1,18
+mdl.interp.midistream  :             absnote:8:1,18:1,18 notesym=1 note=69 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :   making offset expression stream
+mdl.interp.midistream  :   offset expression stream to midi events
+mdl.interp.midistream  :       adding expression with offset 0.000 to trackmidievents
+mdl.interp.midistream  :         absnote:0:1,1:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.250 to trackmidievents
+mdl.interp.midistream  :         absnote:1:1,4:1,5 notesym=2 note=64 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.375 to trackmidievents
+mdl.interp.midistream  :         absnote:2:1,8:1,8 notesym=3 note=65 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.375 to trackmidievents
+mdl.interp.midistream  :         absnote:3:1,10:1,10 notesym=5 note=69 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :         absnote:6:1,13:1,14 notesym=2 note=71 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.750 to trackmidievents
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.750 to trackmidievents
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=66 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       adding expression with offset 0.750 to trackmidievents
+mdl.interp.midistream  :         absnote:8:1,18:1,18 notesym=1 note=69 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :   adding midievents to send queue:
+mdl.interp.midistream  : writing midi stream to sequencer
+mdl.interp.midistream  :   wrote 264 bytes to sequencer

@@ -1,24 +1,34 @@
-# $Id: Makefile,v 1.9 2016/03/22 10:42:13 je Exp $
+# $Id: Makefile,v 1.10 2016/03/22 11:04:00 je Exp $
 
 MDL?=	${.CURDIR}/../src/mdl -n
 
-TEST_INPUTS=	t-big-jumps                    \
-		t-chord-joining                \
-		t-chordmodifiers               \
-		t-chords-with-big-jumps        \
-		t-chords-with-variable-lengths \
-		t-empty                        \
-		t-join-notes                   \
-		t-join-notes-and-rests         \
-		t-length-changes               \
-		t-many-basic-lengths           \
-		t-notes-and-rests              \
-		t-rest                         \
-		t-simple-notes                 \
-		t-single-note                  \
-		t-some-extended-lengths        \
-		t-unjoinable-chords-joining    \
+TEST_INPUTS=	t-big-jumps                        \
+		t-chord-joining                    \
+		t-chordmodifiers                   \
+		t-chords-with-big-jumps            \
+		t-chords-with-variable-lengths     \
+		t-default-length                   \
+		t-empty                            \
+		t-join-chords                      \
+		t-join-chords-partially            \
+		t-join-note-and-chord              \
+		t-join-notes                       \
+		t-join-notes-and-rests             \
+		t-length-changes                   \
+		t-many-basic-lengths               \
+		t-mix-notes-and-chords             \
+		t-mix-notes-and-chords-with-jumps  \
+		t-mix-notes-chords-relsimultences  \
+		t-notes-and-rests                  \
+		t-rest                             \
+		t-simple-notes                     \
+		t-single-note                      \
+		t-some-extended-lengths            \
+		t-unjoinable-chords-joining        \
 		t-unjoinable-notes-joining
+
+# XXX t-join-chord-and-note
+# XXX t-join-notes-chords-relsimultences
 
 DEBUGOPTS=parsing relative midistream
 
