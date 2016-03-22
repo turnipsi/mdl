@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2016/03/22 10:30:42 je Exp $
+# $Id: Makefile,v 1.9 2016/03/22 10:42:13 je Exp $
 
 MDL?=	${.CURDIR}/../src/mdl -n
 
@@ -29,14 +29,14 @@ REGRESS_TARGETS=
   REGRESS_TARGETS+=${TEST_INPUT:S/$/.midistream/}
 .endfor
 
-.SUFFIXES: .in ${DEBUGOPTS:S/^/./}
+.SUFFIXES: .mdl ${DEBUGOPTS:S/^/./}
 
-# .in: input file
+# .mdl: input file
 # .${DEBUGOPT}.ok: desired result
 .for DEBUGOPT in ${DEBUGOPTS}
-  .in.${DEBUGOPT}:
+  .mdl.${DEBUGOPT}:
 	@echo $@
-	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.in > $@.log
+	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.mdl > $@.log
 	@cmp -s ${.CURDIR}/expected/$@.ok $@.log \
 		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.log; \
 		     false; }
