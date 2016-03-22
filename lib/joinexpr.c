@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.41 2016/03/18 21:21:28 je Exp $ */
+/* $Id: joinexpr.c,v 1.42 2016/03/22 10:30:44 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -441,6 +441,9 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 	sim_a = a->u.flatsimultence.me;
 	sim_b = b->u.flatsimultence.me;
 
+	assert(sim_a->me_type == ME_TYPE_SIMULTENCE);
+	assert(sim_b->me_type == ME_TYPE_SIMULTENCE);
+
 	/*
 	 * Join notes when we can.  This is inefficient with simultences
 	 * with lots of notes, but hopefully is not misused much.
@@ -491,10 +494,10 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 		}
 	}
 
-	TAILQ_FOREACH(q, &b->u.melist, tq)
+	TAILQ_FOREACH(q, &sim_b->u.melist, tq)
 		q->u.offsetexpr.offset += a->u.flatsimultence.length;
 
-	TAILQ_CONCAT(&a->u.melist, &b->u.melist, tq);
+	TAILQ_CONCAT(&sim_a->u.melist, &sim_b->u.melist, tq);
 
 	a->u.flatsimultence.length += b->u.flatsimultence.length;
 

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2016/03/21 21:20:44 je Exp $
+# $Id: Makefile,v 1.8 2016/03/22 10:30:42 je Exp $
 
 MDL?=	${.CURDIR}/../src/mdl -n
 
@@ -16,10 +16,9 @@ TEST_INPUTS=	t-big-jumps                    \
 		t-rest                         \
 		t-simple-notes                 \
 		t-single-note                  \
-		t-some-extended-lengths
-
-# XXX t-unjoinable-chords-joining
-# XXX t-unjoinable-notes-joining
+		t-some-extended-lengths        \
+		t-unjoinable-chords-joining    \
+		t-unjoinable-notes-joining
 
 DEBUGOPTS=parsing relative midistream
 
