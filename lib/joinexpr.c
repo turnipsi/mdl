@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.42 2016/03/22 10:30:44 je Exp $ */
+/* $Id: joinexpr.c,v 1.43 2016/03/23 19:48:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -123,7 +123,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 		return NULL;
 
 	if ((a_id = musicexpr_id_string(a)) != NULL) {
-		if ((b_id = musicexpr_id_string(a)) != NULL) {
+		if ((b_id = musicexpr_id_string(b)) != NULL) {
 			mdl_log(MDLLOG_JOINS, level,
 			    "joining expressions %s and %s\n",
 			    a_id, b_id);
@@ -297,7 +297,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 	}
 
 	if (tmp_a->me_type == ME_TYPE_FLATSIMULTENCE &&
-	    tmp_a->me_type == ME_TYPE_FLATSIMULTENCE) {
+	    tmp_b->me_type == ME_TYPE_FLATSIMULTENCE) {
 		tmp_me = join_flat_simultences(tmp_a, tmp_b, (level + 1));
 	} else {
 		tmp_me = join_two_musicexprs(tmp_a, tmp_b, level);

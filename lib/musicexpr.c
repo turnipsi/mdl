@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.84 2016/03/22 10:30:44 je Exp $ */
+/* $Id: musicexpr.c,v 1.85 2016/03/23 19:48:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -281,8 +281,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		if ((me_id1 = musicexpr_id_string(offsetexpr)) != NULL) {
 			if ((me_id2 = musicexpr_id_string(flatme)) != NULL) {
 				mdl_log(MDLLOG_EXPRCONV, level + 1,
-				    "adding expression %s to flatsimultence"
-				    " %s\n", me_id1, me_id2);
+				    "adding expression %s to %s\n", me_id1,
+				    me_id2);
 				free(me_id2);
 			}
 			free(me_id1);
@@ -403,7 +403,7 @@ musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 	float next_offset;
 	int ret;
 
-	next_offset = 0;
+	next_offset = 0.0;
 
 	flatme = musicexpr_new(ME_TYPE_FLATSIMULTENCE, textloc_zero());
 	if (flatme == NULL)
@@ -650,6 +650,12 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
 	case ME_TYPE_EMPTY:
 		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		break;
+	case ME_TYPE_FLATSIMULTENCE:
+		mdl_log(logtype, indentlevel, "%s%s length=%f\n",
+		    prefix, me_id, me->u.flatsimultence.length);
+		musicexpr_log(me->u.flatsimultence.me, logtype,
+		    (indentlevel + 1), prefix);
+		break;
 	case ME_TYPE_JOINEXPR:
 		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log(me->u.joinexpr.a, logtype, (indentlevel + 1),
@@ -680,6 +686,12 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
 			    old_tmpstring);
 			free(old_tmpstring);
 		}
+		break;
+	case ME_TYPE_OFFSETEXPR:
+		mdl_log(logtype, indentlevel, "%s%s offset=%.3f\n", prefix,
+		     me_id, me->u.offsetexpr.offset);
+		musicexpr_log(me->u.offsetexpr.me, logtype, (indentlevel + 1),
+		     prefix);
 		break;
 	case ME_TYPE_ONTRACK:
 		mdl_log(logtype, indentlevel, "%s%s track=%s\n", prefix,
@@ -720,12 +732,6 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int indentlevel,
 		mdl_log(logtype, indentlevel, "%s%s\n", prefix, me_id);
 		musicexpr_log_melist(me->u.melist, logtype, indentlevel,
 		    prefix);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		mdl_log(logtype, indentlevel, "%s%s offset=%.3f\n", prefix,
-		     me_id, me->u.offsetexpr.offset);
-		musicexpr_log(me->u.offsetexpr.me, logtype, (indentlevel + 1),
-		     prefix);
 		break;
 	default:
 		assert(0);
