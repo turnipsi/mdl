@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.20 2016/03/11 20:50:08 je Exp $ */
+/* $Id: util.h,v 1.21 2016/03/23 20:17:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,6 +30,7 @@ enum logtype {
 	MDLLOG_JOINS,
 	MDLLOG_MIDI,
 	MDLLOG_MIDISTREAM,
+	MDLLOG_MUSICEXPR,
 	MDLLOG_PARSING,
 	MDLLOG_PROCESS,
 	MDLLOG_RELATIVE,

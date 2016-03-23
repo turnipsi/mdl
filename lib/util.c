@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.23 2016/03/14 20:38:19 je Exp $ */
+/* $Id: util.c,v 1.24 2016/03/23 20:17:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,7 @@ static const char *logtype_strings[] = {
 	"joins",	/* MDLLOG_JOINS       */
 	"midi",		/* MDLLOG_MIDI        */
 	"midistream",	/* MDLLOG_MIDISTREAM  */
+	"musicexpr",	/* MDLLOG_MUSICEXPR   */
 	"parsing",	/* MDLLOG_PARSING     */
 	"process",	/* MDLLOG_PROCESS     */
 	"relative",	/* MDLLOG_RELATIVE    */
@@ -127,7 +128,8 @@ mdl_logging_setopts(char *optstring)
 		if (loglevel >= 4) {
 			logstate.opts |= (1 << MDLLOG_EXPRCLONING)
 			    | (1 << MDLLOG_EXPRCONV)
-			    | (1 << MDLLOG_JOINS);
+			    | (1 << MDLLOG_JOINS)
+			    | (1 << MDLLOG_MUSICEXPR);
 		}
 	}
 

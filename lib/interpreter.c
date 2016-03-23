@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.48 2016/03/15 21:17:55 je Exp $ */
+/* $Id: interpreter.c,v 1.49 2016/03/23 20:17:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -91,7 +91,7 @@ finish:
 	if (eventstream)
 		mdl_stream_free(eventstream);
 	if (parsed_expr)
-		musicexpr_free(parsed_expr);
+		musicexpr_free(parsed_expr, level);
 
 	return ret;
 }

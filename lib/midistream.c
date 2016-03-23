@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.21 2016/03/03 21:02:24 je Exp $ */
+/* $Id: midistream.c,v 1.22 2016/03/23 20:17:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -114,7 +114,7 @@ finish:
 	mdl_stream_free(offset_es);
 
 	if (flatme != NULL)
-		musicexpr_free(flatme);
+		musicexpr_free(flatme, level);
 
 	return midi_es;
 }

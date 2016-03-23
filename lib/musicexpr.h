@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.64 2016/03/18 21:21:28 je Exp $ */
+/* $Id: musicexpr.h,v 1.65 2016/03/23 20:17:25 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -172,18 +172,18 @@ struct musicexpr {
 };
 
 __BEGIN_DECLS
-void	musicexpr_free(struct musicexpr *);
+void	musicexpr_free(struct musicexpr *, int);
 void	musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
 
 struct musicexpr       *musicexpr_new(enum musicexpr_type,
-    struct textloc);
+    struct textloc, int);
 struct musicexpr       *musicexpr_clone(struct musicexpr *, int);
-struct musicexpr       *musicexpr_sequence(struct musicexpr *, ...);
+struct musicexpr       *musicexpr_sequence(int, struct musicexpr *, ...);
 struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);
 struct musicexpr       *musicexpr_to_flat_simultence(struct musicexpr *, int);
 struct musicexpr       *musicexpr_scaledexpr_unscale(struct scaledexpr *, int);
 char		       *musicexpr_id_string(const struct musicexpr *);
-void			musicexpr_free_melist(struct melist);
+void			musicexpr_free_melist(struct melist, int);
 void			free_melist(struct musicexpr *);
 void			musicexpr_copy(struct musicexpr *, struct musicexpr *);
 void			musicexpr_apply_noteoffset(struct musicexpr *, int,
