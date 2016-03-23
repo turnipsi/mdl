@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.86 2016/03/23 20:17:25 je Exp $ */
+/* $Id: musicexpr.c,v 1.87 2016/03/23 21:11:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -251,7 +251,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 {
 	struct musicexpr *cloned, *noteoffsetexpr, *offsetexpr, *p;
 	struct musicexpr *scaled_me, *subexpr;
-	float end_offset, new_next_offset, old_offset;
+	float new_next_offset, old_offset;
 	size_t i;
 	int noteoffset, ret;
 	char *me_id1, *me_id2;
@@ -297,10 +297,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		TAILQ_INSERT_TAIL(&flatme->u.flatsimultence.me->u.melist,
 		    offsetexpr, tq);
 
-		end_offset = *next_offset + cloned->u.absnote.length;
-		flatme->u.flatsimultence.length = MAX(end_offset,
-		    flatme->u.flatsimultence.length);
-		*next_offset = end_offset;
+		*next_offset += cloned->u.absnote.length;
 		break;
         case ME_TYPE_CHORD:
 		noteoffsetexpr = chord_to_noteoffsetexpr(me->u.chord, level);
@@ -317,11 +314,9 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		break;
         case ME_TYPE_FLATSIMULTENCE:
 		ret = add_musicexpr_to_flat_simultence(flatme,
-		    me->u.flatsimultence.me, next_offset, level);
+		    me->u.flatsimultence.me, next_offset, (level + 1));
 		if (ret != 0)
 			return ret;
-		flatme->u.flatsimultence.length += me->u.flatsimultence.length;
-		*next_offset = flatme->u.flatsimultence.length;
 		break;
         case ME_TYPE_NOTEOFFSETEXPR:
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
@@ -355,10 +350,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 			return ret;
 		break;
         case ME_TYPE_REST:
-		end_offset = *next_offset + me->u.rest.length;
-		flatme->u.flatsimultence.length = MAX(end_offset,
-		    flatme->u.flatsimultence.length);
-		*next_offset = end_offset;
+		*next_offset += me->u.rest.length;
 		break;
         case ME_TYPE_SCALEDEXPR:
 		scaled_me = musicexpr_scaledexpr_unscale(&me->u.scaledexpr,
@@ -394,6 +386,9 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	default:
 		assert(0);
 	}
+
+	flatme->u.flatsimultence.length = MAX(flatme->u.flatsimultence.length,
+	    *next_offset);
 
 	level--;
 
