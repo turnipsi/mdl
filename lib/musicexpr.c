@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.87 2016/03/23 21:11:30 je Exp $ */
+/* $Id: musicexpr.c,v 1.88 2016/03/24 05:26:41 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -317,6 +317,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		    me->u.flatsimultence.me, next_offset, (level + 1));
 		if (ret != 0)
 			return ret;
+		*next_offset = MAX(*next_offset,
+		    (old_offset + me->u.flatsimultence.length));
 		break;
         case ME_TYPE_NOTEOFFSETEXPR:
 		for (i = 0; i < me->u.noteoffsetexpr.count; i++) {
