@@ -1,0 +1,21 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.midistream  :   joining all music expressions
+mdl.interp.midistream  :   converting expression to a (flat) simultence
+mdl.interp.exprconv    :   handling musicexpr sequence:4:1,2:1,18 in flatsimultence conversion
+mdl.interp.exprconv    :     handling musicexpr ontrack:3:1,2:1,18 in flatsimultence conversion
+mdl.interp.exprconv    :       handling musicexpr sequence:2:1,15:1,18 in flatsimultence conversion
+mdl.interp.exprconv    :         handling musicexpr absnote:0:1,15:1,16 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:0:1,15:1,16
+mdl.interp.midistream  :             absnote:0:1,15:1,16 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.exprconv    :         handling musicexpr absnote:1:1,18:1,18 in flatsimultence conversion
+mdl.interp.exprcloning :           cloning expression absnote:1:1,18:1,18
+mdl.interp.midistream  :             absnote:1:1,18:1,18 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.midistream  :   making offset expression stream
+mdl.interp.midistream  :   offset expression stream to midi events
+mdl.interp.midistream  :       adding expression with offset 0.000 to trackmidievents
+mdl.interp.midistream  :         absnote:0:1,15:1,16 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.midistream  :       adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :         absnote:1:1,18:1,18 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.midistream  :   adding midievents to send queue:
+mdl.interp.midistream  : writing midi stream to sequencer
+mdl.interp.midistream  :   wrote 72 bytes to sequencer

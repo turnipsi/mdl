@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2016/03/23 21:11:26 je Exp $
+# $Id: Makefile,v 1.13 2016/03/24 20:44:12 je Exp $
 
 .ifndef MDL
 .  if exists(${.CURDIR}/../src/obj/mdl)
@@ -28,12 +28,19 @@ TEST_INPUTS=	t-big-jumps                        \
 		t-mix-notes-and-chords-with-jumps  \
 		t-mix-notes-chords-relsimultences  \
 		t-notes-and-rests                  \
+		t-relsimultences                   \
 		t-rest                             \
 		t-simple-notes                     \
+		t-simultence-with-subexpressions   \
 		t-single-note                      \
 		t-some-extended-lengths            \
+		t-subsequence                      \
+		t-subsimultence                    \
+		t-track-with-expression            \
 		t-unjoinable-chords-joining        \
 		t-unjoinable-notes-joining
+
+# XXX t-join-relsimultences
 
 DEBUGOPTS=parsing relative midistream
 

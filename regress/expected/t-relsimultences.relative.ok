@@ -1,0 +1,43 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.relative    :   converting relative expression to absolute
+mdl.interp.relative    :     rel->abs for expression sequence:20:1,1:1,33
+mdl.interp.relative    :       rel->abs for expression relsimultence:4:1,1:1,8
+mdl.interp.relative    :         rel->abs for expression relnote:0:1,2:1,2
+mdl.interp.relative    :           relnote:0:1,2:1,2 notesym=0 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:0:1,2:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:1:1,4:1,4
+mdl.interp.relative    :           relnote:1:1,4:1,4 notesym=3 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:1:1,4:1,4 notesym=3 note=65 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:2:1,6:1,6
+mdl.interp.relative    :           relnote:2:1,6:1,6 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:2:1,6:1,6 notesym=4 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :       rel->abs for expression relsimultence:9:1,10:1,16
+mdl.interp.relative    :         rel->abs for expression relnote:5:1,11:1,11
+mdl.interp.relative    :           relnote:5:1,11:1,11 notesym=2 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:5:1,11:1,11 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:6:1,13:1,13
+mdl.interp.relative    :           relnote:6:1,13:1,13 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:6:1,13:1,13 notesym=4 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:7:1,15:1,15
+mdl.interp.relative    :           relnote:7:1,15:1,15 notesym=5 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:7:1,15:1,15 notesym=5 note=69 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :       rel->abs for expression relsimultence:14:1,18:1,25
+mdl.interp.relative    :         rel->abs for expression relnote:10:1,19:1,19
+mdl.interp.relative    :           relnote:10:1,19:1,19 notesym=3 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:10:1,19:1,19 notesym=3 note=65 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:11:1,21:1,21
+mdl.interp.relative    :           relnote:11:1,21:1,21 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:11:1,21:1,21 notesym=4 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:12:1,23:1,23
+mdl.interp.relative    :           relnote:12:1,23:1,23 notesym=0 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:12:1,23:1,23 notesym=0 note=72 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :       rel->abs for expression relsimultence:19:1,27:1,33
+mdl.interp.relative    :         rel->abs for expression relnote:15:1,28:1,28
+mdl.interp.relative    :           relnote:15:1,28:1,28 notesym=3 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:15:1,28:1,28 notesym=3 note=65 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:16:1,30:1,30
+mdl.interp.relative    :           relnote:16:1,30:1,30 notesym=5 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:16:1,30:1,30 notesym=5 note=69 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression relnote:17:1,32:1,32
+mdl.interp.relative    :           relnote:17:1,32:1,32 notesym=0 notemods=0 length=0.000 octavemods=0
+mdl.interp.relative    :             --> absnote:17:1,32:1,32 notesym=0 note=72 length=0.125 instrument="acoustic grand" track="acoustic grand"
