@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.44 2016/03/23 20:17:25 je Exp $ */
+/* $Id: joinexpr.c,v 1.45 2016/03/25 20:48:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -298,6 +298,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 
 	if (tmp_a->me_type == ME_TYPE_FLATSIMULTENCE &&
 	    tmp_b->me_type == ME_TYPE_FLATSIMULTENCE) {
+		mdl_log(MDLLOG_JOINS, level, "joining two flat simultences\n");
 		tmp_me = join_flat_simultences(tmp_a, tmp_b, (level + 1));
 	} else {
 		tmp_me = join_two_musicexprs(tmp_a, tmp_b, level);
@@ -490,7 +491,7 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 			p_me->me->u.absnote.length +=
 			    q_me->me->u.absnote.length;
 
-			TAILQ_REMOVE(&b->u.melist, q, tq);
+			TAILQ_REMOVE(&sim_b->u.melist, q, tq);
 			musicexpr_free(q, level);
 		}
 	}
