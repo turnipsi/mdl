@@ -1,4 +1,4 @@
-mdl.interp.parsing     : parse ok, got parse result:
+mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:6:1,1:1,12
 mdl.interp.parsing     :     relnote:0:1,1:1,2 notesym=0 notemods=0 length=0.250 octavemods=0
 mdl.interp.parsing     :     chord:2:1,4:1,6

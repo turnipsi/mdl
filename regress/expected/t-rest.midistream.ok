@@ -1,8 +1,9 @@
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.midistream  :   joining all music expressions
-mdl.interp.midistream  :   converting expression to a (flat) simultence
-mdl.interp.midistream  :   making offset expression stream
+mdl.interp.midistream  : joining music expressions
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events
-mdl.interp.midistream  :   adding midievents to send queue:
+mdl.interp.midistream  : adding midievents to send queue:
+mdl.interp.midistream  :   sending to sequencer song end time=0.250
 mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   wrote 12 bytes to sequencer

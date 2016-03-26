@@ -1,4 +1,4 @@
-mdl.interp.parsing     : parse ok, got parse result:
+mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:5:1,1:1,13
 mdl.interp.parsing     :     joinexpr:4:1,1:1,13
 mdl.interp.parsing     :       joinexpr:2:1,1:1,8

@@ -1,4 +1,4 @@
-mdl.interp.parsing     : parse ok, got parse result:
+mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:4:1,2:1,18
 mdl.interp.parsing     :     ontrack:3:1,2:1,18 track=violin
 mdl.interp.parsing     :       sequence:2:1,15:1,18

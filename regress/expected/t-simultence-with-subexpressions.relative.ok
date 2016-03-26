@@ -1,5 +1,5 @@
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.relative    :   converting relative expression to absolute
+mdl.interp.relative    :   converting relative expressions to absolute
 mdl.interp.relative    :     rel->abs for expression sequence:16:2,6:4,15
 mdl.interp.relative    :       rel->abs for expression simultence:15:2,6:4,15
 mdl.interp.relative    :         rel->abs for expression sequence:4:2,6:2,15

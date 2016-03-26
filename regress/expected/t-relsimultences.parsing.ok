@@ -1,4 +1,4 @@
-mdl.interp.parsing     : parse ok, got parse result:
+mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:20:1,1:1,33
 mdl.interp.parsing     :     relsimultence:4:1,1:1,8 length=0.250
 mdl.interp.parsing     :       simultence:3:1,2:1,6
