@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.22 2016/03/23 20:17:25 je Exp $ */
+/* $Id: midistream.c,v 1.23 2016/03/26 20:20:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -69,7 +69,7 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	song = mdl_song_new(me, level + 1);
+	song = mdl_song_new(me, level+1);
 	if (song == NULL) {
 		warnx("could not create a new song");
 		mdl_stream_free(offset_es);
@@ -80,26 +80,24 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 	 * First convert relative->absolute,
 	 * joinexpr_musicexpr() can not handle relative expressions.
 	 */
-	musicexpr_relative_to_absolute(song, me, level + 1);
+	musicexpr_relative_to_absolute(song, me, level+1);
 
-	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
-	    "joining all music expressions\n");
-	if (joinexpr_musicexpr(me, level + 1) != 0) {
+	mdl_log(MDLLOG_MIDISTREAM, level, "joining music expressions\n");
+	if (joinexpr_musicexpr(me, level+1) != 0) {
 		warnx("error occurred in joining music expressions");
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
+	mdl_log(MDLLOG_MIDISTREAM, level,
 	    "converting expression to a (flat) simultence\n");
-	flatme = musicexpr_to_flat_simultence(me, level + 1);
+	flatme = musicexpr_to_flat_simultence(me, level+1);
 	if (flatme == NULL) {
 		warnx("Could not flatten music expression to create offset"
 		    " expression stream");
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
-	    "making offset expression stream\n");
+	mdl_log(MDLLOG_MIDISTREAM, level, "making offset expression stream\n");
 	TAILQ_FOREACH(p, &flatme->u.flatsimultence.me->u.melist, tq) {
 		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		offset_es->mexprs[ offset_es->count ] = p->u.offsetexpr;
@@ -108,7 +106,7 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 	}
 
 	midi_es = offsetexprstream_to_midievents(offset_es,
-	    flatme->u.flatsimultence.length, (level + 1));
+	    flatme->u.flatsimultence.length, level);
 
 finish:
 	mdl_stream_free(offset_es);
@@ -123,6 +121,11 @@ ssize_t
 midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
 {
 	ssize_t nw, total_wcount, wsize;
+
+	mdl_log(MDLLOG_MIDISTREAM, level,
+	    "writing midi stream to sequencer\n");
+
+	level += 1;
 
 	if ((SSIZE_MAX / sizeof(struct midievent)) < s->count) {
 		warnx("midistream size overflow, not writing anything");
@@ -180,7 +183,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 	size_t i;
 	int ret;
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	mdl_log(MDLLOG_MIDISTREAM, level+1,
 	    "offset expression stream to midi events\n");
 
 	midi_es = NULL;
@@ -195,7 +198,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 		timeoffset = offsetexpr.offset;
 
 		ret = add_musicexpr_to_trackmidievents(trackmidi_es, me,
-		    timeoffset, (level + 1));
+		    timeoffset, level+2);
 		if (ret != 0)
 			goto error;
 	}
@@ -254,6 +257,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding midievents to send queue:\n");
 
+	level += 1;
+
 	for (i = 0; i < trackmidi_es->count; i++) {
 		tmn = trackmidi_es->trackmidinotes[i];
 
@@ -280,7 +285,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 			midievent->time_as_measures = tmn.time_as_measures;
 			midievent->u.note = tmn.note;
 
-			midievent_log("sending", midievent, level + 1);
+			midievent_log(MDLLOG_MIDISTREAM,
+			    "sending to sequencer", midievent, level);
 
 			ret = mdl_stream_increment(midi_es);
 			if (ret != 0)
@@ -321,8 +327,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 				midievent->u.instrument_change.code =
 				    tmn.instrument->code;
 
-				midievent_log("sending", midievent,
-				    (level + 1));
+				midievent_log(MDLLOG_MIDISTREAM,
+				    "sending to sequencer", midievent, level);
 
 				ret = mdl_stream_increment(midi_es);
 				if (ret != 0)
@@ -337,7 +343,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 			midievent->time_as_measures = tmn.time_as_measures;
 			midievent->u.note = tmn.note;
 
-			midievent_log("sending", midievent, level + 1);
+			midievent_log(MDLLOG_MIDISTREAM,
+			    "sending to sequencer", midievent, level);
 
 			ret = mdl_stream_increment(midi_es);
 			if (ret != 0)
@@ -361,7 +368,8 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	midievent->eventtype = SONG_END;
 	midievent->time_as_measures = song_length;
 
-	midievent_log("sending", midievent, level + 1);
+	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
+	    level);
 
 	ret = mdl_stream_increment(midi_es);
 	if (ret != 0)
@@ -381,10 +389,12 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	struct trackmidinote *tmnote;
 	int ret, new_note;
 
-	mdl_log(MDLLOG_MIDISTREAM, (level + 1),
+	mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding expression with offset %.3f to trackmidievents\n",
 	    timeoffset);
-	musicexpr_log(me, 4, (level + 2), NULL);
+	musicexpr_log(me, 4, level+1, NULL);
+
+	level += 1;
 
 	/*
 	 * XXX What about ME_TYPE_REST, that might almost be currently

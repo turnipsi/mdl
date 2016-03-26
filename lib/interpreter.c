@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.49 2016/03/23 20:17:25 je Exp $ */
+/* $Id: interpreter.c,v 1.50 2016/03/26 20:20:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -70,8 +70,8 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 	 * and available for us now.
 	 */
 
-	mdl_log(MDLLOG_PARSING, level, "parse ok, got parse result:\n");
-	musicexpr_log(parsed_expr, MDLLOG_PARSING, (level + 1), NULL);
+	mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
+	musicexpr_log(parsed_expr, MDLLOG_PARSING, level+1, NULL);
 
 	eventstream = musicexpr_to_midievents(parsed_expr, level);
 	if (eventstream == NULL) {
@@ -80,10 +80,7 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
-	    "writing midi stream to sequencer\n");
-	wcount = midi_write_midistream(sequencer_socket, eventstream,
-	    level + 1);
+	wcount = midi_write_midistream(sequencer_socket, eventstream, level);
 	if (wcount == -1)
 		ret = 1;
 

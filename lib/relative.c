@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.14 2016/03/14 20:35:55 je Exp $ */
+/* $Id: relative.c,v 1.15 2016/03/26 20:20:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -45,7 +45,9 @@ musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	struct instrument *instrument;
 
 	mdl_log(MDLLOG_RELATIVE, level,
-	    "converting relative expression to absolute\n");
+	    "converting relative expressions to absolute\n");
+
+	level += 1;
 
 	/* Set default values for the first absolute note. */
 	instrument = track_get_default_instrument(song->default_track);
@@ -65,7 +67,7 @@ musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	/* Set default value for the first chordtype. */
 	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
 
-	relative_to_absolute(me, &prev_relative_exprs, level + 1);
+	relative_to_absolute(me, &prev_relative_exprs, level);
 }
 
 static void
@@ -90,13 +92,15 @@ relative_to_absolute(struct musicexpr *me,
 		free(me_id);
 	}
 
+	level += 1;
+
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 		/* Pass as is, but this affects previous absnote. */
 		prev_exprs->absnote = me->u.absnote;
 		break;
 	case ME_TYPE_CHORD:
-		relative_to_absolute(me->u.chord.me, prev_exprs, level + 1);
+		relative_to_absolute(me->u.chord.me, prev_exprs, level);
 		if (me->u.chord.chordtype == CHORDTYPE_NONE)
 			me->u.chord.chordtype = prev_exprs->chordtype;
 		prev_exprs->chordtype = me->u.chord.chordtype;
@@ -104,12 +108,11 @@ relative_to_absolute(struct musicexpr *me,
 	case ME_TYPE_EMPTY:
 		break;
 	case ME_TYPE_JOINEXPR:
-		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level + 1);
-		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level + 1);
+		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level);
+		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level);
 		break;
 	case ME_TYPE_OFFSETEXPR:
-		relative_to_absolute(me->u.offsetexpr.me, prev_exprs,
-		    (level + 1));
+		relative_to_absolute(me->u.offsetexpr.me, prev_exprs, level);
 		break;
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
@@ -117,11 +120,11 @@ relative_to_absolute(struct musicexpr *me,
 		instrument = track_get_default_instrument(me->u.ontrack.track);
 		if (instrument != NULL)
 			prev_exprs->absnote.instrument = instrument;
-		relative_to_absolute(me->u.ontrack.me, prev_exprs, level + 1);
+		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_RELNOTE:
-		musicexpr_log(me, MDLLOG_RELATIVE, level + 1, NULL);
+		musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		relnote = me->u.relnote;
 
@@ -155,7 +158,7 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_REST:
-		musicexpr_log(me, MDLLOG_RELATIVE, (level + 1), NULL);
+		musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		if (me->u.rest.length == 0) {
 			me->u.rest.length = prev_exprs->absnote.length;
@@ -182,7 +185,7 @@ relative_to_absolute(struct musicexpr *me,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, (level + 1));
+			relative_to_absolute(p, prev_exprs, level);
 			if (!first_note_seen)
 				prev_exprs_copy = *prev_exprs;
 			first_note_seen = 1;
@@ -200,8 +203,7 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_SCALEDEXPR:
-		relative_to_absolute(me->u.scaledexpr.me, prev_exprs,
-		    (level + 1));
+		relative_to_absolute(me->u.scaledexpr.me, prev_exprs, level);
 		break;
 	case ME_TYPE_SEQUENCE:
 		/*
@@ -211,7 +213,7 @@ relative_to_absolute(struct musicexpr *me,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level + 1);
+			relative_to_absolute(p, prev_exprs, level);
 			if (!first_note_seen)
 				prev_exprs_copy = *prev_exprs;
 			first_note_seen = 1;
@@ -227,7 +229,7 @@ relative_to_absolute(struct musicexpr *me,
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
-			relative_to_absolute(p, &prev_exprs_copy, (level + 1));
+			relative_to_absolute(p, &prev_exprs_copy, level);
 		}
 		*prev_exprs = prev_exprs_copy;
 		break;
@@ -237,7 +239,7 @@ relative_to_absolute(struct musicexpr *me,
 	}
 
 	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)
-		musicexpr_log(me, MDLLOG_RELATIVE, level + 2, "--> ");
+		musicexpr_log(me, MDLLOG_RELATIVE, level+1, "--> ");
 }
 
 /*

@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.24 2016/03/23 20:17:25 je Exp $ */
+/* $Id: util.c,v 1.25 2016/03/26 20:20:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -162,7 +162,7 @@ mdl_logging_close(void)
 }
 
 void
-mdl_log(enum logtype logtype, int indentlevel, const char *fmt, ...)
+mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 {
 	va_list va;
 	int padding_length, ret, i;
@@ -170,34 +170,34 @@ mdl_log(enum logtype logtype, int indentlevel, const char *fmt, ...)
 	assert(logstate.initialized);
 
 	assert(logtype < MDLLOG_TYPECOUNT);
-	assert(indentlevel >= 0);
+	assert(level >= 0);
 
-	if (indentlevel >= INDENTLEVELS) {
+	if (level >= INDENTLEVELS) {
 		warnx("maximum indentlevel reached: %d (maximum is %d)",
-		    indentlevel, INDENTLEVELS);
+		    level, INDENTLEVELS);
 		return;
 	}
 
-	if (logstate.messages[indentlevel].msg != NULL) {
-		free(logstate.messages[indentlevel].msg);
-		logstate.messages[indentlevel].msg = NULL;
+	if (logstate.messages[level].msg != NULL) {
+		free(logstate.messages[level].msg);
+		logstate.messages[level].msg = NULL;
 	}
 
 	va_start(va, fmt);
-	ret = vasprintf(&logstate.messages[indentlevel].msg, fmt, va);
+	ret = vasprintf(&logstate.messages[level].msg, fmt, va);
 	va_end(va);
 	if (ret == -1) {
 		warnx("vasprintf error in mdl_log");
-		logstate.messages[indentlevel].msg = NULL;
+		logstate.messages[level].msg = NULL;
 		return;
 	}
 
-	logstate.messages[indentlevel].type = logtype;
+	logstate.messages[level].type = logtype;
 
 	if (((1 << logtype) & logstate.opts) == 0)
 		return;
 
-	for (i = 0; i <= indentlevel; i++) {
+	for (i = 0; i <= level; i++) {
 		if (logstate.messages[i].msg != NULL) {
 			padding_length = sizeof("exprcloning") +
 			    sizeof("interp") - strlen(mdl_process_type) - 1;

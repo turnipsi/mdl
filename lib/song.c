@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.7 2016/02/24 20:29:08 je Exp $ */
+/* $Id: song.c,v 1.8 2016/03/26 20:20:49 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -73,6 +73,8 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 
 	ret = 0;
 
+	level += 1;
+
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_EMPTY:
@@ -80,23 +82,20 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 	case ME_TYPE_REST:
 		break;
 	case ME_TYPE_CHORD:
-		ret = connect_tracks_to_song(song, me->u.chord.me, level + 1);
+		ret = connect_tracks_to_song(song, me->u.chord.me, level);
 		break;
 	case ME_TYPE_JOINEXPR:
-		ret = connect_tracks_to_song(song, me->u.joinexpr.a,
-		    (level + 1));
+		ret = connect_tracks_to_song(song, me->u.joinexpr.a, level);
 		if (ret != 0)
 			break;
-		ret = connect_tracks_to_song(song, me->u.joinexpr.b,
-		    (level + 1));
+		ret = connect_tracks_to_song(song, me->u.joinexpr.b, level);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
 		ret = connect_tracks_to_song(song, me->u.noteoffsetexpr.me,
-		    (level + 1));
+		    level);
 		break;
 	case ME_TYPE_OFFSETEXPR:
-		ret = connect_tracks_to_song(song, me->u.offsetexpr.me,
-		    (level + 1));
+		ret = connect_tracks_to_song(song, me->u.offsetexpr.me, level);
 		break;
 	case ME_TYPE_ONTRACK:
 		tmp_track = me->u.ontrack.track;
@@ -109,18 +108,16 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 		me->u.ontrack.track = track;
 		free(tmp_track->name);
 		free(tmp_track);
-		ret = connect_tracks_to_song(song, me->u.ontrack.me,
-		    (level + 1));
+		ret = connect_tracks_to_song(song, me->u.ontrack.me, level);
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 	case ME_TYPE_SCALEDEXPR:
-		ret = connect_tracks_to_song(song, me->u.scaledexpr.me,
-		    (level + 1));
+		ret = connect_tracks_to_song(song, me->u.scaledexpr.me, level);
 		break;
 	case ME_TYPE_SEQUENCE:
 	case ME_TYPE_SIMULTENCE:
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			ret = connect_tracks_to_song(song, p, level + 1);
+			ret = connect_tracks_to_song(song, p, level);
 			if (ret != 0)
 				break;
 		}
@@ -170,7 +167,7 @@ mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 
 	SLIST_INSERT_HEAD(&song->tracklist, track, sl);
 
-	mdl_log(MDLLOG_SONG, level, "added a new track %s\n", track->name);
+	mdl_log(MDLLOG_SONG, level, "added a new track \"%s\"\n", track->name);
 
 	return track;
 }
