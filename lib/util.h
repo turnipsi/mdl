@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.22 2016/03/27 08:41:10 je Exp $ */
+/* $Id: util.h,v 1.23 2016/03/27 20:56:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,7 +24,9 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
+/* There should not be more than 32 different MDLLOG_* types. */
 enum logtype {
+	MDLLOG_CLOCK,
 	MDLLOG_EXPRCONV,
 	MDLLOG_JOINS,
 	MDLLOG_MIDI,
@@ -57,6 +59,7 @@ void	mdl_logging_init(void);
 void	mdl_logging_clear(void);
 int	mdl_logging_setopts(char *);
 void	mdl_logging_close(void);
+int	mdl_log_checkopt(enum logtype);
 
 struct mdl_stream      *mdl_stream_new(enum streamtype);
 int			mdl_stream_increment(struct mdl_stream *);

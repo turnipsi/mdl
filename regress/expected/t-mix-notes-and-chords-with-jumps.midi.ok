@@ -1,0 +1,34 @@
+mdl.seq.midi           : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midi           : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=0.250 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=0.250 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=0.250 channel=0 note=81 velocity=80
+mdl.seq.midi           : received noteon time=0.250 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=81 velocity=0
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteon time=0.500 channel=0 note=76 velocity=80
+mdl.seq.midi           : received noteoff time=0.750 channel=0 note=76 velocity=0
+mdl.seq.midi           : received noteon time=0.750 channel=0 note=72 velocity=80
+mdl.seq.midi           : received noteon time=0.750 channel=0 note=69 velocity=80
+mdl.seq.midi           : received noteon time=0.750 channel=0 note=65 velocity=80
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=69 velocity=0
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=65 velocity=0
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=72 velocity=0
+mdl.seq.midi           : received song end time=1.000
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=81 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=81 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=76 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=76 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=72 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=69 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=65 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=69 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=65 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=72 channel=0 velocity=0

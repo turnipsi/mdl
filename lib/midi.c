@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.19 2016/03/26 20:20:49 je Exp $ */
+/* $Id: midi.c,v 1.20 2016/03/27 20:56:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -143,12 +143,6 @@ midi_send_midievent(struct midievent *me, int dry_run)
 
 	midievent_size = 0;
 
-	if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
-		warn("could not get real time");
-		time.tv_sec = 0;
-		time.tv_nsec = 0;
-	}
-
 	switch (me->eventtype) {
 	case INSTRUMENT_CHANGE:
 		midievent_size = 2;
@@ -165,11 +159,18 @@ midi_send_midievent(struct midievent *me, int dry_run)
 		velocity = (me->eventtype == NOTEON) ? me->u.note.velocity : 0;
 
 		mdl_log(MDLLOG_MIDI, 0,
-		    "sending %s: notevalue=%d channel=%d"
-		    " velocity=%d clock=%d.%.0f\n",
+		    "sending %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->eventtype == NOTEON ? "noteon" : "noteoff"),
-		    me->u.note.note, me->u.note.channel, velocity,
-		    time.tv_sec, (time.tv_nsec / 1000000.0));
+		    me->u.note.note, me->u.note.channel, velocity);
+
+		if (mdl_log_checkopt(MDLLOG_CLOCK)) {
+			if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
+				warn("could not get real time");
+			} else {
+				mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
+		    		    time.tv_sec, (time.tv_nsec / 1000000.0));
+			}
+		}
 
 		midievent[0] = (u_int8_t) (eventbase + me->u.note.channel);
 		midievent[1] = me->u.note.note;

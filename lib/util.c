@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.26 2016/03/27 08:41:10 je Exp $ */
+/* $Id: util.c,v 1.27 2016/03/27 20:56:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,6 +44,7 @@ struct {
 } logstate = { 0, 0, {} };
 
 static const char *logtype_strings[] = {
+	"clock",	/* MDLLOG_CLOCK                  */
 	"exprconv",	/* MDLLOG_EXPRCONV               */
 	"joins",	/* MDLLOG_JOINS                  */
 	"midi",		/* MDLLOG_MIDI                   */
@@ -59,6 +60,8 @@ void
 mdl_logging_init(void)
 {
 	int i;
+
+	assert(MDLLOG_TYPECOUNT <= 32);
 
 	logstate.opts = 0;
 
@@ -125,7 +128,8 @@ mdl_logging_setopts(char *optstring)
 		}
 
 		if (loglevel >= 4) {
-			logstate.opts |= (1 << MDLLOG_EXPRCONV)
+			logstate.opts |= (1 << MDLLOG_CLOCK)
+			    | (1 << MDLLOG_EXPRCONV)
 			    | (1 << MDLLOG_JOINS)
 			    | (1 << MDLLOG_MM);
 		}
@@ -157,6 +161,14 @@ mdl_logging_close(void)
 
 	logstate.initialized = 0;
 	logstate.opts = 0;
+}
+
+int
+mdl_log_checkopt(enum logtype logtype)
+{
+	assert(logtype < MDLLOG_TYPECOUNT);
+
+	return (logstate.opts & (1 << logtype));
 }
 
 void

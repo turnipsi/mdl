@@ -1,0 +1,502 @@
+mdl.seq.midi           : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midi           : received noteon time=0.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=0.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=1.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=1.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=1.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=1.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=2.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=2.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteoff time=2.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteon time=2.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=2.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=2.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=3.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=3.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteoff time=3.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteon time=3.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=3.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=3.000 channel=0 note=68 velocity=80
+mdl.seq.midi           : received noteoff time=4.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=4.000 channel=0 note=68 velocity=0
+mdl.seq.midi           : received noteoff time=4.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=4.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=4.000 channel=0 note=66 velocity=80
+mdl.seq.midi           : received noteon time=4.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteoff time=5.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=5.000 channel=0 note=66 velocity=0
+mdl.seq.midi           : received noteoff time=5.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=5.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=5.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=5.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=5.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteoff time=6.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=6.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=6.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=6.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=6.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=6.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=6.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=6.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=7.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteoff time=7.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=7.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=7.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=7.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=7.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=7.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=7.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteoff time=8.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=8.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=8.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteoff time=8.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteon time=8.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=8.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=8.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=8.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteoff time=9.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=9.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=9.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=9.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=9.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=9.000 channel=0 note=69 velocity=80
+mdl.seq.midi           : received noteon time=9.000 channel=0 note=66 velocity=80
+mdl.seq.midi           : received noteon time=9.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteoff time=10.000 channel=0 note=69 velocity=0
+mdl.seq.midi           : received noteoff time=10.000 channel=0 note=66 velocity=0
+mdl.seq.midi           : received noteoff time=10.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=10.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=10.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=10.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=10.000 channel=0 note=68 velocity=80
+mdl.seq.midi           : received noteon time=10.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=11.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=11.000 channel=0 note=68 velocity=0
+mdl.seq.midi           : received noteoff time=11.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=11.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=11.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=11.000 channel=0 note=65 velocity=80
+mdl.seq.midi           : received noteon time=11.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=11.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=12.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=12.000 channel=0 note=65 velocity=0
+mdl.seq.midi           : received noteoff time=12.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=12.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=12.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=12.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=12.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=12.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteoff time=13.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteoff time=13.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=13.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=13.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=13.000 channel=0 note=69 velocity=80
+mdl.seq.midi           : received noteon time=13.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=13.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=13.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=14.000 channel=0 note=69 velocity=0
+mdl.seq.midi           : received noteoff time=14.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=14.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=14.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=14.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=14.000 channel=0 note=69 velocity=80
+mdl.seq.midi           : received noteon time=14.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=14.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=15.000 channel=0 note=69 velocity=0
+mdl.seq.midi           : received noteoff time=15.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=15.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=15.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=15.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=15.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=15.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=15.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=15.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=16.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=16.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=16.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=16.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=16.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=16.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=16.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=16.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=16.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=16.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteoff time=17.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=17.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=17.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteoff time=17.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=17.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteon time=17.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=17.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=17.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=17.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=17.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=18.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=18.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=18.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=18.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=18.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=18.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=19.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=19.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=20.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=20.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=21.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=81 velocity=80
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=21.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=81 velocity=0
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=22.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=81 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=22.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=81 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=23.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=81 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=71 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=23.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=81 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=71 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=24.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=81 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=77 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=74 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=70 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=63 velocity=80
+mdl.seq.midi           : received noteon time=24.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=81 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=77 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=74 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=70 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=63 velocity=0
+mdl.seq.midi           : received noteoff time=25.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=25.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=25.000 channel=0 note=62 velocity=80
+mdl.seq.midi           : received noteon time=25.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=26.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=26.000 channel=0 note=62 velocity=0
+mdl.seq.midi           : received noteoff time=26.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=26.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=26.000 channel=0 note=65 velocity=80
+mdl.seq.midi           : received noteon time=26.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=27.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=27.000 channel=0 note=65 velocity=0
+mdl.seq.midi           : received noteoff time=27.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=27.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=27.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=28.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=28.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=28.000 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteon time=28.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=29.000 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteoff time=29.000 channel=0 note=60 velocity=0
+mdl.seq.midi           : received song end time=29.000
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=68 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=68 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=66 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=66 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=69 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=66 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=69 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=66 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=68 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=68 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=65 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=65 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=69 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=69 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=69 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=69 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=81 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=81 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=81 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=81 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=81 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=71 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=81 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=71 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=64 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=81 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=77 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=74 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=70 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=63 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=81 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=77 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=74 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=70 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=63 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=62 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=62 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=65 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=65 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
+mdl.seq.midi           : sending noteon: notevalue=67 channel=0 velocity=80
+mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
+mdl.seq.midi           : sending noteoff: notevalue=67 channel=0 velocity=0
+mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
