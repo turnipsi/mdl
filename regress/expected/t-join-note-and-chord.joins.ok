@@ -1,0 +1,9 @@
+mdl.interp.midistream  : joining music expressions
+mdl.interp.joins       :   joining subexpressions in sequence:4:1,1:1,9
+mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,1:1,9
+mdl.interp.joins       :       joining expressions absnote:0:1,1:1,2 and chord:2:1,6:1,9
+mdl.interp.joins       :         converting chord to noteoffsetexpr
+mdl.interp.joins       :           joining expressions absnote:0:1,1:1,2 and noteoffsetexpr:5:0,0:0,0
+mdl.interp.joins       :             converting expressions to flat simultence
+mdl.interp.joins       :               joining two flat simultences
+mdl.interp.joins       :                 joining absnote expressions in simultence

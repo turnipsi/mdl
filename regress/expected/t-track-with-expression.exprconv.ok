@@ -1,0 +1,18 @@
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:4:1,2:1,18 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :       inspecting ontrack:3:1,2:1,18 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:2:1,15:1,18 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :           inspecting absnote:0:1,15:1,16 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:8:0,0:0,0 to flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:8:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :               absnote:7:1,15:1,16 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.exprconv    :             offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :           inspecting absnote:1:1,18:1,18 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:10:0,0:0,0 to flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:10:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :               absnote:9:1,18:1,18 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
+mdl.interp.exprconv    :             offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :           offset changed from 0.000000 to 1.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 1.000000
+mdl.interp.exprconv    :       offset changed from 0.000000 to 1.000000

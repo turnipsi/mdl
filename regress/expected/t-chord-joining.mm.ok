@@ -1,0 +1,123 @@
+mdl.interp.mm          : created relnote:0:1,1:1,3
+mdl.interp.mm          : created chord:1:1,1:1,5
+mdl.interp.mm          : created relnote:2:1,7:1,8
+mdl.interp.mm          : created chord:3:1,7:1,10
+mdl.interp.mm          : created relnote:4:1,17:1,17
+mdl.interp.mm          : created chord:5:1,17:1,19
+mdl.interp.mm          : created joinexpr:6:1,7:1,19
+mdl.interp.mm          : created relnote:7:1,21:1,23
+mdl.interp.mm          : created chord:8:1,21:1,25
+mdl.interp.mm          : created sequence:9:1,1:1,25
+mdl.interp.midistream  : joining music expressions
+mdl.interp.joins       :   joining subexpressions in sequence:9:1,1:1,25
+mdl.interp.joins       :     joining subexpressions in joinexpr:6:1,7:1,19
+mdl.interp.joins       :       joining expressions chord:3:1,7:1,10 and chord:5:1,17:1,19
+mdl.interp.joins       :         matched chords
+mdl.interp.mm          :           freeing musicexpr chord:5:1,17:1,19
+mdl.interp.mm          :             freeing musicexpr absnote:4:1,17:1,17
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:10:0,0:0,0
+mdl.interp.mm          :     created simultence:11:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:9:1,1:1,25 for flatsimultence:10:0,0:0,0
+mdl.interp.exprconv    :       inspecting chord:1:1,1:1,5 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :         created noteoffsetexpr:12:0,0:0,0
+mdl.interp.mm          :             created absnote:13:1,1:1,3
+mdl.interp.mm          :             cloning absnote:0:1,1:1,3 as absnote:13:1,1:1,3
+mdl.interp.exprconv    :         inspecting noteoffsetexpr:12:0,0:0,0 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :             created absnote:14:1,1:1,3
+mdl.interp.mm          :             cloning absnote:13:1,1:1,3 as absnote:14:1,1:1,3
+mdl.interp.exprconv    :           inspecting absnote:14:1,1:1,3 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:15:1,1:1,3
+mdl.interp.mm          :               cloning absnote:14:1,1:1,3 as absnote:15:1,1:1,3
+mdl.interp.mm          :             created offsetexpr:16:0,0:0,0
+mdl.interp.mm          :             created absnote:17:1,1:1,3
+mdl.interp.mm          :             cloning absnote:13:1,1:1,3 as absnote:17:1,1:1,3
+mdl.interp.exprconv    :           inspecting absnote:17:1,1:1,3 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:18:1,1:1,3
+mdl.interp.mm          :               cloning absnote:17:1,1:1,3 as absnote:18:1,1:1,3
+mdl.interp.mm          :             created offsetexpr:19:0,0:0,0
+mdl.interp.mm          :             created absnote:20:1,1:1,3
+mdl.interp.mm          :             cloning absnote:13:1,1:1,3 as absnote:20:1,1:1,3
+mdl.interp.exprconv    :           inspecting absnote:20:1,1:1,3 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:21:1,1:1,3
+mdl.interp.mm          :               cloning absnote:20:1,1:1,3 as absnote:21:1,1:1,3
+mdl.interp.mm          :             created offsetexpr:22:0,0:0,0
+mdl.interp.mm          :         freeing musicexpr noteoffsetexpr:12:0,0:0,0
+mdl.interp.mm          :           freeing musicexpr absnote:13:1,1:1,3
+mdl.interp.exprconv    :       inspecting chord:3:1,7:1,10 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :         created noteoffsetexpr:23:0,0:0,0
+mdl.interp.mm          :             created absnote:24:1,7:1,8
+mdl.interp.mm          :             cloning absnote:2:1,7:1,8 as absnote:24:1,7:1,8
+mdl.interp.exprconv    :         inspecting noteoffsetexpr:23:0,0:0,0 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :             created absnote:25:1,7:1,8
+mdl.interp.mm          :             cloning absnote:24:1,7:1,8 as absnote:25:1,7:1,8
+mdl.interp.exprconv    :           inspecting absnote:25:1,7:1,8 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:26:1,7:1,8
+mdl.interp.mm          :               cloning absnote:25:1,7:1,8 as absnote:26:1,7:1,8
+mdl.interp.mm          :             created offsetexpr:27:0,0:0,0
+mdl.interp.mm          :             created absnote:28:1,7:1,8
+mdl.interp.mm          :             cloning absnote:24:1,7:1,8 as absnote:28:1,7:1,8
+mdl.interp.exprconv    :           inspecting absnote:28:1,7:1,8 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:29:1,7:1,8
+mdl.interp.mm          :               cloning absnote:28:1,7:1,8 as absnote:29:1,7:1,8
+mdl.interp.mm          :             created offsetexpr:30:0,0:0,0
+mdl.interp.mm          :             created absnote:31:1,7:1,8
+mdl.interp.mm          :             cloning absnote:24:1,7:1,8 as absnote:31:1,7:1,8
+mdl.interp.exprconv    :           inspecting absnote:31:1,7:1,8 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:32:1,7:1,8
+mdl.interp.mm          :               cloning absnote:31:1,7:1,8 as absnote:32:1,7:1,8
+mdl.interp.mm          :             created offsetexpr:33:0,0:0,0
+mdl.interp.mm          :         freeing musicexpr noteoffsetexpr:23:0,0:0,0
+mdl.interp.mm          :           freeing musicexpr absnote:24:1,7:1,8
+mdl.interp.exprconv    :       inspecting chord:8:1,21:1,25 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :         created noteoffsetexpr:34:0,0:0,0
+mdl.interp.mm          :             created absnote:35:1,21:1,23
+mdl.interp.mm          :             cloning absnote:7:1,21:1,23 as absnote:35:1,21:1,23
+mdl.interp.exprconv    :         inspecting noteoffsetexpr:34:0,0:0,0 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :             created absnote:36:1,21:1,23
+mdl.interp.mm          :             cloning absnote:35:1,21:1,23 as absnote:36:1,21:1,23
+mdl.interp.exprconv    :           inspecting absnote:36:1,21:1,23 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:37:1,21:1,23
+mdl.interp.mm          :               cloning absnote:36:1,21:1,23 as absnote:37:1,21:1,23
+mdl.interp.mm          :             created offsetexpr:38:0,0:0,0
+mdl.interp.mm          :             created absnote:39:1,21:1,23
+mdl.interp.mm          :             cloning absnote:35:1,21:1,23 as absnote:39:1,21:1,23
+mdl.interp.exprconv    :           inspecting absnote:39:1,21:1,23 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:40:1,21:1,23
+mdl.interp.mm          :               cloning absnote:39:1,21:1,23 as absnote:40:1,21:1,23
+mdl.interp.mm          :             created offsetexpr:41:0,0:0,0
+mdl.interp.mm          :             created absnote:42:1,21:1,23
+mdl.interp.mm          :             cloning absnote:35:1,21:1,23 as absnote:42:1,21:1,23
+mdl.interp.exprconv    :           inspecting absnote:42:1,21:1,23 for flatsimultence:10:0,0:0,0
+mdl.interp.mm          :               created absnote:43:1,21:1,23
+mdl.interp.mm          :               cloning absnote:42:1,21:1,23 as absnote:43:1,21:1,23
+mdl.interp.mm          :             created offsetexpr:44:0,0:0,0
+mdl.interp.mm          :         freeing musicexpr noteoffsetexpr:34:0,0:0,0
+mdl.interp.mm          :           freeing musicexpr absnote:35:1,21:1,23
+mdl.interp.mm          : freeing musicexpr flatsimultence:10:0,0:0,0
+mdl.interp.mm          :   freeing musicexpr simultence:11:0,0:0,0
+mdl.interp.mm          :     freeing musicexpr offsetexpr:16:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:15:1,1:1,3
+mdl.interp.mm          :     freeing musicexpr offsetexpr:19:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:18:1,1:1,3
+mdl.interp.mm          :     freeing musicexpr offsetexpr:22:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:21:1,1:1,3
+mdl.interp.mm          :     freeing musicexpr offsetexpr:27:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:26:1,7:1,8
+mdl.interp.mm          :     freeing musicexpr offsetexpr:30:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:29:1,7:1,8
+mdl.interp.mm          :     freeing musicexpr offsetexpr:33:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:32:1,7:1,8
+mdl.interp.mm          :     freeing musicexpr offsetexpr:38:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:37:1,21:1,23
+mdl.interp.mm          :     freeing musicexpr offsetexpr:41:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:40:1,21:1,23
+mdl.interp.mm          :     freeing musicexpr offsetexpr:44:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:43:1,21:1,23
+mdl.interp.mm          : freeing musicexpr sequence:9:1,1:1,25
+mdl.interp.mm          :   freeing musicexpr chord:1:1,1:1,5
+mdl.interp.mm          :     freeing musicexpr absnote:0:1,1:1,3
+mdl.interp.mm          :   freeing musicexpr chord:3:1,7:1,10
+mdl.interp.mm          :     freeing musicexpr absnote:2:1,7:1,8
+mdl.interp.mm          :   freeing musicexpr chord:8:1,21:1,25
+mdl.interp.mm          :     freeing musicexpr absnote:7:1,21:1,23

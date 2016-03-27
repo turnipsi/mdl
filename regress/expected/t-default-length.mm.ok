@@ -1,0 +1,16 @@
+mdl.interp.mm          : created relnote:0:1,1:1,1
+mdl.interp.mm          : created sequence:1:1,1:1,1
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:2:0,0:0,0
+mdl.interp.mm          :     created simultence:3:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:1:1,1:1,1 for flatsimultence:2:0,0:0,0
+mdl.interp.exprconv    :       inspecting absnote:0:1,1:1,1 for flatsimultence:2:0,0:0,0
+mdl.interp.mm          :           created absnote:4:1,1:1,1
+mdl.interp.mm          :           cloning absnote:0:1,1:1,1 as absnote:4:1,1:1,1
+mdl.interp.mm          :         created offsetexpr:5:0,0:0,0
+mdl.interp.mm          : freeing musicexpr flatsimultence:2:0,0:0,0
+mdl.interp.mm          :   freeing musicexpr simultence:3:0,0:0,0
+mdl.interp.mm          :     freeing musicexpr offsetexpr:5:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:4:1,1:1,1
+mdl.interp.mm          : freeing musicexpr sequence:1:1,1:1,1
+mdl.interp.mm          :   freeing musicexpr absnote:0:1,1:1,1

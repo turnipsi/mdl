@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.14 2016/03/25 20:48:33 je Exp $
+# $Id: Makefile,v 1.15 2016/03/27 20:37:09 je Exp $
 
 .ifndef MDL
 .  if exists(${.CURDIR}/../src/obj/mdl)
@@ -42,13 +42,18 @@ TEST_INPUTS=	t-big-jumps                        \
 		t-unjoinable-notes-joining
 
 
-DEBUGOPTS=parsing relative midistream
+# DEBUGOPTS=exprconv joins midi midistream mm parsing relative song
+DEBUGOPTS=exprconv joins midistream mm parsing relative song
 
 REGRESS_TARGETS=
 .for TEST_INPUT in ${TEST_INPUTS}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.exprconv/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.joins/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.midistream/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.mm/}
   REGRESS_TARGETS+=${TEST_INPUT:S/$/.parsing/}
   REGRESS_TARGETS+=${TEST_INPUT:S/$/.relative/}
-  REGRESS_TARGETS+=${TEST_INPUT:S/$/.midistream/}
+  REGRESS_TARGETS+=${TEST_INPUT:S/$/.song/}
 .endfor
 
 .SUFFIXES: .mdl ${DEBUGOPTS:S/^/./}

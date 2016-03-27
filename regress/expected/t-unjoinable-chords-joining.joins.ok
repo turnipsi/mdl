@@ -1,0 +1,11 @@
+mdl.interp.midistream  : joining music expressions
+mdl.interp.joins       :   joining subexpressions in sequence:5:1,1:1,10
+mdl.interp.joins       :     joining subexpressions in joinexpr:4:1,1:1,10
+mdl.interp.joins       :       joining expressions chord:1:1,1:1,4 and chord:3:1,8:1,10
+mdl.interp.joins       :         chords do not match
+mdl.interp.joins       :         converting chord to noteoffsetexpr
+mdl.interp.joins       :           joining expressions noteoffsetexpr:6:0,0:0,0 and noteoffsetexpr:8:0,0:0,0
+mdl.interp.joins       :             joining two noteoffsetexprs
+mdl.interp.joins       :               could not join noteoffexprs directly
+mdl.interp.joins       :             converting expressions to flat simultence
+mdl.interp.joins       :               joining two flat simultences

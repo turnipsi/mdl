@@ -1,0 +1,7 @@
+mdl.interp.mm          : created empty:0:0,0:0,0
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:1:0,0:0,0
+mdl.interp.mm          :     created simultence:2:0,0:0,0
+mdl.interp.mm          : freeing musicexpr flatsimultence:1:0,0:0,0
+mdl.interp.mm          :   freeing musicexpr simultence:2:0,0:0,0
+mdl.interp.mm          : freeing musicexpr empty:0:0,0:0,0

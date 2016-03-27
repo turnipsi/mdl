@@ -1,0 +1,5 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.parsing     :   sequence:4:1,2:1,18
+mdl.interp.parsing     :     ontrack:3:1,2:1,18 track=violin
+mdl.interp.song        :       added a new track "violin"
+mdl.interp.song        :   added a new track "acoustic grand"

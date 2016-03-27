@@ -1,0 +1,9 @@
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:2:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:1:1,1:1,2 for flatsimultence:2:0,0:0,0
+mdl.interp.exprconv    :       inspecting absnote:0:1,1:1,2 for flatsimultence:2:0,0:0,0
+mdl.interp.exprconv    :         adding offsetexpr:5:0,0:0,0 to flatsimultence:2:0,0:0,0
+mdl.interp.exprconv    :         offsetexpr:5:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :           absnote:4:1,1:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.250000
+mdl.interp.exprconv    :       offset changed from 0.000000 to 0.250000
