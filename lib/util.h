@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.21 2016/03/23 20:17:25 je Exp $ */
+/* $Id: util.h,v 1.22 2016/03/27 08:41:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,12 +25,11 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 enum logtype {
-	MDLLOG_EXPRCLONING,
 	MDLLOG_EXPRCONV,
 	MDLLOG_JOINS,
 	MDLLOG_MIDI,
 	MDLLOG_MIDISTREAM,
-	MDLLOG_MUSICEXPR,
+	MDLLOG_MM,		/* memory management */
 	MDLLOG_PARSING,
 	MDLLOG_PROCESS,
 	MDLLOG_RELATIVE,

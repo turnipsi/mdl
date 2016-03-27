@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.46 2016/03/26 20:20:49 je Exp $ */
+/* $Id: joinexpr.c,v 1.47 2016/03/27 08:41:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -88,7 +88,11 @@ joinexpr_musicexpr(struct musicexpr *me, int level)
 			ret = 1;
 			break;
 		}
-		musicexpr_copy(me, joined_me);
+
+		/* XXX is this okay? log event? */
+		me->id      = joined_me->id;
+		me->me_type = joined_me->me_type;
+		me->u       = joined_me->u;
 		break;
 	case ME_TYPE_OFFSETEXPR:
 		log_possible_join(me, level);

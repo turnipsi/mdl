@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.23 2016/03/26 20:20:49 je Exp $ */
+/* $Id: midistream.c,v 1.24 2016/03/27 08:41:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -392,7 +392,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding expression with offset %.3f to trackmidievents\n",
 	    timeoffset);
-	musicexpr_log(me, 4, level+1, NULL);
+	musicexpr_log(me, MDLLOG_MIDISTREAM, level+1, NULL);
 
 	level += 1;
 

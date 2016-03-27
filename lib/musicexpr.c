@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.89 2016/03/26 20:20:49 je Exp $ */
+/* $Id: musicexpr.c,v 1.90 2016/03/27 08:41:10 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,27 +53,15 @@ musicexpr_clone(struct musicexpr *me, int level)
 {
 	struct musicexpr *cloned;
 	int ret;
-	char *me_id;
+	char *me_id1, *me_id2;
 
-	cloned = malloc(sizeof(struct musicexpr));
-	if (cloned == NULL) {
-		warn("malloc failure when cloning musicexpr");
+	cloned = musicexpr_new(me->me_type, me->id.textloc, level+1);
+	if (cloned == NULL)
 		return NULL;
-	}
-
-	if ((me_id = musicexpr_id_string(me)) != NULL) {
-		mdl_log(MDLLOG_EXPRCLONING, level, "cloning expression %s\n",
-		    me_id);
-		free(me_id);
-	}
 
 	level += 1;
 
-	musicexpr_log(me, MDLLOG_EXPRCLONING, level, NULL);
-
-	/* XXX This also copies/clones the musicexpression id, I am not sure
-	 * XXX if this is the wanted behaviour. */
-	musicexpr_copy(cloned, me);
+	cloned->u = me->u;
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -169,6 +157,15 @@ musicexpr_clone(struct musicexpr *me, int level)
 		break;
 	default:
 		assert(0);
+	}
+
+	if ((me_id1 = musicexpr_id_string(me)) != NULL) {
+		if ((me_id2 = musicexpr_id_string(cloned)) != NULL) {
+			mdl_log(MDLLOG_MM, level, "cloning %s as %s\n",
+			    me_id1, me_id2);
+			free(me_id2);
+		}
+		free(me_id1);
 	}
 
 	return cloned;
@@ -796,8 +793,7 @@ musicexpr_free(struct musicexpr *me, int level)
 	char *me_id;
 
 	if ((me_id = musicexpr_id_string(me)) != NULL) {
-		mdl_log(MDLLOG_MUSICEXPR, level, "freeing musicexpr %s\n",
-		    me_id);
+		mdl_log(MDLLOG_MM, level, "freeing musicexpr %s\n", me_id);
 		free(me_id);
 	}
 
@@ -959,14 +955,6 @@ musicexpr_id_string(const struct musicexpr *me)
 	return id_string;
 }
 
-void
-musicexpr_copy(struct musicexpr *dst, struct musicexpr *src)
-{
-	dst->id      = src->id;
-	dst->me_type = src->me_type;
-	dst->u       = src->u;
-}
-
 struct musicexpr *
 musicexpr_new(enum musicexpr_type me_type, struct textloc textloc, int level)
 {
@@ -988,7 +976,7 @@ musicexpr_new(enum musicexpr_type me_type, struct textloc textloc, int level)
 	me->id.textloc = textloc;
 
 	if ((me_id = musicexpr_id_string(me)) != NULL) {
-		mdl_log(MDLLOG_MUSICEXPR, level, "created %s\n", me_id);
+		mdl_log(MDLLOG_MM, level, "created %s\n", me_id);
 		free(me_id);
 	}
 
