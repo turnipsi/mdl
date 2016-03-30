@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2016/03/27 20:56:28 je Exp $
+# $Id: Makefile,v 1.17 2016/03/30 19:28:54 je Exp $
 
 .ifndef MDL
 .  if exists(${.CURDIR}/../src/obj/mdl)
@@ -57,13 +57,14 @@ REGRESS_TARGETS=
 .endfor
 
 .SUFFIXES: .mdl ${DEBUGOPTS:S/^/./}
+.PATH.mdl: ${.CURDIR}/inputs
 
 # .mdl: input file
 # .${DEBUGOPT}.ok: desired result
 .for DEBUGOPT in ${DEBUGOPTS}
   .mdl.${DEBUGOPT}:
 	@echo $@
-	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/$*.mdl > $@.log
+	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/inputs/$*.mdl > $@.log
 	@cmp -s ${.CURDIR}/expected/$@.ok $@.log \
 		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.log; \
 		     false; }
