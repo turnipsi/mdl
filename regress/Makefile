@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2016/03/30 19:28:54 je Exp $
+# $Id: Makefile,v 1.18 2016/03/30 19:36:40 je Exp $
 
 .ifndef MDL
 .  if exists(${.CURDIR}/../src/obj/mdl)
@@ -78,6 +78,10 @@ accept-regressions:
 	    test -e "$$log" || continue; \
 	    mv "$$log" "${.CURDIR}/expected/$$(basename $$log .log).ok"; \
 	done
+
+.PHONY: afl-fuzz
+afl-fuzz:
+	afl-fuzz -i ${.CURDIR}/inputs -o afl-fuzz-results ${MDL} @@
 
 CLEANFILES+=*.log
 
