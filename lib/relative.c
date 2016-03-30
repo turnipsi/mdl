@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.15 2016/03/26 20:20:49 je Exp $ */
+/* $Id: relative.c,v 1.16 2016/03/30 19:11:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -235,7 +235,6 @@ relative_to_absolute(struct musicexpr *me,
 		break;
 	default:
 		assert(0);
-		break;
 	}
 
 	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)

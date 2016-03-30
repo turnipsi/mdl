@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.47 2016/03/27 08:41:10 je Exp $ */
+/* $Id: joinexpr.c,v 1.48 2016/03/30 19:11:03 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -243,7 +243,6 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 			break;
 		default:
 			assert(0);
-			break;
 		}
 	}
 
