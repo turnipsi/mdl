@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.90 2016/03/27 08:41:10 je Exp $ */
+/* $Id: musicexpr.c,v 1.91 2016/03/31 19:11:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -901,7 +901,8 @@ chord_to_noteoffsetexpr(struct chord chord, int level)
 
 	me->u.noteoffsetexpr.me      = musicexpr_clone(chord.me, level+1);
 	me->u.noteoffsetexpr.count   = chord_noteoffsets[chordtype].count;
-	me->u.noteoffsetexpr.offsets = chord_noteoffsets[chordtype].offsets;
+	me->u.noteoffsetexpr.offsets =
+	    (int *) chord_noteoffsets[chordtype].offsets;
 
 	return me;
 }
