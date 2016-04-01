@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.50 2016/03/11 20:50:07 je Exp $ */
+/* $Id: mdl.c,v 1.51 2016/04/01 19:59:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,7 @@ static int	get_default_socketpath(char *, const char *);
 static int	start_interpreter(int, int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
+static int	wait_for_subprocess(const char *, int);
 static int	setup_sequencer_for_sources(char **, int, const char *, int,
     int);
 static int	setup_server_socket(const char *);
@@ -224,7 +225,7 @@ setup_sequencer_for_sources(char **files, int filecount,
     const char *socketpath, int lockfd, int dry_run)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-	int server_socket, file_fd, sequencer_status, ret, retvalue;
+	int server_socket, file_fd, ret, retvalue;
 	int using_stdin, i;
 	pid_t sequencer_pid;
 	char *stdinfiles[] = { "-" };
@@ -354,8 +355,8 @@ finish:
 		return 1;
 	}
 
-	if (waitpid(sequencer_pid, &sequencer_status, 0) == -1)
-		warn("error when wait for sequencer to finish");
+	if (wait_for_subprocess("sequencer", sequencer_pid) != 0)
+		return 1;
 
 	return retvalue;
 }
@@ -368,7 +369,6 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 
 	int ret;
-	int interpreter_status;
 	pid_t interpreter_pid;
 
 	/* Setup socketpair for main <-> interpreter communication. */
@@ -490,8 +490,45 @@ interpreter_out:
 	 * XXX so we should wait specifically for that one to finish
 	 * XXX (we might do something interesting while waiting, though).
 	 */
-	if (waitpid(interpreter_pid, &interpreter_status, 0) == -1)
-		warn("error when wait for interpreter to finish");
+	if (wait_for_subprocess("interpreter", interpreter_pid) != 0)
+		return 1;
+
+	return 0;
+}
+
+static int
+wait_for_subprocess(const char *process_type, int pid)
+{
+	int status;
+
+	if (waitpid(pid, &status, 0) == -1) {
+		warn("error when waiting for %s pid %d", process_type, pid);
+		return 1;
+	}
+
+	if (WIFSIGNALED(status)) {
+		warnx("%s pid %d terminated by signal %d (%s)",
+		    process_type, pid, WTERMSIG(status),
+		    strsignal(WTERMSIG(status)));
+#if MDL_USE_AFL
+		/*
+		 * When subprocesses have exited abnormally, abort()
+		 * execution in the main process so that afl-fuzz will
+		 * catch that as an abnormal exit.
+		 */
+		abort();
+#else
+		return 1;
+#endif
+	}
+
+	if (!WIFEXITED(status)) {
+		warnx("%s pid %d not terminated normally", process_type, pid);
+		return 1;
+	}
+
+	mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
+	    process_type, pid, WEXITSTATUS(status));
 
 	return 0;
 }

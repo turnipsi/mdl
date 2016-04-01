@@ -1,12 +1,6 @@
-# $Id: Makefile,v 1.18 2016/03/30 19:36:40 je Exp $
+# $Id: Makefile,v 1.19 2016/04/01 19:59:21 je Exp $
 
-.ifndef MDL
-.  if exists(${.CURDIR}/../src/obj/mdl)
-MDL=	${.CURDIR}/../src/obj/mdl -n
-.  else
-MDL=	${.CURDIR}/../src/mdl -n
-.  endif
-.endif
+MDL=	${.CURDIR}/../src/obj/mdl
 
 TEST_INPUTS=	t-big-jumps                        \
 		t-chord-joining                    \
@@ -59,14 +53,18 @@ REGRESS_TARGETS=
 .SUFFIXES: .mdl ${DEBUGOPTS:S/^/./}
 .PATH.mdl: ${.CURDIR}/inputs
 
+outputs:
+	@mkdir -p $@
+
 # .mdl: input file
 # .${DEBUGOPT}.ok: desired result
 .for DEBUGOPT in ${DEBUGOPTS}
-  .mdl.${DEBUGOPT}:
+  .mdl.${DEBUGOPT}: outputs
 	@echo $@
-	@${MDL} -d ${DEBUGOPT} ${.CURDIR}/inputs/$*.mdl > $@.log
-	@cmp -s ${.CURDIR}/expected/$@.ok $@.log \
-		|| { diff -u ${.CURDIR}/expected/$@.ok ${.OBJDIR}/$@.log; \
+	@${MDL} -d ${DEBUGOPT} -n ${.CURDIR}/inputs/$*.mdl > outputs/$@.log
+	@cmp -s ${.CURDIR}/expected/$@.ok outputs/$@.log \
+		|| { diff -u ${.CURDIR}/expected/$@.ok \
+			 ${.OBJDIR}/outputs/$@.log; \
 		     false; }
 .endfor
 
@@ -81,8 +79,14 @@ accept-regressions:
 
 .PHONY: afl-fuzz
 afl-fuzz:
-	afl-fuzz -i ${.CURDIR}/inputs -o afl-fuzz-results ${MDL} @@
+	env MAKEOBJDIR=${.CURDIR}/obj ${MAKE} -C ${.CURDIR}/../src \
+	    -D MDL_USE_AFL clean all
+	afl-fuzz -i ${.CURDIR}/inputs -o afl-fuzz-results \
+	    ${.CURDIR}/obj/mdl -n @@
 
-CLEANFILES+=*.log
+.PHONY: clean
+clean:
+	rm -rf a.out [Ee]rrs mklog *.core y.tab.h *.c *.o mdl \
+	    afl-fuzz-results outputs
 
 .include <bsd.regress.mk>
