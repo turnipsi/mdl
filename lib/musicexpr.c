@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.92 2016/03/31 19:12:46 je Exp $ */
+/* $Id: musicexpr.c,v 1.93 2016/04/02 09:30:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -116,8 +116,8 @@ musicexpr_clone(struct musicexpr *me, int level)
 			cloned = NULL;
 			break;
 		}
-		memcpy(&cloned->u.noteoffsetexpr.offsets,
-		    &me->u.noteoffsetexpr.offsets,
+		memcpy(cloned->u.noteoffsetexpr.offsets,
+		    me->u.noteoffsetexpr.offsets,
 		    me->u.noteoffsetexpr.count * sizeof(int));
 		break;
 	case ME_TYPE_OFFSETEXPR:
@@ -817,6 +817,7 @@ musicexpr_free(struct musicexpr *me, int level)
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
 		musicexpr_free(me->u.noteoffsetexpr.me, level);
+		free(me->u.noteoffsetexpr.offsets);
 		break;
 	case ME_TYPE_OFFSETEXPR:
 		musicexpr_free(me->u.offsetexpr.me, level);
@@ -899,9 +900,20 @@ chord_to_noteoffsetexpr(struct chord chord, int level)
 	assert(chord.me->me_type == ME_TYPE_ABSNOTE);
 	assert(chordtype < CHORDTYPE_MAX);
 
-	me->u.noteoffsetexpr.me      = musicexpr_clone(chord.me, level+1);
-	me->u.noteoffsetexpr.count   = chord_noteoffsets[chordtype].count;
-	me->u.noteoffsetexpr.offsets = chord_noteoffsets[chordtype].offsets;
+	me->u.noteoffsetexpr.me    = musicexpr_clone(chord.me, level+1);
+	me->u.noteoffsetexpr.count = chord_noteoffsets[chordtype].count;
+
+	me->u.noteoffsetexpr.offsets =
+	    malloc(sizeof(chord_noteoffsets[chordtype].offsets));
+	if (me->u.noteoffsetexpr.offsets == NULL) {
+		warn("malloc in chord_to_noteoffsetexpr");
+		free(me);
+		return NULL;
+	}
+
+	memcpy(me->u.noteoffsetexpr.offsets,
+	    chord_noteoffsets[chordtype].offsets,
+	    chord_noteoffsets[chordtype].count * sizeof(int));
 
 	return me;
 }
