@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.72 2016/03/26 20:20:49 je Exp $ */
+/* $Id: sequencer.c,v 1.73 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -402,6 +402,10 @@ sequencer_play_music(struct songstate *ss, struct sequencer_params *seq_params)
 				if (ret != 0)
 					return ret;
 				break;
+			case SONG_END:
+				/* This has been handled above. */
+				assert(0);
+				break;
 			default:
 				assert(0);
 			}
@@ -439,6 +443,10 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me,
 			    [me->u.note.note];
 			nstate->state = 1;
 			nstate->velocity = me->u.note.velocity;
+			break;
+		case SONG_END:
+			/* This event should not have come this far. */
+			assert(0);
 			break;
 		default:
 			assert(0);
@@ -588,6 +596,10 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss,
 				break;
 
 			switch (me->eventtype) {
+			case INSTRUMENT_CHANGE:
+				/* XXX Should this do something? */
+				assert(0);
+				break;
 			case NOTEON:
 				ss->notestates[me->u.note.channel]
 				    [me->u.note.note].state = 1;
@@ -600,6 +612,10 @@ sequencer_start_playing(struct songstate *ss, struct songstate *old_ss,
 				    [me->u.note.note].state = 0;
 				ss->notestates[me->u.note.channel]
 				    [me->u.note.note].velocity = 0;
+				break;
+			case SONG_END:
+				/* This has been handled above. */
+				assert(0);
 				break;
 			default:
 				assert(0);

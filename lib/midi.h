@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.15 2016/03/26 20:20:49 je Exp $ */
+/* $Id: midi.h,v 1.16 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,8 +30,8 @@ enum eventtype {
 	NOTEOFF,
 	NOTEON,
 	INSTRUMENT_CHANGE,
-	EVENTTYPE_COUNT,
 };
+#define EVENTTYPE_COUNT (INSTRUMENT_CHANGE + 1)
 
 struct instrument_change {
 	u_int8_t	channel, code;

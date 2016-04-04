@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.24 2016/03/27 08:41:10 je Exp $ */
+/* $Id: midistream.c,v 1.25 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -263,6 +263,11 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		tmn = trackmidi_es->trackmidinotes[i];
 
 		switch (tmn.eventtype) {
+		case INSTRUMENT_CHANGE:
+		case SONG_END:
+			/* These events should not have been generated yet. */
+			assert(0);
+			break;
 		case NOTEOFF:
 			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
 				if (tmn.track == instr_tracks[ch].track) {

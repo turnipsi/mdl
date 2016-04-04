@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.20 2016/03/27 20:56:31 je Exp $ */
+/* $Id: midi.c,v 1.21 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -175,6 +175,10 @@ midi_send_midievent(struct midievent *me, int dry_run)
 		midievent[0] = (u_int8_t) (eventbase + me->u.note.channel);
 		midievent[1] = me->u.note.note;
 		midievent[2] = velocity;
+		break;
+	case SONG_END:
+		/* This event should not have come this far. */
+		assert(0);
 		break;
 	default:
 		assert(0);

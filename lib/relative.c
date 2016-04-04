@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.16 2016/03/30 19:11:03 je Exp $ */
+/* $Id: relative.c,v 1.17 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -107,9 +107,24 @@ relative_to_absolute(struct musicexpr *me,
 		break;
 	case ME_TYPE_EMPTY:
 		break;
+	case ME_TYPE_FLATSIMULTENCE:
+		if (me->u.flatsimultence.length == 0) {
+			me->u.flatsimultence.length
+			    = prev_exprs->absnote.length;
+		} else {
+			prev_exprs->absnote.length
+			    = me->u.flatsimultence.length;
+		}
+		relative_to_absolute(me->u.flatsimultence.me, prev_exprs,
+		    level);
+		break;
 	case ME_TYPE_JOINEXPR:
 		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level);
 		relative_to_absolute(me->u.joinexpr.b, prev_exprs, level);
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		relative_to_absolute(me->u.noteoffsetexpr.me, prev_exprs,
+		    level);
 		break;
 	case ME_TYPE_OFFSETEXPR:
 		relative_to_absolute(me->u.offsetexpr.me, prev_exprs, level);

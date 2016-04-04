@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.66 2016/03/27 08:41:10 je Exp $ */
+/* $Id: musicexpr.h,v 1.67 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,8 +42,8 @@ enum musicexpr_type {
 	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
-	ME_TYPE_COUNT,
 };
+#define ME_TYPE_COUNT (ME_TYPE_SIMULTENCE + 1)
 
 enum notesym {
 	NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX,

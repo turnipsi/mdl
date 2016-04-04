@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.8 2016/03/26 20:20:49 je Exp $ */
+/* $Id: song.c,v 1.9 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -83,6 +83,10 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 		break;
 	case ME_TYPE_CHORD:
 		ret = connect_tracks_to_song(song, me->u.chord.me, level);
+		break;
+	case ME_TYPE_FLATSIMULTENCE:
+		ret = connect_tracks_to_song(song, me->u.flatsimultence.me,
+		    level);
 		break;
 	case ME_TYPE_JOINEXPR:
 		ret = connect_tracks_to_song(song, me->u.joinexpr.a, level);

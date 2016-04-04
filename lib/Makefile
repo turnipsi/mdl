@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.28 2016/04/01 19:59:23 je Exp $
+# $Id: Makefile,v 1.29 2016/04/04 20:06:39 je Exp $
 
 PROG=	mdl
 
@@ -16,7 +16,7 @@ MANDIR=	${PREFIX}/man/man
 
 CFLAGS+=	-I${.CURDIR}
 
-COPTS+=	-g -Wall -W -Wpointer-arith -Wbad-function-cast
+COPTS+=	-g -W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
 
 .if "${MDL_SANDBOX}" == "1"
 COPTS+=	-DMDL_SANDBOX_NONE

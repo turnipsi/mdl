@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.27 2016/03/27 20:56:31 je Exp $ */
+/* $Id: util.c,v 1.28 2016/04/04 20:06:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -348,5 +348,5 @@ void __dead
 unimplemented(void)
 {
 	warnx("unimplemented functionality triggered");
-	exit(1);
+	abort();
 }
