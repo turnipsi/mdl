@@ -15,9 +15,9 @@ mdl.interp.joins       :             joining expressions flatsimultence:13:0,0:0
 mdl.interp.joins       :               converting expressions to flat simultence
 mdl.interp.joins       :                 joining two flat simultences
 mdl.interp.joins       :                   joining absnote expressions in simultence
-mdl.interp.joins       :       joining expressions flatsimultence:28:0,0:0,0 and chord:10:1,23:1,28
+mdl.interp.joins       :       joining expressions flatsimultence:13:0,0:0,0 and chord:10:1,23:1,28
 mdl.interp.joins       :         converting chord to noteoffsetexpr
-mdl.interp.joins       :           joining expressions flatsimultence:28:0,0:0,0 and noteoffsetexpr:45:0,0:0,0
+mdl.interp.joins       :           joining expressions flatsimultence:13:0,0:0,0 and noteoffsetexpr:39:0,0:0,0
 mdl.interp.joins       :             converting expressions to flat simultence
 mdl.interp.joins       :               joining two flat simultences
 mdl.interp.joins       :                 joining absnote expressions in simultence

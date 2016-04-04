@@ -10,6 +10,6 @@ mdl.interp.joins       :               joining two flat simultences
 mdl.interp.joins       :         joining expressions flatsimultence:10:0,0:0,0 and absnote:3:1,15:1,15
 mdl.interp.joins       :           converting expressions to flat simultence
 mdl.interp.joins       :             joining two flat simultences
-mdl.interp.joins       :       joining expressions flatsimultence:18:0,0:0,0 and absnote:5:1,19:1,20
+mdl.interp.joins       :       joining expressions flatsimultence:10:0,0:0,0 and absnote:5:1,19:1,20
 mdl.interp.joins       :         converting expressions to flat simultence
 mdl.interp.joins       :           joining two flat simultences

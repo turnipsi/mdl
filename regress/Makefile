@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.19 2016/04/01 19:59:21 je Exp $
+# $Id: Makefile,v 1.20 2016/04/04 20:07:50 je Exp $
 
 MDL=	${.CURDIR}/../src/obj/mdl
 
@@ -72,7 +72,7 @@ outputs:
 
 .PHONY: accept-regressions
 accept-regressions:
-	for log in ${.OBJDIR}/*.log; do \
+	for log in ${.OBJDIR}/outputs/*.log; do \
 	    test -e "$$log" || continue; \
 	    mv "$$log" "${.CURDIR}/expected/$$(basename $$log .log).ok"; \
 	done
