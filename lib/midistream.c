@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.25 2016/04/04 20:06:39 je Exp $ */
+/* $Id: midistream.c,v 1.26 2016/04/05 10:27:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -271,7 +271,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		case NOTEOFF:
 			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
 				if (tmn.track == instr_tracks[ch].track) {
-					instr_tracks[ch].notecount--;
+					instr_tracks[ch].notecount -= 1;
 					if (instr_tracks[ch].notecount == 0)
 						instr_tracks[ch].track = NULL;
 					break;
@@ -301,12 +301,12 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		case NOTEON:
 			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
 				if (instr_tracks[ch].track == NULL) {
-					instr_tracks[ch].notecount++;
+					instr_tracks[ch].notecount += 1;
 					instr_tracks[ch].track = tmn.track;
 					break;
 				} else if (tmn.track ==
 				    instr_tracks[ch].track) {
-					instr_tracks[ch].notecount++;
+					instr_tracks[ch].notecount += 1;
 					break;
 				}
 			}

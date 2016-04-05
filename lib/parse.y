@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.53 2016/03/23 20:17:25 je Exp $ */
+/* $Id: parse.y,v 1.54 2016/04/05 10:27:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -391,7 +391,7 @@ yyerror(const char *fmt, ...)
 	va_list va;
 
 	if (parse_errors < UINT_MAX)
-		parse_errors++;
+		parse_errors += 1;
 
 	va_start(va, fmt);
 	vwarnx(fmt, va);
