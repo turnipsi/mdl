@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.29 2016/04/05 19:30:40 je Exp $ */
+/* $Id: midistream.c,v 1.30 2016/04/05 19:47:50 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,6 +46,10 @@ static struct mdl_stream *midi_eventstream_new(void);
 static struct mdl_stream *offsetexprstream_new(void);
 static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
     float, int);
+static int add_noteoff_to_midievents(struct mdl_stream *, struct trackmidinote,
+    struct miditracks *, int);
+static int add_noteon_to_midievents(struct mdl_stream *, struct trackmidinote,
+    struct miditracks *, int);
 static struct mdl_stream *trackmidievents_to_midievents(struct mdl_stream *,
     float, int);
 static int add_musicexpr_to_trackmidievents(struct mdl_stream *,
@@ -230,6 +234,114 @@ error:
 	return NULL;
 }
 
+static int
+add_noteoff_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
+	struct miditracks *instr_tracks, int level)
+{
+	struct midievent *midievent;
+	unsigned int ch, midichannel;
+
+	for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
+		if (tmn.track == instr_tracks[ch].track) {
+			instr_tracks[ch].notecount[ tmn.note.note ] -= 1;
+			instr_tracks[ch].total_notecount -= 1;
+			if (instr_tracks[ch].total_notecount == 0)
+				instr_tracks[ch].track = NULL;
+			break;
+		}
+	}
+	assert(ch < INSTRUMENT_CHANNEL_COUNT);
+	assert(instr_tracks[ch].total_notecount >= 0);
+
+	if (instr_tracks[ch].notecount[tmn.note.note] > 0) {
+		/* This note must still be play, nothing to do. */
+		return 0;
+	}
+
+	/* Midi channel 10 (index 9) is reserved for drums. */
+	midichannel = (ch <= 8 ? ch : (ch + 1));
+	tmn.note.channel = midichannel;
+
+	midievent = &midi_es->midievents[ midi_es->count ];
+	bzero(midievent, sizeof(struct midievent));
+	midievent->eventtype = NOTEOFF;
+	midievent->time_as_measures = tmn.time_as_measures;
+	midievent->u.note = tmn.note;
+
+	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
+	    level);
+
+	return mdl_stream_increment(midi_es);
+}
+
+static int
+add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
+	struct miditracks *instr_tracks, int level)
+{
+	struct midievent *midievent;
+	unsigned int ch, midichannel;
+	int ret;
+
+	for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
+		if (instr_tracks[ch].track == NULL) {
+			instr_tracks[ch].notecount[ tmn.note.note ] += 1;
+			instr_tracks[ch].total_notecount += 1;
+			instr_tracks[ch].track = tmn.track;
+			break;
+		} else if (tmn.track == instr_tracks[ch].track) {
+			instr_tracks[ch].notecount[ tmn.note.note ] += 1;
+			instr_tracks[ch].total_notecount += 1;
+			break;
+		}
+	}
+	if (ch == INSTRUMENT_CHANNEL_COUNT) {
+		warnx("out of available midi tracks");
+		return 1;
+	}
+	if (instr_tracks[ch].notecount[tmn.note.note] > 1) {
+		/* This note is already playing, go to next event. */
+		return 0;
+	}
+
+	/* Midi channel 10 (index 9) is reserved for drums. */
+	midichannel = (ch <= 8 ? ch : (ch + 1));
+	tmn.note.channel = midichannel;
+
+	if (instr_tracks[ch].instrument != tmn.instrument) {
+		assert(tmn.instrument != NULL);
+		midievent = &midi_es->midievents[ midi_es->count ];
+		bzero(midievent, sizeof(struct midievent));
+		midievent->eventtype = INSTRUMENT_CHANGE;
+		midievent->time_as_measures = tmn.time_as_measures;
+		midievent->u.instrument_change.channel = midichannel;
+		midievent->u.instrument_change.code = tmn.instrument->code;
+
+		midievent_log(MDLLOG_MIDISTREAM,
+		    "sending to sequencer", midievent, level);
+
+		ret = mdl_stream_increment(midi_es);
+		if (ret != 0)
+			return ret;
+	}
+
+	instr_tracks[ch].instrument = tmn.instrument;
+
+	midievent = &midi_es->midievents[ midi_es->count ];
+	bzero(midievent, sizeof(struct midievent));
+	midievent->eventtype = NOTEON;
+	midievent->time_as_measures = tmn.time_as_measures;
+	midievent->u.note = tmn.note;
+
+	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
+	    midievent, level);
+
+	ret = mdl_stream_increment(midi_es);
+	if (ret != 0)
+		return ret;
+
+	return 0;
+}
+
 static struct mdl_stream *
 trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
     float song_length, int level)
@@ -238,7 +350,6 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	struct midievent *midievent;
 	struct trackmidinote tmn;
 	int ret;
-	unsigned int ch, midichannel;
 	struct miditracks instr_tracks[INSTRUMENT_CHANNEL_COUNT];
 	size_t i, j;
 
@@ -272,105 +383,16 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 			assert(0);
 			break;
 		case NOTEOFF:
-			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
-				if (tmn.track == instr_tracks[ch].track) {
-					instr_tracks[ch].notecount[ tmn.note.note ] -= 1;
-					instr_tracks[ch].total_notecount -= 1;
-					if (instr_tracks[ch].total_notecount
-					    == 0)
-						instr_tracks[ch].track = NULL;
-					break;
-				}
-			}
-			assert(ch < INSTRUMENT_CHANNEL_COUNT);
-			assert(instr_tracks[ch].total_notecount >= 0);
-
-			if (instr_tracks[ch].notecount[tmn.note.note] > 0) {
-				/* This note must still be play, go to next event. */
-				break;
-			}
-
-			/* Midi channel 10 (index 9) is reserved for drums. */
-			midichannel = (ch <= 8 ? ch : (ch + 1));
-			tmn.note.channel = midichannel;
-
-			midievent = &midi_es->midievents[ midi_es->count ];
-			bzero(midievent, sizeof(struct midievent));
-			midievent->eventtype = NOTEOFF;
-			midievent->time_as_measures = tmn.time_as_measures;
-			midievent->u.note = tmn.note;
-
-			midievent_log(MDLLOG_MIDISTREAM,
-			    "sending to sequencer", midievent, level);
-
-			ret = mdl_stream_increment(midi_es);
+			ret = add_noteoff_to_midievents(midi_es, tmn,
+			    instr_tracks, level);
 			if (ret != 0)
 				goto error;
-
 			break;
 		case NOTEON:
-			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
-				if (instr_tracks[ch].track == NULL) {
-					instr_tracks[ch].notecount[ tmn.note.note ] += 1;
-					instr_tracks[ch].total_notecount += 1;
-					instr_tracks[ch].track = tmn.track;
-					break;
-				} else if (tmn.track ==
-				    instr_tracks[ch].track) {
-					instr_tracks[ch].notecount[ tmn.note.note ] += 1;
-					instr_tracks[ch].total_notecount += 1;
-					break;
-				}
-			}
-			if (ch == INSTRUMENT_CHANNEL_COUNT) {
-				warnx("out of available midi tracks");
-				goto error;
-			}
-			if (instr_tracks[ch].notecount[tmn.note.note] > 1) {
-				/* This note is already playing, go to next event. */
-				break;
-			}
-
-			/* Midi channel 10 (index 9) is reserved for drums. */
-			midichannel = (ch <= 8 ? ch : (ch + 1));
-			tmn.note.channel = midichannel;
-
-			if (instr_tracks[ch].instrument != tmn.instrument) {
-				assert(tmn.instrument != NULL);
-				midievent =
-				    &midi_es->midievents[ midi_es->count ];
-				bzero(midievent, sizeof(struct midievent));
-				midievent->eventtype = INSTRUMENT_CHANGE;
-				midievent->time_as_measures =
-				    tmn.time_as_measures;
-				midievent->u.instrument_change.channel =
-				    midichannel;
-				midievent->u.instrument_change.code =
-				    tmn.instrument->code;
-
-				midievent_log(MDLLOG_MIDISTREAM,
-				    "sending to sequencer", midievent, level);
-
-				ret = mdl_stream_increment(midi_es);
-				if (ret != 0)
-					goto error;
-			}
-
-			instr_tracks[ch].instrument = tmn.instrument;
-
-			midievent = &midi_es->midievents[ midi_es->count ];
-			bzero(midievent, sizeof(struct midievent));
-			midievent->eventtype = NOTEON;
-			midievent->time_as_measures = tmn.time_as_measures;
-			midievent->u.note = tmn.note;
-
-			midievent_log(MDLLOG_MIDISTREAM,
-			    "sending to sequencer", midievent, level);
-
-			ret = mdl_stream_increment(midi_es);
+			ret = add_noteon_to_midievents(midi_es, tmn,
+			    instr_tracks, level);
 			if (ret != 0)
 				goto error;
-
 			break;
 		default:
 			assert(0);
