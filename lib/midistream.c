@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.26 2016/04/05 10:27:30 je Exp $ */
+/* $Id: midistream.c,v 1.27 2016/04/05 11:03:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,7 +38,8 @@
 struct miditracks {
 	struct instrument *instrument;
 	struct track *track;
-	int notecount;
+	int notecount[MIDI_NOTE_COUNT];
+	int total_notecount;
 };
 
 static struct mdl_stream *midi_eventstream_new(void);
@@ -239,7 +240,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	int ret;
 	unsigned int ch, midichannel;
 	struct miditracks instr_tracks[INSTRUMENT_CHANNEL_COUNT];
-	size_t i;
+	size_t i, j;
 
 	tmn.time_as_measures = 0.0;
 
@@ -249,9 +250,11 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	}
 
 	for (i = 0; i < INSTRUMENT_CHANNEL_COUNT; i++) {
-		instr_tracks[i].notecount = 0;
 		instr_tracks[i].instrument = NULL;
 		instr_tracks[i].track = NULL;
+		for (j = 0; j < MIDI_NOTE_COUNT; j++)
+			instr_tracks[i].notecount[j] = 0;
+		instr_tracks[i].total_notecount = 0;
 	}
 
 	mdl_log(MDLLOG_MIDISTREAM, level,
@@ -265,20 +268,27 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		switch (tmn.eventtype) {
 		case INSTRUMENT_CHANGE:
 		case SONG_END:
-			/* These events should not have been generated yet. */
+			/* These events should not occur here. */
 			assert(0);
 			break;
 		case NOTEOFF:
 			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
 				if (tmn.track == instr_tracks[ch].track) {
-					instr_tracks[ch].notecount -= 1;
-					if (instr_tracks[ch].notecount == 0)
+					instr_tracks[ch].notecount[ tmn.note.note ] -= 1;
+					instr_tracks[ch].total_notecount -= 1;
+					if (instr_tracks[ch].total_notecount
+					    == 0)
 						instr_tracks[ch].track = NULL;
 					break;
 				}
 			}
 			assert(ch < INSTRUMENT_CHANNEL_COUNT);
-			assert(instr_tracks[ch].notecount >= 0);
+			assert(instr_tracks[ch].total_notecount >= 0);
+
+			if (instr_tracks[ch].notecount[tmn.note.note] > 0) {
+				/* This note must still be play, go to next event. */
+				break;
+			}
 
 			/* Midi channel 10 (index 9) is reserved for drums. */
 			midichannel = (ch <= 8 ? ch : (ch + 1));
@@ -301,18 +311,24 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		case NOTEON:
 			for (ch = 0; ch < INSTRUMENT_CHANNEL_COUNT; ch++) {
 				if (instr_tracks[ch].track == NULL) {
-					instr_tracks[ch].notecount += 1;
+					instr_tracks[ch].notecount[ tmn.note.note ] += 1;
+					instr_tracks[ch].total_notecount += 1;
 					instr_tracks[ch].track = tmn.track;
 					break;
 				} else if (tmn.track ==
 				    instr_tracks[ch].track) {
-					instr_tracks[ch].notecount += 1;
+					instr_tracks[ch].notecount[ tmn.note.note ] += 1;
+					instr_tracks[ch].total_notecount += 1;
 					break;
 				}
 			}
 			if (ch == INSTRUMENT_CHANNEL_COUNT) {
 				warnx("out of available midi tracks");
 				goto error;
+			}
+			if (instr_tracks[ch].notecount[tmn.note.note] > 1) {
+				/* This note is already playing, go to next event. */
+				break;
 			}
 
 			/* Midi channel 10 (index 9) is reserved for drums. */
@@ -362,7 +378,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	}
 
 	for (i = 0; i < INSTRUMENT_CHANNEL_COUNT; i++)
-		assert(instr_tracks[i].notecount == 0);
+		assert(instr_tracks[i].total_notecount == 0);
 
 	assert(song_length >= 0.0);
 	assert(song_length >= tmn.time_as_measures);
@@ -456,9 +472,17 @@ compare_trackmidievents(const void *a, const void *b)
 	ta = a;
 	tb = b;
 
+	/*
+	 * Sort midievents in order, first based on time_as_measures,
+	 * then eventtypes.  Put NOTEON events before NOTEOFF events,
+	 * because if time_as_measures are identical for two
+	 * NOTEON/NOTEOFF-pairs, then we must have the NOTEON first so that
+	 * the corresponding NOTEOFF can be found later.
+	 */
+
 	return (ta->time_as_measures < tb->time_as_measures) ? -1 :
 	    (ta->time_as_measures > tb->time_as_measures) ? 1 :
-	    (ta->eventtype == NOTEOFF && tb->eventtype == NOTEON)  ? -1 :
-	    (ta->eventtype == NOTEON  && tb->eventtype == NOTEOFF) ?  1 :
+	    (ta->eventtype == NOTEOFF && tb->eventtype == NOTEON)  ?  1 :
+	    (ta->eventtype == NOTEON  && tb->eventtype == NOTEOFF) ? -1 :
 	    0;
 }
