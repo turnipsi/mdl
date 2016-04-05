@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.27 2016/04/05 11:03:37 je Exp $ */
+/* $Id: midistream.c,v 1.28 2016/04/05 11:29:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -472,17 +472,9 @@ compare_trackmidievents(const void *a, const void *b)
 	ta = a;
 	tb = b;
 
-	/*
-	 * Sort midievents in order, first based on time_as_measures,
-	 * then eventtypes.  Put NOTEON events before NOTEOFF events,
-	 * because if time_as_measures are identical for two
-	 * NOTEON/NOTEOFF-pairs, then we must have the NOTEON first so that
-	 * the corresponding NOTEOFF can be found later.
-	 */
-
 	return (ta->time_as_measures < tb->time_as_measures) ? -1 :
 	    (ta->time_as_measures > tb->time_as_measures) ? 1 :
-	    (ta->eventtype == NOTEOFF && tb->eventtype == NOTEON)  ?  1 :
-	    (ta->eventtype == NOTEON  && tb->eventtype == NOTEOFF) ? -1 :
+	    (ta->eventtype == NOTEOFF && tb->eventtype == NOTEON)  ? -1 :
+	    (ta->eventtype == NOTEON  && tb->eventtype == NOTEOFF) ?  1 :
 	    0;
 }
