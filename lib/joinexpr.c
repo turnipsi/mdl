@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.49 2016/04/04 20:06:39 je Exp $ */
+/* $Id: joinexpr.c,v 1.50 2016/04/05 19:30:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -523,6 +523,11 @@ join_flat_simultences(struct musicexpr *a, struct musicexpr *b, int level)
 			next_note_start = a->u.flatsimultence.length
 			    + q_me->offset;
 
+			/*
+			 * Only join if previous note end and next note start
+			 * are very close to each other (closer than
+			 * MINIMUM_MUSICEXPR_LENGTH).
+			 */
 			if (fabs(prev_note_end - next_note_start) >=
 			    MINIMUM_MUSICEXPR_LENGTH)
 				continue;

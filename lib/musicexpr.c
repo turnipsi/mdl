@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.94 2016/04/04 20:06:39 je Exp $ */
+/* $Id: musicexpr.c,v 1.95 2016/04/05 19:30:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -527,15 +527,8 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 
 	level += 1;
 
-	if (target_length < MINIMUM_MUSICEXPR_LENGTH) {
-		mdl_log(MDLLOG_EXPRCONV, level,
-		    "target length %.3f is too short,"
-		     " returning an empty expression\n", target_length);
-		return musicexpr_new(ME_TYPE_EMPTY, textloc_zero(), level+1);
-	}
-
 	me_length = musicexpr_calc_length(me);
-	assert(me_length >= MINIMUM_MUSICEXPR_LENGTH);
+	assert(me_length > 0);
 
 	if ((new_me = musicexpr_clone(me, level)) == NULL)
 		return NULL;

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.28 2016/04/05 11:29:58 je Exp $ */
+/* $Id: midistream.c,v 1.29 2016/04/05 19:30:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -432,10 +432,21 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	/* We accept and ignore notes that are out-of-range. */
 	if (new_note < 0 || MIDI_NOTE_COUNT <= new_note) {
 		mdl_log(MDLLOG_MIDISTREAM, level,
-		    "skipping note with value %d", new_note);
+		    "skipping note with value %d\n", new_note);
 		return 0;
 	}
 	assert(me->u.absnote.length > 0);
+
+	/*
+	 * Ignore notes that are less than MINIMUM_MUSICEXPR_LENGTH.
+	 * Notes that have zero length trigger issues after midi events
+	 * are sorted.
+	 */
+	if (me->u.absnote.length < MINIMUM_MUSICEXPR_LENGTH) {
+		mdl_log(MDLLOG_MIDISTREAM, level,
+		    "skipping note with length %.9f\n", me->u.absnote.length);
+		return 0;
+	}
 
 	tmnote = &trackmidi_es->trackmidinotes[ trackmidi_es->count ];
 	bzero(tmnote, sizeof(struct trackmidinote));
