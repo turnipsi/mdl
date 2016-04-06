@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.51 2016/04/06 09:15:28 je Exp $ */
+/* $Id: joinexpr.c,v 1.52 2016/04/06 09:43:10 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -454,17 +454,21 @@ join_sequences(struct musicexpr *a, struct musicexpr *b, int level)
 	joined_expr->u.joinexpr.a = last_of_a;
 	joined_expr->u.joinexpr.b = first_of_b;
 
-	/* Successful joinexpr_musicexpr() frees first_of_b, so do this now. */
+	/* Successful joinexpr_musicexpr() may free
+	 * both of last_of_a and first_of_b, so do this now. */
+	TAILQ_REMOVE(&a->u.melist, last_of_a, tq);
 	TAILQ_REMOVE(&b->u.melist, first_of_b, tq);
 
 	if (joinexpr_musicexpr(joined_expr, level) != 0) {
-		/* Joining failed, put first_of_b back to b. */
+		/* Joining failed, put last_of_a and first_of_b
+		 * back where they belong. */
+		TAILQ_INSERT_TAIL(&a->u.melist, last_of_a, tq);
 		TAILQ_INSERT_HEAD(&b->u.melist, first_of_b, tq);
 		free(joined_expr);
 		return NULL;
 	}
 
-	TAILQ_REPLACE(&a->u.melist, last_of_a, joined_expr, tq);
+	TAILQ_INSERT_TAIL(&a->u.melist, joined_expr, tq);
 	TAILQ_CONCAT(&a->u.melist, &b->u.melist, tq);
 
 	musicexpr_free(b, level);
