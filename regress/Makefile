@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.23 2016/04/06 09:43:06 je Exp $
+# $Id: Makefile,v 1.24 2016/04/07 18:49:04 je Exp $
 
 MDL=	${.CURDIR}/../src/obj/mdl
 
@@ -10,6 +10,7 @@ TEST_INPUTS=	t-afl-fuzzed-crash-1               \
 		t-chordmodifiers                   \
 		t-chords-with-big-jumps            \
 		t-chords-with-variable-lengths     \
+		t-comments                         \
 		t-default-length                   \
 		t-empty                            \
 		t-join-chord-and-note              \
