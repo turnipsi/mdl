@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.30 2016/04/05 19:47:50 je Exp $ */
+/* $Id: midistream.c,v 1.31 2016/04/08 20:00:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -208,12 +208,8 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 			goto error;
 	}
 
-	ret = heapsort(trackmidi_es->midievents, trackmidi_es->count,
+	qsort(trackmidi_es->midievents, trackmidi_es->count,
 	    sizeof(struct trackmidinote), compare_trackmidievents);
-	if (ret == -1) {
-		warn("could not sort midieventstream");
-		goto error;
-	}
 
 	midi_es = trackmidievents_to_midievents(trackmidi_es, song_length,
 	    level);
@@ -505,9 +501,17 @@ compare_trackmidievents(const void *a, const void *b)
 	ta = a;
 	tb = b;
 
+	assert(ta->eventtype == NOTEOFF || ta->eventtype == NOTEON);
+	assert(tb->eventtype == NOTEOFF || tb->eventtype == NOTEON);
+
 	return (ta->time_as_measures < tb->time_as_measures) ? -1 :
-	    (ta->time_as_measures > tb->time_as_measures) ? 1 :
-	    (ta->eventtype == NOTEOFF && tb->eventtype == NOTEON)  ? -1 :
-	    (ta->eventtype == NOTEON  && tb->eventtype == NOTEOFF) ?  1 :
-	    0;
+	    (ta->time_as_measures > tb->time_as_measures)    ?  1 :
+	    (ta->eventtype < tb->eventtype)                  ? -1 :
+	    (ta->eventtype > tb->eventtype)                  ?  1 :
+	    (ta->note.channel < tb->note.channel)            ? -1 :
+	    (ta->note.channel > tb->note.channel)            ?  1 :
+	    (ta->note.note < tb->note.note)                  ? -1 :
+	    (ta->note.note > tb->note.note)                  ?  1 :
+	    (ta->note.velocity < tb->note.velocity)          ? -1 :
+	    (ta->note.velocity > tb->note.velocity)          ?  1 : 0;
 }

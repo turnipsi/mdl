@@ -24,18 +24,18 @@ mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 cha
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=60 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=62 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=69 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=65 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=69 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=65 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=69 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=62 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=65 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=69 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=64 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=64 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=72 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=69 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=65 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=69 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=69 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=72 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=65 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=69 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=72 velocity=0
 mdl.interp.midistream  :   sending to sequencer song end time=1.000
 mdl.interp.midistream  : writing midi stream to sequencer

@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.16 2016/04/04 20:06:39 je Exp $ */
+/* $Id: midi.h,v 1.17 2016/04/08 20:00:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,12 +26,18 @@
 #define MIDI_NOTE_COUNT		128
 
 enum eventtype {
-	SONG_END,
+	/*
+	 * Order matters here, because that is used in
+	 * compare_trackmidievents() to put events in proper order.
+	 * Particularly, NOTEOFF must come before NOTEON, and SONG_END
+	 * must be last.
+	 */
 	NOTEOFF,
-	NOTEON,
 	INSTRUMENT_CHANGE,
+	NOTEON,
+	SONG_END,
 };
-#define EVENTTYPE_COUNT (INSTRUMENT_CHANGE + 1)
+#define EVENTTYPE_COUNT (SONG_END + 1)
 
 struct instrument_change {
 	u_int8_t	channel, code;
