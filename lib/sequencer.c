@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.74 2016/04/05 10:27:30 je Exp $ */
+/* $Id: sequencer.c,v 1.75 2016/04/09 18:50:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -305,7 +305,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state ps)
 {
 	SIMPLEQ_INIT(&ss->es);
 
-	bzero(ss->notestates, sizeof(ss->notestates));
+	memset(ss->notestates, 0, sizeof(ss->notestates));
 
 	ss->current_event.block = NULL;
 	ss->current_event.index = 0;
@@ -786,7 +786,7 @@ receive_fd_through_socket(int *received_fd, int socket)
 	msg.msg_control    = &cmsgbuf.buf;
 	msg.msg_controllen = sizeof(cmsgbuf.buf);
 
-	bzero(&cmsgbuf, sizeof(cmsgbuf));
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
 
 	if (recvmsg(socket, &msg, 0) == -1) {
 		warn("receiving fd through socket, recvmsg");

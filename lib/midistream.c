@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.31 2016/04/08 20:00:56 je Exp $ */
+/* $Id: midistream.c,v 1.32 2016/04/09 18:50:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <unistd.h>
 
 #include "joinexpr.h"
@@ -259,7 +259,7 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	tmn.note.channel = midichannel;
 
 	midievent = &midi_es->midievents[ midi_es->count ];
-	bzero(midievent, sizeof(struct midievent));
+	memset(midievent, 0, sizeof(struct midievent));
 	midievent->eventtype = NOTEOFF;
 	midievent->time_as_measures = tmn.time_as_measures;
 	midievent->u.note = tmn.note;
@@ -306,7 +306,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	if (instr_tracks[ch].instrument != tmn.instrument) {
 		assert(tmn.instrument != NULL);
 		midievent = &midi_es->midievents[ midi_es->count ];
-		bzero(midievent, sizeof(struct midievent));
+		memset(midievent, 0, sizeof(struct midievent));
 		midievent->eventtype = INSTRUMENT_CHANGE;
 		midievent->time_as_measures = tmn.time_as_measures;
 		midievent->u.instrument_change.channel = midichannel;
@@ -323,7 +323,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	instr_tracks[ch].instrument = tmn.instrument;
 
 	midievent = &midi_es->midievents[ midi_es->count ];
-	bzero(midievent, sizeof(struct midievent));
+	memset(midievent, 0, sizeof(struct midievent));
 	midievent->eventtype = NOTEON;
 	midievent->time_as_measures = tmn.time_as_measures;
 	midievent->u.note = tmn.note;
@@ -403,7 +403,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 
 	/* Add SONG_END midievent. */
 	midievent = &midi_es->midievents[ midi_es->count ];
-	bzero(midievent, sizeof(struct midievent));
+	memset(midievent, 0, sizeof(struct midievent));
 	midievent->eventtype = SONG_END;
 	midievent->time_as_measures = song_length;
 
@@ -467,7 +467,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	}
 
 	tmnote = &trackmidi_es->trackmidinotes[ trackmidi_es->count ];
-	bzero(tmnote, sizeof(struct trackmidinote));
+	memset(tmnote, 0, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEON;
 	tmnote->instrument = me->u.absnote.instrument;
 	tmnote->note.channel = DEFAULT_MIDICHANNEL;
@@ -481,7 +481,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		return ret;
 
 	tmnote = &trackmidi_es->trackmidinotes[ trackmidi_es->count ];
-	bzero(tmnote, sizeof(struct trackmidinote));
+	memset(tmnote, 0, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEOFF;
 	tmnote->instrument = me->u.absnote.instrument;
 	tmnote->note.channel = DEFAULT_MIDICHANNEL;

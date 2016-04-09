@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.51 2016/04/01 19:59:23 je Exp $ */
+/* $Id: mdl.c,v 1.52 2016/04/09 18:50:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -547,7 +547,7 @@ send_fd_through_socket(int fd, int socket)
 	msg.msg_control = &cmsgbuf.buf;
 	msg.msg_controllen = sizeof(cmsgbuf.buf);
 
-	bzero(&cmsgbuf, sizeof(cmsgbuf));
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
 
 	cmsg = CMSG_FIRSTHDR(&msg);
 	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
@@ -570,7 +570,7 @@ setup_server_socket(const char *socketpath)
 	struct sockaddr_un sun;
 	int ret, server_socket;
 
-	bzero(&sun, sizeof(struct sockaddr_un));
+	memset(&sun, 0, sizeof(struct sockaddr_un));
 	sun.sun_family = AF_UNIX;
 	ret = strlcpy(sun.sun_path, socketpath, SOCKETPATH_LEN);
 	assert(ret < SOCKETPATH_LEN);
