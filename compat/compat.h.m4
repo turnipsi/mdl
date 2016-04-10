@@ -1,7 +1,7 @@
-/* $Id: compat.c.m4,v 1.1 2016/04/10 19:48:28 je Exp $ */
+/* $Id: compat.h.m4,v 1.1 2016/04/10 20:17:20 je Exp $ */
 
 /*
- * Copyright (c) 2015, 2016 Juha Erkkil‰ <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkil√§ <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,21 +23,23 @@
  * only to that snippet.
  */
 
-#include "compat.h"
+#ifndef MDL_COMPAT_H
+#define MDL_COMPAT_H
+
+#include <sys/types.h>
+
+#include "config.h"
+
+__BEGIN_DECLS
 
 #if !HAVE_PLEDGE
-
-int
-pledge(const char *request, const char *paths[])
-{
-	/* Without pledge, do not do any sandboxing. */
-
-	return 0;
-}
+int	pledge(const char *, const char *[]);
 #endif /* !HAVE_PLEDGE */
 
 #if !HAVE_STRLCPY
-/* ----- SNIPPET START /usr/src/lib/libc/string/strlcpy.c */
-esyscmd(`sed -n "1,/^}/p" /usr/src/lib/libc/string/strlcpy.c')dnl
-/* ----- SNIPPET END /usr/src/lib/libc/string/strlcpy.c */
+size_t	strlcpy(char *, const char *, size_t);
 #endif /* !HAVE_STRLCPY */
+
+__END_DECLS
+
+#endif /* !MDL_COMPAT_H */

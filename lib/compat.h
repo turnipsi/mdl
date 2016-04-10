@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.5 2016/04/10 19:48:28 je Exp $ */
+/* $Id: compat.h,v 1.6 2016/04/10 20:17:19 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>

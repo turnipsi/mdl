@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.31 2016/04/10 19:48:28 je Exp $
+# $Id: Makefile,v 1.32 2016/04/10 20:17:19 je Exp $
 
 PROG=	mdl
 SRCS=	compat.c interpreter.c instrument.c joinexpr.c mdl.c midi.c \
@@ -27,8 +27,8 @@ COPTS+=	-DMDL_USE_AFL
 .endif
 
 .PHONY: update-compat
-update-compat: compat.c.m4 compat.h.m4
-	m4 ${.CURDIR}/compat.c.m4 > ${.CURDIR}/compat.c
-	m4 ${.CURDIR}/compat.h.m4 > ${.CURDIR}/compat.h
+update-compat: compat/compat.c.m4 compat/compat.h.m4
+	m4 ${.CURDIR}/compat/compat.c.m4 > ${.CURDIR}/compat.c
+	m4 ${.CURDIR}/compat/compat.h.m4 > ${.CURDIR}/compat.h
 
 .include <bsd.prog.mk>
