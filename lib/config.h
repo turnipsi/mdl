@@ -1,0 +1,2 @@
+#define HAVE_PLEDGE	1
+#define HAVE_STRLCPY	1
