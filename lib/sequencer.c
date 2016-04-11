@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.77 2016/04/11 19:00:35 je Exp $ */
+/* $Id: sequencer.c,v 1.78 2016/04/11 19:25:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,7 +32,6 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "compat.h"
 #include "midi.h"
 #include "sequencer.h"
 

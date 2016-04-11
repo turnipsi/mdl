@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.52 2016/04/09 18:50:45 je Exp $ */
+/* $Id: mdl.c,v 1.53 2016/04/11 19:25:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,7 +33,6 @@
 #include <string.h>
 #include <unistd.h>
 
-#include "compat.h"
 #include "interpreter.h"
 #include "sequencer.h"
 #include "util.h"
