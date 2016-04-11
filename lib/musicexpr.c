@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.96 2016/04/11 18:27:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.97 2016/04/11 19:00:35 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,8 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
+
 #include <assert.h>
 #include <err.h>
 #include <limits.h>
@@ -25,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "compat.h"
 #include "joinexpr.h"
 #include "musicexpr.h"
 #include "util.h"

@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.4 2016/04/11 18:27:36 je Exp $ */
+/* $Id: track.h,v 1.5 2016/04/11 19:00:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,7 +19,8 @@
 #ifndef MDL_TRACK_H
 #define MDL_TRACK_H
 
-#include "compat.h"
+#include <sys/queue.h>
+
 #include "instrument.h"
 
 struct track {

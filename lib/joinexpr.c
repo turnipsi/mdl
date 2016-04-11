@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.53 2016/04/11 18:27:36 je Exp $ */
+/* $Id: joinexpr.c,v 1.54 2016/04/11 19:00:35 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,12 +16,13 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
+
 #include <assert.h>
 #include <err.h>
 #include <math.h>
 #include <stdlib.h>
 
-#include "compat.h"
 #include "joinexpr.h"
 #include "musicexpr.h"
 

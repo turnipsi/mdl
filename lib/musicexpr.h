@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.68 2016/04/11 18:27:36 je Exp $ */
+/* $Id: musicexpr.h,v 1.69 2016/04/11 19:00:35 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,7 +19,8 @@
 #ifndef MDL_MUSICEXPR_H
 #define MDL_MUSICEXPR_H
 
-#include "compat.h"
+#include <sys/queue.h>
+
 #include "instrument.h"
 #include "track.h"
 #include "util.h"
