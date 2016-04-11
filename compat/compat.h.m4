@@ -1,4 +1,4 @@
-/* $Id: compat.h.m4,v 1.1 2016/04/10 20:17:20 je Exp $ */
+/* $Id: compat.h.m4,v 1.2 2016/04/11 18:27:37 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,5 +41,13 @@ size_t	strlcpy(char *, const char *, size_t);
 #endif /* !HAVE_STRLCPY */
 
 __END_DECLS
+
+#if HAVE_SYS_QUEUE_H
+#include <sys/queue.h>
+#else
+/* ----- SNIPPET START /usr/include/sys/queue.h */
+paste(`/usr/include/sys/queue.h')
+/* ----- SNIPPET END /usr/include/sys/queue.h */
+#endif /* HAVE_SYS_QUEUE_H */
 
 #endif /* !MDL_COMPAT_H */

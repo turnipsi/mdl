@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.75 2016/04/09 18:50:46 je Exp $ */
+/* $Id: sequencer.c,v 1.76 2016/04/11 18:27:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,7 +16,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/queue.h>
 #include <sys/select.h>
 #include <sys/socket.h>
 
