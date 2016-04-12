@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.97 2016/04/11 19:00:35 je Exp $ */
+/* $Id: musicexpr.c,v 1.98 2016/04/12 18:18:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -660,7 +660,7 @@ musicexpr_calc_length(struct musicexpr *me)
 }
 
 void
-musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int level,
+musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
     char *prefix)
 {
 	size_t i;
@@ -774,7 +774,7 @@ musicexpr_log(const struct musicexpr *me, u_int32_t logtype, int level,
 }
 
 static void
-musicexpr_log_chordtype(enum chordtype chordtype, u_int32_t logtype,
+musicexpr_log_chordtype(enum chordtype chordtype, enum logtype logtype,
     int level, char *prefix)
 {
 	const char *chordnames[] = {
@@ -815,7 +815,7 @@ musicexpr_log_chordtype(enum chordtype chordtype, u_int32_t logtype,
 }
 
 static void
-musicexpr_log_melist(struct melist melist, u_int32_t logtype, int level,
+musicexpr_log_melist(struct melist melist, enum logtype logtype, int level,
     char *prefix)
 {
 	struct musicexpr *p;
