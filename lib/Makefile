@@ -1,10 +1,12 @@
-# $Id: Makefile,v 1.36 2016/04/14 19:12:14 je Exp $
+# $Id: Makefile,v 1.37 2016/04/18 20:18:39 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
 	musicexpr.c parse.y lex.l relative.c sequencer.c song.c track.c \
 	util.c
 MAN=	mdl.1 mdl.5
+
+sinclude config.mk
 
 DPADD+=	${LIBM} ${LIBSNDIO}
 LDADD+=	-lm -lsndio

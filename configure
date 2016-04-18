@@ -1,0 +1,73 @@
+#!/bin/sh
+
+set -eu
+
+CC=cc
+
+append_to_config_mk() {
+  echo "$1" >> config.mk
+}
+
+init_config_mk() {
+  cat /dev/null > config.mk
+}
+
+show_config_mk() {
+  dirname=$1
+
+  echo
+  echo "Created the following ${dirname}/config.mk:"
+  echo '---'
+  cat config.mk
+  echo '---'
+}
+
+do_check() {
+  checkname=$1
+  checkfunc=$2
+  config_for_yes=$3
+
+  echo -n "Checking for ${checkname}... "
+  if $checkfunc; then
+    echo 'ok.'
+    append_to_config_mk "$config_for_yes"
+  else
+    echo 'FAILED.'
+  fi
+}
+
+test_cc() {
+  ${CC} -c -x c -Werror-implicit-function-declaration -o /dev/null - \
+    2>/dev/null
+}
+
+test_pledge() {
+  test_cc <<'EOF'
+#include <unistd.h>
+void test(void) { pledge(NULL, NULL); }
+EOF
+}
+
+test_sndio() {
+  test_cc <<'EOF'
+#include <sndio.h>
+EOF
+}
+
+test_strlcpy() {
+  test_cc <<'EOF'
+#include <string.h>
+void test(void) { strlcpy(NULL, NULL, 0); }
+EOF
+}
+
+(
+  cd src
+  init_config_mk
+
+  do_check 'pledge()'  test_pledge  'COPTS += -DHAVE_PLEDGE'
+  do_check 'sndio'     test_sndio   'COPTS += -DHAVE_SNDIO'
+  do_check 'strlcpy()' test_strlcpy 'COPTS += -DHAVE_STRLCPY'
+
+  show_config_mk src
+)
