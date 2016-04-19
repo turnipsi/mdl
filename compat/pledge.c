@@ -1,4 +1,4 @@
-/* $Id: pledge.c,v 1.1 2016/04/19 19:42:41 je Exp $ */
+/*	$Id: pledge.c,v 1.2 2016/04/19 20:23:08 je Exp $	*/
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
