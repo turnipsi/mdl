@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.4 2016/04/20 20:00:21 je Exp $
+# $Id: configure,v 1.5 2016/04/20 20:30:43 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -21,8 +21,12 @@ cc=${CC:-cc}
 srcdir="$(dirname $0)/src"
 config_h_path="${srcdir}/config.h"
 config_mk_path="${srcdir}/config.mk"
+include_compat_h=false
 
-append_to_config_h()  { echo "$1" >> "$config_h_path";  }
+append_to_config_h()  {
+  echo "$1" >> "$config_h_path"
+}
+
 append_to_config_mk() { echo "$1" >> "$config_mk_path"; }
 
 init_config() {
@@ -34,12 +38,12 @@ show_config() {
   if [ -s "$config_h_path" ]; then
     echo
     echo "Created the following config.h:"
-    sed 's/^/  /' "$config_h_path"
+    sed 's/^/    /' "$config_h_path"
   fi
   if [ -s "$config_mk_path" ]; then
     echo
     echo "Created the following config.mk:"
-    sed 's/^/  /' "$config_mk_path"
+    sed 's/^/    /' "$config_mk_path"
   fi
 }
 
@@ -95,8 +99,9 @@ do_check() {
       append_to_config_h "#define ${config_variable} 1"
     fi
   else
-    echo FAILED.
+    echo NOT found.
     if [ -n "$compat_code" ]; then
+      include_compat_h=true
       append_to_config_mk "SRCS += ${compat_code}"
     fi
   fi
@@ -109,5 +114,9 @@ do_check 'sndio'      check_sndio    HAVE_SNDIO    ''
 do_check 'strlcpy()'  check_strlcpy  HAVE_STRLCPY  strlcpy.c
 do_check 'strtonum()' check_strtonum HAVE_STRTONUM strtonum.c
 do_check 'strsep()'   check_strsep   HAVE_STRSEP   strsep.c
+
+if $include_compat_h; then
+  echo '#include "compat/compat.h"' >> "$config_h_path"
+fi
 
 show_config
