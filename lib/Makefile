@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.38 2016/04/19 19:42:40 je Exp $
+# $Id: Makefile,v 1.39 2016/04/20 20:00:31 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
@@ -8,7 +8,7 @@ MAN=	mdl.1 mdl.5
 
 .PATH: ${.CURDIR}/compat
 
-sinclude ../config.mk
+sinclude config.mk
 
 DPADD+=	${LIBM} ${LIBSNDIO}
 LDADD+=	-lm -lsndio
@@ -20,6 +20,8 @@ MANDIR=	${PREFIX}/man/man
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
 CFLAGS+=	-I${.CURDIR}
+
+COPTS+=		-include config.h
 
 .if "${MDL_USE_AFL}" == "1"
 AFLCC?=	afl-gcc
