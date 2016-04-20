@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.5 2016/04/20 20:30:43 je Exp $
+# $Id: configure,v 1.6 2016/04/20 20:35:48 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -59,6 +59,13 @@ void test(void) { pledge(NULL, NULL); }
 EOF
 }
 
+check_reallocarray() {
+  check_cc <<'EOF'
+#include <stdlib.h>
+void test(void) { reallocarray(NULL, 0, 0); }
+EOF
+}
+
 check_sndio() {
   check_cc <<'EOF'
 #include <sndio.h>
@@ -109,11 +116,12 @@ do_check() {
 
 init_config
 
-do_check 'pledge()'   check_pledge   HAVE_PLEDGE   pledge.c
-do_check 'sndio'      check_sndio    HAVE_SNDIO    ''
-do_check 'strlcpy()'  check_strlcpy  HAVE_STRLCPY  strlcpy.c
-do_check 'strtonum()' check_strtonum HAVE_STRTONUM strtonum.c
-do_check 'strsep()'   check_strsep   HAVE_STRSEP   strsep.c
+do_check 'pledge()'       check_pledge       HAVE_PLEDGE       pledge.c
+do_check 'reallocarray()' check_reallocarray HAVE_REALLOCARRAY reallocarray.c
+do_check 'sndio'          check_sndio        HAVE_SNDIO        ''
+do_check 'strlcpy()'      check_strlcpy      HAVE_STRLCPY      strlcpy.c
+do_check 'strtonum()'     check_strtonum     HAVE_STRTONUM     strtonum.c
+do_check 'strsep()'       check_strsep       HAVE_STRSEP       strsep.c
 
 if $include_compat_h; then
   echo '#include "compat/compat.h"' >> "$config_h_path"

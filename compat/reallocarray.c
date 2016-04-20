@@ -1,7 +1,6 @@
-/* $Id: compat.h,v 1.2 2016/04/20 20:35:49 je Exp $ */
-
+/*	$OpenBSD: reallocarray.c,v 1.3 2015/09/13 08:31:47 guenther Exp $	*/
 /*
- * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2008 Otto Moerbeek <otto@drijf.net>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -16,29 +15,28 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_COMPAT_H
-#define MDL_COMPAT_H
+#ifndef HAVE_REALLOCARRAY
 
 #include <sys/types.h>
+#include <errno.h>
+#include <stdint.h>
+#include <stdlib.h>
 
-#ifndef HAVE_PLEDGE
-int	pledge(const char *, const char *[]);
-#endif /* !HAVE_PLEDGE */
+/*
+ * This is sqrt(SIZE_MAX+1), as s1*s2 <= SIZE_MAX
+ * if both s1 < MUL_NO_OVERFLOW and s2 < MUL_NO_OVERFLOW
+ */
+#define MUL_NO_OVERFLOW	((size_t)1 << (sizeof(size_t) * 4))
 
-#ifndef HAVE_REALLOCARRAY
-void	*reallocarray(void *, size_t, size_t);
+void *
+reallocarray(void *optr, size_t nmemb, size_t size)
+{
+	if ((nmemb >= MUL_NO_OVERFLOW || size >= MUL_NO_OVERFLOW) &&
+	    nmemb > 0 && SIZE_MAX / nmemb < size) {
+		errno = ENOMEM;
+		return NULL;
+	}
+	return realloc(optr, size * nmemb);
+}
+
 #endif /* !HAVE_REALLOCARRAY */
-
-#ifndef HAVE_STRLCPY
-size_t	strlcpy(char *, const char *, size_t);
-#endif /* !HAVE_STRLCPY */
-
-#ifndef HAVE_STRSEP
-char	*strsep(char **, const char *);
-#endif /* !HAVE_STRSEP */
-
-#ifndef HAVE_STRTONUM
-long long	strtonum(const char *, long long, long long, const char **);
-#endif /* !HAVE_STRTONUM */
-
-#endif /* !MDL_COMPAT_H */
