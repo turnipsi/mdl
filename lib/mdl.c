@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.53 2016/04/11 19:25:37 je Exp $ */
+/* $Id: mdl.c,v 1.54 2016/04/22 20:16:04 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,9 +39,9 @@
 
 #define SOCKETPATH_LEN 104
 
-#ifndef NDEBUG
+#ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
-#endif /* !NDEBUG */
+#endif /* HAVE_MALLOC_OPTIONS */
 
 static int	get_default_mdldir(char *);
 static int	get_default_socketpath(char *, const char *);
@@ -85,9 +85,9 @@ main(int argc, char *argv[])
 	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
 	size_t ret;
 
-#ifndef NDEBUG
+#ifdef HAVE_MALLOC_OPTIONS
 	malloc_options = (char *) "AFGJPS";
-#endif /* !NDEBUG */
+#endif /* HAVE_MALLOC_OPTIONS */
 
 	mdl_process_type = "main";
 

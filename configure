@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.7 2016/04/22 19:42:01 je Exp $
+# $Id: configure,v 1.8 2016/04/22 20:16:02 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -45,48 +45,56 @@ show_config() {
 }
 
 check_cc() {
-  $cc -c -x c -Werror-implicit-function-declaration -o /dev/null - \
-    2>/dev/null
+  $cc -x c -Werror-implicit-function-declaration -o /dev/null - 2>/dev/null
+}
+
+check_malloc_options() {
+  check_cc <<'EOF'
+#include <stdlib.h>
+extern char *malloc_options;
+int main(void) { malloc_options = (char *) "AFGJPS"; }
+EOF
 }
 
 check_pledge() {
   check_cc <<'EOF'
 #include <unistd.h>
-void test(void) { pledge(NULL, NULL); }
+int main(void) { pledge(NULL, NULL); }
 EOF
 }
 
 check_reallocarray() {
   check_cc <<'EOF'
 #include <stdlib.h>
-void test(void) { reallocarray(NULL, 0, 0); }
+int main(void) { reallocarray(NULL, 0, 0); }
 EOF
 }
 
 check_sndio() {
   check_cc <<'EOF'
 #include <sndio.h>
+int main(void) {}
 EOF
 }
 
 check_strlcpy() {
   check_cc <<'EOF'
 #include <string.h>
-void test(void) { strlcpy(NULL, NULL, 0); }
+int main(void) { strlcpy(NULL, NULL, 0); }
 EOF
 }
 
 check_strsep() {
   check_cc <<'EOF'
 #include <string.h>
-void test(void) { strsep(NULL, NULL); }
+int main(void) { strsep(NULL, NULL); }
 EOF
 }
 
 check_strtonum() {
   check_cc <<'EOF'
 #include <stdlib.h>
-void test(void) { strtonum(NULL, 0, 0, NULL); }
+int main(void) { strtonum(NULL, 0, 0, NULL); }
 EOF
 }
 
@@ -94,6 +102,7 @@ check_sys_midiio() {
   check_cc <<'EOF'
 #include <sys/types.h>
 #include <sys/midiio.h>
+int main(void) {}
 EOF
 }
 
@@ -114,46 +123,50 @@ do_check() {
 
 init_config
 
+if do_check malloc_options check_malloc_options; then
+  append_to_config_h '#define HAVE_MALLOC_OPTIONS 1'
+fi
+
 if do_check 'pledge()' check_pledge; then
-  append_to_config_h "#define HAVE_PLEDGE 1"
+  append_to_config_h '#define HAVE_PLEDGE 1'
 else
   append_to_config_mk 'SRCS += pledge.c'
   include_compat_h=true
 fi
 
 if do_check 'reallocarray()' check_reallocarray; then
-  append_to_config_h "#define HAVE_REALLOCARRAY 1"
+  append_to_config_h '#define HAVE_REALLOCARRAY 1'
 else
   append_to_config_mk 'SRCS += reallocarray.c'
   include_compat_h=true
 fi
 
 if do_check 'strlcpy()' check_strlcpy; then
-  append_to_config_h "#define HAVE_STRLCPY 1"
+  append_to_config_h '#define HAVE_STRLCPY 1'
 else
   append_to_config_mk 'SRCS += strlcpy.c'
   include_compat_h=true
 fi
 
 if do_check 'strsep()' check_strsep; then
-  append_to_config_h "#define HAVE_STRSEP 1"
+  append_to_config_h '#define HAVE_STRSEP 1'
 else
   append_to_config_mk 'SRCS += strsep.c'
   include_compat_h=true
 fi
 
 if do_check 'strtonum()' check_strtonum; then
-  append_to_config_h "#define HAVE_STRTONUM 1"
+  append_to_config_h '#define HAVE_STRTONUM 1'
 else
   append_to_config_mk 'SRCS += strtonum.c'
   include_compat_h=true
 fi
 
-if do_check 'sndio' check_sndio; then
-  append_to_config_h "#define HAVE_SNDIO 1"
+if do_check sndio check_sndio; then
+  append_to_config_h '#define HAVE_SNDIO 1'
   append_to_config_mk 'LDADD += -lsndio'
-elif do_check 'sys_midiio' check_sys_midiio; then
-  append_to_config_h "#define HAVE_SYS_MIDIIO 1"
+elif do_check sys_midiio check_sys_midiio; then
+  append_to_config_h '#define HAVE_SYS_MIDIIO 1'
   append_to_config_mk 'SRCS += sndio_sys_midiio.c'
   include_compat_h=true
 else
