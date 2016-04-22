@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.21 2016/04/04 20:06:39 je Exp $ */
+/* $Id: midi.c,v 1.22 2016/04/22 19:42:02 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,6 +39,8 @@ static int midi_check_range(u_int8_t, u_int8_t, u_int8_t);
 int
 midi_open_device(void)
 {
+	assert(mio == NULL);
+
 	if ((mio = mio_open(MIO_PORTANY, MIO_OUT, 0)) == NULL) {
 		warnx("could not open midi device");
 		return 1;
@@ -50,10 +52,10 @@ midi_open_device(void)
 void
 midi_close_device(void)
 {
-	if (mio) {
-		mio_close(mio);
-		mio = NULL;
-	}
+	assert(mio != NULL);
+
+	mio_close(mio);
+	mio = NULL;
 }
 
 int

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.39 2016/04/20 20:00:31 je Exp $
+# $Id: Makefile,v 1.40 2016/04/22 19:42:02 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
@@ -8,10 +8,10 @@ MAN=	mdl.1 mdl.5
 
 .PATH: ${.CURDIR}/compat
 
-sinclude config.mk
+include config.mk
 
 DPADD+=	${LIBM} ${LIBSNDIO}
-LDADD+=	-lm -lsndio
+LDADD+=	-lm
 
 PREFIX ?= /usr/local
 
@@ -19,7 +19,7 @@ BINDIR=	${PREFIX}/bin
 MANDIR=	${PREFIX}/man/man
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
-CFLAGS+=	-I${.CURDIR}
+CFLAGS+=	-I${.CURDIR} -I${.CURDIR}/compat
 
 COPTS+=		-include config.h
 

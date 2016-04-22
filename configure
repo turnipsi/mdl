@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.6 2016/04/20 20:35:48 je Exp $
+# $Id: configure,v 1.7 2016/04/22 19:42:01 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -23,10 +23,7 @@ config_h_path="${srcdir}/config.h"
 config_mk_path="${srcdir}/config.mk"
 include_compat_h=false
 
-append_to_config_h()  {
-  echo "$1" >> "$config_h_path"
-}
-
+append_to_config_h()  { echo "$1" >> "$config_h_path";  }
 append_to_config_mk() { echo "$1" >> "$config_mk_path"; }
 
 init_config() {
@@ -48,7 +45,7 @@ show_config() {
 }
 
 check_cc() {
-  ${cc} -c -x c -Werror-implicit-function-declaration -o /dev/null - \
+  $cc -c -x c -Werror-implicit-function-declaration -o /dev/null - \
     2>/dev/null
 }
 
@@ -93,38 +90,79 @@ void test(void) { strtonum(NULL, 0, 0, NULL); }
 EOF
 }
 
+check_sys_midiio() {
+  check_cc <<'EOF'
+#include <sys/types.h>
+#include <sys/midiio.h>
+EOF
+}
+
 do_check() {
   checkname=$1
   checkfunc=$2
-  config_variable=$3
-  compat_code=$4
 
   echo -n "Checking for ${checkname}... "
   if $checkfunc; then
     echo ok.
-    if [ -n "$config_variable" ]; then
-      append_to_config_h "#define ${config_variable} 1"
-    fi
   else
     echo NOT found.
-    if [ -n "$compat_code" ]; then
-      include_compat_h=true
-      append_to_config_mk "SRCS += ${compat_code}"
-    fi
+    return 1
   fi
+
+  return 0
 }
 
 init_config
 
-do_check 'pledge()'       check_pledge       HAVE_PLEDGE       pledge.c
-do_check 'reallocarray()' check_reallocarray HAVE_REALLOCARRAY reallocarray.c
-do_check 'sndio'          check_sndio        HAVE_SNDIO        ''
-do_check 'strlcpy()'      check_strlcpy      HAVE_STRLCPY      strlcpy.c
-do_check 'strtonum()'     check_strtonum     HAVE_STRTONUM     strtonum.c
-do_check 'strsep()'       check_strsep       HAVE_STRSEP       strsep.c
+if do_check 'pledge()' check_pledge; then
+  append_to_config_h "#define HAVE_PLEDGE 1"
+else
+  append_to_config_mk 'SRCS += pledge.c'
+  include_compat_h=true
+fi
+
+if do_check 'reallocarray()' check_reallocarray; then
+  append_to_config_h "#define HAVE_REALLOCARRAY 1"
+else
+  append_to_config_mk 'SRCS += reallocarray.c'
+  include_compat_h=true
+fi
+
+if do_check 'strlcpy()' check_strlcpy; then
+  append_to_config_h "#define HAVE_STRLCPY 1"
+else
+  append_to_config_mk 'SRCS += strlcpy.c'
+  include_compat_h=true
+fi
+
+if do_check 'strsep()' check_strsep; then
+  append_to_config_h "#define HAVE_STRSEP 1"
+else
+  append_to_config_mk 'SRCS += strsep.c'
+  include_compat_h=true
+fi
+
+if do_check 'strtonum()' check_strtonum; then
+  append_to_config_h "#define HAVE_STRTONUM 1"
+else
+  append_to_config_mk 'SRCS += strtonum.c'
+  include_compat_h=true
+fi
+
+if do_check 'sndio' check_sndio; then
+  append_to_config_h "#define HAVE_SNDIO 1"
+  append_to_config_mk 'LDADD += -lsndio'
+elif do_check 'sys_midiio' check_sys_midiio; then
+  append_to_config_h "#define HAVE_SYS_MIDIIO 1"
+  append_to_config_mk 'SRCS += sndio_sys_midiio.c'
+  include_compat_h=true
+else
+  echo 'ERROR: Could not find a supported midi programming API.' >&2
+  exit 1
+fi
 
 if $include_compat_h; then
-  echo '#include "compat/compat.h"' >> "$config_h_path"
+  echo '#include "compat.h"' >> "$config_h_path"
 fi
 
 show_config
