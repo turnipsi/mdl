@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.41 2016/04/22 20:43:46 je Exp $
+# $Id: Makefile,v 1.42 2016/04/23 19:55:37 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
-	musicexpr.c parse.y lex.l relative.c sequencer.c song.c track.c \
+	musicexpr.c parse.c lex.l relative.c sequencer.c song.c track.c \
 	util.c
 MAN=	mdl.1 mdl.5
 
@@ -31,7 +31,10 @@ CC=	${AFLCC}
 COPTS+=	-DMDL_USE_AFL
 .endif
 
-# NetBSD wants this for yacc -d so we get y.tab.h
-YHEADER=	true
+parse.c y.tab.h: parse.y
+	yacc -d $>
+	mv y.tab.c parse.c
+
+CLEANFILES+=	parse.c
 
 .include <bsd.prog.mk>
