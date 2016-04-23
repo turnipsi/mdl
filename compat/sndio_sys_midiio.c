@@ -1,4 +1,4 @@
-/* $Id: sndio_sys_midiio.c,v 1.1 2016/04/22 19:42:03 je Exp $ */
+/* $Id: sndio_sys_midiio.c,v 1.2 2016/04/23 20:01:35 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,7 +30,7 @@
 
 #include "sndio.h"
 
-static struct mio_hdl mio_sys_midiio;
+static struct mio_hdl mio_sys_midiio = { .fd = -1 };
 
 struct mio_hdl *
 mio_open(const char *name, unsigned int mode, int nbio_flag)
