@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.54 2016/04/22 20:16:04 je Exp $ */
+/* $Id: mdl.c,v 1.55 2016/04/24 19:33:30 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -246,9 +246,9 @@ setup_sequencer_for_sources(char **files, int filecount,
 	if ((sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
 		if (close(ms_sp[0]) == -1)
-			warn("error closing first endpoint of ms_sp");
+			warn("error closing first end of ms_sp");
 		if (close(ms_sp[1]) == -1)
-			warn("error closing second endpoint of ms_sp");
+			warn("error closing second end of ms_sp");
 		return 1;
 	}
 
@@ -267,7 +267,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		if (lockfd >= 0 && close(lockfd) == -1)
 			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
-			warn("error closing first endpoint of ms_sp");
+			warn("error closing first end of ms_sp");
 		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
@@ -280,7 +280,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 	}
 
 	if (close(ms_sp[1]) == -1)
-		warn("error closing second endpoint of ms_sp");
+		warn("error closing second end of ms_sp");
 
 	if (pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
 		warn("pledge");
@@ -341,7 +341,7 @@ finish:
 	}
 
 	if (close(ms_sp[0]) == -1)
-		warn("error closing first endpoint of ms_sp");
+		warn("error closing first end of ms_sp");
 
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
@@ -376,13 +376,13 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 		return 1;
 	}
 
-	/* Setup pipe for interpreter -> sequencer communication. */
+	/* Setup pipe for interpreter --> sequencer communication. */
 	if (pipe(is_pipe) == -1) {
 		warn("could not setup pipe for interpreter -> sequencer");
 		if (close(mi_sp[0]) == -1)
-			warn("error closing first endpoint of mi_sp");
+			warn("error closing first end of mi_sp");
 		if (close(mi_sp[1]) == -1)
-			warn("error closing second endpoint of mi_sp");
+			warn("error closing second end of mi_sp");
 		return 1;
 	}
 
@@ -392,14 +392,14 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 
 	if ((interpreter_pid = fork()) == -1) {
 		warn("could not fork interpreter pid");
-		if (close(mi_sp[0]) == -1)
-			warn("error closing first endpoint of mi_sp");
 		if (close(mi_sp[1]) == -1)
-			warn("error closing second endpoint of mi_sp");
-		if (close(is_pipe[0]) == -1)
-			warn("error closing first endpoint of is_pipe");
+			warn("error closing second end of mi_sp");
+		if (close(mi_sp[0]) == -1)
+			warn("error closing first end of mi_sp");
 		if (close(is_pipe[1]) == -1)
-			warn("error closing second endpoint of is_pipe");
+			warn("error closing write end of is_pipe");
+		if (close(is_pipe[0]) == -1)
+			warn("error closing read end of is_pipe");
 		return 1;
 	}
 
@@ -427,26 +427,26 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 			goto interpreter_out;
 		}
 		if (close(mi_sp[0]) == -1) {
-			warn("error closing first endpoint of mi_sp");
+			warn("error closing first end of mi_sp");
 			ret = 1;
 			goto interpreter_out;
 		}
-		if (close(is_pipe[1]) == -1) {
-			warn("error closing second endpoint of is_pipe");
+		if (close(is_pipe[0]) == -1) {
+			warn("error closing read end of is_pipe");
 			ret = 1;
 			goto interpreter_out;
 		}
 
 		ret = handle_musicfile_and_socket(file_fd, mi_sp[1],
-		    is_pipe[0], server_socket);
+		    is_pipe[1], server_socket);
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
 			warn("error closing music file");
 
-		if (close(is_pipe[0]) == -1)
-			warn("error closing first endpoint of is_pipe");
+		if (close(is_pipe[1]) == -1)
+			warn("error closing write end of is_pipe");
 		if (close(mi_sp[1]) == -1)
-			warn("error closing second endpoint of mi_sp");
+			warn("error closing second end of mi_sp");
 
 interpreter_out:
 		if (fflush(NULL) == EOF) {
@@ -460,17 +460,17 @@ interpreter_out:
 	}
 
 	if (close(mi_sp[1]) == -1)
-		warn("error closing second endpoint of mi_sp");
-	if (close(is_pipe[0]) == -1)
-		warn("error closing first endpoint of is_pipe");
+		warn("error closing second end of mi_sp");
+	if (close(is_pipe[1]) == -1)
+		warn("error closing write end of is_pipe");
 
 	/*
 	 * We can communicate to interpreter through mi_sp[0],
-	 * but to establish interpreter <-> sequencer communication
-	 * we must send is_pipe[1] to sequencer.
+	 * but to establish interpreter --> sequencer communication
+	 * we must send is_pipe[0] to sequencer.
 	 */
 
-	if (send_fd_through_socket(is_pipe[1], sequencer_socket) != 0) {
+	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
 		/*
 		 * XXX What to do in case of error?
 		 * XXX What should we clean up?
@@ -480,9 +480,9 @@ interpreter_out:
 	/* XXX mi_sp[0] not yet used for anything. */
 
 	if (close(mi_sp[0]) == -1)
-		warn("error closing first endpoint of mi_sp");
-	if (close(is_pipe[1]) == -1)
-		warn("error closing second endpoint of is_pipe");
+		warn("error closing first end of mi_sp");
+	if (close(is_pipe[0]) == -1)
+		warn("error closing read end of is_pipe");
 
 	/*
 	 * XXX Only one interpreter thread should be running at once,

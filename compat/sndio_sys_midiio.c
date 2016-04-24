@@ -1,4 +1,4 @@
-/* $Id: sndio_sys_midiio.c,v 1.2 2016/04/23 20:01:35 je Exp $ */
+/* $Id: sndio_sys_midiio.c,v 1.3 2016/04/24 19:33:31 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,7 +37,7 @@ mio_open(const char *name, unsigned int mode, int nbio_flag)
 {
 	int fd;
 
-	/* We support only the parts of the sndio API that we need */
+	/* We support only the parts of the sndio API that we need. */
 	assert(strcmp(name, MIO_PORTANY) == 0);
 	assert(mode == MIO_OUT);
 	assert(nbio_flag == 0);
