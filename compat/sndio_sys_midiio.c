@@ -1,4 +1,4 @@
-/* $Id: sndio_sys_midiio.c,v 1.3 2016/04/24 19:33:31 je Exp $ */
+/* $Id: sndio_sys_midiio.c,v 1.4 2016/04/28 19:57:55 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,8 +44,8 @@ mio_open(const char *name, unsigned int mode, int nbio_flag)
 
 	assert(mio_sys_midiio.fd == -1);
 
-	if ((fd = open("/dev/music", O_WRONLY)) == -1) {
-		warn("error when opening /dev/music");
+	if ((fd = open("/dev/rmidi0", O_WRONLY)) == -1) {
+		warn("error when opening /dev/rmidi0");
 		return NULL;
 	}
 
@@ -85,7 +85,7 @@ mio_close(struct mio_hdl *hdl)
 	assert(mio_sys_midiio.fd >= 0);
 
 	if (close(mio_sys_midiio.fd) == -1)
-		warn("error closing /dev/music");
+		warn("error closing /dev/rmidi0");
 
 	mio_sys_midiio.fd = -1;
 }
