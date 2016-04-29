@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.23 2016/04/29 19:46:09 je Exp $ */
+/* $Id: midi.c,v 1.24 2016/04/29 20:13:46 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,9 +18,14 @@
 
 #include <assert.h>
 #include <err.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <math.h>
-#include <sndio.h>
 #include <time.h>
+
+#ifdef HAVE_SNDIO
+#include <sndio.h>
+#endif /* HAVE_SNDIO */
 
 #include "midi.h"
 #include "util.h"
@@ -50,9 +55,11 @@ static int	raw_open_device(const char *);
 static size_t	raw_write_to_device(u_int8_t *, size_t);
 static void	raw_close_device(void);
 
+#ifdef HAVE_SNDIO
 static int	sndio_open_device(const char *);
 static size_t	sndio_write_to_device(u_int8_t *, size_t);
 static void	sndio_close_device(void);
+#endif
 
 int
 midi_open_device(enum mididev_type mididev_type, const char *device)
@@ -61,7 +68,12 @@ midi_open_device(enum mididev_type mididev_type, const char *device)
 	case MIDIDEV_RAW:
 		return raw_open_device(device);
 	case MIDIDEV_SNDIO:
+#ifdef HAVE_SNDIO
 		return sndio_open_device(device);
+#else
+		warnx("sndio support not compiled in");
+		return 1;
+#endif
 	default:
 		assert(0);
 	}
@@ -79,25 +91,61 @@ midi_close_device(void)
 static int
 raw_open_device(const char *device)
 {
-	/* XXX */
-	unimplemented();
-	return 1;
+	int fd;
+	const char *devpath;
+
+	assert(mididev.mididev_type == MIDIDEV_NONE);
+
+	devpath = (device != NULL) ? device : "/dev/rmidi0";
+
+	if ((fd = open(devpath, O_WRONLY)) == -1) {
+		warn("could not open midi device %s", devpath);
+		return 1;
+	}
+
+	mididev.mididev_type = MIDIDEV_RAW;
+	mididev.u.raw_fd = fd;
+	mididev.write_to_device = raw_write_to_device;
+	mididev.close_device = raw_close_device;
+
+	return 0;
 }
 
 static size_t
 raw_write_to_device(u_int8_t *midievent, size_t midievent_size)
 {
-	/* XXX */
-	unimplemented();
-	return 1;
+	ssize_t nw, total_wcount;
+
+	assert(mididev.mididev_type == MIDIDEV_RAW);
+
+	total_wcount = 0;
+
+	while (total_wcount < midievent_size) {
+		/* XXX what if nw == 0 (continuously)?  can that happen? */
+		nw = write(mididev.u.raw_fd, midievent,
+		    midievent_size-total_wcount);
+		if (nw == -1) {
+			if (errno == EAGAIN)
+				continue;
+			warn("error writing to raw midi device");
+			return 0;
+		}
+		total_wcount += nw;
+	}
+
+	return total_wcount;
 }
 
 static void
 raw_close_device(void)
 {
-	/* XXX */
-	unimplemented();
+	assert(mididev.mididev_type == MIDIDEV_RAW);
+
+	if (close(mididev.u.raw_fd) == -1)
+		warn("error closing raw midi device");
 }
+
+#ifdef HAVE_SNDIO
 
 static int
 sndio_open_device(const char *device)
@@ -126,7 +174,6 @@ static size_t
 sndio_write_to_device(u_int8_t *midievent, size_t midievent_size)
 {
 	assert(mididev.mididev_type == MIDIDEV_SNDIO);
-	assert(mididev.u.sndio_mio != NULL);
 
 	return mio_write(mididev.u.sndio_mio, midievent, midievent_size);
 }
@@ -137,8 +184,9 @@ sndio_close_device(void)
 	assert(mididev.mididev_type == MIDIDEV_SNDIO);
 
 	mio_close(mididev.u.sndio_mio);
-	mididev.u.sndio_mio = NULL;
 }
+
+#endif /* HAVE_SNDIO */
 
 int
 midi_check_midievent(struct midievent me, float minimum_time_as_measures)

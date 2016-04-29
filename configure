@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.8 2016/04/22 20:16:02 je Exp $
+# $Id: configure,v 1.9 2016/04/29 20:13:45 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -165,13 +165,6 @@ fi
 if do_check sndio check_sndio; then
   append_to_config_h '#define HAVE_SNDIO 1'
   append_to_config_mk 'LDADD += -lsndio'
-elif do_check sys_midiio check_sys_midiio; then
-  append_to_config_h '#define HAVE_SYS_MIDIIO 1'
-  append_to_config_mk 'SRCS += sndio_sys_midiio.c'
-  include_compat_h=true
-else
-  echo 'ERROR: Could not find a supported midi programming API.' >&2
-  exit 1
 fi
 
 if $include_compat_h; then

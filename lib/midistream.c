@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.35 2016/04/14 19:25:39 je Exp $ */
+/* $Id: midistream.c,v 1.36 2016/04/29 20:13:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -142,6 +142,7 @@ midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
 	wsize = s->count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
+		/* XXX what if nw == 0 (continuously)?  can that happen? */
 		nw = write(sequencer_socket,
 		    ((char *) s->u.midievents + total_wcount),
 		    (wsize - total_wcount));
