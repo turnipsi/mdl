@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.78 2016/04/11 19:25:37 je Exp $ */
+/* $Id: sequencer.c,v 1.79 2016/04/29 19:46:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -98,7 +98,7 @@ static int	receive_fd_through_socket(int *, int);
 static int
 sequencer_init(void)
 {
-	return midi_open_device();
+	return midi_open_device(MIDIDEV_SNDIO, NULL);
 }
 
 static void

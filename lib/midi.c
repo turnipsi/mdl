@@ -1,7 +1,7 @@
-/* $Id: midi.c,v 1.22 2016/04/22 19:42:02 je Exp $ */
+/* $Id: midi.c,v 1.23 2016/04/29 19:46:09 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -32,30 +32,112 @@
 #define MIDI_NOTEON_BASE		0x90
 #define MIDI_VELOCITY_MAX		127
 
-static struct mio_hdl *mio = NULL;
+struct mididevice {
+	enum mididev_type mididev_type;
+	union {
+		int		raw_fd;
+		struct mio_hdl *sndio_mio;
+	} u;
+	size_t	(*write_to_device)(u_int8_t *, size_t);
+	void	(*close_device)(void);
+};
+
+struct mididevice mididev = { MIDIDEV_NONE };
 
 static int midi_check_range(u_int8_t, u_int8_t, u_int8_t);
 
-int
-midi_open_device(void)
-{
-	assert(mio == NULL);
+static int	raw_open_device(const char *);
+static size_t	raw_write_to_device(u_int8_t *, size_t);
+static void	raw_close_device(void);
 
-	if ((mio = mio_open(MIO_PORTANY, MIO_OUT, 0)) == NULL) {
-		warnx("could not open midi device");
-		return 1;
+static int	sndio_open_device(const char *);
+static size_t	sndio_write_to_device(u_int8_t *, size_t);
+static void	sndio_close_device(void);
+
+int
+midi_open_device(enum mididev_type mididev_type, const char *device)
+{
+	switch (mididev_type) {
+	case MIDIDEV_RAW:
+		return raw_open_device(device);
+	case MIDIDEV_SNDIO:
+		return sndio_open_device(device);
+	default:
+		assert(0);
 	}
 
-	return 0;
+	return 1;
 }
 
 void
 midi_close_device(void)
 {
-	assert(mio != NULL);
+	mididev.close_device();
+	mididev.mididev_type = MIDIDEV_NONE;
+}
 
-	mio_close(mio);
-	mio = NULL;
+static int
+raw_open_device(const char *device)
+{
+	/* XXX */
+	unimplemented();
+	return 1;
+}
+
+static size_t
+raw_write_to_device(u_int8_t *midievent, size_t midievent_size)
+{
+	/* XXX */
+	unimplemented();
+	return 1;
+}
+
+static void
+raw_close_device(void)
+{
+	/* XXX */
+	unimplemented();
+}
+
+static int
+sndio_open_device(const char *device)
+{
+	struct mio_hdl *mio;
+	const char *sndio_device;
+
+	assert(mididev.mididev_type == MIDIDEV_NONE);
+
+	sndio_device = (device != NULL) ? device : MIO_PORTANY;
+
+	if ((mio = mio_open(sndio_device, MIO_OUT, 0)) == NULL) {
+		warnx("could not open midi device");
+		return 1;
+	}
+
+	mididev.mididev_type = MIDIDEV_SNDIO;
+	mididev.u.sndio_mio = mio;
+	mididev.write_to_device = sndio_write_to_device;
+	mididev.close_device = sndio_close_device;
+
+	return 0;
+}
+
+static size_t
+sndio_write_to_device(u_int8_t *midievent, size_t midievent_size)
+{
+	assert(mididev.mididev_type == MIDIDEV_SNDIO);
+	assert(mididev.u.sndio_mio != NULL);
+
+	return mio_write(mididev.u.sndio_mio, midievent, midievent_size);
+}
+
+static void
+sndio_close_device(void)
+{
+	assert(mididev.mididev_type == MIDIDEV_SNDIO);
+
+	mio_close(mididev.u.sndio_mio);
+	mididev.u.sndio_mio = NULL;
 }
 
 int
@@ -138,10 +220,9 @@ midi_send_midievent(struct midievent *me, int dry_run)
 {
 	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
-	int ret, midievent_size;
+	int ret;
+	size_t midievent_size;
 	u_int8_t eventbase, velocity;
-
-	assert(mio != NULL);
 
 	midievent_size = 0;
 
@@ -170,7 +251,7 @@ midi_send_midievent(struct midievent *me, int dry_run)
 				warn("could not get real time");
 			} else {
 				mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
-		    		    time.tv_sec, (time.tv_nsec / 1000000.0));
+				    time.tv_sec, (time.tv_nsec / 1000000.0));
 			}
 		}
 
@@ -190,7 +271,7 @@ midi_send_midievent(struct midievent *me, int dry_run)
 	if (dry_run)
 		return 0;
 
-	ret = mio_write(mio, midievent, midievent_size);
+	ret = mididev.write_to_device(midievent, midievent_size);
 	if (ret != midievent_size) {
 		warnx("midi error, tried to write exactly %d bytes, wrote %d",
 		    midievent_size, ret);
