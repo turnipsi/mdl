@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.56 2016/04/30 18:54:54 je Exp $ */
+/* $Id: mdl.c,v 1.57 2016/04/30 19:06:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,11 +34,18 @@
 #include <unistd.h>
 
 #include "interpreter.h"
+#include "midi.h"
 #include "sequencer.h"
 #include "util.h"
 
 #define MDL_VERSION	"0.0-current"
 #define SOCKETPATH_LEN	104
+
+#ifdef HAVE_SNDIO
+#define DEFAULT_MIDIINTERFACE MIDIDEV_SNDIO
+#else
+#define DEFAULT_MIDIINTERFACE MIDIDEV_RAW
+#endif
 
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
@@ -194,15 +201,27 @@ main(int argc, char *argv[])
 static int
 show_version(void)
 {
-	if (printf("mdl version %s\n", MDL_VERSION) < 0)
+	int ret;
+
+	ret = printf("mdl version %s\n", MDL_VERSION);
+	if (ret < 0)
 		return 1;
-	if (printf("  compiled with midi interface support: raw") < 0)
+
+	ret = printf("compiled with midi interface support:\n");
+	if (ret < 0)
 		return 1;
+
+	ret = printf("  raw%s\n",
+	    (DEFAULT_MIDIINTERFACE == MIDIDEV_RAW ? " (default)" : ""));
+	if (ret < 0)
+		return 1;
+
 #ifdef HAVE_SNDIO
-	if (printf(" sndio") < 0)
+	ret = printf("  sndio%s\n",
+	    (DEFAULT_MIDIINTERFACE == MIDIDEV_SNDIO ? " (default)" : ""));
+	if (ret < 0)
 		return 1;
 #endif
-	printf("\n");
 
 	return 0;
 }
