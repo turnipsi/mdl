@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.11 2016/04/06 10:46:42 je Exp $
+.\"	$Id: mdl.1,v 1.12 2016/04/30 21:12:04 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: April 6 2016 $
+.Dd $Mdocdate: April 30 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,9 +24,10 @@
 .Nd a music description language with a midi sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl cns
+.Op Fl cnsv
 .Op Fl d Ar debuglevel
 .Op Fl D Ar mdl-directory
+.Op Fl m Ar midi-interface
 .Op Ar
 .Sh DESCRIPTION
 .Nm
@@ -59,9 +60,24 @@ Send music description to server (act as client only).
 Set
 .Ar debuglevel
 to some value.
-Supported values are from 0 to 4,
+Supported values are numbers from from 0 to 4,
 where a bigger number means
 more detailed debugging messages are printed.
+Other possible values are
+.Cm clock ,
+.Cm exprconv ,
+.Cm joins ,
+.Cm midi ,
+.Cm midistream ,
+.Cm mm ,
+.Cm parsing ,
+.Cm process ,
+.Cm relative
+and
+.Cm song .
+Several options may be set by separating them with a comma,
+for example
+.Dq joins,midi .
 .It Fl D Ar mdl-directory
 Use
 .Ar mdl-directory
@@ -71,11 +87,32 @@ Setting this option allows running multiple instances of
 even when
 .Ar -s
 option is set.
+.It Fl m Ar midi-interface
+Set the
+.Ar midi-interface
+type
+.Nm
+uses.
+Possible values are
+.Cm raw
+and
+.Cm sndio ,
+but not all options may have been compiled in.
+See
+.Ar -v
+for supported midi-interfaces
+and the default midi-interface type used.
 .It Fl n
 Dry run.
 Do everything else but do not actually play music.
 .It Fl s
 Open a listening socket to accept music descriptions (server-mode).
+.It Fl v
+Show
+.Nm
+version and the supported midi interfaces
+.Nm
+was compiled with.
 .El
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
