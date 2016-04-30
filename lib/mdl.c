@@ -1,7 +1,7 @@
-/* $Id: mdl.c,v 1.57 2016/04/30 19:06:23 je Exp $ */
+/* $Id: mdl.c,v 1.58 2016/04/30 20:43:23 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -42,9 +42,9 @@
 #define SOCKETPATH_LEN	104
 
 #ifdef HAVE_SNDIO
-#define DEFAULT_MIDIINTERFACE MIDIDEV_SNDIO
+#define DEFAULT_MIDIDEV_TYPE MIDIDEV_SNDIO
 #else
-#define DEFAULT_MIDIINTERFACE MIDIDEV_RAW
+#define DEFAULT_MIDIDEV_TYPE MIDIDEV_RAW
 #endif
 
 #ifdef HAVE_MALLOC_OPTIONS
@@ -59,7 +59,7 @@ static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
 static int	setup_sequencer_for_sources(char **, int, const char *, int,
-    int);
+    int, enum mididev_type);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -93,6 +93,7 @@ main(int argc, char *argv[])
 	char **musicfiles;
 	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
 	size_t ret;
+	enum mididev_type mididev_type;
 
 #ifdef HAVE_MALLOC_OPTIONS
 	malloc_options = (char *) "AFGJPS";
@@ -102,6 +103,7 @@ main(int argc, char *argv[])
 
 	cflag = nflag = sflag = 0;
 	lockfd = -1;
+	mididev_type = DEFAULT_MIDIDEV_TYPE;
 
 	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -115,7 +117,7 @@ main(int argc, char *argv[])
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
-	while ((ch = getopt(argc, argv, "cd:D:nsv")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:D:m:nsv")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
@@ -127,6 +129,20 @@ main(int argc, char *argv[])
 		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
 				errx(1, "mdldir too long");
+			break;
+		case 'm':
+			if (strcmp(optarg, "raw") == 0) {
+				mididev_type = MIDIDEV_RAW;
+#ifdef HAVE_SNDIO
+			} else if (strcmp(optarg, "sndio") == 0) {
+				mididev_type = MIDIDEV_SNDIO;
+#endif /* HAVE_SNDIO */
+			} else {
+				warnx("unsupported midi interface \"%s\"",
+				    optarg);
+				warnx("run with -v to see possible options");
+				exit(1);
+			}
 			break;
 		case 'n':
 			nflag = 1;
@@ -186,7 +202,7 @@ main(int argc, char *argv[])
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
 	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    (sflag ? server_socketpath : NULL), lockfd, nflag);
+	    (sflag ? server_socketpath : NULL), lockfd, nflag, mididev_type);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -212,13 +228,13 @@ show_version(void)
 		return 1;
 
 	ret = printf("  raw%s\n",
-	    (DEFAULT_MIDIINTERFACE == MIDIDEV_RAW ? " (default)" : ""));
+	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_RAW ? " (default)" : ""));
 	if (ret < 0)
 		return 1;
 
 #ifdef HAVE_SNDIO
 	ret = printf("  sndio%s\n",
-	    (DEFAULT_MIDIINTERFACE == MIDIDEV_SNDIO ? " (default)" : ""));
+	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_SNDIO ? " (default)" : ""));
 	if (ret < 0)
 		return 1;
 #endif
@@ -263,7 +279,8 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 
 static int
 setup_sequencer_for_sources(char **files, int filecount,
-    const char *socketpath, int lockfd, int dry_run)
+    const char *socketpath, int lockfd, int dry_run,
+    enum mididev_type mididev_type)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
 	int server_socket, file_fd, ret, retvalue;
@@ -310,7 +327,8 @@ setup_sequencer_for_sources(char **files, int filecount,
 			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
-		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run);
+		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
+		    mididev_type);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
 		if (fflush(NULL) == EOF) {

@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.79 2016/04/29 19:46:09 je Exp $ */
+/* $Id: sequencer.c,v 1.80 2016/04/30 20:43:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -80,7 +80,7 @@ static void	sequencer_close_songstate(struct songstate *,
     struct sequencer_params *);
 static void	sequencer_free_songstate(struct songstate *);
 static void	sequencer_handle_signal(int);
-static int	sequencer_init(void);
+static int	sequencer_init(enum mididev_type);
 static void	sequencer_init_songstate(struct songstate *,
     enum playback_state);
 static int	sequencer_noteevent(struct songstate *, struct midievent *,
@@ -96,9 +96,9 @@ static void	sequencer_time_for_next_note(struct songstate *ss,
 static int	receive_fd_through_socket(int *, int);
 
 static int
-sequencer_init(void)
+sequencer_init(enum mididev_type mididev_type)
 {
-	return midi_open_device(MIDIDEV_SNDIO, NULL);
+	return midi_open_device(mididev_type, NULL);
 }
 
 static void
@@ -111,7 +111,7 @@ sequencer_handle_signal(int signo)
 }
 
 int
-sequencer_loop(int main_socket, int dry_run)
+sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type)
 {
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
@@ -138,7 +138,7 @@ sequencer_loop(int main_socket, int dry_run)
 	playback_song = &song1;
 	reading_song = &song2;
 
-	if (sequencer_init() != 0) {
+	if (sequencer_init(mididev_type) != 0) {
 		warnx("problem initializing sequencer, exiting");
 		return 1;
 	}
