@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.55 2016/04/24 19:33:30 je Exp $ */
+/* $Id: mdl.c,v 1.56 2016/04/30 18:54:54 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,12 +37,14 @@
 #include "sequencer.h"
 #include "util.h"
 
-#define SOCKETPATH_LEN 104
+#define MDL_VERSION	"0.0-current"
+#define SOCKETPATH_LEN	104
 
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
+static int	show_version(void);
 static int	get_default_mdldir(char *);
 static int	get_default_socketpath(char *, const char *);
 static int	start_interpreter(int, int, int, int);
@@ -106,7 +108,7 @@ main(int argc, char *argv[])
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
-	while ((ch = getopt(argc, argv, "cd:D:ns")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:D:nsv")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
@@ -124,6 +126,11 @@ main(int argc, char *argv[])
 			break;
 		case 's':
 			sflag = 1;
+			break;
+		case 'v':
+			if (show_version() != 0)
+				exit(1);
+			exit(0);
 			break;
 		default:
 			usage();
@@ -180,6 +187,22 @@ main(int argc, char *argv[])
 		warn("error closing lockfd");
 
 	mdl_logging_close();
+
+	return 0;
+}
+
+static int
+show_version(void)
+{
+	if (printf("mdl version %s\n", MDL_VERSION) < 0)
+		return 1;
+	if (printf("  compiled with midi interface support: raw") < 0)
+		return 1;
+#ifdef HAVE_SNDIO
+	if (printf(" sndio") < 0)
+		return 1;
+#endif
+	printf("\n");
 
 	return 0;
 }
