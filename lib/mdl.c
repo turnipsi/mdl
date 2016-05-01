@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.58 2016/04/30 20:43:23 je Exp $ */
+/* $Id: mdl.c,v 1.59 2016/05/01 19:31:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,7 +59,7 @@ static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
 static int	setup_sequencer_for_sources(char **, int, const char *, int,
-    int, enum mididev_type);
+    int, enum mididev_type, const char *);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -89,9 +89,12 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	char mdldir[PATH_MAX], server_socketpath[SOCKETPATH_LEN];
+	char mdldir[PATH_MAX];
+	char server_socketpath[SOCKETPATH_LEN];
+	char *devicepath;
 	char **musicfiles;
 	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
+	int devicepath_set;
 	size_t ret;
 	enum mididev_type mididev_type;
 
@@ -101,6 +104,7 @@ main(int argc, char *argv[])
 
 	mdl_process_type = "main";
 
+	devicepath = NULL;
 	cflag = nflag = sflag = 0;
 	lockfd = -1;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
@@ -117,7 +121,7 @@ main(int argc, char *argv[])
 	if (get_default_mdldir(mdldir) != 0)
 		errx(1, "could not get default mdl directory");
 
-	while ((ch = getopt(argc, argv, "cd:D:m:nsv")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:D:f:m:nsv")) != -1) {
 		switch (ch) {
 		case 'c':
 			cflag = 1;
@@ -129,6 +133,9 @@ main(int argc, char *argv[])
 		case 'D':
 			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
 				errx(1, "mdldir too long");
+			break;
+		case 'f':
+			devicepath = optarg;
 			break;
 		case 'm':
 			if (strcmp(optarg, "raw") == 0) {
@@ -202,7 +209,8 @@ main(int argc, char *argv[])
 		warnx("sending only the first musicfile (%s)", musicfiles[0]);
 
 	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    (sflag ? server_socketpath : NULL), lockfd, nflag, mididev_type);
+	    (sflag ? server_socketpath : NULL), lockfd, nflag, mididev_type,
+	    devicepath);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -280,7 +288,7 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 static int
 setup_sequencer_for_sources(char **files, int filecount,
     const char *socketpath, int lockfd, int dry_run,
-    enum mididev_type mididev_type)
+    enum mididev_type mididev_type, const char *devicepath)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
 	int server_socket, file_fd, ret, retvalue;
@@ -328,7 +336,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
 		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
-		    mididev_type);
+		    mididev_type, devicepath);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
 		if (fflush(NULL) == EOF) {

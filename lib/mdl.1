@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.12 2016/04/30 21:12:04 je Exp $
+.\"	$Id: mdl.1,v 1.13 2016/05/01 19:31:56 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,23 +16,24 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: April 30 2016 $
+.Dd $Mdocdate: May 1 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
 .Nm mdl
-.Nd a music description language with a midi sequencer
+.Nd a music description language with a MIDI sequencer
 .Sh SYNOPSIS
 .Nm mdl
 .Op Fl cnsv
 .Op Fl d Ar debuglevel
 .Op Fl D Ar mdl-directory
-.Op Fl m Ar midi-interface
+.Op Fl f Ar device
+.Op Fl m Ar MIDI-interface
 .Op Ar
 .Sh DESCRIPTION
 .Nm
 interprets music files
-and plays them through a midi device.
+and plays them through a MIDI device.
 Syntax mimicks the
 .Xr lilypond 1
 syntax but is not compatible.
@@ -87,9 +88,25 @@ Setting this option allows running multiple instances of
 even when
 .Ar -s
 option is set.
-.It Fl m Ar midi-interface
+.It Fl f Ar device
+Sets the MIDI device path.
+Interpretation for this depends on the MIDI-interface used.
+For
+.Cm raw
+MIDI devices this the file path with the default value of
+.Dq /dev/rmidi0 .
+For
+.Cm sndio
+MIDI devices this is the name of the
+.Xr sndio 7
+MIDI device with the default value of
+.Dq default .
+See the
+.Ar -m
+option for setting the MIDI-interface type.
+.It Fl m Ar MIDI-interface
 Set the
-.Ar midi-interface
+.Ar MIDI-Interface
 type
 .Nm
 uses.
@@ -98,10 +115,10 @@ Possible values are
 and
 .Cm sndio ,
 but not all options may have been compiled in.
-See
+See the
 .Ar -v
-for supported midi-interfaces
-and the default midi-interface type used.
+option for supported MIDI-interfaces
+and the default MIDI-interface type used.
 .It Fl n
 Dry run.
 Do everything else but do not actually play music.
@@ -110,7 +127,7 @@ Open a listening socket to accept music descriptions (server-mode).
 .It Fl v
 Show
 .Nm
-version and the supported midi interfaces
+version and the supported MIDI interfaces
 .Nm
 was compiled with.
 .El

@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.24 2016/04/29 20:13:46 je Exp $ */
+/* $Id: midi.c,v 1.25 2016/05/01 19:31:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -99,7 +99,7 @@ raw_open_device(const char *device)
 	devpath = (device != NULL) ? device : "/dev/rmidi0";
 
 	if ((fd = open(devpath, O_WRONLY)) == -1) {
-		warn("could not open midi device %s", devpath);
+		warn("could not open raw midi device %s", devpath);
 		return 1;
 	}
 
@@ -158,7 +158,7 @@ sndio_open_device(const char *device)
 	sndio_device = (device != NULL) ? device : MIO_PORTANY;
 
 	if ((mio = mio_open(sndio_device, MIO_OUT, 0)) == NULL) {
-		warnx("could not open midi device");
+		warnx("could not open sndio midi device %s", sndio_device);
 		return 1;
 	}
 
