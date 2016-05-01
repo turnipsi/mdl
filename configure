@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.9 2016/04/29 20:13:45 je Exp $
+# $Id: configure,v 1.10 2016/05/01 20:15:50 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -46,6 +46,14 @@ show_config() {
 
 check_cc() {
   $cc -x c -Werror-implicit-function-declaration -o /dev/null - 2>/dev/null
+}
+
+check_dead() {
+  check_cc <<'EOF'
+#include <sys/types.h>
+void __dead foo(void);
+int main(void) {}
+EOF
 }
 
 check_malloc_options() {
@@ -122,6 +130,10 @@ do_check() {
 }
 
 init_config
+
+if do_check attribute__dead check_dead; then
+  append_to_config_h '#define HAVE_ATTRIBUTE__DEAD 1'
+fi
 
 if do_check malloc_options check_malloc_options; then
   append_to_config_h '#define HAVE_MALLOC_OPTIONS 1'

@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.2 2016/04/20 20:35:49 je Exp $ */
+/* $Id: compat.h,v 1.3 2016/05/01 20:15:51 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -40,5 +40,9 @@ char	*strsep(char **, const char *);
 #ifndef HAVE_STRTONUM
 long long	strtonum(const char *, long long, long long, const char **);
 #endif /* !HAVE_STRTONUM */
+
+#if !defined(HAVE_ATTRIBUTE__DEAD) && !defined(__dead)
+#define __dead
+#endif
 
 #endif /* !MDL_COMPAT_H */
