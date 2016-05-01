@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.59 2016/05/01 19:31:56 je Exp $ */
+/* $Id: mdl.c,v 1.60 2016/05/01 19:58:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -94,7 +94,6 @@ main(int argc, char *argv[])
 	char *devicepath;
 	char **musicfiles;
 	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
-	int devicepath_set;
 	size_t ret;
 	enum mididev_type mididev_type;
 

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.42 2016/04/23 19:55:37 je Exp $
+# $Id: Makefile,v 1.43 2016/05/01 19:58:53 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
@@ -19,7 +19,7 @@ BINDIR=	${PREFIX}/bin
 MANDIR=	${PREFIX}/man/man
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
-CFLAGS+=	-I${.CURDIR} -I${.CURDIR}/compat
+CFLAGS+=	${CDIAGFLAGS} -I${.CURDIR} -I${.CURDIR}/compat
 
 COPTS+=		-include config.h
 

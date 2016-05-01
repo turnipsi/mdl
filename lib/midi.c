@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.25 2016/05/01 19:31:56 je Exp $ */
+/* $Id: midi.c,v 1.26 2016/05/01 19:58:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -47,7 +47,7 @@ struct mididevice {
 	void	(*close_device)(void);
 };
 
-struct mididevice mididev = { MIDIDEV_NONE };
+struct mididevice mididev = { MIDIDEV_NONE, { 0 }, NULL, NULL };
 
 static int midi_check_range(u_int8_t, u_int8_t, u_int8_t);
 
@@ -65,6 +65,9 @@ int
 midi_open_device(enum mididev_type mididev_type, const char *device)
 {
 	switch (mididev_type) {
+	case MIDIDEV_NONE:
+		assert(0);
+		break;
 	case MIDIDEV_RAW:
 		return raw_open_device(device);
 	case MIDIDEV_SNDIO:
@@ -114,7 +117,8 @@ raw_open_device(const char *device)
 static size_t
 raw_write_to_device(u_int8_t *midievent, size_t midievent_size)
 {
-	ssize_t nw, total_wcount;
+	size_t total_wcount;
+	ssize_t nw;
 
 	assert(mididev.mididev_type == MIDIDEV_RAW);
 
@@ -268,8 +272,7 @@ midi_send_midievent(struct midievent *me, int dry_run)
 {
 	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
-	int ret;
-	size_t midievent_size;
+	size_t midievent_size, wsize;
 	u_int8_t eventbase, velocity;
 
 	midievent_size = 0;
@@ -319,10 +322,10 @@ midi_send_midievent(struct midievent *me, int dry_run)
 	if (dry_run)
 		return 0;
 
-	ret = mididev.write_to_device(midievent, midievent_size);
-	if (ret != midievent_size) {
-		warnx("midi error, tried to write exactly %d bytes, wrote %d",
-		    midievent_size, ret);
+	wsize = mididev.write_to_device(midievent, midievent_size);
+	if (wsize != midievent_size) {
+		warnx("midi error, tried to write exactly %ld bytes,"
+		    " wrote %ld", midievent_size, wsize);
 		return 1;
 	}
 
