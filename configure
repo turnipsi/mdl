@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.10 2016/05/01 20:15:50 je Exp $
+# $Id: configure,v 1.11 2016/05/02 20:33:04 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -46,6 +46,14 @@ show_config() {
 
 check_cc() {
   $cc -x c -Werror-implicit-function-declaration -o /dev/null - 2>/dev/null
+}
+
+check_asprintf() {
+  check_cc <<'EOF'
+#include <stdio.h>
+int main(void) { asprintf(NULL, NULL); }
+EOF
+
 }
 
 check_dead() {
@@ -114,6 +122,13 @@ int main(void) {}
 EOF
 }
 
+check_va_copy() {
+  check_cc <<'EOF'
+#include <stdarg.h>
+int main(void) { va_list dst, src; va_copy(dst, src); }
+EOF
+}
+
 do_check() {
   checkname=$1
   checkfunc=$2
@@ -130,6 +145,13 @@ do_check() {
 }
 
 init_config
+
+if do_check asprintf check_asprintf; then
+  append_to_config_h '#define HAVE_ASPRINTF 1'
+else
+  append_to_config_mk 'SRCS += asprintf.c'
+  include_compat_h=true
+fi
 
 if do_check attribute__dead check_dead; then
   append_to_config_h '#define HAVE_ATTRIBUTE__DEAD 1'
@@ -177,6 +199,10 @@ fi
 if do_check sndio check_sndio; then
   append_to_config_h '#define HAVE_SNDIO 1'
   append_to_config_mk 'LDADD += -lsndio'
+fi
+
+if do_check va_copy check_va_copy; then
+  append_to_config_h '#define HAVE_VA_COPY 1'
 fi
 
 if $include_compat_h; then

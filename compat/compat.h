@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.4 2016/05/01 20:17:47 je Exp $ */
+/* $Id: compat.h,v 1.5 2016/05/02 20:33:08 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,6 +20,13 @@
 #define MDL_COMPAT_H
 
 #include <sys/types.h>
+
+#include <stdarg.h>
+
+#ifndef HAVE_ASPRINTF
+int	asprintf(char **, const char *, ...);
+int	vasprintf(char **, const char *, va_list);
+#endif /* !HAVE_ASPRINTF */
 
 #if !defined(HAVE_ATTRIBUTE__DEAD) && !defined(__dead)
 #define __dead
