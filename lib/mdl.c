@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.60 2016/05/01 19:58:53 je Exp $ */
+/* $Id: mdl.c,v 1.61 2016/05/02 20:17:55 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/file.h>		/* Needed by flock(2) call on Linux. */
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -180,9 +181,14 @@ main(int argc, char *argv[])
 		 * lock, to get exclusive access to socket path, not needed
 		 * for anything else.
 		 */
-		fileflags = O_RDONLY|O_NONBLOCK|O_EXLOCK|O_DIRECTORY;
+		fileflags = O_RDONLY|O_NONBLOCK|O_DIRECTORY;
 		if ((lockfd = open(mdldir, fileflags)) == -1) {
 			warn("could not open %s for exclusive lock", mdldir);
+			errx(1, "do you have another instance of" \
+			    " mdl running?");
+		}
+		if (flock(lockfd, LOCK_EX) == -1) {
+			warn("could not get an exclusive lock on %s", mdldir);
 			errx(1, "do you have another instance of" \
 			    " mdl running?");
 		}
