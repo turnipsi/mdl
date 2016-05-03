@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.25 2016/04/07 18:49:07 je Exp $ */
+/* $Id: lex.l,v 1.26 2016/05/03 09:32:51 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,12 +64,12 @@ static void	update_textloc(struct textloc *);
 (es)+	{
 		update_textloc(&yylval.i.textloc);
 		yylval.i.expr = strlen(yytext) / 2;
-		return NOTEMOD_ES;
+		return NOTEMODTOKEN_ES;
 	}
 (is)+	{
 		update_textloc(&yylval.i.textloc);
 		yylval.i.expr = strlen(yytext) / 2;
-		return NOTEMOD_IS;
+		return NOTEMODTOKEN_IS;
 	}
 
 c	{ return new_notesym(NOTE_C); }

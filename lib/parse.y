@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.54 2016/04/05 10:27:30 je Exp $ */
+/* $Id: parse.y,v 1.55 2016/05/03 09:32:51 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -98,8 +98,8 @@ static float countlength(int, int);
 %token	<notesym>	NOTETOKEN
 			NOTETOKEN_ES
 
-%token	<i>		NOTEMOD_ES
-			NOTEMOD_IS
+%token	<i>		NOTEMODTOKEN_ES
+			NOTEMODTOKEN_IS
 
 %token	<textloc>	RESTTOKEN
 %token	<i>		LENGTHDOT
@@ -342,9 +342,9 @@ expression_list:
 	;
 
 notemods:
-	NOTEMOD_IS    { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
-	| NOTEMOD_ES  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */ { $$.expr = 0;         $$.textloc = textloc_zero(); }
+	NOTEMODTOKEN_IS   { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
+	| NOTEMODTOKEN_ES { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
+	| /* empty */     { $$.expr = 0;         $$.textloc = textloc_zero(); }
 	;
 
 octavemods:
