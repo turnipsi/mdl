@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.43 2016/05/01 19:58:53 je Exp $
+# $Id: Makefile,v 1.44 2016/05/03 09:36:27 je Exp $
 
 PROG=	mdl
 SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
@@ -36,5 +36,9 @@ parse.c y.tab.h: parse.y
 	mv y.tab.c parse.c
 
 CLEANFILES+=	parse.c
+
+# Some BSD makes run with gcc flag -Werror, unlike OpenBSD.
+# Turn that off.
+NOGCCERROR=	true
 
 .include <bsd.prog.mk>
