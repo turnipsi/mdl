@@ -1,4 +1,4 @@
-/*	$Id: pledge.c,v 1.2 2016/04/19 20:23:08 je Exp $	*/
+/*	$Id: pledge.c,v 1.3 2016/05/03 09:33:06 je Exp $	*/
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,10 +18,16 @@
 
 #ifndef HAVE_PLEDGE
 
+#define UNUSED(x) (void)(x)
+
 int
 pledge(const char *promises, const char *paths[])
 {
 	/* Not much we can do, in case the OS does not support pledge(). */
+
+	/* Suppress "unused parameter" compiler warnings. */
+	UNUSED(paths);
+	UNUSED(promises);
 
 	return 0;
 }
