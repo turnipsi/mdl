@@ -1,44 +1,74 @@
-# $Id: Makefile,v 1.44 2016/05/03 09:36:27 je Exp $
+# $Id: Makefile,v 1.45 2016/05/06 19:54:05 je Exp $
 
-PROG=	mdl
-SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
-	musicexpr.c parse.c lex.l relative.c sequencer.c song.c track.c \
-	util.c
-MAN=	mdl.1 mdl.5
+SRCS=	interpreter.c instrument.c joinexpr.c lex.c mdl.c midi.c midistream.c \
+	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
 
-.PATH: ${.CURDIR}/compat
+CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
+CFLAGS?=	-O2 -pipe
+CFLAGS+=	${CDIAGFLAGS} -I. -Icompat -include config.h
+
+LDADD+=		-lm
 
 include config.mk
 
-DPADD+=	${LIBM} ${LIBSNDIO}
-LDADD+=	-lm
+.PHONY: all
+all: mdl
 
-PREFIX ?= /usr/local
+mdl: ${SRCS}
+	${CC} ${CFLAGS} -o mdl ${SRCS} ${LDADD}
 
-BINDIR=	${PREFIX}/bin
-MANDIR=	${PREFIX}/man/man
-
-CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
-CFLAGS+=	${CDIAGFLAGS} -I${.CURDIR} -I${.CURDIR}/compat
-
-COPTS+=		-include config.h
-
-.if "${MDL_USE_AFL}" == "1"
-AFLCC?=	afl-gcc
-
-NOMAN=	noman
-CC=	${AFLCC}
-COPTS+=	-DMDL_USE_AFL
-.endif
+lex.c: lex.l
+	lex -o lex.c $<
 
 parse.c y.tab.h: parse.y
-	yacc -d $>
+	yacc -d $<
 	mv y.tab.c parse.c
 
-CLEANFILES+=	parse.c
+.PHONY: clean
+clean:
+	rm -f mdl lex.c parse.c y.tab.c y.tab.h
 
-# Some BSD makes run with gcc flag -Werror, unlike OpenBSD.
-# Turn that off.
-NOGCCERROR=	true
 
-.include <bsd.prog.mk>
+#
+#
+#PROG=	mdl
+#SRCS=	interpreter.c instrument.c joinexpr.c mdl.c midi.c midistream.c \
+#	musicexpr.c parse.c lex.l relative.c sequencer.c song.c track.c \
+#	util.c
+#MAN=	mdl.1 mdl.5
+#
+#.PATH: ${.CURDIR}/compat
+#
+#
+#DPADD+=	${LIBM} ${LIBSNDIO}
+#LDADD+=	-lm
+#
+#PREFIX ?= /usr/local
+#
+#BINDIR=	${PREFIX}/bin
+#MANDIR=	${PREFIX}/man/man
+#
+#CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
+#CFLAGS+=	${CDIAGFLAGS} -I${.CURDIR} -I${.CURDIR}/compat
+#
+#COPTS+=		-include config.h
+#
+#.if "${MDL_USE_AFL}" == "1"
+#AFLCC?=	afl-gcc
+#
+#NOMAN=	noman
+#CC=	${AFLCC}
+#COPTS+=	-DMDL_USE_AFL
+#.endif
+#
+#parse.c y.tab.h: parse.y
+#	yacc -d $>
+#	mv y.tab.c parse.c
+#
+#CLEANFILES+=	parse.c
+#
+## Some BSD makes run with gcc flag -Werror, unlike OpenBSD.
+## Turn that off.
+#NOGCCERROR=	true
+#
+#.include <bsd.prog.mk>
