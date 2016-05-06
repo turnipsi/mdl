@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.25 2016/05/06 19:58:25 je Exp $
+# $Id: Makefile,v 1.26 2016/05/06 20:08:54 je Exp $
 
 MDL=	${.CURDIR}/../src/mdl
 
@@ -83,10 +83,9 @@ accept-regressions:
 
 .PHONY: afl-fuzz
 afl-fuzz:
-	env MAKEOBJDIR=${.CURDIR}/obj ${MAKE} -C ${.CURDIR}/../src \
-	    -D MDL_USE_AFL clean all
+	${MAKE} -C ${.CURDIR}/../src clean afl-mdl
 	afl-fuzz -i ${.CURDIR}/inputs -o afl-fuzz-results \
-	    ${.CURDIR}/obj/mdl -n @@
+	    ${.CURDIR}/../src/afl-mdl -n @@
 
 .PHONY: clean
 clean:
