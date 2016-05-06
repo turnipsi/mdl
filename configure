@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.11 2016/05/02 20:33:04 je Exp $
+# $Id: configure,v 1.12 2016/05/06 20:31:03 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -149,7 +149,7 @@ init_config
 if do_check asprintf check_asprintf; then
   append_to_config_h '#define HAVE_ASPRINTF 1'
 else
-  append_to_config_mk 'SRCS += asprintf.c'
+  append_to_config_mk 'SRCS += compat/asprintf.c'
   include_compat_h=true
 fi
 
@@ -164,35 +164,35 @@ fi
 if do_check 'pledge()' check_pledge; then
   append_to_config_h '#define HAVE_PLEDGE 1'
 else
-  append_to_config_mk 'SRCS += pledge.c'
+  append_to_config_mk 'SRCS += compat/pledge.c'
   include_compat_h=true
 fi
 
 if do_check 'reallocarray()' check_reallocarray; then
   append_to_config_h '#define HAVE_REALLOCARRAY 1'
 else
-  append_to_config_mk 'SRCS += reallocarray.c'
+  append_to_config_mk 'SRCS += compat/reallocarray.c'
   include_compat_h=true
 fi
 
 if do_check 'strlcpy()' check_strlcpy; then
   append_to_config_h '#define HAVE_STRLCPY 1'
 else
-  append_to_config_mk 'SRCS += strlcpy.c'
+  append_to_config_mk 'SRCS += compat/strlcpy.c'
   include_compat_h=true
 fi
 
 if do_check 'strsep()' check_strsep; then
   append_to_config_h '#define HAVE_STRSEP 1'
 else
-  append_to_config_mk 'SRCS += strsep.c'
+  append_to_config_mk 'SRCS += compat/strsep.c'
   include_compat_h=true
 fi
 
 if do_check 'strtonum()' check_strtonum; then
   append_to_config_h '#define HAVE_STRTONUM 1'
 else
-  append_to_config_mk 'SRCS += strtonum.c'
+  append_to_config_mk 'SRCS += compat/strtonum.c'
   include_compat_h=true
 fi
 

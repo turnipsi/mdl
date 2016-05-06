@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.48 2016/05/06 20:15:32 je Exp $
+# $Id: Makefile,v 1.49 2016/05/06 20:31:05 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c mdl.c midi.c midistream.c \
 	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
@@ -11,18 +11,16 @@ LDADD+=	-lm
 
 AFLCC?=	afl-gcc
 
-.PATH: compat
-
 include config.mk
 
 .PHONY: all
 all: mdl
 
 mdl: ${SRCS}
-	${CC} ${CFLAGS} -o $@ $> ${LDADD}
+	${CC} ${CFLAGS} -o $@ ${SRCS} ${LDADD}
 
 afl-mdl: ${SRCS}
-	${AFLCC} ${CFLAGS} -DMDL_USE_AFL -o $@ $> ${LDADD}
+	${AFLCC} ${CFLAGS} -DMDL_USE_AFL -o $@ ${SRCS} ${LDADD}
 
 lex.c: lex.l
 	lex -o lex.c $<
