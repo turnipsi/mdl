@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.24 2016/04/07 18:49:04 je Exp $
+# $Id: Makefile,v 1.25 2016/05/06 19:58:25 je Exp $
 
-MDL=	${.CURDIR}/../src/obj/mdl
+MDL=	${.CURDIR}/../src/mdl
 
 TEST_INPUTS=	t-afl-fuzzed-crash-1               \
 		t-afl-fuzzed-crash-2               \
