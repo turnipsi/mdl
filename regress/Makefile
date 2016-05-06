@@ -1,4 +1,6 @@
-# $Id: Makefile,v 1.26 2016/05/06 20:08:54 je Exp $
+# $Id: Makefile,v 1.27 2016/05/06 20:15:31 je Exp $
+
+# XXX change this to just use /bin/sh
 
 MDL=	${.CURDIR}/../src/mdl
 
