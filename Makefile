@@ -1,3 +1,4 @@
 SUBDIR = src
 
-.include <bsd.subdir.mk>
+all clean:
+	cd ${SUBDIR} && ${MAKE} $@
