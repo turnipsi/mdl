@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.13 2016/05/01 19:31:56 je Exp $
+.\"	$Id: mdl.1,v 1.14 2016/05/07 20:24:59 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: May 1 2016 $
+.Dd $Mdocdate: May 7 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,9 +24,8 @@
 .Nd a music description language with a MIDI sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl cnsv
+.Op Fl nsv
 .Op Fl d Ar debuglevel
-.Op Fl D Ar mdl-directory
 .Op Fl f Ar device
 .Op Fl m Ar MIDI-interface
 .Op Ar
@@ -79,15 +78,6 @@ and
 Several options may be set by separating them with a comma,
 for example
 .Dq joins,midi .
-.It Fl D Ar mdl-directory
-Use
-.Ar mdl-directory
-as the directory to keep a listening socket.
-Setting this option allows running multiple instances of
-.Nm
-even when
-.Ar -s
-option is set.
 .It Fl f Ar device
 Sets the MIDI device path.
 Interpretation for this depends on the MIDI-interface used.

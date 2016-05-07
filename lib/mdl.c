@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.61 2016/05/02 20:17:55 je Exp $ */
+/* $Id: mdl.c,v 1.62 2016/05/07 20:24:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,7 +16,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/file.h>		/* Needed by flock(2) call on Linux. */
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -53,14 +52,13 @@ extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	show_version(void);
-static int	get_default_mdldir(char *);
-static int	get_default_socketpath(char *, const char *);
-static int	start_interpreter(int, int, int, int);
+static int	get_socketpath(char *);
+static int	start_interpreter(int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
 static int	setup_sequencer_for_sources(char **, int, const char *, int,
-    int, enum mididev_type, const char *);
+    enum mididev_type, const char *);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -74,7 +72,8 @@ char *mdl_process_type;
 static void __dead
 usage(void)
 {
-	(void) fprintf(stderr, "usage: mdl [-cs] [-D mdldir] [file ...]\n");
+	(void) fprintf(stderr, "usage: mdl [-nsv] [-d debuglevel] [-f device]"
+	    " [-m MIDI-interface] [file ...]\n");
 	exit(1);
 }
 
@@ -90,11 +89,10 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	char mdldir[PATH_MAX];
 	char server_socketpath[SOCKETPATH_LEN];
 	char *devicepath;
 	char **musicfiles;
-	int musicfilecount, ch, cflag, nflag, sflag, fileflags, lockfd;
+	int musicfilecount, ch, nflag, sflag;
 	size_t ret;
 	enum mididev_type mididev_type;
 
@@ -105,11 +103,10 @@ main(int argc, char *argv[])
 	mdl_process_type = "main";
 
 	devicepath = NULL;
-	cflag = nflag = sflag = 0;
-	lockfd = -1;
+	nflag = sflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
 
-	if (pledge("cpath flock proc recvfd rpath sendfd stdio unix wpath",
+	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
 		err(1, "pledge");
 
@@ -118,21 +115,11 @@ main(int argc, char *argv[])
 
 	mdl_logging_init();
 
-	if (get_default_mdldir(mdldir) != 0)
-		errx(1, "could not get default mdl directory");
-
 	while ((ch = getopt(argc, argv, "cd:D:f:m:nsv")) != -1) {
 		switch (ch) {
-		case 'c':
-			cflag = 1;
-			break;
 		case 'd':
 			if (mdl_logging_setopts(optarg) == -1)
 				errx(1, "error in setting logging opts");
-			break;
-		case 'D':
-			if (strlcpy(mdldir, optarg, PATH_MAX) >= PATH_MAX)
-				errx(1, "mdldir too long");
 			break;
 		case 'f':
 			devicepath = optarg;
@@ -155,6 +142,8 @@ main(int argc, char *argv[])
 			nflag = 1;
 			break;
 		case 's':
+			/* XXX sflag should also result in calling daemon()
+			 * XXX at some point. */
 			sflag = 1;
 			break;
 		case 'v':
@@ -172,55 +161,24 @@ main(int argc, char *argv[])
 
 	mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
-	if ((mkdir(mdldir, 0755) == -1) && errno != EEXIST)
-		err(1, "error creating %s", mdldir);
-
-	if (sflag) {
-		/*
-		 * When opening server socket, open mdldir for exclusive
-		 * lock, to get exclusive access to socket path, not needed
-		 * for anything else.
-		 */
-		fileflags = O_RDONLY|O_NONBLOCK|O_DIRECTORY;
-		if ((lockfd = open(mdldir, fileflags)) == -1) {
-			warn("could not open %s for exclusive lock", mdldir);
-			errx(1, "do you have another instance of" \
-			    " mdl running?");
-		}
-		if (flock(lockfd, LOCK_EX) == -1) {
-			warn("could not get an exclusive lock on %s", mdldir);
-			errx(1, "do you have another instance of" \
-			    " mdl running?");
-		}
-	}
-
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
 	    == -1)
 		err(1, "pledge");
 
-	if (get_default_socketpath(server_socketpath, mdldir) != 0)
-		errx(1, "could not get default socketpath");
-
 	musicfilecount = argc;
 	musicfiles = argv;
 
-	if (cflag && sflag) {
-		warnx("-c and -s options are mutually exclusive");
-		usage();
-		/* NOTREACHED */
+	if (sflag && get_socketpath(server_socketpath) != 0) {
+		warnx("could not determine server socketpath");
+		exit(1);
 	}
 
-	if (cflag && musicfilecount > 1)
-		warnx("sending only the first musicfile (%s)", musicfiles[0]);
-
+	/* XXX Socketpath is always NULL, how should it be set? */
 	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    (sflag ? server_socketpath : NULL), lockfd, nflag, mididev_type,
+	    (sflag ? server_socketpath : NULL), nflag, mididev_type,
 	    devicepath);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
-
-	if (lockfd >= 0 && close(lockfd) == -1)
-		warn("error closing lockfd");
 
 	mdl_logging_close();
 
@@ -256,34 +214,14 @@ show_version(void)
 }
 
 static int
-get_default_mdldir(char *mdldir)
-{
-	int ret;
-	char *home;
-
-	if ((home = getenv("HOME")) == NULL) {
-		warnx("could not determine user home directory");
-		return 1;
-	}
-
-	ret = snprintf(mdldir, PATH_MAX, "%s/.mdl", home);
-	if (ret == -1 || ret >= PATH_MAX) {
-		warnx("mdl home directory too long, check HOME");
-		return 1;
-	}
-
-	return 0;
-}
-
-static int
-get_default_socketpath(char *socketpath, const char *mdldir)
+get_socketpath(char *socketpath)
 {
 	int ret;
 
-	ret = snprintf(socketpath, SOCKETPATH_LEN, "%s/socket", mdldir);
+	/* XXX What to do here? */
+	ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl.socket");
 	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("default server socketpath too long, mdldir is %s",
-		      mdldir);
+		warnx("default server socketpath too long");
 		return 1;
 	}
 
@@ -292,7 +230,7 @@ get_default_socketpath(char *socketpath, const char *mdldir)
 
 static int
 setup_sequencer_for_sources(char **files, int filecount,
-    const char *socketpath, int lockfd, int dry_run,
+    const char *socketpath, int dry_run,
     enum mididev_type mididev_type, const char *devicepath)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
@@ -336,8 +274,6 @@ setup_sequencer_for_sources(char **files, int filecount,
 		 * XXX We should close all file descriptors that sequencer
 		 * XXX does not need... does this do that?
 		 */
-		if (lockfd >= 0 && close(lockfd) == -1)
-			warn("error closing lockfd");
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
 		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
@@ -392,8 +328,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 			}
 		}
 
-		ret = start_interpreter(file_fd, ms_sp[0], server_socket,
-		    lockfd);
+		ret = start_interpreter(file_fd, ms_sp[0], server_socket);
 		if (ret != 0) {
 			warnx("error in handling %s",
 			    (using_stdin ? "stdin" : files[i]));
@@ -434,8 +369,7 @@ finish:
 }
 
 static int
-start_interpreter(int file_fd, int sequencer_socket, int server_socket,
-    int lockfd)
+start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 {
 	int mi_sp[2];	/* main-interpreter socketpair */
 	int is_pipe[2];	/* interpreter-sequencer pipe */
@@ -489,11 +423,6 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket,
 		 * Be strict here when closing file descriptors so that we
 		 * do not leak file descriptors to interpreter process.
 		 */
-		if (lockfd >= 0 && close(lockfd) == -1) {
-			warn("error closing lock file descriptor");
-			ret = 1;
-			goto interpreter_out;
-		}
 		if (close(sequencer_socket) == -1) {
 			warn("error closing sequencer socket");
 			ret = 1;
@@ -652,10 +581,7 @@ setup_server_socket(const char *socketpath)
 		return -1;
 	}
 
-	/*
-	 * Exclusive flock() for mdldir should mean that
-	 * no other mdl process is using the socketpath.
-	 */
+	/* If socketpath is already in use, unlink it. */
 	if (unlink(socketpath) == -1 && errno != ENOENT) {
 		warn("could not remove %s", socketpath);
 		goto fail;
