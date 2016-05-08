@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.62 2016/05/07 20:24:59 je Exp $ */
+/* $Id: mdl.c,v 1.63 2016/05/08 20:39:37 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -52,7 +52,8 @@ extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	show_version(void);
-static int	get_socketpath(char *);
+static char    *get_socketpath(void);
+static int	setup_socketdir(void);
 static int	start_interpreter(int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
@@ -89,8 +90,7 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	char server_socketpath[SOCKETPATH_LEN];
-	char *devicepath;
+	char *devicepath, *socketpath;
 	char **musicfiles;
 	int musicfilecount, ch, nflag, sflag;
 	size_t ret;
@@ -168,15 +168,21 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfiles = argv;
 
-	if (sflag && get_socketpath(server_socketpath) != 0) {
-		warnx("could not determine server socketpath");
-		exit(1);
+	if (sflag) {
+		if (setup_socketdir() != 0) {
+			warnx("could not setup directory for server socket");
+			exit(1);
+		}
+		if ((socketpath = get_socketpath()) == NULL) {
+			warnx("error in determining server socket path");
+			exit(1);
+		}
+	} else {
+		socketpath = NULL;
 	}
 
-	/* XXX Socketpath is always NULL, how should it be set? */
 	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    (sflag ? server_socketpath : NULL), nflag, mididev_type,
-	    devicepath);
+	    socketpath, nflag, mididev_type, devicepath);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -213,15 +219,72 @@ show_version(void)
 	return 0;
 }
 
-static int
-get_socketpath(char *socketpath)
+static char *
+get_socketpath(void)
 {
+	static char socketpath[SOCKETPATH_LEN];
+	uid_t uid;
 	int ret;
 
-	/* XXX What to do here? */
-	ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl.socket");
+	uid = geteuid();
+	if (uid == 0) {
+		ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl/socket");
+	} else {
+		ret = snprintf(socketpath, SOCKETPATH_LEN,
+		    "/tmp/mdl-%u/socket", uid);
+	}
 	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("default server socketpath too long");
+		warnx("snprintf error for server socketpath");
+		return NULL;
+	}
+
+	return socketpath;
+}
+
+static int
+setup_socketdir(void)
+{
+	char socketpath_dir[SOCKETPATH_LEN];
+	uid_t uid;
+	struct stat sb;
+	mode_t mask, omask;
+	int ret;
+
+	uid = geteuid();
+	if (uid == 0) {
+		mask = 0022;
+		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl");
+	} else {
+		mask = 0077;
+		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl-%u",
+		    uid);
+	}
+	if (ret == -1 || ret >= SOCKETPATH_LEN) {
+		warnx("snprintf error for server socketpath");
+		return 1;
+	}
+
+	omask = umask(mask);
+	if (mkdir(socketpath_dir, 0777) == -1) {
+		if (errno != EEXIST) {
+			warn("error in making %s", socketpath_dir);
+			return 1;
+		}
+	}
+	umask(omask);
+
+	if (stat(socketpath_dir, &sb) < 0) {
+		warn("stat for %s failed", socketpath_dir);
+		return 1;
+	}
+
+	if (!S_ISDIR(sb.st_mode)) {
+		warn("%s is not a directory", socketpath_dir);
+		return 1;
+	}
+
+	if (sb.st_uid != uid || (sb.st_mode & mask) != 0) {
+		warn("%s has wrong permissions", socketpath_dir);
 		return 1;
 	}
 
