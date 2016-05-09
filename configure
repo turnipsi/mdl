@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.12 2016/05/06 20:31:03 je Exp $
+# $Id: configure,v 1.13 2016/05/09 20:03:18 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -18,7 +18,7 @@
 set -eu
 
 cc=${CC:-cc}
-srcdir="$(dirname $0)/src"
+srcdir="$(dirname $0)/lib"
 config_h_path="${srcdir}/config.h"
 config_mk_path="${srcdir}/config.mk"
 include_compat_h=false
