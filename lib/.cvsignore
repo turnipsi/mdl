@@ -1,7 +1,4 @@
-afl-mdl
-config.h
-config.mk
 lex.c
-mdl
+libmdl.so
 parse.c
 y.tab.h

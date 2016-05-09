@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.4 2016/05/09 20:35:55 je Exp $
+# $Id: Makefile,v 1.1 2016/05/09 20:35:57 je Exp $
 
-SUBDIRS = lib src
+SUBDIRS = mdl mdld
 
 all clean:
 	for subdir in ${SUBDIRS}; do \

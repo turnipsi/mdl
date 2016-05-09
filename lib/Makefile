@@ -1,26 +1,28 @@
-# $Id: Makefile,v 1.49 2016/05/06 20:31:05 je Exp $
+# $Id: Makefile,v 1.50 2016/05/09 20:35:57 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c mdl.c midi.c midistream.c \
 	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
 CFLAGS?=	-O2 -pipe
-CFLAGS+=	${CDIAGFLAGS} -I. -Icompat -include config.h
+CFLAGS+=	${CDIAGFLAGS} -I. -Icompat -include ../config.h
+PICFLAG?=	-fPIC
 
 LDADD+=	-lm
 
 AFLCC?=	afl-gcc
 
-include config.mk
+include ../config.mk
 
 .PHONY: all
-all: mdl
+all: libmdl.so
 
-mdl: ${SRCS}
-	${CC} ${CFLAGS} -o $@ ${SRCS} ${LDADD}
+libmdl.so: ${SRCS}
+	${CC} ${CFLAGS} ${PICFLAG} -shared -o $@ ${SRCS} ${LDADD}
 
-afl-mdl: ${SRCS}
-	${AFLCC} ${CFLAGS} -DMDL_USE_AFL -o $@ ${SRCS} ${LDADD}
+libmdlafl.so: ${SRCS}
+	${AFLCC} ${CFLAGS} ${PICFLAG} -DMDL_USE_AFL -shared -o $@ ${SRCS} \
+	    ${LDADD}
 
 lex.c: lex.l
 	lex -o lex.c $<
@@ -31,4 +33,4 @@ parse.c y.tab.h: parse.y
 
 .PHONY: clean
 clean:
-	rm -f afl-mdl mdl lex.c parse.c y.tab.c y.tab.h
+	rm -f lex.c libmdl.so libmdlafl.so parse.c y.tab.c y.tab.h
