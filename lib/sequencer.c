@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.81 2016/05/01 19:31:56 je Exp $ */
+/* $Id: sequencer.c,v 1.82 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -98,7 +98,7 @@ static int	receive_fd_through_socket(int *, int);
 static int
 sequencer_init(enum mididev_type mididev_type, const char *devicepath)
 {
-	return midi_open_device(mididev_type, devicepath);
+	return _mdl_midi_open_device(mididev_type, devicepath);
 }
 
 static void
@@ -111,7 +111,7 @@ sequencer_handle_signal(int signo)
 }
 
 int
-sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type,
+_mdl_sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type,
     const char *devicepath)
 {
 	struct songstate song1, song2;
@@ -208,7 +208,7 @@ sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type,
 		}
 
 		if (mdl_shutdown_sequencer) {
-			mdl_log(MDLLOG_PROCESS, 0,
+			_mdl_mdl_log(MDLLOG_PROCESS, 0,
 			    "sequencer received shutdown signal\n");
 			retvalue = 1;
 			goto finish;
@@ -426,7 +426,7 @@ sequencer_noteevent(struct songstate *ss, struct midievent *me,
 	int ret;
 	struct notestate *nstate;
 
-	ret = midi_send_midievent(me, seq_params->dry_run);
+	ret = _mdl_midi_send_midievent(me, seq_params->dry_run);
 	if (ret == 0) {
 		switch (me->eventtype) {
 		case INSTRUMENT_CHANGE:
@@ -512,9 +512,9 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		if (new_b->events[i].eventtype == SONG_END)
 			ss->got_song_end = 1;
 
-		midievent_log(MDLLOG_MIDI, "received", &new_b->events[i], 0);
+		_mdl_midievent_log(MDLLOG_MIDI, "received", &new_b->events[i], 0);
 
-		if (!midi_check_midievent(new_b->events[i],
+		if (!_mdl_midi_check_midievent(new_b->events[i],
 		    ss->time_as_measures)) {
 			nr = -1;
 			goto finish;
@@ -747,7 +747,7 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 static void
 sequencer_close(void)
 {
-	midi_close_device();
+	_mdl_midi_close_device();
 }
 
 static void

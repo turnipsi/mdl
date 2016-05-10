@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.55 2016/05/03 09:32:51 je Exp $ */
+/* $Id: parse.y,v 1.56 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -136,7 +136,7 @@ static float countlength(int, int);
 grammar:
 	sequence_expr { parsed_expr = $1; }
 	| /* empty */ {
-		parsed_expr = musicexpr_new(ME_TYPE_EMPTY, textloc_zero(), 0);
+		parsed_expr = _mdl_musicexpr_new(ME_TYPE_EMPTY, _mdl_textloc_zero(), 0);
 		if (parsed_expr == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -147,7 +147,7 @@ grammar:
 
 musicexpr:
 	chord {
-		$$ = musicexpr_new(ME_TYPE_CHORD, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_CHORD, $1.textloc, 0);
 		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -156,7 +156,7 @@ musicexpr:
 		$$->u.chord = $1.expr;
 	  }
 	| joinexpr {
-		$$ = musicexpr_new(ME_TYPE_JOINEXPR, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_JOINEXPR, $1.textloc, 0);
 		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -166,7 +166,7 @@ musicexpr:
 
 	  }
 	| relnote {
-		$$ = musicexpr_new(ME_TYPE_RELNOTE, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_RELNOTE, $1.textloc, 0);
 		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -176,7 +176,7 @@ musicexpr:
 	  }
 	| relsimultence_expr { $$ = $1; }
 	| rest {
-		$$ = musicexpr_new(ME_TYPE_REST, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_REST, $1.textloc, 0);
 		if ($$ == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -192,14 +192,14 @@ musicexpr:
 chord:
 	relnote CHORDTOKEN {
 		$$.expr.chordtype = $2.expr;
-		$$.expr.me = musicexpr_new(ME_TYPE_RELNOTE, $1.textloc, 0);
+		$$.expr.me = _mdl_musicexpr_new(ME_TYPE_RELNOTE, $1.textloc, 0);
 		if ($$.expr.me == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
 		$$.expr.me->u.relnote = $1.expr;
-		$$.textloc = join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	}
 	;
 
@@ -207,7 +207,7 @@ joinexpr:
 	musicexpr JOINEXPR musicexpr {
 		$$.expr.a = $1;
 		$$.expr.b = $3;
-		$$.textloc = join_textlocs($1->id.textloc, $3->id.textloc);
+		$$.textloc = _mdl_join_textlocs($1->id.textloc, $3->id.textloc);
 	}
 	;
 
@@ -221,9 +221,9 @@ relnote:
 		$$.expr.length     = $4.expr;
 
 		tl = $1.textloc;
-		tl = join_textlocs(tl, $2.textloc);
-		tl = join_textlocs(tl, $3.textloc);
-		tl = join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(tl, $2.textloc);
+		tl = _mdl_join_textlocs(tl, $3.textloc);
+		tl = _mdl_join_textlocs(tl, $4.textloc);
 
 		$$.textloc = tl;
 	  }
@@ -237,9 +237,9 @@ relnote:
 		$$.expr.length     = $4.expr;
 
 		tl = $1.textloc;
-		tl = join_textlocs(tl, $2.textloc);
-		tl = join_textlocs(tl, $3.textloc);
-		tl = join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(tl, $2.textloc);
+		tl = _mdl_join_textlocs(tl, $3.textloc);
+		tl = _mdl_join_textlocs(tl, $4.textloc);
 
 		$$.textloc = tl;
 	}
@@ -250,13 +250,13 @@ relsimultence_expr:
 		struct textloc tl;
 
 		tl = $1.textloc;
-		tl = join_textlocs(tl, $2->id.textloc);
-		tl = join_textlocs(tl, $3.textloc);
-		tl = join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(tl, $2->id.textloc);
+		tl = _mdl_join_textlocs(tl, $3.textloc);
+		tl = _mdl_join_textlocs(tl, $4.textloc);
 
-		$$ = musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
 		if ($$ == NULL) {
-			musicexpr_free($2, 0);
+			_mdl_musicexpr_free($2, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -269,14 +269,14 @@ relsimultence_expr:
 rest:
 	RESTTOKEN notelength {
 		$$.expr.length = $2.expr;
-		$$.textloc = join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	};
 
 sequence_expr:
 	expression_list {
-		$$ = musicexpr_new(ME_TYPE_SEQUENCE, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_SEQUENCE, $1.textloc, 0);
 		if ($$ == NULL) {
-			musicexpr_free_melist($1.expr, 0);
+			_mdl__mdl_musicexpr__mdl_free_melist($1.expr, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -287,9 +287,9 @@ sequence_expr:
 
 simultence_expr:
 	expression_list {
-		$$ = musicexpr_new(ME_TYPE_SIMULTENCE, $1.textloc, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, $1.textloc, 0);
 		if ($$ == NULL) {
-			musicexpr_free_melist($1.expr, 0);
+			_mdl__mdl_musicexpr__mdl_free_melist($1.expr, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -303,13 +303,13 @@ track_expr:
 		struct textloc tl;
 
 		tl = $1.textloc;
-		tl = join_textlocs(tl, $2.textloc);
-		tl = join_textlocs(tl, $3->id.textloc);
+		tl = _mdl_join_textlocs(tl, $2.textloc);
+		tl = _mdl_join_textlocs(tl, $3->id.textloc);
 
-		$$ = musicexpr_new(ME_TYPE_ONTRACK, tl, 0);
+		$$ = _mdl_musicexpr_new(ME_TYPE_ONTRACK, tl, 0);
 		if ($$ == NULL) {
 			free($1.expr);
-			musicexpr_free($3, 0);
+			_mdl_musicexpr_free($3, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -319,7 +319,7 @@ track_expr:
 		if ($$->u.ontrack.track == NULL) {
 			free($$);
 			free($1.expr);
-			musicexpr_free($3, 0);
+			_mdl_musicexpr_free($3, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -336,7 +336,7 @@ expression_list:
 	  }
 	| expression_list musicexpr {
 		$$.expr = $1.expr;
-		$$.textloc = join_textlocs($1.textloc, $2->id.textloc);
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2->id.textloc);
 		TAILQ_INSERT_TAIL(&$$.expr, $2, tq);
 	  }
 	;
@@ -344,26 +344,26 @@ expression_list:
 notemods:
 	NOTEMODTOKEN_IS   { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
 	| NOTEMODTOKEN_ES { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */     { $$.expr = 0;         $$.textloc = textloc_zero(); }
+	| /* empty */     { $$.expr = 0;         $$.textloc = _mdl_textloc_zero(); }
 	;
 
 octavemods:
 	OCTAVEUP      { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
 	| OCTAVEDOWN  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */ { $$.expr = 0;         $$.textloc = textloc_zero(); }
+	| /* empty */ { $$.expr = 0;         $$.textloc = _mdl_textloc_zero(); }
 	;
 
 notelength:
 	LENGTHNUMBER lengthdots {
 		$$.expr = countlength($1.expr, $2.expr);
-		$$.textloc = join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	  }
-	| /* empty */ { $$.expr = 0.0; $$.textloc = textloc_zero(); }
+	| /* empty */ { $$.expr = 0.0; $$.textloc = _mdl_textloc_zero(); }
 	;
 
 lengthdots:
 	LENGTHDOT     { $$.expr = $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */ { $$.expr = 0;       $$.textloc = textloc_zero(); }
+	| /* empty */ { $$.expr = 0;       $$.textloc = _mdl_textloc_zero(); }
 	;
 
 %%

@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.1 2016/05/10 09:06:28 je Exp $ */
+/* $Id: mdld.c,v 1.2 2016/05/10 20:39:46 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -113,12 +113,12 @@ main(int argc, char *argv[])
 	signal(SIGINT,  handle_signal);
 	signal(SIGTERM, handle_signal);
 
-	mdl_logging_init();
+	_mdl__mdl_mdl_logging_init();
 
 	while ((ch = getopt(argc, argv, "cd:D:f:m:nsv")) != -1) {
 		switch (ch) {
 		case 'd':
-			if (mdl_logging_setopts(optarg) == -1)
+			if (_mdl__mdl_mdl_logging_setopts(optarg) == -1)
 				errx(1, "error in setting logging opts");
 			break;
 		case 'f':
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
+	_mdl_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
 	    == -1)
@@ -186,7 +186,7 @@ main(int argc, char *argv[])
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
-	mdl_logging_close();
+	_mdl__mdl_mdl_logging_close();
 
 	return 0;
 }
@@ -329,9 +329,9 @@ setup_sequencer_for_sources(char **files, int filecount,
 		/*
 		 * We are in sequencer process, start sequencer loop.
 		 */
-		mdl_logging_clear();
+		_mdl__mdl_mdl_logging_clear();
 		mdl_process_type = "seq";
-		mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
+		_mdl_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
 		    getpid());
 		/*
 		 * XXX We should close all file descriptors that sequencer
@@ -339,7 +339,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		 */
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
-		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
+		sequencer_retvalue = _mdl_sequencer_loop(ms_sp[1], dry_run,
 		    mididev_type, devicepath);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
@@ -347,7 +347,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 			warn("error flushing streams in sequencer"
 			       " before exit");
 		}
-		mdl_logging_close();
+		_mdl__mdl_mdl_logging_close();
 		_exit(sequencer_retvalue);
 	}
 
@@ -477,9 +477,9 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		/*
 		 * We are in the interpreter process.
 		 */
-		mdl_logging_clear();
+		_mdl__mdl_mdl_logging_clear();
 		mdl_process_type = "interp";
-		mdl_log(MDLLOG_PROCESS, 0,
+		_mdl_mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
 
 		/*
@@ -502,7 +502,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 			goto interpreter_out;
 		}
 
-		ret = handle_musicfile_and_socket(file_fd, mi_sp[1],
+		ret = _mdl_handle_musicfile_and_socket(file_fd, mi_sp[1],
 		    is_pipe[1], server_socket);
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
@@ -519,7 +519,7 @@ interpreter_out:
 			    " before exit");
 		}
 
-		mdl_logging_close();
+		_mdl__mdl_mdl_logging_close();
 
 		_exit(ret);
 	}
@@ -591,7 +591,7 @@ wait_for_subprocess(const char *process_type, int pid)
 		return 1;
 	}
 
-	mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
+	_mdl_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
 	    process_type, pid, WEXITSTATUS(status));
 
 	return 0;

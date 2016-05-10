@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.29 2016/04/14 19:25:39 je Exp $ */
+/* $Id: util.c,v 1.30 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,7 +57,7 @@ static const char *logtype_strings[] = {
 };
 
 void
-mdl_logging_init(void)
+_mdl__mdl_mdl_logging_init(void)
 {
 	int i;
 
@@ -72,7 +72,7 @@ mdl_logging_init(void)
 }
 
 int
-mdl_logging_setopts(char *optstring)
+_mdl__mdl_mdl_logging_setopts(char *optstring)
 {
 	char *opt;
 	int found, logtype, loglevel;
@@ -139,7 +139,7 @@ mdl_logging_setopts(char *optstring)
 }
 
 void
-mdl_logging_clear(void)
+_mdl__mdl_mdl_logging_clear(void)
 {
 	int i;
 
@@ -153,18 +153,18 @@ mdl_logging_clear(void)
 }
 
 void
-mdl_logging_close(void)
+_mdl__mdl_mdl_logging_close(void)
 {
 	assert(logstate.initialized);
 
-	mdl_logging_clear();
+	_mdl__mdl_mdl_logging_clear();
 
 	logstate.initialized = 0;
 	logstate.opts = 0;
 }
 
 int
-mdl_log_checkopt(enum logtype logtype)
+_mdl__mdl_mdl_log_checkopt(enum logtype logtype)
 {
 	assert(logtype < MDLLOG_TYPECOUNT);
 
@@ -172,7 +172,7 @@ mdl_log_checkopt(enum logtype logtype)
 }
 
 void
-mdl_log(enum logtype logtype, int level, const char *fmt, ...)
+_mdl_mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 {
 	va_list va;
 	int padding_length, ret, i;
@@ -197,7 +197,7 @@ mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 	ret = vasprintf(&logstate.messages[level].msg, fmt, va);
 	va_end(va);
 	if (ret == -1) {
-		warnx("vasprintf error in mdl_log");
+		warnx("vasprintf error in _mdl_mdl_log");
 		logstate.messages[level].msg = NULL;
 		return;
 	}
@@ -217,7 +217,7 @@ mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 			    logtype_strings[ logstate.messages[i].type ],
 			    (2 * i), "", logstate.messages[i].msg);
 			if (ret < 0) {
-				warnx("printf error in mdl_log");
+				warnx("printf error in _mdl_mdl_log");
 				break;
 			}
 		}
@@ -232,12 +232,12 @@ mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 }
 
 struct mdl_stream *
-mdl_stream_new(enum streamtype s_type)
+_mdl_mdl_stream_new(enum streamtype s_type)
 {
 	struct mdl_stream *s;
 
 	if ((s = malloc(sizeof(struct mdl_stream))) == NULL) {
-		warn("malloc in mdl_stream_new");
+		warn("malloc in _mdl_mdl_stream_new");
 		return NULL;
 	}
 
@@ -250,7 +250,7 @@ mdl_stream_new(enum streamtype s_type)
 		s->u.midievents = calloc(s->slotcount,
 		    sizeof(struct midievent));
 		if (s->u.midievents == NULL) {
-			warn("calloc in mdl_stream_new");
+			warn("calloc in _mdl_mdl_stream_new");
 			free(s);
 			return NULL;
 		}
@@ -258,7 +258,7 @@ mdl_stream_new(enum streamtype s_type)
 	case OFFSETEXPRSTREAM:
 		s->u.mexprs = calloc(s->slotcount, sizeof(struct offsetexpr));
 		if (s->u.mexprs == NULL) {
-			warn("calloc in mdl_stream_new");
+			warn("calloc in _mdl_mdl_stream_new");
 			free(s);
 			return NULL;
 		}
@@ -267,7 +267,7 @@ mdl_stream_new(enum streamtype s_type)
 		s->u.trackmidinotes = calloc(s->slotcount,
 		    sizeof(struct trackmidinote));
 		if (s->u.trackmidinotes == NULL) {
-			warn("calloc in mdl_stream_new");
+			warn("calloc in _mdl_mdl_stream_new");
 			free(s);
 			return NULL;
 		}
@@ -280,13 +280,13 @@ mdl_stream_new(enum streamtype s_type)
 }
 
 int
-mdl_stream_increment(struct mdl_stream *s)
+_mdl_mdl_stream_increment(struct mdl_stream *s)
 {
 	void *new_items;
 
 	s->count += 1;
 	if (s->count == s->slotcount) {
-		mdl_log(MDLLOG_MIDISTREAM, 0,
+		_mdl_mdl_log(MDLLOG_MIDISTREAM, 0,
 		    "mdl_stream now contains %d items\n", s->count);
 		s->slotcount *= 2;
 		switch (s->s_type) {
@@ -294,7 +294,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items = reallocarray(s->u.midievents, s->slotcount,
 			    sizeof(struct midievent));
 			if (new_items == NULL) {
-				warn("reallocarray in mdl_stream_increment");
+				warn("reallocarray in _mdl_mdl_stream_increment");
 				return 1;
 			}
 			s->u.midievents = new_items;
@@ -303,7 +303,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items = reallocarray(s->u.mexprs, s->slotcount,
 			    sizeof(struct offsetexpr));
 			if (new_items == NULL) {
-				warn("reallocarray in mdl_stream_increment");
+				warn("reallocarray in _mdl_mdl_stream_increment");
 				return 1;
 			}
 			s->u.mexprs = new_items;
@@ -312,7 +312,7 @@ mdl_stream_increment(struct mdl_stream *s)
 			new_items = reallocarray(s->u.trackmidinotes,
 			    s->slotcount, sizeof(struct trackmidinote));
 			if (new_items == NULL) {
-				warn("reallocarray in mdl_stream_increment");
+				warn("reallocarray in _mdl_mdl_stream_increment");
 				return 1;
 			}
 			s->u.trackmidinotes = new_items;
@@ -326,7 +326,7 @@ mdl_stream_increment(struct mdl_stream *s)
 }
 
 void
-mdl_stream_free(struct mdl_stream *s)
+_mdl_mdl_stream_free(struct mdl_stream *s)
 {
 	switch (s->s_type) {
 	case MIDIEVENTSTREAM:
@@ -346,8 +346,8 @@ mdl_stream_free(struct mdl_stream *s)
 }
 
 void __dead
-unimplemented(void)
+_mdl_unimplemented(void)
 {
-	warnx("unimplemented functionality triggered");
+	warnx("_mdl_unimplemented functionality triggered");
 	abort();
 }

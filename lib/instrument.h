@@ -1,4 +1,4 @@
-/* $Id: instrument.h,v 1.4 2016/03/03 20:10:16 je Exp $ */
+/* $Id: instrument.h,v 1.5 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,7 +35,7 @@ struct instrument {
 
 __BEGIN_DECLS
 struct instrument *
-get_instrument(enum instrument_type, char *);
+_mdl_get_instrument(enum instrument_type, char *);
 __END_DECLS
 
 #endif /* !MDL_INSTRUMENT_H */

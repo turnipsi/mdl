@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.69 2016/04/11 19:00:35 je Exp $ */
+/* $Id: musicexpr.h,v 1.70 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -172,23 +172,23 @@ struct musicexpr {
 };
 
 __BEGIN_DECLS
-void	musicexpr_free(struct musicexpr *, int);
-void	musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
+void	_mdl_musicexpr_free(struct musicexpr *, int);
+void	_mdl_musicexpr_log(const struct musicexpr *, enum logtype, int, char *);
 
-struct musicexpr       *musicexpr_new(enum musicexpr_type,
+struct musicexpr       *_mdl_musicexpr_new(enum musicexpr_type,
     struct textloc, int);
-struct musicexpr       *musicexpr_clone(struct musicexpr *, int);
-struct musicexpr       *musicexpr_sequence(int, struct musicexpr *, ...);
-struct musicexpr       *chord_to_noteoffsetexpr(struct chord, int);
-struct musicexpr       *musicexpr_to_flat_simultence(struct musicexpr *, int);
-struct musicexpr       *musicexpr_scaledexpr_unscale(struct scaledexpr *, int);
-char		       *musicexpr_id_string(const struct musicexpr *);
-void			musicexpr_free_melist(struct melist, int);
-void			free_melist(struct musicexpr *);
-void			musicexpr_apply_noteoffset(struct musicexpr *, int,
+struct musicexpr       *_mdl_musicexpr_clone(struct musicexpr *, int);
+struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
+struct musicexpr       *_mdl_chord_to_noteoffsetexpr(struct chord, int);
+struct musicexpr       *_mdl_musicexpr_to_flat_simultence(struct musicexpr *, int);
+struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *, int);
+char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
+void			_mdl__mdl_musicexpr__mdl_free_melist(struct melist, int);
+void			_mdl_free_melist(struct musicexpr *);
+void			_mdl_musicexpr_apply_noteoffset(struct musicexpr *, int,
     int);
-struct textloc textloc_zero(void);
-struct textloc join_textlocs(struct textloc,
+struct textloc _mdl_textloc_zero(void);
+struct textloc _mdl_join_textlocs(struct textloc,
     struct textloc);
 __END_DECLS
 

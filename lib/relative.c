@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.19 2016/04/11 19:00:35 je Exp $ */
+/* $Id: relative.c,v 1.20 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,24 +38,24 @@ static void	relative_to_absolute(struct musicexpr *,
 static int	compare_notesyms(enum notesym, enum notesym);
 
 void
-musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
+_mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
     int level)
 {
 	struct previous_relative_exprs prev_relative_exprs;
 	struct instrument *instrument;
 
-	mdl_log(MDLLOG_RELATIVE, level,
+	_mdl_mdl_log(MDLLOG_RELATIVE, level,
 	    "converting relative expressions to absolute\n");
 
 	level += 1;
 
 	/* Set default values for the first absolute note. */
-	instrument = track_get_default_instrument(song->default_track);
+	instrument = _mdl_track_get_default_instrument(song->default_track);
 	if (instrument != NULL) {
 		prev_relative_exprs.absnote.instrument = instrument;
 	} else {
 		prev_relative_exprs.absnote.instrument =
-		    get_instrument(INSTR_TONED, "acoustic grand");
+		    _mdl_get_instrument(INSTR_TONED, "acoustic grand");
 	}
 	assert(prev_relative_exprs.absnote.instrument != NULL);
 
@@ -86,8 +86,8 @@ relative_to_absolute(struct musicexpr *me,
 	int first_note_seen, note, c;
 	char *me_id;
 
-	if ((me_id = musicexpr_id_string(me)) != NULL) {
-		mdl_log(MDLLOG_RELATIVE, level, "rel->abs for expression %s\n",
+	if ((me_id = _mdl_musicexpr_id_string(me)) != NULL) {
+		_mdl_mdl_log(MDLLOG_RELATIVE, level, "rel->abs for expression %s\n",
 		    me_id);
 		free(me_id);
 	}
@@ -132,14 +132,14 @@ relative_to_absolute(struct musicexpr *me,
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
 		prev_exprs->absnote.track = me->u.ontrack.track;
-		instrument = track_get_default_instrument(me->u.ontrack.track);
+		instrument = _mdl_track_get_default_instrument(me->u.ontrack.track);
 		if (instrument != NULL)
 			prev_exprs->absnote.instrument = instrument;
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_RELNOTE:
-		musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
+		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		relnote = me->u.relnote;
 
@@ -173,7 +173,7 @@ relative_to_absolute(struct musicexpr *me,
 
 		break;
 	case ME_TYPE_REST:
-		musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
+		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		if (me->u.rest.length == 0) {
 			me->u.rest.length = prev_exprs->absnote.length;
@@ -253,7 +253,7 @@ relative_to_absolute(struct musicexpr *me,
 	}
 
 	if (me->me_type == ME_TYPE_ABSNOTE || me->me_type == ME_TYPE_REST)
-		musicexpr_log(me, MDLLOG_RELATIVE, level+1, "--> ");
+		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level+1, "--> ");
 }
 
 /*

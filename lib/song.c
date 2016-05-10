@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.9 2016/04/04 20:06:39 je Exp $ */
+/* $Id: song.c,v 1.10 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,7 +30,7 @@ static int
 connect_tracks_to_song(struct song *, struct musicexpr *, int);
 
 struct song *
-mdl_song_new(struct musicexpr *me, int level)
+_mdl_mdl_song_new(struct musicexpr *me, int level)
 {
 	struct song *song;
 	struct track *track;
@@ -47,7 +47,7 @@ mdl_song_new(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	track = mdl_song_find_track_or_new(song, "acoustic grand", level);
+	track = _mdl_mdl_song_find_track_or_new(song, "acoustic grand", level);
 	if (track == NULL) {
 		warnx("could not create the default track");
 		free(song);
@@ -103,7 +103,7 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 		break;
 	case ME_TYPE_ONTRACK:
 		tmp_track = me->u.ontrack.track;
-		track = mdl_song_find_track_or_new(song, tmp_track->name,
+		track = _mdl_mdl_song_find_track_or_new(song, tmp_track->name,
 		    level);
 		if (track == NULL) {
 			ret = 1;
@@ -134,7 +134,7 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 }
 
 void
-mdl_song_free(struct song *song)
+_mdl_mdl_song_free(struct song *song)
 {
 	struct track *p, *q;
 
@@ -148,7 +148,7 @@ mdl_song_free(struct song *song)
 }
 
 struct track *
-mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
+_mdl_mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 {
 	struct track *track;
 
@@ -159,19 +159,19 @@ mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 			return track;
 
 	if ((track = malloc(sizeof(struct track))) == NULL) {
-		warn("malloc failure in mdl_song_find_track_or_new");
+		warn("malloc failure in _mdl_mdl_song_find_track_or_new");
 		return NULL;
 	}
 
 	if ((track->name = strdup(trackname)) == NULL) {
-		warn("strdup in mdl_song_find_track_or_new");
+		warn("strdup in _mdl_mdl_song_find_track_or_new");
 		free(track);
 		return NULL;
 	}
 
 	SLIST_INSERT_HEAD(&song->tracklist, track, sl);
 
-	mdl_log(MDLLOG_SONG, level, "added a new track \"%s\"\n", track->name);
+	_mdl_mdl_log(MDLLOG_SONG, level, "added a new track \"%s\"\n", track->name);
 
 	return track;
 }

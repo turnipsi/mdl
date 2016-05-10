@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.51 2016/04/11 19:25:37 je Exp $ */
+/* $Id: interpreter.c,v 1.52 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,7 +33,7 @@ extern struct musicexpr	*parsed_expr;
 extern unsigned int	 parse_errors;
 
 int
-handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
+_mdl_handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
     int server_socket)
 {
 	struct mdl_stream *eventstream;
@@ -60,34 +60,34 @@ handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
 	}
 
 	if (yyparse() != 0 || parse_errors > 0) {
-		warnx("yyparse returned error");
+		warnx("_mdl_parse returned error");
 		return 1;
 	}
 
 	/*
-	 * If yyparse() returned ok, we should have parsed_expr != NULL
+	 * If _mdl_parse() returned ok, we should have parsed_expr != NULL
 	 * and available for us now.
 	 */
 
-	mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
-	musicexpr_log(parsed_expr, MDLLOG_PARSING, level+1, NULL);
+	_mdl_mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
+	_mdl_musicexpr_log(parsed_expr, MDLLOG_PARSING, level+1, NULL);
 
-	eventstream = musicexpr_to_midievents(parsed_expr, level);
+	eventstream = _mdl_musicexpr_to_midievents(parsed_expr, level);
 	if (eventstream == NULL) {
 		warnx("error converting music expression to midi stream");
 		ret = 1;
 		goto finish;
 	}
 
-	wcount = midi_write_midistream(sequencer_socket, eventstream, level);
+	wcount = _mdl_midi_write_midistream(sequencer_socket, eventstream, level);
 	if (wcount == -1)
 		ret = 1;
 
 finish:
 	if (eventstream)
-		mdl_stream_free(eventstream);
+		_mdl_mdl_stream_free(eventstream);
 	if (parsed_expr)
-		musicexpr_free(parsed_expr, level);
+		_mdl_musicexpr_free(parsed_expr, level);
 
 	return ret;
 }

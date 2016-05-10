@@ -1,4 +1,4 @@
-/* $Id: parse.h,v 1.1 2016/03/15 21:17:55 je Exp $ */
+/* $Id: parse.h,v 1.2 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 __BEGIN_DECLS
 void	yyerror(const char *fmt, ...);
 int	yylex(void);
-int	yyparse(void);
+int	_mdl_parse(void);
 __END_DECLS
 
 #endif /* !MDL_PARSE_H */

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.36 2016/04/29 20:13:46 je Exp $ */
+/* $Id: midistream.c,v 1.37 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,13 +57,13 @@ static int add_musicexpr_to_trackmidievents(struct mdl_stream *,
 static int compare_trackmidievents(const void *, const void *);
 
 struct mdl_stream *
-musicexpr_to_midievents(struct musicexpr *me, int level)
+_mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
 {
 	struct mdl_stream *offset_es, *midi_es;
 	struct musicexpr *flatme, *p;
 	struct song *song;
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "converting music expression to midi stream\n");
 
 	midi_es = NULL;
@@ -74,39 +74,39 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	song = mdl_song_new(me, level+1);
+	song = _mdl_mdl_song_new(me, level+1);
 	if (song == NULL) {
 		warnx("could not create a new song");
-		mdl_stream_free(offset_es);
+		_mdl_mdl_stream_free(offset_es);
 		return NULL;
 	}
 
 	/*
 	 * First convert relative->absolute,
-	 * joinexpr_musicexpr() can not handle relative expressions.
+	 * _mdl_joinexpr_musicexpr() can not handle relative expressions.
 	 */
-	musicexpr_relative_to_absolute(song, me, level+1);
+	_mdl_musicexpr_relative_to_absolute(song, me, level+1);
 
-	mdl_log(MDLLOG_MIDISTREAM, level, "joining music expressions\n");
-	if (joinexpr_musicexpr(me, level+1) != 0) {
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level, "joining music expressions\n");
+	if (_mdl_joinexpr_musicexpr(me, level+1) != 0) {
 		warnx("error occurred in joining music expressions");
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "converting expression to a (flat) simultence\n");
-	flatme = musicexpr_to_flat_simultence(me, level+1);
+	flatme = _mdl_musicexpr_to_flat_simultence(me, level+1);
 	if (flatme == NULL) {
 		warnx("Could not flatten music expression to create offset"
 		    " expression stream");
 		goto finish;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, level, "making offset expression stream\n");
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level, "making offset expression stream\n");
 	TAILQ_FOREACH(p, &flatme->u.flatsimultence.me->u.melist, tq) {
 		assert(p->me_type == ME_TYPE_OFFSETEXPR);
 		offset_es->u.mexprs[ offset_es->count ] = p->u.offsetexpr;
-		if (mdl_stream_increment(offset_es) != 0)
+		if (_mdl_mdl_stream_increment(offset_es) != 0)
 			goto finish;
 	}
 
@@ -114,20 +114,20 @@ musicexpr_to_midievents(struct musicexpr *me, int level)
 	    flatme->u.flatsimultence.length, level);
 
 finish:
-	mdl_stream_free(offset_es);
+	_mdl_mdl_stream_free(offset_es);
 
 	if (flatme != NULL)
-		musicexpr_free(flatme, level);
+		_mdl_musicexpr_free(flatme, level);
 
 	return midi_es;
 }
 
 ssize_t
-midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
+_mdl_midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
 {
 	ssize_t nw, total_wcount, wsize;
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "writing midi stream to sequencer\n");
 
 	level += 1;
@@ -152,7 +152,7 @@ midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
 			warn("error writing to sequencer");
 			return -1;
 		}
-		mdl_log(MDLLOG_MIDISTREAM, level,
+		_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 		    "wrote %ld bytes to sequencer\n", nw);
 		total_wcount += nw;
 	}
@@ -163,19 +163,19 @@ midi_write_midistream(int sequencer_socket, struct mdl_stream *s, int level)
 static struct mdl_stream *
 midi_eventstream_new(void)
 {
-	return mdl_stream_new(MIDIEVENTSTREAM);
+	return _mdl_mdl_stream_new(MIDIEVENTSTREAM);
 }
 
 static struct mdl_stream *
 offsetexprstream_new(void)
 {
-	return mdl_stream_new(OFFSETEXPRSTREAM);
+	return _mdl_mdl_stream_new(OFFSETEXPRSTREAM);
 }
 
 static struct mdl_stream *
 trackmidi_eventstream_new(void)
 {
-	return mdl_stream_new(TRACKMIDIEVENTSTREAM);
+	return _mdl_mdl_stream_new(TRACKMIDIEVENTSTREAM);
 }
 
 static struct mdl_stream *
@@ -189,7 +189,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 	size_t i;
 	int ret;
 
-	mdl_log(MDLLOG_MIDISTREAM, level+1,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level+1,
 	    "offset expression stream to midi events\n");
 
 	midi_es = NULL;
@@ -217,16 +217,16 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 	if (midi_es == NULL)
 		goto error;
 
-	mdl_stream_free(trackmidi_es);
+	_mdl_mdl_stream_free(trackmidi_es);
 
 	return midi_es;
 
 error:
 	warnx("could not convert offset-expression-stream to midi stream");
 	if (trackmidi_es)
-		mdl_stream_free(trackmidi_es);
+		_mdl_mdl_stream_free(trackmidi_es);
 	if (midi_es)
-		mdl_stream_free(midi_es);
+		_mdl_mdl_stream_free(midi_es);
 
 	return NULL;
 }
@@ -265,10 +265,10 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	midievent->time_as_measures = tmn.time_as_measures;
 	midievent->u.note = tmn.note;
 
-	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
+	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
 	    level);
 
-	return mdl_stream_increment(midi_es);
+	return _mdl_mdl_stream_increment(midi_es);
 }
 
 static int
@@ -313,10 +313,10 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 		midievent->u.instrument_change.channel = midichannel;
 		midievent->u.instrument_change.code = tmn.instrument->code;
 
-		midievent_log(MDLLOG_MIDISTREAM,
+		_mdl_midievent_log(MDLLOG_MIDISTREAM,
 		    "sending to sequencer", midievent, level);
 
-		ret = mdl_stream_increment(midi_es);
+		ret = _mdl_mdl_stream_increment(midi_es);
 		if (ret != 0)
 			return ret;
 	}
@@ -329,10 +329,10 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	midievent->time_as_measures = tmn.time_as_measures;
 	midievent->u.note = tmn.note;
 
-	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
+	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
 	    midievent, level);
 
-	ret = mdl_stream_increment(midi_es);
+	ret = _mdl_mdl_stream_increment(midi_es);
 	if (ret != 0)
 		return ret;
 
@@ -365,7 +365,7 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		instr_tracks[i].total_notecount = 0;
 	}
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding midievents to send queue:\n");
 
 	level += 1;
@@ -408,17 +408,17 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 	midievent->eventtype = SONG_END;
 	midievent->time_as_measures = song_length;
 
-	midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
+	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer", midievent,
 	    level);
 
-	ret = mdl_stream_increment(midi_es);
+	ret = _mdl_mdl_stream_increment(midi_es);
 	if (ret != 0)
 		goto error;
 
 	return midi_es;
 
 error:
-	mdl_stream_free(midi_es);
+	_mdl_mdl_stream_free(midi_es);
 	return NULL;
 }
 
@@ -429,10 +429,10 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	struct trackmidinote *tmnote;
 	int ret, new_note;
 
-	mdl_log(MDLLOG_MIDISTREAM, level,
+	_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding expression with offset %.3f to trackmidievents\n",
 	    timeoffset);
-	musicexpr_log(me, MDLLOG_MIDISTREAM, level+1, NULL);
+	_mdl_musicexpr_log(me, MDLLOG_MIDISTREAM, level+1, NULL);
 
 	level += 1;
 
@@ -450,7 +450,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 
 	/* We accept and ignore notes that are out-of-range. */
 	if (new_note < 0 || MIDI_NOTE_COUNT <= new_note) {
-		mdl_log(MDLLOG_MIDISTREAM, level,
+		_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 		    "skipping note with value %d\n", new_note);
 		return 0;
 	}
@@ -462,7 +462,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	 * are sorted.
 	 */
 	if (me->u.absnote.length < MINIMUM_MUSICEXPR_LENGTH) {
-		mdl_log(MDLLOG_MIDISTREAM, level,
+		_mdl_mdl_log(MDLLOG_MIDISTREAM, level,
 		    "skipping note with length %.9f\n", me->u.absnote.length);
 		return 0;
 	}
@@ -477,7 +477,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	tmnote->time_as_measures = timeoffset;
 	tmnote->track = me->u.absnote.track;
 
-	ret = mdl_stream_increment(trackmidi_es);
+	ret = _mdl_mdl_stream_increment(trackmidi_es);
 	if (ret != 0)
 		return ret;
 
@@ -491,7 +491,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	tmnote->time_as_measures = timeoffset + me->u.absnote.length;
 	tmnote->track = me->u.absnote.track;
 
-	return mdl_stream_increment(trackmidi_es);
+	return _mdl_mdl_stream_increment(trackmidi_es);
 }
 
 static int

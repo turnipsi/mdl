@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.26 2016/05/01 19:58:53 je Exp $ */
+/* $Id: midi.c,v 1.27 2016/05/10 20:39:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,7 +62,7 @@ static void	sndio_close_device(void);
 #endif
 
 int
-midi_open_device(enum mididev_type mididev_type, const char *device)
+_mdl_midi_open_device(enum mididev_type mididev_type, const char *device)
 {
 	switch (mididev_type) {
 	case MIDIDEV_NONE:
@@ -85,7 +85,7 @@ midi_open_device(enum mididev_type mididev_type, const char *device)
 }
 
 void
-midi_close_device(void)
+_mdl_midi_close_device(void)
 {
 	mididev.close_device();
 	mididev.mididev_type = MIDIDEV_NONE;
@@ -193,7 +193,7 @@ sndio_close_device(void)
 #endif /* HAVE_SNDIO */
 
 int
-midi_check_midievent(struct midievent me, float minimum_time_as_measures)
+_mdl_midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 {
 	int ret;
 
@@ -268,7 +268,7 @@ midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 }
 
 int
-midi_send_midievent(struct midievent *me, int dry_run)
+_mdl_midi_send_midievent(struct midievent *me, int dry_run)
 {
 	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
@@ -292,16 +292,16 @@ midi_send_midievent(struct midievent *me, int dry_run)
 				: MIDI_NOTEOFF_BASE;
 		velocity = (me->eventtype == NOTEON) ? me->u.note.velocity : 0;
 
-		mdl_log(MDLLOG_MIDI, 0,
+		_mdl_mdl_log(MDLLOG_MIDI, 0,
 		    "sending %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->eventtype == NOTEON ? "noteon" : "noteoff"),
 		    me->u.note.note, me->u.note.channel, velocity);
 
-		if (mdl_log_checkopt(MDLLOG_CLOCK)) {
+		if (_mdl__mdl_mdl_log_checkopt(MDLLOG_CLOCK)) {
 			if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
 				warn("could not get real time");
 			} else {
-				mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
+				_mdl_mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
 				    time.tv_sec, (time.tv_nsec / 1000000.0));
 			}
 		}
@@ -339,12 +339,12 @@ midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 }
 
 void
-midievent_log(enum logtype logtype, const char *prefix,
+_mdl_midievent_log(enum logtype logtype, const char *prefix,
     struct midievent *midievent, int level)
 {
 	switch (midievent->eventtype) {
 	case INSTRUMENT_CHANGE:
-		mdl_log(logtype, level,
+		_mdl_mdl_log(logtype, level,
 		    "%s instrument change time=%.3f channel=%d"
 		    " instrument=%d\n", prefix, midievent->time_as_measures,
 		    midievent->u.instrument_change.channel,
@@ -352,7 +352,7 @@ midievent_log(enum logtype logtype, const char *prefix,
 		break;
 	case NOTEOFF:
 	case NOTEON:
-		mdl_log(logtype, level,
+		_mdl_mdl_log(logtype, level,
 		    "%s %s time=%.3f channel=%d note=%d velocity=%d\n",
 		    prefix,
 		    (midievent->eventtype == NOTEOFF ? "noteoff" : "noteon"),
@@ -360,7 +360,7 @@ midievent_log(enum logtype logtype, const char *prefix,
 		    midievent->u.note.note, midievent->u.note.velocity);
 		break;
 	case SONG_END:
-		mdl_log(logtype, level, "%s song end time=%.3f\n", prefix,
+		_mdl_mdl_log(logtype, level, "%s song end time=%.3f\n", prefix,
 		    midievent->time_as_measures);
 		break;
 	default:
