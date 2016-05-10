@@ -1,8 +1,9 @@
-# $Id: Makefile,v 1.52 2016/05/10 08:38:20 je Exp $
+# $Id: Makefile,v 1.53 2016/05/10 09:06:28 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c midi.c midistream.c \
 	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
 
+PREFIX?=	/usr/local
 COMPATDIR?=	../compat
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
@@ -10,11 +11,11 @@ CFLAGS?=	-O2 -pipe
 CFLAGS+=	${CDIAGFLAGS} -I. -I${COMPATDIR} -include ../config.h
 PICFLAG?=	-fPIC
 
-LDADD+=	-lm
-
 AFLCC?=	afl-gcc
 
 include ../config.mk
+
+LDADD+=	-lm ${LIBMDL_LDADD}
 
 .PHONY: all
 all: libmdl.so
@@ -25,6 +26,10 @@ libmdl.so: ${SRCS}
 libmdlafl.so: ${SRCS}
 	${AFLCC} ${CFLAGS} ${PICFLAG} -DMDL_USE_AFL -shared -o $@ ${SRCS} \
 	    ${LDADD}
+
+# XXX What about the *.a files?  Library version numbering?
+install:
+	install libmdl.so ${DESTDIR}${PREFIX}/lib/libmdl.so
 
 lex.c: lex.l
 	lex -o lex.c $<

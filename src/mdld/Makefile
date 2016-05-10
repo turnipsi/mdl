@@ -1,7 +1,10 @@
-# $Id: Makefile,v 1.1 2016/05/09 20:35:57 je Exp $
+# $Id: Makefile,v 1.2 2016/05/10 09:06:28 je Exp $
 
-.PHONY: clean
+.PHONY: all
 all:
+
+.PHONY: install
+install:
 
 .PHONY: clean
 clean:

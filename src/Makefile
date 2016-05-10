@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.1 2016/05/09 20:35:57 je Exp $
+# $Id: Makefile,v 1.2 2016/05/10 09:06:28 je Exp $
 
 SUBDIRS = mdl mdld
 
-all clean:
-	for subdir in ${SUBDIRS}; do \
-	    (cd $$subdir && ${MAKE} $@); \
+all install clean:
+	@for subdir in ${SUBDIRS}; do \
+	    (echo '>' src/$$subdir '($@)'; cd $$subdir && ${MAKE} $@); \
 	done

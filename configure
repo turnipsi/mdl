@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.15 2016/05/10 08:32:19 je Exp $
+# $Id: configure,v 1.16 2016/05/10 09:06:26 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -198,7 +198,7 @@ fi
 
 if do_check sndio check_sndio; then
   append_to_config_h '#define HAVE_SNDIO 1'
-  append_to_config_mk 'LDADD += -lsndio'
+  append_to_config_mk 'LIBMDL_LDADD += -lsndio'
 fi
 
 if do_check va_copy check_va_copy; then

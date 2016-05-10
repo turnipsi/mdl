@@ -1,8 +1,8 @@
-# $Id: Makefile,v 1.4 2016/05/09 20:35:55 je Exp $
+# $Id: Makefile,v 1.5 2016/05/10 09:06:26 je Exp $
 
 SUBDIRS = lib src
 
-all clean:
-	for subdir in ${SUBDIRS}; do \
-	    (cd $$subdir && ${MAKE} $@); \
+all install clean:
+	@for subdir in ${SUBDIRS}; do \
+	    (echo '>' $$subdir '($@)'; cd $$subdir && ${MAKE} $@); \
 	done
