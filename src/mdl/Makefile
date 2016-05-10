@@ -1,9 +1,9 @@
-# $Id: Makefile,v 1.2 2016/05/10 09:06:28 je Exp $
+# $Id: Makefile,v 1.3 2016/05/10 09:12:52 je Exp $
 
 SRCS=	mdl.c
 
 PREFIX?=	/usr/local
-COMPATDIR?=	../compat
+COMPATDIR?=	../../compat
 
 LIBMDL_PATH?=	../../lib
 
@@ -22,7 +22,7 @@ LDADD+=	-lmdl
 all: mdl
 
 mdl: ${SRCS}
-	(cd ../../lib && ${MAKE} all)
+	(cd ${LIBMDL_PATH} && ${MAKE} all)
 	${CC} ${CFLAGS} -L${LIBMDL_PATH} -o $@ ${SRCS} ${LDADD}
 
 .PHONY: install
