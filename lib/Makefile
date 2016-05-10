@@ -1,18 +1,18 @@
-# $Id: Makefile,v 1.51 2016/05/10 08:32:22 je Exp $
+# $Id: Makefile,v 1.52 2016/05/10 08:38:20 je Exp $
 
-SRCS=	interpreter.c instrument.c joinexpr.c lex.c mdl.c midi.c midistream.c \
+SRCS=	interpreter.c instrument.c joinexpr.c lex.c midi.c midistream.c \
 	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
+
+COMPATDIR?=	../compat
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
 CFLAGS?=	-O2 -pipe
-CFLAGS+=	${CDIAGFLAGS} -I. -Icompat -include ../config.h
+CFLAGS+=	${CDIAGFLAGS} -I. -I${COMPATDIR} -include ../config.h
 PICFLAG?=	-fPIC
 
 LDADD+=	-lm
 
 AFLCC?=	afl-gcc
-
-COMPATDIR?=	../compat
 
 include ../config.mk
 
