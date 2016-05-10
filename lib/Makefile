@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.50 2016/05/09 20:35:57 je Exp $
+# $Id: Makefile,v 1.51 2016/05/10 08:32:22 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c mdl.c midi.c midistream.c \
 	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
@@ -11,6 +11,8 @@ PICFLAG?=	-fPIC
 LDADD+=	-lm
 
 AFLCC?=	afl-gcc
+
+COMPATDIR?=	../compat
 
 include ../config.mk
 
