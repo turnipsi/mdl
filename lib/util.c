@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.30 2016/05/10 20:39:43 je Exp $ */
+/* $Id: util.c,v 1.31 2016/05/11 09:11:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,7 +57,7 @@ static const char *logtype_strings[] = {
 };
 
 void
-_mdl__mdl_mdl_logging_init(void)
+_mdl_logging_init(void)
 {
 	int i;
 
@@ -72,7 +72,7 @@ _mdl__mdl_mdl_logging_init(void)
 }
 
 int
-_mdl__mdl_mdl_logging_setopts(char *optstring)
+_mdl_logging_setopts(char *optstring)
 {
 	char *opt;
 	int found, logtype, loglevel;
@@ -139,7 +139,7 @@ _mdl__mdl_mdl_logging_setopts(char *optstring)
 }
 
 void
-_mdl__mdl_mdl_logging_clear(void)
+_mdl_logging_clear(void)
 {
 	int i;
 
@@ -153,18 +153,18 @@ _mdl__mdl_mdl_logging_clear(void)
 }
 
 void
-_mdl__mdl_mdl_logging_close(void)
+_mdl_logging_close(void)
 {
 	assert(logstate.initialized);
 
-	_mdl__mdl_mdl_logging_clear();
+	_mdl_logging_clear();
 
 	logstate.initialized = 0;
 	logstate.opts = 0;
 }
 
 int
-_mdl__mdl_mdl_log_checkopt(enum logtype logtype)
+_mdl_log_checkopt(enum logtype logtype)
 {
 	assert(logtype < MDLLOG_TYPECOUNT);
 

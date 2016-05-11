@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.27 2016/05/10 20:39:43 je Exp $ */
+/* $Id: midi.c,v 1.28 2016/05/11 09:11:37 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -297,7 +297,7 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 		    (me->eventtype == NOTEON ? "noteon" : "noteoff"),
 		    me->u.note.note, me->u.note.channel, velocity);
 
-		if (_mdl__mdl_mdl_log_checkopt(MDLLOG_CLOCK)) {
+		if (_mdl_log_checkopt(MDLLOG_CLOCK)) {
 			if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
 				warn("could not get real time");
 			} else {
