@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.82 2016/05/10 20:39:43 je Exp $ */
+/* $Id: sequencer.c,v 1.83 2016/05/11 20:30:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -111,8 +111,8 @@ sequencer_handle_signal(int signo)
 }
 
 int
-_mdl_sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type,
-    const char *devicepath)
+_mdl_sequencer_loop(int main_socket, int dry_run,
+    enum mididev_type mididev_type, const char *devicepath)
 {
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
@@ -208,7 +208,7 @@ _mdl_sequencer_loop(int main_socket, int dry_run, enum mididev_type mididev_type
 		}
 
 		if (mdl_shutdown_sequencer) {
-			_mdl_mdl_log(MDLLOG_PROCESS, 0,
+			_mdl_log(MDLLOG_PROCESS, 0,
 			    "sequencer received shutdown signal\n");
 			retvalue = 1;
 			goto finish;
@@ -512,7 +512,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		if (new_b->events[i].eventtype == SONG_END)
 			ss->got_song_end = 1;
 
-		_mdl_midievent_log(MDLLOG_MIDI, "received", &new_b->events[i], 0);
+		_mdl_midievent_log(MDLLOG_MIDI, "received", &new_b->events[i],
+		    0);
 
 		if (!_mdl_midi_check_midievent(new_b->events[i],
 		    ss->time_as_measures)) {

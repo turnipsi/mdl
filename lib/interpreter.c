@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.52 2016/05/10 20:39:43 je Exp $ */
+/* $Id: interpreter.c,v 1.53 2016/05/11 20:30:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,8 +33,8 @@ extern struct musicexpr	*parsed_expr;
 extern unsigned int	 parse_errors;
 
 int
-_mdl_handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_socket,
-    int server_socket)
+_mdl_handle_musicfile_and_socket(int file_fd, int main_socket,
+    int sequencer_socket, int server_socket)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;
@@ -69,7 +69,7 @@ _mdl_handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_soc
 	 * and available for us now.
 	 */
 
-	_mdl_mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
+	_mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
 	_mdl_musicexpr_log(parsed_expr, MDLLOG_PARSING, level+1, NULL);
 
 	eventstream = _mdl_musicexpr_to_midievents(parsed_expr, level);
@@ -79,13 +79,14 @@ _mdl_handle_musicfile_and_socket(int file_fd, int main_socket, int sequencer_soc
 		goto finish;
 	}
 
-	wcount = _mdl_midi_write_midistream(sequencer_socket, eventstream, level);
+	wcount = _mdl_midi_write_midistream(sequencer_socket, eventstream,
+	    level);
 	if (wcount == -1)
 		ret = 1;
 
 finish:
 	if (eventstream)
-		_mdl_mdl_stream_free(eventstream);
+		_mdl_stream_free(eventstream);
 	if (parsed_expr)
 		_mdl_musicexpr_free(parsed_expr, level);
 

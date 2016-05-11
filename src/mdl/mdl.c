@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.3 2016/05/11 09:11:38 je Exp $ */
+/* $Id: mdl.c,v 1.4 2016/05/11 20:30:02 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -159,7 +159,7 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	_mdl_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
+	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
 	    == -1)
@@ -331,7 +331,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		 */
 		_mdl_logging_clear();
 		mdl_process_type = "seq";
-		_mdl_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
+		_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
 		    getpid());
 		/*
 		 * XXX We should close all file descriptors that sequencer
@@ -479,7 +479,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		 */
 		_mdl_logging_clear();
 		mdl_process_type = "interp";
-		_mdl_mdl_log(MDLLOG_PROCESS, 0,
+		_mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
 
 		/*
@@ -591,7 +591,7 @@ wait_for_subprocess(const char *process_type, int pid)
 		return 1;
 	}
 
-	_mdl_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
+	_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
 	    process_type, pid, WEXITSTATUS(status));
 
 	return 0;

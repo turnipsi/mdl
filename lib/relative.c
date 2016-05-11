@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.20 2016/05/10 20:39:43 je Exp $ */
+/* $Id: relative.c,v 1.21 2016/05/11 20:30:01 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,7 +44,7 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	struct previous_relative_exprs prev_relative_exprs;
 	struct instrument *instrument;
 
-	_mdl_mdl_log(MDLLOG_RELATIVE, level,
+	_mdl_log(MDLLOG_RELATIVE, level,
 	    "converting relative expressions to absolute\n");
 
 	level += 1;
@@ -87,8 +87,8 @@ relative_to_absolute(struct musicexpr *me,
 	char *me_id;
 
 	if ((me_id = _mdl_musicexpr_id_string(me)) != NULL) {
-		_mdl_mdl_log(MDLLOG_RELATIVE, level, "rel->abs for expression %s\n",
-		    me_id);
+		_mdl_log(MDLLOG_RELATIVE, level,
+		    "rel->abs for expression %s\n", me_id);
 		free(me_id);
 	}
 
@@ -132,7 +132,8 @@ relative_to_absolute(struct musicexpr *me,
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
 		prev_exprs->absnote.track = me->u.ontrack.track;
-		instrument = _mdl_track_get_default_instrument(me->u.ontrack.track);
+		instrument =
+		    _mdl_track_get_default_instrument(me->u.ontrack.track);
 		if (instrument != NULL)
 			prev_exprs->absnote.instrument = instrument;
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);

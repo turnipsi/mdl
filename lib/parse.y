@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.56 2016/05/10 20:39:43 je Exp $ */
+/* $Id: parse.y,v 1.57 2016/05/11 20:30:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -136,7 +136,8 @@ static float countlength(int, int);
 grammar:
 	sequence_expr { parsed_expr = $1; }
 	| /* empty */ {
-		parsed_expr = _mdl_musicexpr_new(ME_TYPE_EMPTY, _mdl_textloc_zero(), 0);
+		parsed_expr = _mdl_musicexpr_new(ME_TYPE_EMPTY,
+		    _mdl_textloc_zero(), 0);
 		if (parsed_expr == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -192,7 +193,8 @@ musicexpr:
 chord:
 	relnote CHORDTOKEN {
 		$$.expr.chordtype = $2.expr;
-		$$.expr.me = _mdl_musicexpr_new(ME_TYPE_RELNOTE, $1.textloc, 0);
+		$$.expr.me = _mdl_musicexpr_new(ME_TYPE_RELNOTE, $1.textloc,
+		    0);
 		if ($$.expr.me == NULL) {
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
@@ -207,7 +209,8 @@ joinexpr:
 	musicexpr JOINEXPR musicexpr {
 		$$.expr.a = $1;
 		$$.expr.b = $3;
-		$$.textloc = _mdl_join_textlocs($1->id.textloc, $3->id.textloc);
+		$$.textloc = _mdl_join_textlocs($1->id.textloc,
+		    $3->id.textloc);
 	}
 	;
 
@@ -276,7 +279,7 @@ sequence_expr:
 	expression_list {
 		$$ = _mdl_musicexpr_new(ME_TYPE_SEQUENCE, $1.textloc, 0);
 		if ($$ == NULL) {
-			_mdl__mdl_musicexpr__mdl_free_melist($1.expr, 0);
+			_mdl_musicexpr_free_melist($1.expr, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -289,7 +292,7 @@ simultence_expr:
 	expression_list {
 		$$ = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, $1.textloc, 0);
 		if ($$ == NULL) {
-			_mdl__mdl_musicexpr__mdl_free_melist($1.expr, 0);
+			_mdl_musicexpr_free_melist($1.expr, 0);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
@@ -344,13 +347,13 @@ expression_list:
 notemods:
 	NOTEMODTOKEN_IS   { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
 	| NOTEMODTOKEN_ES { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */     { $$.expr = 0;         $$.textloc = _mdl_textloc_zero(); }
+	| /* empty */     { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
 
 octavemods:
 	OCTAVEUP      { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
 	| OCTAVEDOWN  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */ { $$.expr = 0;         $$.textloc = _mdl_textloc_zero(); }
+	| /* empty */ { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
 
 notelength:
