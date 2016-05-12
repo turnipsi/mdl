@@ -1,13 +1,13 @@
-# $Id: Makefile,v 1.29 2016/05/12 19:47:39 je Exp $
+# $Id: Makefile,v 1.30 2016/05/12 19:54:02 je Exp $
 
-LIBDIR?=	${.CURDIR}/../lib
-SRCDIR?=	${.CURDIR}/../src
+LIBDIR?=	../lib
+SRCDIR?=	../src
 
-MDL=		${SRCDIR}/mdl/mdl
 AFLMDL=		${SRCDIR}/mdl/afl-mdl
 
 .PHONY: all
 all:
+	${MAKE} -C ${SRCDIR}/mdl clean mdl
 	@./run-tests
 
 .PHONY: accept-regressions
@@ -19,12 +19,10 @@ accept-regressions:
 
 .PHONY: afl-fuzz
 afl-fuzz:
-	${MAKE} -C ${.CURDIR}/../src/mdl clean afl-mdl
+	${MAKE} -C ${SRCDIR}/mdl clean afl-mdl
 	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i inputs \
 	    -o afl-fuzz-results ${AFLMDL} -n @@
 
 .PHONY: clean
 clean:
 	rm -rf afl-fuzz-results outputs
-
-.include <bsd.regress.mk>
