@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.83 2016/05/11 20:30:01 je Exp $ */
+/* $Id: sequencer.c,v 1.84 2016/05/12 20:17:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -75,12 +75,12 @@ volatile sig_atomic_t mdl_shutdown_sequencer = 0;
 
 static void	sequencer_calculate_timeout(struct songstate *,
     struct timespec *, struct sequencer_params *);
-static void	sequencer_close(void);
+static void	sequencer_close(int);
 static void	sequencer_close_songstate(struct songstate *,
     struct sequencer_params *);
 static void	sequencer_free_songstate(struct songstate *);
 static void	sequencer_handle_signal(int);
-static int	sequencer_init(enum mididev_type, const char *);
+static int	sequencer_init(enum mididev_type, const char *, int);
 static void	sequencer_init_songstate(struct songstate *,
     enum playback_state);
 static int	sequencer_noteevent(struct songstate *, struct midievent *,
@@ -96,8 +96,12 @@ static void	sequencer_time_for_next_note(struct songstate *ss,
 static int	receive_fd_through_socket(int *, int);
 
 static int
-sequencer_init(enum mididev_type mididev_type, const char *devicepath)
+sequencer_init(enum mididev_type mididev_type, const char *devicepath,
+    int dry_run)
 {
+	if (dry_run)
+		return 0;
+
 	return _mdl_midi_open_device(mididev_type, devicepath);
 }
 
@@ -139,20 +143,20 @@ _mdl_sequencer_loop(int main_socket, int dry_run,
 	playback_song = &song1;
 	reading_song = &song2;
 
-	if (sequencer_init(mididev_type, devicepath) != 0) {
+	if (sequencer_init(mididev_type, devicepath, dry_run) != 0) {
 		warnx("problem initializing sequencer, exiting");
 		return 1;
 	}
 
 	if (pledge("recvfd stdio", NULL) == -1) {
 		warn("pledge");
-		sequencer_close();
+		sequencer_close(dry_run);
 		return 1;
 	}
 
 	if (fcntl(main_socket, F_SETFL, O_NONBLOCK) == -1) {
 		warn("could not set main_socket non-blocking");
-		sequencer_close();
+		sequencer_close(dry_run);
 		return 1;
 	}
 
@@ -295,7 +299,7 @@ finish:
 	sequencer_free_songstate(playback_song);
 	sequencer_free_songstate(reading_song);
 
-	sequencer_close();
+	sequencer_close(dry_run);
 
 	return retvalue;
 }
@@ -746,8 +750,11 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 }
 
 static void
-sequencer_close(void)
+sequencer_close(int dry_run)
 {
+	if (dry_run)
+		return;
+
 	_mdl_midi_close_device();
 }
 
