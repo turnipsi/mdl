@@ -1,0 +1,88 @@
+#!/bin/sh
+# $Id: run-tests,v 1.1 2016/05/12 19:47:39 je Exp $
+
+set -eu
+
+dirname=$(dirname $0)
+libdir=${dirname}/../lib
+srcdir=${dirname}/../src
+mdl=${srcdir}/mdl/mdl
+
+run_mdl() {
+  env LD_LIBRARY_PATH=${libdir} ${mdl} "$@"
+}
+
+debugopts='exprconv joins midi midistream mm parsing relative song'
+
+test_inputs='
+  t-afl-fuzzed-crash-1
+  t-afl-fuzzed-crash-2
+  t-afl-fuzzed-crash-3
+  t-big-jumps
+  t-chord-joining
+  t-chordmodifiers
+  t-chords-with-big-jumps
+  t-chords-with-variable-lengths
+  t-comments
+  t-default-length
+  t-empty
+  t-join-chord-and-note
+  t-join-chords
+  t-join-chords-partially
+  t-join-note-and-chord
+  t-join-notes
+  t-join-notes-and-rests
+  t-join-notes-chords-relsimultences
+  t-join-relsimultences
+  t-length-changes
+  t-many-basic-lengths
+  t-mix-notes-and-chords
+  t-mix-notes-and-chords-with-jumps
+  t-mix-notes-chords-relsimultences
+  t-notes-and-rests
+  t-relsimultences
+  t-rest
+  t-simple-notes
+  t-simultence-with-subexpressions
+  t-single-note
+  t-some-extended-lengths
+  t-subsequence
+  t-subsimultence
+  t-track-with-expression
+  t-unjoinable-chords-joining
+  t-unjoinable-notes-joining
+'
+
+cd $dirname
+
+mkdir -p outputs
+
+status=0
+tests_run=0
+tests_ok=0
+tests_failed=0
+
+for input in $test_inputs; do
+  echo "> $input"
+  for opt in $debugopts; do
+    testname=${input}.${opt}
+    echo -n "  $opt: "
+    run_mdl -d $opt -n inputs/${input}.mdl > outputs/${testname}.log
+    tests_run=$(($tests_run + 1))
+    if cmp -s expected/${testname}.ok outputs/${testname}.log; then
+      tests_ok=$(($tests_ok + 1))
+      echo ok.
+    else
+      tests_failed=$(($tests_failed + 1))
+      status=1
+      echo FAILED:
+      diff -u expected/${testname} outputs/${testname}.log 2>&1 \
+	| sed 's/^/    /'
+    fi
+  done
+done
+
+echo
+echo "Ran $tests_run tests, $tests_ok were ok and $tests_failed failed."
+
+exit $status
