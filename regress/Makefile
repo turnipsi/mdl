@@ -1,8 +1,12 @@
-# $Id: Makefile,v 1.27 2016/05/06 20:15:31 je Exp $
+# $Id: Makefile,v 1.28 2016/05/12 19:13:45 je Exp $
 
 # XXX change this to just use /bin/sh
 
-MDL=	${.CURDIR}/../src/mdl
+LIBDIR?=	${.CURDIR}/../lib
+SRCDIR?=	${.CURDIR}/../src
+
+MDL=		${SRCDIR}/mdl/mdl
+AFLMDL=		${SRCDIR}/mdl/afl-mdl
 
 TEST_INPUTS=	t-afl-fuzzed-crash-1               \
 		t-afl-fuzzed-crash-2               \
@@ -41,7 +45,6 @@ TEST_INPUTS=	t-afl-fuzzed-crash-1               \
 		t-unjoinable-chords-joining        \
 		t-unjoinable-notes-joining
 
-
 DEBUGOPTS=exprconv joins midi midistream mm parsing relative song
 
 REGRESS_TARGETS=
@@ -67,7 +70,8 @@ outputs:
 .for DEBUGOPT in ${DEBUGOPTS}
   .mdl.${DEBUGOPT}: outputs
 	@echo $@
-	@${MDL} -d ${DEBUGOPT} -n ${.CURDIR}/inputs/$*.mdl > outputs/$@.log
+	@env LD_LIBRARY_PATH=${LIBDIR} ${MDL} -d ${DEBUGOPT} \
+	    -n ${.CURDIR}/inputs/$*.mdl > outputs/$@.log
 	@cmp -s ${.CURDIR}/expected/$@.ok outputs/$@.log \
 		|| { diff -u ${.CURDIR}/expected/$@.ok \
 			 ${.OBJDIR}/outputs/$@.log; \
@@ -85,9 +89,9 @@ accept-regressions:
 
 .PHONY: afl-fuzz
 afl-fuzz:
-	${MAKE} -C ${.CURDIR}/../src clean afl-mdl
-	afl-fuzz -i ${.CURDIR}/inputs -o afl-fuzz-results \
-	    ${.CURDIR}/../src/afl-mdl -n @@
+	${MAKE} -C ${.CURDIR}/../src/mdl clean afl-mdl
+	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i ${.CURDIR}/inputs \
+	    -o afl-fuzz-results ${AFLMDL} -n @@
 
 .PHONY: clean
 clean:
