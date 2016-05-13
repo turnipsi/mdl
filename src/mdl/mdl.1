@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.1 2016/05/10 08:33:22 je Exp $
+.\"	$Id: mdl.1,v 1.2 2016/05/13 20:30:00 je Exp $
 .\"
 .\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: May 10 2016 $
+.Dd $Mdocdate: May 13 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,7 +24,7 @@
 .Nd a music description language with a MIDI sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl nsv
+.Op Fl nv
 .Op Fl d Ar debuglevel
 .Op Fl f Ar device
 .Op Fl m Ar MIDI-interface
@@ -37,25 +37,8 @@ Syntax mimicks the
 .Xr lilypond 1
 syntax but is not compatible.
 .Pp
-When
-.Fl s
-option is specified,
-.Nm
-is started in server mode,
-when it also listens on a UNIX-domain socket
-for incoming music scripts.
-Whenever a music script is received,
-the music that is currently playing
-is replaced by the music described by the received script.
-If all files have been played,
-or no files were given as command line arguments,
-.Nm
-continues to run waiting for more music scripts on socket.
-.Pp
 The options are as follows:
 .Bl -tag -width Ds
-.It Fl c
-Send music description to server (act as client only).
 .It Fl d Ar debuglevel
 Set
 .Ar debuglevel
@@ -112,8 +95,6 @@ and the default MIDI-interface type used.
 .It Fl n
 Dry run.
 Do everything else but do not actually play music.
-.It Fl s
-Open a listening socket to accept music descriptions (server-mode).
 .It Fl v
 Show
 .Nm
@@ -123,13 +104,6 @@ was compiled with.
 .El
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
-.Sh FILES
-.Bl -tag -width ~/.mdl/socket -compact
-.It Pa ~/.mdl
-the default mdl-directory
-.It Pa ~/.mdl/socket
-the default listening socket path
-.El
 .Sh EXIT STATUS
 The
 .Nm

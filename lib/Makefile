@@ -1,7 +1,8 @@
-# $Id: Makefile,v 1.55 2016/05/12 20:03:07 je Exp $
+# $Id: Makefile,v 1.56 2016/05/13 20:29:59 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c midi.c midistream.c \
-	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
+	musicexpr.c parse.c protocol.c relative.c sequencer.c song.c track.c \
+	util.c
 
 PREFIX?=	/usr/local
 COMPATDIR?=	../compat

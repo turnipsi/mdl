@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.4 2016/05/11 20:30:02 je Exp $ */
+/* $Id: mdl.c,v 1.5 2016/05/13 20:30:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,7 +26,6 @@
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
-#include <limits.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,11 +34,11 @@
 
 #include "interpreter.h"
 #include "midi.h"
+#include "protocol.h"
 #include "sequencer.h"
 #include "util.h"
 
 #define MDL_VERSION	"0.0-current"
-#define SOCKETPATH_LEN	104
 
 #ifdef HAVE_SNDIO
 #define DEFAULT_MIDIDEV_TYPE MIDIDEV_SNDIO
@@ -52,15 +51,12 @@ extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	show_version(void);
-static char    *get_socketpath(void);
-static int	setup_socketdir(void);
 static int	start_interpreter(int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
-static int	setup_sequencer_for_sources(char **, int, const char *, int,
+static int	handle_musicfiles(char **, int, const char *, int,
     enum mididev_type, const char *);
-static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
@@ -73,7 +69,7 @@ char *mdl_process_type;
 static void __dead
 usage(void)
 {
-	(void) fprintf(stderr, "usage: mdl [-nsv] [-d debuglevel] [-f device]"
+	(void) fprintf(stderr, "usage: mdl [-nv] [-d debuglevel] [-f device]"
 	    " [-m MIDI-interface] [file ...]\n");
 	exit(1);
 }
@@ -90,9 +86,9 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	char *devicepath, *socketpath;
+	char *devicepath, *server_socketpath;
 	char **musicfiles;
-	int musicfilecount, ch, nflag, sflag;
+	int musicfilecount, ch, nflag;
 	size_t ret;
 	enum mididev_type mididev_type;
 
@@ -103,11 +99,10 @@ main(int argc, char *argv[])
 	mdl_process_type = "main";
 
 	devicepath = NULL;
-	nflag = sflag = 0;
+	nflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
 
-	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
-	    NULL) == -1)
+	if (pledge("proc recvfd rpath sendfd stdio unix wpath", NULL) == -1)
 		err(1, "pledge");
 
 	signal(SIGINT,  handle_signal);
@@ -115,7 +110,7 @@ main(int argc, char *argv[])
 
 	_mdl_logging_init();
 
-	while ((ch = getopt(argc, argv, "cd:D:f:m:nsv")) != -1) {
+	while ((ch = getopt(argc, argv, "d:f:m:nv")) != -1) {
 		switch (ch) {
 		case 'd':
 			if (_mdl_logging_setopts(optarg) == -1)
@@ -141,11 +136,6 @@ main(int argc, char *argv[])
 		case 'n':
 			nflag = 1;
 			break;
-		case 's':
-			/* XXX sflag should also result in calling daemon()
-			 * XXX at some point. */
-			sflag = 1;
-			break;
 		case 'v':
 			if (show_version() != 0)
 				exit(1);
@@ -161,28 +151,14 @@ main(int argc, char *argv[])
 
 	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
-	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
-	    == -1)
-		err(1, "pledge");
-
 	musicfilecount = argc;
 	musicfiles = argv;
 
-	if (sflag) {
-		if (setup_socketdir() != 0) {
-			warnx("could not setup directory for server socket");
-			exit(1);
-		}
-		if ((socketpath = get_socketpath()) == NULL) {
-			warnx("error in determining server socket path");
-			exit(1);
-		}
-	} else {
-		socketpath = NULL;
-	}
+	if ((server_socketpath = _mdl_get_socketpath()) == NULL)
+		err(1, "could not determine socketpath");
 
-	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    socketpath, nflag, mididev_type, devicepath);
+	ret = handle_musicfiles(musicfiles, musicfilecount, server_socketpath,
+	    nflag, mididev_type, devicepath);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -219,81 +195,9 @@ show_version(void)
 	return 0;
 }
 
-static char *
-get_socketpath(void)
-{
-	static char socketpath[SOCKETPATH_LEN];
-	uid_t uid;
-	int ret;
-
-	uid = geteuid();
-	if (uid == 0) {
-		ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl/socket");
-	} else {
-		ret = snprintf(socketpath, SOCKETPATH_LEN,
-		    "/tmp/mdl-%u/socket", uid);
-	}
-	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("snprintf error for server socketpath");
-		return NULL;
-	}
-
-	return socketpath;
-}
-
 static int
-setup_socketdir(void)
-{
-	char socketpath_dir[SOCKETPATH_LEN];
-	uid_t uid;
-	struct stat sb;
-	mode_t mask, omask;
-	int ret;
-
-	uid = geteuid();
-	if (uid == 0) {
-		mask = 0022;
-		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl");
-	} else {
-		mask = 0077;
-		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl-%u",
-		    uid);
-	}
-	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("snprintf error for server socketpath");
-		return 1;
-	}
-
-	omask = umask(mask);
-	if (mkdir(socketpath_dir, 0777) == -1) {
-		if (errno != EEXIST) {
-			warn("error in making %s", socketpath_dir);
-			return 1;
-		}
-	}
-	umask(omask);
-
-	if (stat(socketpath_dir, &sb) < 0) {
-		warn("stat for %s failed", socketpath_dir);
-		return 1;
-	}
-
-	if (!S_ISDIR(sb.st_mode)) {
-		warn("%s is not a directory", socketpath_dir);
-		return 1;
-	}
-
-	if (sb.st_uid != uid || (sb.st_mode & mask) != 0) {
-		warn("%s has wrong permissions", socketpath_dir);
-		return 1;
-	}
-
-	return 0;
-}
-
-static int
-setup_sequencer_for_sources(char **files, int filecount,
-    const char *socketpath, int dry_run,
+handle_musicfiles(char **files, int filecount,
+    const char *server_socketpath, int dry_run,
     enum mididev_type mididev_type, const char *devicepath)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
@@ -303,8 +207,10 @@ setup_sequencer_for_sources(char **files, int filecount,
 	char *stdinfiles[] = { "-" };
 	int sequencer_retvalue;
 
-	server_socket = -1;
 	retvalue = 0;
+
+	/* XXX We should use server_socketpath to initialize this: */
+	server_socket = -1;
 
 	/* Setup socketpair for main <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
@@ -351,33 +257,20 @@ setup_sequencer_for_sources(char **files, int filecount,
 		_exit(sequencer_retvalue);
 	}
 
+	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
+	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
+		err(1, "pledge");
+
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second end of ms_sp");
-
-	if (pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
-		warn("pledge");
-		retvalue = 1;
-		goto finish;
-	}
-
-	if (socketpath) {
-		if ((server_socket = setup_server_socket(socketpath)) == -1) {
-			retvalue = 1;
-			goto finish;
-		}
-	}
-
-	if (pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
-		warn("pledge");
-		retvalue = 1;
-		goto finish;
-	}
 
 	if (filecount == 0) {
 		filecount = 1;
 		files = stdinfiles;
 	}
 
+	/* XXX We could also open all files immediately so we could then
+	 * XXX drop the rpath pledge? */
 	for (i = 0; i < filecount && mdl_shutdown_main == 0; i++) {
 		if (strcmp(files[i], "-") == 0) {
 			file_fd = fileno(stdin);
@@ -406,7 +299,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 	}
 
 finish:
-	if (pledge("cpath stdio", NULL) == -1) {
+	if (pledge("stdio", NULL) == -1) {
 		warn("pledge");
 		return 1;
 	}
@@ -416,14 +309,6 @@ finish:
 
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
-
-	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
-		warn("could not delete %s", socketpath);
-
-	if (pledge("stdio", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
 
 	if (wait_for_subprocess("sequencer", sequencer_pid) != 0)
 		return 1;
@@ -626,46 +511,4 @@ send_fd_through_socket(int fd, int socket)
 	}
 
 	return 0;
-}
-
-static int
-setup_server_socket(const char *socketpath)
-{
-	struct sockaddr_un sun;
-	int ret, server_socket;
-
-	memset(&sun, 0, sizeof(struct sockaddr_un));
-	sun.sun_family = AF_UNIX;
-	ret = strlcpy(sun.sun_path, socketpath, SOCKETPATH_LEN);
-	assert(ret < SOCKETPATH_LEN);
-
-	if ((server_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		warn("could not open socket %s", socketpath);
-		return -1;
-	}
-
-	/* If socketpath is already in use, unlink it. */
-	if (unlink(socketpath) == -1 && errno != ENOENT) {
-		warn("could not remove %s", socketpath);
-		goto fail;
-	}
-
-	ret = bind(server_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
-	if (ret == -1) {
-		warn("could not bind socket %s", socketpath);
-		goto fail;
-	}
-
-	if (listen(server_socket, 1) == -1) {
-		warn("could not listen on socket %s", socketpath);
-		goto fail;
-	}
-
-	return server_socket;
-
-fail:
-	if (close(server_socket) == -1)
-		warn("error closing server socket");
-
-	return -1;
 }
