@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.1 2016/05/12 19:47:39 je Exp $
+# $Id: run-tests,v 1.2 2016/05/13 20:28:33 je Exp $
 
 set -eu
 
@@ -9,7 +9,19 @@ srcdir=${dirname}/../src
 mdl=${srcdir}/mdl/mdl
 
 run_mdl() {
-  env LD_LIBRARY_PATH=${libdir} ${mdl} "$@"
+  env LD_LIBRARY_PATH=${libdir} "$mdl" "$@"
+}
+
+run_test() {
+  opt=$1
+  input=$2
+  testname=$3
+
+  run_mdl -d "$opt" -n "inputs/${input}.mdl" > "outputs/${testname}.log" 2>&1 \
+    || return 1
+
+  cmp -s "expected/${testname}.ok" "outputs/${testname}.log" \
+    || return 1
 }
 
 debugopts='exprconv joins midi midistream mm parsing relative song'
@@ -67,16 +79,16 @@ for input in $test_inputs; do
   for opt in $debugopts; do
     testname=${input}.${opt}
     echo -n "  $opt: "
-    run_mdl -d $opt -n inputs/${input}.mdl > outputs/${testname}.log
-    tests_run=$(($tests_run + 1))
-    if cmp -s expected/${testname}.ok outputs/${testname}.log; then
+
+    if run_test "$opt" "$input" "$testname"; then
       tests_ok=$(($tests_ok + 1))
       echo ok.
     else
       tests_failed=$(($tests_failed + 1))
       status=1
       echo FAILED:
-      diff -u expected/${testname} outputs/${testname}.log 2>&1 \
+
+      diff -u "expected/${testname}.ok" "outputs/${testname}.log" 2>&1 \
 	| sed 's/^/    /'
     fi
   done
