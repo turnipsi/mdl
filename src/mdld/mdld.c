@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.4 2016/05/11 20:30:03 je Exp $ */
+/* $Id: mdld.c,v 1.5 2016/05/14 20:27:19 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,7 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
-#include <fcntl.h>
+#include <libgen.h>
 #include <limits.h>
 #include <signal.h>
 #include <stdio.h>
@@ -35,31 +35,23 @@
 
 #include "interpreter.h"
 #include "midi.h"
+#include "protocol.h"
 #include "sequencer.h"
 #include "util.h"
 
-#define MDL_VERSION	"0.0-current"
 #define SOCKETPATH_LEN	104
-
-#ifdef HAVE_SNDIO
-#define DEFAULT_MIDIDEV_TYPE MIDIDEV_SNDIO
-#else
-#define DEFAULT_MIDIDEV_TYPE MIDIDEV_RAW
-#endif
 
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
-static int	show_version(void);
-static char    *get_socketpath(void);
-static int	setup_socketdir(void);
+static int	setup_socketdir(const char *);
 static int	start_interpreter(int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
-static int	setup_sequencer_for_sources(char **, int, const char *, int,
-    enum mididev_type, const char *);
+static int	handle_connections(const char *, enum mididev_type,
+    const char *);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -73,8 +65,8 @@ char *mdl_process_type;
 static void __dead
 usage(void)
 {
-	(void) fprintf(stderr, "usage: mdl [-nsv] [-d debuglevel] [-f device]"
-	    " [-m MIDI-interface] [file ...]\n");
+	(void) fprintf(stderr, "usage: mdld [-v] [-d debuglevel] [-f device]"
+	    " [-m MIDI-interface]\n");
 	exit(1);
 }
 
@@ -91,8 +83,7 @@ int
 main(int argc, char *argv[])
 {
 	char *devicepath, *socketpath;
-	char **musicfiles;
-	int musicfilecount, ch, nflag, sflag;
+	int ch;
 	size_t ret;
 	enum mididev_type mididev_type;
 
@@ -103,7 +94,6 @@ main(int argc, char *argv[])
 	mdl_process_type = "main";
 
 	devicepath = NULL;
-	nflag = sflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
@@ -115,7 +105,7 @@ main(int argc, char *argv[])
 
 	_mdl_logging_init();
 
-	while ((ch = getopt(argc, argv, "cd:D:f:m:nsv")) != -1) {
+	while ((ch = getopt(argc, argv, "d:f:m:v")) != -1) {
 		switch (ch) {
 		case 'd':
 			if (_mdl_logging_setopts(optarg) == -1)
@@ -138,16 +128,8 @@ main(int argc, char *argv[])
 				exit(1);
 			}
 			break;
-		case 'n':
-			nflag = 1;
-			break;
-		case 's':
-			/* XXX sflag should also result in calling daemon()
-			 * XXX at some point. */
-			sflag = 1;
-			break;
 		case 'v':
-			if (show_version() != 0)
+			if (_mdl_show_version() != 0)
 				exit(1);
 			exit(0);
 			break;
@@ -159,30 +141,23 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	/* XXX test me */
+	if (argc != 0)
+		errx(1, "extra arguments after options");
+
 	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
-	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath", NULL)
-	    == -1)
-		err(1, "pledge");
-
-	musicfilecount = argc;
-	musicfiles = argv;
-
-	if (sflag) {
-		if (setup_socketdir() != 0) {
-			warnx("could not setup directory for server socket");
-			exit(1);
-		}
-		if ((socketpath = get_socketpath()) == NULL) {
-			warnx("error in determining server socket path");
-			exit(1);
-		}
-	} else {
-		socketpath = NULL;
+	if ((socketpath = _mdl_get_socketpath()) == NULL) {
+		warnx("error in determining server socket path");
+		exit(1);
 	}
 
-	ret = setup_sequencer_for_sources(musicfiles, musicfilecount,
-	    socketpath, nflag, mididev_type, devicepath);
+	if (setup_socketdir(socketpath) != 0) {
+		warnx("could not setup directory for server socket");
+		exit(1);
+	}
+
+	ret = handle_connections(socketpath, mididev_type, devicepath);
 	if (ret != 0 || mdl_shutdown_main == 1)
 		return 1;
 
@@ -192,82 +167,33 @@ main(int argc, char *argv[])
 }
 
 static int
-show_version(void)
+setup_socketdir(const char *socketpath)
 {
-	int ret;
-
-	ret = printf("mdl version %s\n", MDL_VERSION);
-	if (ret < 0)
-		return 1;
-
-	ret = printf("compiled with midi interface support:\n");
-	if (ret < 0)
-		return 1;
-
-	ret = printf("  raw%s\n",
-	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_RAW ? " (default)" : ""));
-	if (ret < 0)
-		return 1;
-
-#ifdef HAVE_SNDIO
-	ret = printf("  sndio%s\n",
-	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_SNDIO ? " (default)" : ""));
-	if (ret < 0)
-		return 1;
-#endif
-
-	return 0;
-}
-
-static char *
-get_socketpath(void)
-{
-	static char socketpath[SOCKETPATH_LEN];
-	uid_t uid;
-	int ret;
-
-	uid = geteuid();
-	if (uid == 0) {
-		ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl/socket");
-	} else {
-		ret = snprintf(socketpath, SOCKETPATH_LEN,
-		    "/tmp/mdl-%u/socket", uid);
-	}
-	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("snprintf error for server socketpath");
-		return NULL;
-	}
-
-	return socketpath;
-}
-
-static int
-setup_socketdir(void)
-{
-	char socketpath_dir[SOCKETPATH_LEN];
-	uid_t uid;
+	char socketpath_copy[SOCKETPATH_LEN];
+	char *socketpath_dir;
 	struct stat sb;
+	size_t s;
+	uid_t uid;
 	mode_t mask, omask;
-	int ret;
 
-	uid = geteuid();
-	if (uid == 0) {
-		mask = 0022;
-		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl");
-	} else {
-		mask = 0077;
-		ret = snprintf(socketpath_dir, SOCKETPATH_LEN, "/tmp/mdl-%u",
-		    uid);
-	}
-	if (ret == -1 || ret >= SOCKETPATH_LEN) {
-		warnx("snprintf error for server socketpath");
+	s = strlcpy(socketpath_copy, socketpath, SOCKETPATH_LEN);
+	if (s >= SOCKETPATH_LEN) {
+		warnx("error in making a copy of socketpath");
 		return 1;
 	}
 
+	if ((socketpath_dir = dirname(socketpath_copy)) == NULL) {
+		warn("could not determine socket directory");
+		return 1;
+	}
+
+	uid = geteuid();
+	mask = (uid == 0) ? 0022 : 0077;
 	omask = umask(mask);
 	if (mkdir(socketpath_dir, 0777) == -1) {
 		if (errno != EEXIST) {
 			warn("error in making %s", socketpath_dir);
+			umask(omask);
 			return 1;
 		}
 	}
@@ -292,16 +218,15 @@ setup_socketdir(void)
 }
 
 static int
-setup_sequencer_for_sources(char **files, int filecount,
-    const char *socketpath, int dry_run,
+handle_connections(const char *socketpath,
     enum mididev_type mididev_type, const char *devicepath)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-	int server_socket, file_fd, ret, retvalue;
-	int using_stdin, i;
+	int server_socket, client_fd, ret, retvalue;
 	pid_t sequencer_pid;
-	char *stdinfiles[] = { "-" };
 	int sequencer_retvalue;
+	struct sockaddr_storage socket_addr;
+	socklen_t socket_len;
 
 	server_socket = -1;
 	retvalue = 0;
@@ -339,7 +264,7 @@ setup_sequencer_for_sources(char **files, int filecount,
 		 */
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
-		sequencer_retvalue = _mdl_sequencer_loop(ms_sp[1], dry_run,
+		sequencer_retvalue = _mdl_sequencer_loop(ms_sp[1], 0,
 		    mididev_type, devicepath);
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
@@ -360,11 +285,10 @@ setup_sequencer_for_sources(char **files, int filecount,
 		goto finish;
 	}
 
-	if (socketpath) {
-		if ((server_socket = setup_server_socket(socketpath)) == -1) {
-			retvalue = 1;
-			goto finish;
-		}
+	server_socket = setup_server_socket(socketpath);
+	if (server_socket == -1) {
+		retvalue = 1;
+		goto finish;
 	}
 
 	if (pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
@@ -373,37 +297,19 @@ setup_sequencer_for_sources(char **files, int filecount,
 		goto finish;
 	}
 
-	if (filecount == 0) {
-		filecount = 1;
-		files = stdinfiles;
+#if 0
+	/* XXX */
+	socket_len = sizeof(socket_addr);
+	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
+	    &socket_len);
+	if (client_fd == -1) {
+		warn("accept");
+		retvalue = 1;
+		goto finish;
 	}
 
-	for (i = 0; i < filecount && mdl_shutdown_main == 0; i++) {
-		if (strcmp(files[i], "-") == 0) {
-			file_fd = fileno(stdin);
-			using_stdin = 1;
-		} else {
-			using_stdin = 0;
-			file_fd = open(files[i], O_RDONLY);
-			if (file_fd == -1) {
-				warn("could not open %s", files[i]);
-				continue;
-			}
-		}
-
-		ret = start_interpreter(file_fd, ms_sp[0], server_socket);
-		if (ret != 0) {
-			warnx("error in handling %s",
-			    (using_stdin ? "stdin" : files[i]));
-			if (close(file_fd) == -1)
-				warn("error closing %s", files[i]);
-			retvalue = 1;
-			goto finish;
-		}
-
-		if (file_fd != fileno(stdin) && close(file_fd) == -1)
-			warn("error closing %s", files[i]);
-	}
+	ret = start_interpreter(client_fd, ms_sp[0], server_socket);
+#endif
 
 finish:
 	if (pledge("cpath stdio", NULL) == -1) {
@@ -417,7 +323,7 @@ finish:
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
+	if (unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
 	if (pledge("stdio", NULL) == -1) {
@@ -505,7 +411,7 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 		ret = _mdl_handle_musicfile_and_socket(file_fd, mi_sp[1],
 		    is_pipe[1], server_socket);
 
-		if (file_fd != fileno(stdin) && close(file_fd) == -1)
+		if (close(file_fd) == -1)
 			warn("error closing music file");
 
 		if (close(is_pipe[1]) == -1)
