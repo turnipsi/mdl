@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.84 2016/05/12 20:17:45 je Exp $ */
+/* $Id: sequencer.c,v 1.85 2016/05/17 08:15:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -70,9 +70,13 @@ struct songstate {
 	enum playback_state playback_state;
 };
 
-/* If this is set in signal handler, we should shut down. */
-volatile sig_atomic_t mdl_shutdown_sequencer = 0;
+extern char *_mdl_process_type;
 
+/* If this is set in signal handler, we should shut down. */
+volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
+
+static int	sequencer_loop(int, int, enum mididev_type,
+    const char *);
 static void	sequencer_calculate_timeout(struct songstate *,
     struct timespec *, struct sequencer_params *);
 static void	sequencer_close(int);
@@ -111,11 +115,73 @@ sequencer_handle_signal(int signo)
 	assert(signo == SIGINT || signo == SIGTERM);
 
 	if (signo == SIGINT || signo == SIGTERM)
-		mdl_shutdown_sequencer = 1;
+		_mdl_shutdown_sequencer = 1;
 }
 
 int
-_mdl_sequencer_loop(int main_socket, int dry_run,
+_mdl_start_sequencer_process(struct sequencer_process *sequencer,
+    enum mididev_type mididev_type, const char *devicepath, int dry_run)
+{
+	int ms_sp[2];	/* main-sequencer socketpair */
+	int sequencer_retvalue;
+	pid_t sequencer_pid;
+
+	/* Setup socketpair for main <-> sequencer communication. */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
+		warn("could not setup socketpair for main <-> sequencer");
+		return 1;
+	}
+
+	if (fflush(NULL) == EOF)
+		warn("error flushing streams before sequencer fork");
+
+	/* Fork the midi sequencer process. */
+	if ((sequencer_pid = fork()) == -1) {
+		warn("could not fork sequencer process");
+		if (close(ms_sp[0]) == -1)
+			warn("error closing first end of ms_sp");
+		if (close(ms_sp[1]) == -1)
+			warn("error closing second end of ms_sp");
+		return 1;
+	}
+
+	if (sequencer_pid == 0) {
+		/*
+		 * We are in sequencer process, start sequencer loop.
+		 */
+		_mdl_logging_clear();
+		_mdl_process_type = "seq";
+		_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
+		    getpid());
+		/*
+		 * XXX We should close all file descriptors that sequencer
+		 * XXX does not need... does this do that?
+		 */
+		if (close(ms_sp[0]) == -1)
+			warn("error closing first end of ms_sp");
+		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
+		    mididev_type, devicepath);
+		if (close(ms_sp[1]) == -1)
+			warn("closing main socket");
+		if (fflush(NULL) == EOF) {
+			warn("error flushing streams in sequencer"
+			       " before exit");
+		}
+		_mdl_logging_close();
+		_exit(sequencer_retvalue);
+	}
+
+	if (close(ms_sp[1]) == -1)
+		warn("error closing second end of ms_sp");
+
+	sequencer->fd = ms_sp[0];
+	sequencer->pid = sequencer_pid;
+
+	return 0;
+}
+
+static int
+sequencer_loop(int main_socket, int dry_run,
     enum mididev_type mididev_type, const char *devicepath)
 {
 	struct songstate song1, song2;
@@ -211,7 +277,7 @@ _mdl_sequencer_loop(int main_socket, int dry_run,
 			goto finish;
 		}
 
-		if (mdl_shutdown_sequencer) {
+		if (_mdl_shutdown_sequencer) {
 			_mdl_log(MDLLOG_PROCESS, 0,
 			    "sequencer received shutdown signal\n");
 			retvalue = 1;

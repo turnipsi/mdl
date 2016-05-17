@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.33 2016/05/17 07:01:58 je Exp $ */
+/* $Id: util.c,v 1.34 2016/05/17 08:15:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,7 +31,7 @@
 #define DEFAULT_SLOTCOUNT 1024
 #define INDENTLEVELS 128
 
-extern char *mdl_process_type;
+extern char *_mdl_process_type;
 extern char *__progname;
 
 struct {
@@ -210,10 +210,10 @@ _mdl_log(enum logtype logtype, int level, const char *fmt, ...)
 	for (i = 0; i <= level; i++) {
 		if (logstate.messages[i].msg != NULL) {
 			padding_length = sizeof("exprcloning") +
-			    sizeof("interp") - strlen(mdl_process_type) - 1;
+			    sizeof("interp") - strlen(_mdl_process_type) - 1;
 			assert(padding_length >= 0);
 			ret = printf("%s.%s.%-*s: %*s%s", __progname,
-			    mdl_process_type, padding_length,
+			    _mdl_process_type, padding_length,
 			    logtype_strings[ logstate.messages[i].type ],
 			    (2 * i), "", logstate.messages[i].msg);
 			if (ret < 0) {

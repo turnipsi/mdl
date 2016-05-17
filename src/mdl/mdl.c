@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.7 2016/05/17 07:58:18 je Exp $ */
+/* $Id: mdl.c,v 1.8 2016/05/17 08:15:41 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,13 +42,6 @@
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
-struct sequencer {
-	int	fd;
-	pid_t	pid;
-};
-
-static int	startup_sequencer(struct sequencer *, enum mididev_type,
-    const char *, int);
 static int	start_interpreter(int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
@@ -61,7 +54,7 @@ volatile sig_atomic_t mdl_shutdown_main = 0;
 
 extern int loglevel;
 
-char *mdl_process_type;
+char *_mdl_process_type;
 
 static void __dead
 usage(void)
@@ -83,7 +76,7 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	struct sequencer sequencer;
+	struct sequencer_process sequencer;
 	char *devicepath;
 	char **musicfiles;
 	int musicfilecount, ch, nflag;
@@ -94,7 +87,7 @@ main(int argc, char *argv[])
 	malloc_options = (char *) "AFGJPS";
 #endif /* HAVE_MALLOC_OPTIONS */
 
-	mdl_process_type = "main";
+	_mdl_process_type = "main";
 
 	devicepath = NULL;
 	nflag = 0;
@@ -152,7 +145,8 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfiles = argv;
 
-	ret = startup_sequencer(&sequencer, mididev_type, devicepath, nflag);
+	ret = _mdl_start_sequencer_process(&sequencer, mididev_type,
+	    devicepath, nflag);
 	if (ret != 0)
 		errx(1, "error in starting up sequencer");
 
@@ -174,68 +168,6 @@ main(int argc, char *argv[])
 		errx(1, "error when waiting for sequencer subprocess");
 
 	_mdl_logging_close();
-
-	return 0;
-}
-
-static int
-startup_sequencer(struct sequencer *sequencer, enum mididev_type mididev_type,
-    const char *devicepath, int dry_run)
-{
-	int ms_sp[2];	/* main-sequencer socketpair */
-	int sequencer_retvalue;
-	pid_t sequencer_pid;
-
-	/* Setup socketpair for main <-> sequencer communication. */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
-		warn("could not setup socketpair for main <-> sequencer");
-		return 1;
-	}
-
-	if (fflush(NULL) == EOF)
-		warn("error flushing streams before sequencer fork");
-
-	/* Fork the midi sequencer process. */
-	if ((sequencer_pid = fork()) == -1) {
-		warn("could not fork sequencer process");
-		if (close(ms_sp[0]) == -1)
-			warn("error closing first end of ms_sp");
-		if (close(ms_sp[1]) == -1)
-			warn("error closing second end of ms_sp");
-		return 1;
-	}
-
-	if (sequencer_pid == 0) {
-		/*
-		 * We are in sequencer process, start sequencer loop.
-		 */
-		_mdl_logging_clear();
-		mdl_process_type = "seq";
-		_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
-		    getpid());
-		/*
-		 * XXX We should close all file descriptors that sequencer
-		 * XXX does not need... does this do that?
-		 */
-		if (close(ms_sp[0]) == -1)
-			warn("error closing first end of ms_sp");
-		sequencer_retvalue = _mdl_sequencer_loop(ms_sp[1], dry_run,
-		    mididev_type, devicepath);
-		if (close(ms_sp[1]) == -1)
-			warn("closing main socket");
-		if (fflush(NULL) == EOF) {
-			warn("error flushing streams in sequencer"
-			       " before exit");
-		}
-		_mdl_logging_close();
-		_exit(sequencer_retvalue);
-	}
-
-	if (close(ms_sp[1]) == -1)
-		warn("error closing second end of ms_sp");
-
-	sequencer->fd = ms_sp[0];
-	sequencer->pid = sequencer_pid;
 
 	return 0;
 }
@@ -313,7 +245,7 @@ start_interpreter(int file_fd, int sequencer_socket)
 		 * We are in the interpreter process.
 		 */
 		_mdl_logging_clear();
-		mdl_process_type = "interp";
+		_mdl_process_type = "interp";
 		_mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
 

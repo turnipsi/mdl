@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.13 2016/05/10 20:39:43 je Exp $ */
+/* $Id: sequencer.h,v 1.14 2016/05/17 08:15:39 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,8 +21,14 @@
 
 #include "midi.h"
 
+struct sequencer_process {
+	int	fd;
+	pid_t	pid;
+};
+
 __BEGIN_DECLS
-int	_mdl_sequencer_loop(int, int, enum mididev_type, const char *);
+int	_mdl_start_sequencer_process(struct sequencer_process *,
+    enum mididev_type, const char *, int);
 __END_DECLS
 
 #endif /* !MDL_SEQUENCER_H */

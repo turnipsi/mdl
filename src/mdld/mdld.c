@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.5 2016/05/14 20:27:19 je Exp $ */
+/* $Id: mdld.c,v 1.6 2016/05/17 08:15:41 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,7 +46,7 @@ extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	setup_socketdir(const char *);
-static int	start_interpreter(int, int, int);
+static int	start_interpreter(int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
@@ -60,7 +60,7 @@ volatile sig_atomic_t mdl_shutdown_main = 0;
 
 extern int loglevel;
 
-char *mdl_process_type;
+char *_mdl_process_type;
 
 static void __dead
 usage(void)
@@ -141,7 +141,6 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	/* XXX test me */
 	if (argc != 0)
 		errx(1, "extra arguments after options");
 
@@ -297,8 +296,6 @@ handle_connections(const char *socketpath,
 		goto finish;
 	}
 
-#if 0
-	/* XXX */
 	socket_len = sizeof(socket_addr);
 	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
 	    &socket_len);
@@ -308,8 +305,7 @@ handle_connections(const char *socketpath,
 		goto finish;
 	}
 
-	ret = start_interpreter(client_fd, ms_sp[0], server_socket);
-#endif
+	ret = start_interpreter(client_fd, ms_sp[0]);
 
 finish:
 	if (pledge("cpath stdio", NULL) == -1) {
@@ -338,40 +334,24 @@ finish:
 }
 
 static int
-start_interpreter(int file_fd, int sequencer_socket, int server_socket)
+start_interpreter(int file_fd, int sequencer_socket)
 {
-	int mi_sp[2];	/* main-interpreter socketpair */
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 
 	int ret;
 	pid_t interpreter_pid;
 
-	/* Setup socketpair for main <-> interpreter communication. */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, mi_sp) == -1) {
-		warn("could not setup socketpair for main <-> interpreter");
-		return 1;
-	}
-
 	/* Setup pipe for interpreter --> sequencer communication. */
 	if (pipe(is_pipe) == -1) {
 		warn("could not setup pipe for interpreter -> sequencer");
-		if (close(mi_sp[0]) == -1)
-			warn("error closing first end of mi_sp");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
 		return 1;
 	}
-
 
 	if (fflush(NULL) == EOF)
 		warn("error flushing streams before interpreter fork");
 
 	if ((interpreter_pid = fork()) == -1) {
 		warn("could not fork interpreter pid");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
-		if (close(mi_sp[0]) == -1)
-			warn("error closing first end of mi_sp");
 		if (close(is_pipe[1]) == -1)
 			warn("error closing write end of is_pipe");
 		if (close(is_pipe[0]) == -1)
@@ -397,27 +377,19 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 			ret = 1;
 			goto interpreter_out;
 		}
-		if (close(mi_sp[0]) == -1) {
-			warn("error closing first end of mi_sp");
-			ret = 1;
-			goto interpreter_out;
-		}
 		if (close(is_pipe[0]) == -1) {
 			warn("error closing read end of is_pipe");
 			ret = 1;
 			goto interpreter_out;
 		}
 
-		ret = _mdl_handle_musicfile_and_socket(file_fd, mi_sp[1],
-		    is_pipe[1], server_socket);
+		ret = _mdl_handle_musicfile_and_socket(file_fd, is_pipe[1]);
 
 		if (close(file_fd) == -1)
 			warn("error closing music file");
 
 		if (close(is_pipe[1]) == -1)
 			warn("error closing write end of is_pipe");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
 
 interpreter_out:
 		if (fflush(NULL) == EOF) {
@@ -430,16 +402,8 @@ interpreter_out:
 		_exit(ret);
 	}
 
-	if (close(mi_sp[1]) == -1)
-		warn("error closing second end of mi_sp");
 	if (close(is_pipe[1]) == -1)
 		warn("error closing write end of is_pipe");
-
-	/*
-	 * We can communicate to interpreter through mi_sp[0],
-	 * but to establish interpreter --> sequencer communication
-	 * we must send is_pipe[0] to sequencer.
-	 */
 
 	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
 		/*
@@ -448,18 +412,9 @@ interpreter_out:
 		 */
 	}
 
-	/* XXX mi_sp[0] not yet used for anything. */
-
-	if (close(mi_sp[0]) == -1)
-		warn("error closing first end of mi_sp");
 	if (close(is_pipe[0]) == -1)
 		warn("error closing read end of is_pipe");
 
-	/*
-	 * XXX Only one interpreter thread should be running at once,
-	 * XXX so we should wait specifically for that one to finish
-	 * XXX (we might do something interesting while waiting, though).
-	 */
 	if (wait_for_subprocess("interpreter", interpreter_pid) != 0)
 		return 1;
 
