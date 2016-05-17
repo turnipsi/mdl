@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.6 2016/05/17 07:01:59 je Exp $ */
+/* $Id: mdl.c,v 1.7 2016/05/17 07:58:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -42,12 +42,18 @@
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
-static int	start_interpreter(int, int, int);
+struct sequencer {
+	int	fd;
+	pid_t	pid;
+};
+
+static int	startup_sequencer(struct sequencer *, enum mididev_type,
+    const char *, int);
+static int	start_interpreter(int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
-static int	handle_musicfiles(char **, int, const char *, int,
-    enum mididev_type, const char *);
+static int	handle_musicfiles(char **, int, int);
 static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
@@ -77,7 +83,8 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	char *devicepath, *server_socketpath;
+	struct sequencer sequencer;
+	char *devicepath;
 	char **musicfiles;
 	int musicfilecount, ch, nflag;
 	size_t ret;
@@ -145,13 +152,26 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfiles = argv;
 
-	if ((server_socketpath = _mdl_get_socketpath()) == NULL)
-		err(1, "could not determine socketpath");
+	ret = startup_sequencer(&sequencer, mididev_type, devicepath, nflag);
+	if (ret != 0)
+		errx(1, "error in starting up sequencer");
 
-	ret = handle_musicfiles(musicfiles, musicfilecount, server_socketpath,
-	    nflag, mididev_type, devicepath);
-	if (ret != 0 || mdl_shutdown_main == 1)
-		return 1;
+	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
+	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
+		err(1, "pledge");
+
+	ret = handle_musicfiles(musicfiles, musicfilecount, sequencer.fd);
+	if (ret != 0)
+		errx(1, "error in handling musicfiles");
+
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
+
+	if (close(sequencer.fd) == -1)
+		warn("error closing sequencer connection");
+
+	if (wait_for_subprocess("sequencer", sequencer.pid) != 0)
+		errx(1, "error when waiting for sequencer subprocess");
 
 	_mdl_logging_close();
 
@@ -159,21 +179,12 @@ main(int argc, char *argv[])
 }
 
 static int
-handle_musicfiles(char **files, int filecount,
-    const char *server_socketpath, int dry_run,
-    enum mididev_type mididev_type, const char *devicepath)
+startup_sequencer(struct sequencer *sequencer, enum mididev_type mididev_type,
+    const char *devicepath, int dry_run)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-	int server_socket, file_fd, ret, retvalue;
-	int using_stdin, i;
-	pid_t sequencer_pid;
-	char *stdinfiles[] = { "-" };
 	int sequencer_retvalue;
-
-	retvalue = 0;
-
-	/* XXX We should use server_socketpath to initialize this: */
-	server_socket = -1;
+	pid_t sequencer_pid;
 
 	/* Setup socketpair for main <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
@@ -220,12 +231,20 @@ handle_musicfiles(char **files, int filecount,
 		_exit(sequencer_retvalue);
 	}
 
-	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
-	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
-		err(1, "pledge");
-
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second end of ms_sp");
+
+	sequencer->fd = ms_sp[0];
+	sequencer->pid = sequencer_pid;
+
+	return 0;
+}
+
+static int
+handle_musicfiles(char **files, int filecount, int sequencer_fd)
+{
+	int file_fd, i, ret, using_stdin;
+	char *stdinfiles[] = { "-" };
 
 	if (filecount == 0) {
 		filecount = 1;
@@ -247,73 +266,41 @@ handle_musicfiles(char **files, int filecount,
 			}
 		}
 
-		ret = start_interpreter(file_fd, ms_sp[0], server_socket);
+		ret = start_interpreter(file_fd, sequencer_fd);
 		if (ret != 0) {
 			warnx("error in handling %s",
 			    (using_stdin ? "stdin" : files[i]));
 			if (close(file_fd) == -1)
 				warn("error closing %s", files[i]);
-			retvalue = 1;
-			goto finish;
+			return 1;
 		}
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
 			warn("error closing %s", files[i]);
 	}
 
-finish:
-	if (pledge("stdio", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
-
-	if (close(ms_sp[0]) == -1)
-		warn("error closing first end of ms_sp");
-
-	if (server_socket >= 0 && close(server_socket) == -1)
-		warn("error closing server socket");
-
-	if (wait_for_subprocess("sequencer", sequencer_pid) != 0)
-		return 1;
-
-	return retvalue;
+	return 0;
 }
 
 static int
-start_interpreter(int file_fd, int sequencer_socket, int server_socket)
+start_interpreter(int file_fd, int sequencer_socket)
 {
-	int mi_sp[2];	/* main-interpreter socketpair */
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 
 	int ret;
 	pid_t interpreter_pid;
 
-	/* Setup socketpair for main <-> interpreter communication. */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, mi_sp) == -1) {
-		warn("could not setup socketpair for main <-> interpreter");
-		return 1;
-	}
-
 	/* Setup pipe for interpreter --> sequencer communication. */
 	if (pipe(is_pipe) == -1) {
 		warn("could not setup pipe for interpreter -> sequencer");
-		if (close(mi_sp[0]) == -1)
-			warn("error closing first end of mi_sp");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
 		return 1;
 	}
-
 
 	if (fflush(NULL) == EOF)
 		warn("error flushing streams before interpreter fork");
 
 	if ((interpreter_pid = fork()) == -1) {
 		warn("could not fork interpreter pid");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
-		if (close(mi_sp[0]) == -1)
-			warn("error closing first end of mi_sp");
 		if (close(is_pipe[1]) == -1)
 			warn("error closing write end of is_pipe");
 		if (close(is_pipe[0]) == -1)
@@ -339,27 +326,19 @@ start_interpreter(int file_fd, int sequencer_socket, int server_socket)
 			ret = 1;
 			goto interpreter_out;
 		}
-		if (close(mi_sp[0]) == -1) {
-			warn("error closing first end of mi_sp");
-			ret = 1;
-			goto interpreter_out;
-		}
 		if (close(is_pipe[0]) == -1) {
 			warn("error closing read end of is_pipe");
 			ret = 1;
 			goto interpreter_out;
 		}
 
-		ret = _mdl_handle_musicfile_and_socket(file_fd, mi_sp[1],
-		    is_pipe[1], server_socket);
+		ret = _mdl_handle_musicfile_and_socket(file_fd, is_pipe[1]);
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
 			warn("error closing music file");
 
 		if (close(is_pipe[1]) == -1)
 			warn("error closing write end of is_pipe");
-		if (close(mi_sp[1]) == -1)
-			warn("error closing second end of mi_sp");
 
 interpreter_out:
 		if (fflush(NULL) == EOF) {
@@ -372,16 +351,8 @@ interpreter_out:
 		_exit(ret);
 	}
 
-	if (close(mi_sp[1]) == -1)
-		warn("error closing second end of mi_sp");
 	if (close(is_pipe[1]) == -1)
 		warn("error closing write end of is_pipe");
-
-	/*
-	 * We can communicate to interpreter through mi_sp[0],
-	 * but to establish interpreter --> sequencer communication
-	 * we must send is_pipe[0] to sequencer.
-	 */
 
 	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
 		/*
@@ -390,18 +361,9 @@ interpreter_out:
 		 */
 	}
 
-	/* XXX mi_sp[0] not yet used for anything. */
-
-	if (close(mi_sp[0]) == -1)
-		warn("error closing first end of mi_sp");
 	if (close(is_pipe[0]) == -1)
 		warn("error closing read end of is_pipe");
 
-	/*
-	 * XXX Only one interpreter thread should be running at once,
-	 * XXX so we should wait specifically for that one to finish
-	 * XXX (we might do something interesting while waiting, though).
-	 */
 	if (wait_for_subprocess("interpreter", interpreter_pid) != 0)
 		return 1;
 

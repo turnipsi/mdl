@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.53 2016/05/11 20:30:01 je Exp $ */
+/* $Id: interpreter.c,v 1.54 2016/05/17 07:58:17 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,17 +33,14 @@ extern struct musicexpr	*parsed_expr;
 extern unsigned int	 parse_errors;
 
 int
-_mdl_handle_musicfile_and_socket(int file_fd, int main_socket,
-    int sequencer_socket, int server_socket)
+_mdl_handle_musicfile_and_socket(int file_fd, int sequencer_socket)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;
 	int level, ret;
 
 	assert(file_fd >= 0);
-	assert(main_socket >= 0 || 1);		/* XXX not used yet */
 	assert(sequencer_socket >= 0);
-	assert(server_socket >= 0 || 1);	/* XXX not used yet */
 
 	eventstream = NULL;
 	level = 0;
