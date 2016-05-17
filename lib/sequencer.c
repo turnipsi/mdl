@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.85 2016/05/17 08:15:39 je Exp $ */
+/* $Id: sequencer.c,v 1.86 2016/05/17 19:34:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -174,8 +174,8 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second end of ms_sp");
 
-	sequencer->fd = ms_sp[0];
 	sequencer->pid = sequencer_pid;
+	sequencer->socket = ms_sp[0];
 
 	return 0;
 }

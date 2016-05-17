@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.8 2016/05/17 08:15:41 je Exp $ */
+/* $Id: mdl.c,v 1.9 2016/05/17 19:34:20 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -154,14 +154,14 @@ main(int argc, char *argv[])
 	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(musicfiles, musicfilecount, sequencer.fd);
+	ret = handle_musicfiles(musicfiles, musicfilecount, sequencer.socket);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (close(sequencer.fd) == -1)
+	if (close(sequencer.socket) == -1)
 		warn("error closing sequencer connection");
 
 	if (wait_for_subprocess("sequencer", sequencer.pid) != 0)

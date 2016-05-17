@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.6 2016/05/17 08:15:41 je Exp $ */
+/* $Id: mdld.c,v 1.7 2016/05/17 19:34:21 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -50,13 +50,12 @@ static int	start_interpreter(int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
 static int	wait_for_subprocess(const char *, int);
-static int	handle_connections(const char *, enum mididev_type,
-    const char *);
+static int	handle_connections(int, struct sequencer_process);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
-volatile sig_atomic_t mdl_shutdown_main = 0;
+volatile sig_atomic_t mdld_shutdown_main = 0;
 
 extern int loglevel;
 
@@ -76,14 +75,15 @@ handle_signal(int signo)
 	assert(signo == SIGINT || signo == SIGTERM);
 
 	if (signo == SIGINT || signo == SIGTERM)
-		mdl_shutdown_main = 1;
+		mdld_shutdown_main = 1;
 }
 
 int
 main(int argc, char *argv[])
 {
+	struct sequencer_process sequencer;
 	char *devicepath, *socketpath;
-	int ch;
+	int ch, exitstatus, server_socket;
 	size_t ret;
 	enum mididev_type mididev_type;
 
@@ -91,7 +91,7 @@ main(int argc, char *argv[])
 	malloc_options = (char *) "AFGJPS";
 #endif /* HAVE_MALLOC_OPTIONS */
 
-	mdl_process_type = "main";
+	_mdl_process_type = "main";
 
 	devicepath = NULL;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
@@ -148,21 +148,47 @@ main(int argc, char *argv[])
 
 	if ((socketpath = _mdl_get_socketpath()) == NULL) {
 		warnx("error in determining server socket path");
-		exit(1);
+		return -1;
 	}
 
-	if (setup_socketdir(socketpath) != 0) {
-		warnx("could not setup directory for server socket");
-		exit(1);
-	}
+	if ((server_socket = setup_server_socket(socketpath)) == -1)
+		errx(1, "could not setup server socket");
 
-	ret = handle_connections(socketpath, mididev_type, devicepath);
-	if (ret != 0 || mdl_shutdown_main == 1)
-		return 1;
+	ret = _mdl_start_sequencer_process(&sequencer, mididev_type,
+	    devicepath, 0);
+	if (ret != 0)
+		errx(1, "error in starting up sequencer");
+
+	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
+	if (pledge("cpath proc recvfd rpath sendfd stdio unix", NULL) == -1)
+		err(1, "pledge");
+
+	ret = handle_connections(server_socket, sequencer);
+	if (ret != 0)
+		exitstatus = 1;
+
+	if (pledge("cpath stdio", NULL) == -1)
+		err(1, "pledge");
+
+	if (unlink(socketpath) && errno != ENOENT)
+		warn("could not delete %s", socketpath);
+
+	if (pledge("stdio", NULL) == -1)
+		err(1, "pledge");
+
+	if (close(server_socket) == -1)
+		warn("error closing server socket");
+
+	if (close(sequencer.socket) == -1)
+		warn("error closing sequencer connection");
+
+	/* XXX should we kill it? */
+	if (wait_for_subprocess("sequencer", sequencer.pid) != 0)
+		errx(1, "error when waiting for sequencer subprocess");
 
 	_mdl_logging_close();
 
-	return 0;
+	return exitstatus;
 }
 
 static int
@@ -217,84 +243,14 @@ setup_socketdir(const char *socketpath)
 }
 
 static int
-handle_connections(const char *socketpath,
-    enum mididev_type mididev_type, const char *devicepath)
+handle_connections(int server_socket, struct sequencer_process sequencer)
 {
-	int ms_sp[2];	/* main-sequencer socketpair */
-	int server_socket, client_fd, ret, retvalue;
-	pid_t sequencer_pid;
-	int sequencer_retvalue;
+	int client_fd, ret, retvalue;
 	struct sockaddr_storage socket_addr;
 	socklen_t socket_len;
 
-	server_socket = -1;
 	retvalue = 0;
-
-	/* Setup socketpair for main <-> sequencer communication. */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ms_sp) == -1) {
-		warn("could not setup socketpair for main <-> sequencer");
-		return 1;
-	}
-
-	if (fflush(NULL) == EOF)
-		warn("error flushing streams before sequencer fork");
-
-	/* Fork the midi sequencer process. */
-	if ((sequencer_pid = fork()) == -1) {
-		warn("could not fork sequencer process");
-		if (close(ms_sp[0]) == -1)
-			warn("error closing first end of ms_sp");
-		if (close(ms_sp[1]) == -1)
-			warn("error closing second end of ms_sp");
-		return 1;
-	}
-
-	if (sequencer_pid == 0) {
-		/*
-		 * We are in sequencer process, start sequencer loop.
-		 */
-		_mdl_logging_clear();
-		mdl_process_type = "seq";
-		_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
-		    getpid());
-		/*
-		 * XXX We should close all file descriptors that sequencer
-		 * XXX does not need... does this do that?
-		 */
-		if (close(ms_sp[0]) == -1)
-			warn("error closing first end of ms_sp");
-		sequencer_retvalue = _mdl_sequencer_loop(ms_sp[1], 0,
-		    mididev_type, devicepath);
-		if (close(ms_sp[1]) == -1)
-			warn("closing main socket");
-		if (fflush(NULL) == EOF) {
-			warn("error flushing streams in sequencer"
-			       " before exit");
-		}
-		_mdl_logging_close();
-		_exit(sequencer_retvalue);
-	}
-
-	if (close(ms_sp[1]) == -1)
-		warn("error closing second end of ms_sp");
-
-	if (pledge("cpath proc rpath sendfd stdio unix", NULL) == -1) {
-		warn("pledge");
-		retvalue = 1;
-		goto finish;
-	}
-
-	server_socket = setup_server_socket(socketpath);
-	if (server_socket == -1) {
-		retvalue = 1;
-		goto finish;
-	}
-
-	if (pledge("cpath proc rpath sendfd stdio", NULL) == -1) {
-		warn("pledge");
-		retvalue = 1;
-		goto finish;
-	}
+	client_fd = -1;
 
 	socket_len = sizeof(socket_addr);
 	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
@@ -305,30 +261,13 @@ handle_connections(const char *socketpath,
 		goto finish;
 	}
 
-	ret = start_interpreter(client_fd, ms_sp[0]);
+	ret = start_interpreter(client_fd, sequencer.socket);
+	if (ret != 0)
+		retvalue = 1;
 
 finish:
-	if (pledge("cpath stdio", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
-
-	if (close(ms_sp[0]) == -1)
-		warn("error closing first end of ms_sp");
-
-	if (server_socket >= 0 && close(server_socket) == -1)
-		warn("error closing server socket");
-
-	if (unlink(socketpath) && errno != ENOENT)
-		warn("could not delete %s", socketpath);
-
-	if (pledge("stdio", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
-
-	if (wait_for_subprocess("sequencer", sequencer_pid) != 0)
-		return 1;
+	if (client_fd >= 0 && close(client_fd) == -1)
+		warn("error closing client connection");
 
 	return retvalue;
 }
@@ -364,7 +303,7 @@ start_interpreter(int file_fd, int sequencer_socket)
 		 * We are in the interpreter process.
 		 */
 		_mdl_logging_clear();
-		mdl_process_type = "interp";
+		_mdl_process_type = "interp";
 		_mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
 
@@ -494,6 +433,11 @@ setup_server_socket(const char *socketpath)
 {
 	struct sockaddr_un sun;
 	int ret, server_socket;
+
+	if (setup_socketdir(socketpath) != 0) {
+		warnx("could not setup directory for server socket");
+		return -1;
+	}
 
 	memset(&sun, 0, sizeof(struct sockaddr_un));
 	sun.sun_family = AF_UNIX;

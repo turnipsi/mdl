@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.14 2016/05/17 08:15:39 je Exp $ */
+/* $Id: sequencer.h,v 1.15 2016/05/17 19:34:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,7 @@
 #include "midi.h"
 
 struct sequencer_process {
-	int	fd;
+	int	socket;
 	pid_t	pid;
 };
 
