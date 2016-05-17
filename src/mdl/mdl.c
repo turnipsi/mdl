@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.5 2016/05/13 20:30:00 je Exp $ */
+/* $Id: mdl.c,v 1.6 2016/05/17 07:01:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,19 +38,10 @@
 #include "sequencer.h"
 #include "util.h"
 
-#define MDL_VERSION	"0.0-current"
-
-#ifdef HAVE_SNDIO
-#define DEFAULT_MIDIDEV_TYPE MIDIDEV_SNDIO
-#else
-#define DEFAULT_MIDIDEV_TYPE MIDIDEV_RAW
-#endif
-
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
-static int	show_version(void);
 static int	start_interpreter(int, int, int);
 static void	handle_signal(int);
 static int	send_fd_through_socket(int, int);
@@ -137,7 +128,7 @@ main(int argc, char *argv[])
 			nflag = 1;
 			break;
 		case 'v':
-			if (show_version() != 0)
+			if (_mdl_show_version() != 0)
 				exit(1);
 			exit(0);
 			break;
@@ -163,34 +154,6 @@ main(int argc, char *argv[])
 		return 1;
 
 	_mdl_logging_close();
-
-	return 0;
-}
-
-static int
-show_version(void)
-{
-	int ret;
-
-	ret = printf("mdl version %s\n", MDL_VERSION);
-	if (ret < 0)
-		return 1;
-
-	ret = printf("compiled with midi interface support:\n");
-	if (ret < 0)
-		return 1;
-
-	ret = printf("  raw%s\n",
-	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_RAW ? " (default)" : ""));
-	if (ret < 0)
-		return 1;
-
-#ifdef HAVE_SNDIO
-	ret = printf("  sndio%s\n",
-	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_SNDIO ? " (default)" : ""));
-	if (ret < 0)
-		return 1;
-#endif
 
 	return 0;
 }

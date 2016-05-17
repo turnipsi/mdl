@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.27 2016/05/11 20:30:01 je Exp $ */
+/* $Id: util.h,v 1.28 2016/05/17 07:01:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,8 +21,17 @@
 
 #include <unistd.h>
 
+/* XXX maybe belongs somewhere else */
+#ifdef HAVE_SNDIO
+#define DEFAULT_MIDIDEV_TYPE MIDIDEV_SNDIO
+#else
+#define DEFAULT_MIDIDEV_TYPE MIDIDEV_RAW
+#endif
+
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
+
+#define MDL_VERSION	"0.0-current"
 
 /* There should not be more than 32 different MDLLOG_* types. */
 enum logtype {
@@ -65,6 +74,8 @@ struct mdl_stream      *_mdl_stream_new(enum streamtype);
 int			_mdl_stream_increment(struct mdl_stream *);
 void			_mdl_stream_free(struct mdl_stream *);
 void __dead		_mdl_unimplemented(void);
+
+int	_mdl_show_version(void);
 __END_DECLS
 
 #endif /* !MDL_UTIL_H */

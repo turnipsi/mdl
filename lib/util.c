@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.32 2016/05/11 20:30:01 je Exp $ */
+/* $Id: util.c,v 1.33 2016/05/17 07:01:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -350,4 +350,32 @@ _mdl_unimplemented(void)
 {
 	warnx("_mdl_unimplemented functionality triggered");
 	abort();
+}
+
+int
+_mdl_show_version(void)
+{
+	int ret;
+
+	ret = printf("mdl version %s\n", MDL_VERSION);
+	if (ret < 0)
+		return 1;
+
+	ret = printf("compiled with midi interface support:\n");
+	if (ret < 0)
+		return 1;
+
+	ret = printf("  raw%s\n",
+	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_RAW ? " (default)" : ""));
+	if (ret < 0)
+		return 1;
+
+#ifdef HAVE_SNDIO
+	ret = printf("  sndio%s\n",
+	    (DEFAULT_MIDIDEV_TYPE == MIDIDEV_SNDIO ? " (default)" : ""));
+	if (ret < 0)
+		return 1;
+#endif
+
+	return 0;
 }
