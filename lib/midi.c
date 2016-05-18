@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.29 2016/05/11 20:30:01 je Exp $ */
+/* $Id: midi.c,v 1.30 2016/05/18 08:26:17 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <math.h>
+#include <string.h>
 #include <time.h>
 
 #ifdef HAVE_SNDIO
@@ -366,4 +367,24 @@ _mdl_midievent_log(enum logtype logtype, const char *prefix,
 	default:
 		assert(0);
 	}
+}
+
+enum mididev_type
+_mdl_midi_get_mididev_type(const char *miditype)
+{
+	enum mididev_type mididev_type;
+
+	if (strcmp(miditype, "raw") == 0) {
+		mididev_type = MIDIDEV_RAW;
+#ifdef HAVE_SNDIO
+	} else if (strcmp(miditype, "sndio") == 0) {
+		mididev_type = MIDIDEV_SNDIO;
+#endif /* HAVE_SNDIO */
+	} else {
+		warnx("unsupported midi interface \"%s\"", miditype);
+		warnx("run with -v to see possible options");
+		mididev_type = MIDIDEV_NONE;
+	}
+
+	return mididev_type;
 }

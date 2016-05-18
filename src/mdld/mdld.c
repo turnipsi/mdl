@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.7 2016/05/17 19:34:21 je Exp $ */
+/* $Id: mdld.c,v 1.8 2016/05/18 08:26:19 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -115,18 +115,9 @@ main(int argc, char *argv[])
 			devicepath = optarg;
 			break;
 		case 'm':
-			if (strcmp(optarg, "raw") == 0) {
-				mididev_type = MIDIDEV_RAW;
-#ifdef HAVE_SNDIO
-			} else if (strcmp(optarg, "sndio") == 0) {
-				mididev_type = MIDIDEV_SNDIO;
-#endif /* HAVE_SNDIO */
-			} else {
-				warnx("unsupported midi interface \"%s\"",
-				    optarg);
-				warnx("run with -v to see possible options");
+			mididev_type = _mdl_midi_get_mididev_type(optarg);
+			if (mididev_type == MIDIDEV_NONE)
 				exit(1);
-			}
 			break;
 		case 'v':
 			if (_mdl_show_version() != 0)
