@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.8 2016/05/18 08:26:19 je Exp $ */
+/* $Id: mdld.c,v 1.9 2016/05/18 19:39:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -94,7 +94,13 @@ main(int argc, char *argv[])
 	_mdl_process_type = "main";
 
 	devicepath = NULL;
+	exitstatus = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
+	server_socket = -1;
+	socketpath = NULL;
+
+	sequencer.pid = 0;
+	sequencer.socket = -1;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -137,45 +143,58 @@ main(int argc, char *argv[])
 
 	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
-	if ((socketpath = _mdl_get_socketpath()) == NULL) {
-		warnx("error in determining server socket path");
-		return -1;
-	}
+	if ((socketpath = _mdl_get_socketpath()) == NULL)
+		errx(1, "error in determining server socket path");
 
-	if ((server_socket = setup_server_socket(socketpath)) == -1)
-		errx(1, "could not setup server socket");
+	/* After calling setup_server_socket() we might have created the
+	 * socket in filesystem, so we must go through "finish" to unlink it
+	 * and exit.  Except if pledge() call fails we stop immediately. */
+	if ((server_socket = setup_server_socket(socketpath)) == -1) {
+		warnx("could not setup server socket");
+		exitstatus = 1;
+		goto finish;
+	}
 
 	ret = _mdl_start_sequencer_process(&sequencer, mididev_type,
 	    devicepath, 0);
-	if (ret != 0)
-		errx(1, "error in starting up sequencer");
+	if (ret != 0) {
+		warnx("error in starting up sequencer");
+		exitstatus = 1;
+		goto finish;
+	}
 
 	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
 	ret = handle_connections(server_socket, sequencer);
-	if (ret != 0)
+	if (ret != 0) {
+		warnx("error in handling connections");
 		exitstatus = 1;
+	}
 
+finish:
 	if (pledge("cpath stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (unlink(socketpath) && errno != ENOENT)
+	if (socketpath != NULL && unlink(socketpath) && errno != ENOENT)
 		warn("could not delete %s", socketpath);
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (close(server_socket) == -1)
+	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (close(sequencer.socket) == -1)
+	if (sequencer.socket >= 0 && close(sequencer.socket) == -1)
 		warn("error closing sequencer connection");
 
-	/* XXX should we kill it? */
-	if (wait_for_subprocess("sequencer", sequencer.pid) != 0)
-		errx(1, "error when waiting for sequencer subprocess");
+	if (sequencer.pid > 0) {
+		if (wait_for_subprocess("sequencer", sequencer.pid) != 0) {
+			errx(1, "error when waiting for sequencer subprocess");
+			exitstatus = 1;
+		}
+	}
 
 	_mdl_logging_close();
 
