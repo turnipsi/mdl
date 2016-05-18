@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.10 2016/05/18 08:26:19 je Exp $ */
+/* $Id: mdl.c,v 1.11 2016/05/18 20:29:15 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,7 +20,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/un.h>
-#include <sys/wait.h>
 
 #include <assert.h>
 #include <err.h>
@@ -42,10 +41,7 @@
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
-static int	start_interpreter(int, int);
 static void	handle_signal(int);
-static int	send_fd_through_socket(int, int);
-static int	wait_for_subprocess(const char *, int);
 static int	handle_musicfiles(char **, int, int);
 static void __dead usage(void);
 
@@ -155,7 +151,7 @@ main(int argc, char *argv[])
 	if (close(sequencer.socket) == -1)
 		warn("error closing sequencer connection");
 
-	if (wait_for_subprocess("sequencer", sequencer.pid) != 0)
+	if (_mdl_wait_for_subprocess("sequencer", sequencer.pid) != 0)
 		errx(1, "error when waiting for sequencer subprocess");
 
 	_mdl_logging_close();
@@ -189,7 +185,7 @@ handle_musicfiles(char **files, int filecount, int sequencer_fd)
 			}
 		}
 
-		ret = start_interpreter(file_fd, sequencer_fd);
+		ret = _mdl_start_interpreter(file_fd, sequencer_fd);
 		if (ret != 0) {
 			warnx("error in handling %s",
 			    (using_stdin ? "stdin" : files[i]));
@@ -200,162 +196,6 @@ handle_musicfiles(char **files, int filecount, int sequencer_fd)
 
 		if (file_fd != fileno(stdin) && close(file_fd) == -1)
 			warn("error closing %s", files[i]);
-	}
-
-	return 0;
-}
-
-static int
-start_interpreter(int file_fd, int sequencer_socket)
-{
-	int is_pipe[2];	/* interpreter-sequencer pipe */
-
-	int ret;
-	pid_t interpreter_pid;
-
-	/* Setup pipe for interpreter --> sequencer communication. */
-	if (pipe(is_pipe) == -1) {
-		warn("could not setup pipe for interpreter -> sequencer");
-		return 1;
-	}
-
-	if (fflush(NULL) == EOF)
-		warn("error flushing streams before interpreter fork");
-
-	if ((interpreter_pid = fork()) == -1) {
-		warn("could not fork interpreter pid");
-		if (close(is_pipe[1]) == -1)
-			warn("error closing write end of is_pipe");
-		if (close(is_pipe[0]) == -1)
-			warn("error closing read end of is_pipe");
-		return 1;
-	}
-
-	if (interpreter_pid == 0) {
-		/*
-		 * We are in the interpreter process.
-		 */
-		_mdl_logging_clear();
-		_mdl_process_type = "interp";
-		_mdl_log(MDLLOG_PROCESS, 0,
-		    "new interpreter process, pid %d\n", getpid());
-
-		/*
-		 * Be strict here when closing file descriptors so that we
-		 * do not leak file descriptors to interpreter process.
-		 */
-		if (close(sequencer_socket) == -1) {
-			warn("error closing sequencer socket");
-			ret = 1;
-			goto interpreter_out;
-		}
-		if (close(is_pipe[0]) == -1) {
-			warn("error closing read end of is_pipe");
-			ret = 1;
-			goto interpreter_out;
-		}
-
-		ret = _mdl_handle_musicfile_and_socket(file_fd, is_pipe[1]);
-
-		if (file_fd != fileno(stdin) && close(file_fd) == -1)
-			warn("error closing music file");
-
-		if (close(is_pipe[1]) == -1)
-			warn("error closing write end of is_pipe");
-
-interpreter_out:
-		if (fflush(NULL) == EOF) {
-			warn("error flushing streams in sequencer"
-			    " before exit");
-		}
-
-		_mdl_logging_close();
-
-		_exit(ret);
-	}
-
-	if (close(is_pipe[1]) == -1)
-		warn("error closing write end of is_pipe");
-
-	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
-		/*
-		 * XXX What to do in case of error?
-		 * XXX What should we clean up?
-		 */
-	}
-
-	if (close(is_pipe[0]) == -1)
-		warn("error closing read end of is_pipe");
-
-	if (wait_for_subprocess("interpreter", interpreter_pid) != 0)
-		return 1;
-
-	return 0;
-}
-
-static int
-wait_for_subprocess(const char *process_type, int pid)
-{
-	int status;
-
-	if (waitpid(pid, &status, 0) == -1) {
-		warn("error when waiting for %s pid %d", process_type, pid);
-		return 1;
-	}
-
-	if (WIFSIGNALED(status)) {
-		warnx("%s pid %d terminated by signal %d (%s)",
-		    process_type, pid, WTERMSIG(status),
-		    strsignal(WTERMSIG(status)));
-#if MDL_USE_AFL
-		/*
-		 * When subprocesses have exited abnormally, abort()
-		 * execution in the main process so that afl-fuzz will
-		 * catch that as an abnormal exit.
-		 */
-		abort();
-#else
-		return 1;
-#endif
-	}
-
-	if (!WIFEXITED(status)) {
-		warnx("%s pid %d not terminated normally", process_type, pid);
-		return 1;
-	}
-
-	_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
-	    process_type, pid, WEXITSTATUS(status));
-
-	return 0;
-}
-
-static int
-send_fd_through_socket(int fd, int socket)
-{
-	struct msghdr	msg;
-	struct cmsghdr *cmsg;
-	union {
-		struct cmsghdr	hdr;
-		unsigned char	buf[CMSG_SPACE(sizeof(int))];
-	} cmsgbuf;
-
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_control = &cmsgbuf.buf;
-	msg.msg_controllen = sizeof(cmsgbuf.buf);
-
-	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
-
-	cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type = SCM_RIGHTS;
-
-	*(int *)CMSG_DATA(cmsg) = fd;
-
-	if (sendmsg(socket, &msg, 0) == -1) {
-		warn("sending fd through socket");
-		return 1;
 	}
 
 	return 0;

@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.54 2016/05/17 07:58:17 je Exp $ */
+/* $Id: interpreter.c,v 1.55 2016/05/18 20:29:14 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,9 +16,10 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/socket.h>
+
 #include <assert.h>
 #include <err.h>
-#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -31,6 +32,103 @@
 extern FILE		*yyin;
 extern struct musicexpr	*parsed_expr;
 extern unsigned int	 parse_errors;
+extern const char	*_mdl_process_type;
+
+static int	send_fd_through_socket(int, int);
+
+int
+_mdl_start_interpreter(int file_fd, int sequencer_socket)
+{
+	int is_pipe[2];	/* interpreter-sequencer pipe */
+
+	int ret;
+	pid_t interpreter_pid;
+
+	/* Setup pipe for interpreter --> sequencer communication. */
+	if (pipe(is_pipe) == -1) {
+		warn("could not setup pipe for interpreter -> sequencer");
+		return 1;
+	}
+
+	if (fflush(NULL) == EOF)
+		warn("error flushing streams before interpreter fork");
+
+	if ((interpreter_pid = fork()) == -1) {
+		warn("could not fork interpreter pid");
+		if (close(is_pipe[1]) == -1)
+			warn("error closing write end of is_pipe");
+		if (close(is_pipe[0]) == -1)
+			warn("error closing read end of is_pipe");
+		return 1;
+	}
+
+	if (interpreter_pid == 0) {
+		/*
+		 * We are in the interpreter process.
+		 */
+
+		if (pledge("stdio", NULL) == -1) {
+			warn("pledge");
+			_exit(1);
+		}
+
+		_mdl_logging_clear();
+		_mdl_process_type = "interp";
+		_mdl_log(MDLLOG_PROCESS, 0,
+		    "new interpreter process, pid %d\n", getpid());
+
+		/*
+		 * Be strict here when closing file descriptors so that we
+		 * do not leak file descriptors to interpreter process.
+		 */
+		if (close(sequencer_socket) == -1) {
+			warn("error closing sequencer socket");
+			ret = 1;
+			goto interpreter_out;
+		}
+		if (close(is_pipe[0]) == -1) {
+			warn("error closing read end of is_pipe");
+			ret = 1;
+			goto interpreter_out;
+		}
+
+		ret = _mdl_handle_musicfile_and_socket(file_fd, is_pipe[1]);
+
+		if (file_fd != fileno(stdin) && close(file_fd) == -1)
+			warn("error closing music file");
+
+		if (close(is_pipe[1]) == -1)
+			warn("error closing write end of is_pipe");
+
+interpreter_out:
+		if (fflush(NULL) == EOF) {
+			warn("error flushing streams in interpreter"
+			    " before exit");
+		}
+
+		_mdl_logging_close();
+
+		_exit(ret);
+	}
+
+	if (close(is_pipe[1]) == -1)
+		warn("error closing write end of is_pipe");
+
+	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
+		/*
+		 * XXX What to do in case of error?
+		 * XXX What should we clean up?
+		 */
+	}
+
+	if (close(is_pipe[0]) == -1)
+		warn("error closing read end of is_pipe");
+
+	if (_mdl_wait_for_subprocess("interpreter", interpreter_pid) != 0)
+		return 1;
+
+	return 0;
+}
 
 int
 _mdl_handle_musicfile_and_socket(int file_fd, int sequencer_socket)
@@ -45,11 +143,6 @@ _mdl_handle_musicfile_and_socket(int file_fd, int sequencer_socket)
 	eventstream = NULL;
 	level = 0;
 	ret = 0;
-
-        if (pledge("stdio", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
 
 	if ((yyin = fdopen(file_fd, "r")) == NULL) {
 		warn("could not setup input stream for lex");
@@ -89,3 +182,35 @@ finish:
 
 	return ret;
 }
+
+static int
+send_fd_through_socket(int fd, int socket)
+{
+	struct msghdr	msg;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr	hdr;
+		unsigned char	buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+
+	*(int *)CMSG_DATA(cmsg) = fd;
+
+	if (sendmsg(socket, &msg, 0) == -1) {
+		warn("sending fd through socket");
+		return 1;
+	}
+
+	return 0;
+}
+

@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.34 2016/05/17 08:15:39 je Exp $ */
+/* $Id: util.c,v 1.35 2016/05/18 20:29:14 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -15,6 +15,8 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
+
+#include <sys/wait.h>
 
 #include <assert.h>
 #include <err.h>
@@ -376,6 +378,43 @@ _mdl_show_version(void)
 	if (ret < 0)
 		return 1;
 #endif
+
+	return 0;
+}
+
+int
+_mdl_wait_for_subprocess(const char *process_type, int pid)
+{
+	int status;
+
+	if (waitpid(pid, &status, 0) == -1) {
+		warn("error when waiting for %s pid %d", process_type, pid);
+		return 1;
+	}
+
+	if (WIFSIGNALED(status)) {
+		warnx("%s pid %d terminated by signal %d (%s)",
+		    process_type, pid, WTERMSIG(status),
+		    strsignal(WTERMSIG(status)));
+#if MDL_USE_AFL
+		/*
+		 * When subprocesses have exited abnormally, abort()
+		 * execution in the main process so that afl-fuzz will
+		 * catch that as an abnormal exit.
+		 */
+		abort();
+#else
+		return 1;
+#endif
+	}
+
+	if (!WIFEXITED(status)) {
+		warnx("%s pid %d not terminated normally", process_type, pid);
+		return 1;
+	}
+
+	_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
+	    process_type, pid, WEXITSTATUS(status));
 
 	return 0;
 }
