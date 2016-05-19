@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.86 2016/05/17 19:34:19 je Exp $ */
+/* $Id: sequencer.c,v 1.87 2016/05/19 19:20:44 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -75,8 +75,7 @@ extern char *_mdl_process_type;
 /* If this is set in signal handler, we should shut down. */
 volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 
-static int	sequencer_loop(int, int, enum mididev_type,
-    const char *);
+static int	sequencer_loop(int, int);
 static void	sequencer_calculate_timeout(struct songstate *,
     struct timespec *, struct sequencer_params *);
 static void	sequencer_close(int);
@@ -123,7 +122,7 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
     enum mididev_type mididev_type, const char *devicepath, int dry_run)
 {
 	int ms_sp[2];	/* main-sequencer socketpair */
-	int sequencer_retvalue;
+	int sequencer_retvalue, ret;
 	pid_t sequencer_pid;
 
 	/* Setup socketpair for main <-> sequencer communication. */
@@ -149,6 +148,18 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 		/*
 		 * We are in sequencer process, start sequencer loop.
 		 */
+
+		/*
+		 * XXX Receiving fd works even if recvfd is not specified...
+		 * XXX is this a bug? (can this be confirmed?)
+		 * XXX Should read sio_open(3) section "Use with pledge(2)"...
+		 * XXX (even though we use mio_open(3)).
+		 */
+		if (pledge("rpath recvfd stdio unix wpath", NULL) == -1) {
+			warn("pledge");
+			_exit(1);
+		}
+
 		_mdl_logging_clear();
 		_mdl_process_type = "seq";
 		_mdl_log(MDLLOG_PROCESS, 0, "new sequencer process, pid %d\n",
@@ -159,8 +170,26 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 		 */
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
-		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run,
-		    mididev_type, devicepath);
+
+		ret = sequencer_init(mididev_type, devicepath, dry_run);
+		if (ret != 0) {
+			warnx("problem initializing sequencer");
+			sequencer_retvalue = 1;
+			goto finish;
+		}
+
+		if (pledge("recvfd stdio", NULL) == -1) {
+			warn("pledge");
+			_exit(1);
+		}
+
+		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run);
+	finish:
+		if (pledge("stdio", NULL) == -1) {
+			warn("pledge");
+			_exit(1);
+		}
+
 		if (close(ms_sp[1]) == -1)
 			warn("closing main socket");
 		if (fflush(NULL) == EOF) {
@@ -181,8 +210,7 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 }
 
 static int
-sequencer_loop(int main_socket, int dry_run,
-    enum mididev_type mididev_type, const char *devicepath)
+sequencer_loop(int main_socket, int dry_run)
 {
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
@@ -192,15 +220,6 @@ sequencer_loop(int main_socket, int dry_run,
 	struct timespec timeout, *timeout_p;
 	sigset_t loop_sigmask, select_sigmask;
 
-	/*
-	 * XXX receiving fd works even if recvfd is not specified...
-	 * XXX is this a bug? (can this be confirmed?)
-	 */
-	if (pledge("rpath recvfd stdio unix wpath", NULL) == -1) {
-		warn("pledge");
-		return 1;
-	}
-
 	retvalue = 0;
 
 	seq_params.dry_run = dry_run;
@@ -208,17 +227,6 @@ sequencer_loop(int main_socket, int dry_run,
 	interp_fd = -1;
 	playback_song = &song1;
 	reading_song = &song2;
-
-	if (sequencer_init(mididev_type, devicepath, dry_run) != 0) {
-		warnx("problem initializing sequencer, exiting");
-		return 1;
-	}
-
-	if (pledge("recvfd stdio", NULL) == -1) {
-		warn("pledge");
-		sequencer_close(dry_run);
-		return 1;
-	}
 
 	if (fcntl(main_socket, F_SETFL, O_NONBLOCK) == -1) {
 		warn("could not set main_socket non-blocking");
