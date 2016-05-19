@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.10 2016/05/18 20:29:16 je Exp $ */
+/* $Id: mdld.c,v 1.11 2016/05/19 20:19:04 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -255,25 +255,53 @@ handle_connections(int server_socket, struct sequencer_process sequencer)
 {
 	int client_fd, ret, retvalue;
 	struct sockaddr_storage socket_addr;
+	fd_set readfds;
 	socklen_t socket_len;
+	sigset_t loop_sigmask, select_sigmask;
 
 	retvalue = 0;
 	client_fd = -1;
 
-	socket_len = sizeof(socket_addr);
-	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
-	    &socket_len);
-	if (client_fd == -1) {
-		warn("accept");
-		retvalue = 1;
-		goto finish;
+	(void) sigemptyset(&loop_sigmask);
+	(void) sigaddset(&loop_sigmask, SIGINT);
+	(void) sigaddset(&loop_sigmask, SIGTERM);
+	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
+
+	(void) sigemptyset(&select_sigmask);
+
+	while (!mdld_shutdown_main) {
+		FD_ZERO(&readfds);
+		FD_SET(server_socket, &readfds);
+
+		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
+		    &select_sigmask);
+		if (ret == -1 && errno != EINTR) {
+			warn("error in pselect");
+			retvalue = 1;
+			break;
+		}
+
+		socket_len = sizeof(socket_addr);
+		client_fd = accept(server_socket,
+		    (struct sockaddr *)&socket_addr, &socket_len);
+		if (client_fd == -1) {
+			warn("accept");
+			retvalue = 1;
+			break;
+		}
+
+		ret = _mdl_eval_in_interpreter(client_fd, sequencer.socket);
+		if (ret != 0) {
+			warnx("error in evaluating expression in interpreter");
+			retvalue = 1;
+			break;
+		}
+
+		if (close(client_fd) == -1)
+			warn("error closing client connection");
+		client_fd = -1;
 	}
 
-	ret = _mdl_start_interpreter(client_fd, sequencer.socket);
-	if (ret != 0)
-		retvalue = 1;
-
-finish:
 	if (client_fd >= 0 && close(client_fd) == -1)
 		warn("error closing client connection");
 

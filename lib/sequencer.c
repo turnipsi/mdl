@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.87 2016/05/19 19:20:44 je Exp $ */
+/* $Id: sequencer.c,v 1.88 2016/05/19 20:19:02 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -280,7 +280,7 @@ sequencer_loop(int main_socket, int dry_run)
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, timeout_p,
 		    &select_sigmask);
 		if (ret == -1 && errno != EINTR) {
-			warn("error in select");
+			warn("error in pselect");
 			retvalue = 1;
 			goto finish;
 		}

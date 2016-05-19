@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.55 2016/05/18 20:29:14 je Exp $ */
+/* $Id: interpreter.c,v 1.56 2016/05/19 20:19:02 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,7 +37,7 @@ extern const char	*_mdl_process_type;
 static int	send_fd_through_socket(int, int);
 
 int
-_mdl_start_interpreter(int file_fd, int sequencer_socket)
+_mdl_eval_in_interpreter(int file_fd, int sequencer_socket)
 {
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 

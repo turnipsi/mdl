@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.11 2016/05/18 20:29:15 je Exp $ */
+/* $Id: mdl.c,v 1.12 2016/05/19 20:19:03 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -185,7 +185,7 @@ handle_musicfiles(char **files, int filecount, int sequencer_fd)
 			}
 		}
 
-		ret = _mdl_start_interpreter(file_fd, sequencer_fd);
+		ret = _mdl_eval_in_interpreter(file_fd, sequencer_fd);
 		if (ret != 0) {
 			warnx("error in handling %s",
 			    (using_stdin ? "stdin" : files[i]));
