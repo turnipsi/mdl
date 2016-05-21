@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.12 2016/05/19 20:19:03 je Exp $ */
+/* $Id: mdl.c,v 1.13 2016/05/21 19:17:02 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -37,13 +38,21 @@
 #include "sequencer.h"
 #include "util.h"
 
+#define MAX_MUSICFILES 65536
+
+struct musicfile {
+	char   *path;
+	int	fd;
+};
+
+struct musicfiles {
+	struct musicfile       *files;
+	size_t			count;
+};
+
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
-
-static void	handle_signal(int);
-static int	handle_musicfiles(char **, int, int);
-static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
 volatile sig_atomic_t mdl_shutdown_main = 0;
@@ -51,6 +60,11 @@ volatile sig_atomic_t mdl_shutdown_main = 0;
 extern int loglevel;
 
 char *_mdl_process_type;
+
+static void	handle_signal(int);
+static int	open_musicfiles(char **, size_t, struct musicfiles *);
+static int	handle_musicfiles(struct musicfiles *, int);
+static void __dead usage(void);
 
 static void __dead
 usage(void)
@@ -74,7 +88,8 @@ main(int argc, char *argv[])
 {
 	struct sequencer_process sequencer;
 	char *devicepath;
-	char **musicfiles;
+	char **musicfilepaths;
+	struct musicfiles musicfiles;
 	int musicfilecount, ch, nflag;
 	size_t ret;
 	enum mididev_type mididev_type;
@@ -130,7 +145,7 @@ main(int argc, char *argv[])
 	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
 	musicfilecount = argc;
-	musicfiles = argv;
+	musicfilepaths = argv;
 
 	ret = _mdl_start_sequencer_process(&sequencer, mididev_type,
 	    devicepath, nflag);
@@ -141,7 +156,15 @@ main(int argc, char *argv[])
 	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(musicfiles, musicfilecount, sequencer.socket);
+	ret = open_musicfiles(musicfilepaths, musicfilecount, &musicfiles);
+	if (ret != 0)
+		errx(1, "error in opening musicfiles");
+
+	/* Music files have been opened, we can drop "rpath" pledge. */
+	if (pledge("proc recvfd sendfd stdio unix", NULL) == -1)
+		err(1, "pledge");
+
+	ret = handle_musicfiles(&musicfiles, sequencer.socket);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
@@ -154,49 +177,111 @@ main(int argc, char *argv[])
 	if (_mdl_wait_for_subprocess("sequencer", sequencer.pid) != 0)
 		errx(1, "error when waiting for sequencer subprocess");
 
+	free(musicfiles.files);
+
 	_mdl_logging_close();
 
 	return 0;
 }
 
 static int
-handle_musicfiles(char **files, int filecount, int sequencer_fd)
+open_musicfiles(char **musicfilepaths, size_t musicfilecount,
+    struct musicfiles *musicfiles)
 {
-	int file_fd, i, ret, using_stdin;
+	struct rlimit limit;
 	char *stdinfiles[] = { "-" };
+	int file_fd, ret;
+	size_t i;
+	rlim_t fd_limit;
+	struct musicfiles tmp_musicfiles;
 
-	if (filecount == 0) {
-		filecount = 1;
-		files = stdinfiles;
+	ret = getrlimit(RLIMIT_NOFILE, &limit);
+	assert(ret != -1);
+
+	fd_limit = (int) MIN(limit.rlim_cur, MAX_MUSICFILES);
+
+	if (musicfilecount > fd_limit) {
+		warnx("cannot handle as many as %ld music files",
+		    musicfilecount);
+		return 1;
 	}
 
-	/* XXX We could also open all files immediately so we could then
-	 * XXX drop the rpath pledge? */
-	for (i = 0; i < filecount && mdl_shutdown_main == 0; i++) {
-		if (strcmp(files[i], "-") == 0) {
+	tmp_musicfiles.files = calloc(fd_limit, sizeof(struct musicfile));
+	if (tmp_musicfiles.files == NULL) {
+		warn("calloc");
+		return 1;
+	}
+
+	if (musicfilecount == 0) {
+		musicfilecount = 1;
+		musicfilepaths = stdinfiles;
+	}
+
+	tmp_musicfiles.count = 0;
+	for (i = 0; i < musicfilecount; i++) {
+		assert(tmp_musicfiles.count < fd_limit);
+
+		if (strcmp(musicfilepaths[i], "-") == 0) {
 			file_fd = fileno(stdin);
-			using_stdin = 1;
 		} else {
-			using_stdin = 0;
-			file_fd = open(files[i], O_RDONLY);
+			file_fd = open(musicfilepaths[i], O_RDONLY);
 			if (file_fd == -1) {
-				warn("could not open %s", files[i]);
-				continue;
+				warn("could not open %s", musicfilepaths[i]);
+				goto error;
 			}
 		}
 
-		ret = _mdl_eval_in_interpreter(file_fd, sequencer_fd);
-		if (ret != 0) {
-			warnx("error in handling %s",
-			    (using_stdin ? "stdin" : files[i]));
-			if (close(file_fd) == -1)
-				warn("error closing %s", files[i]);
-			return 1;
-		}
+		tmp_musicfiles.files[ tmp_musicfiles.count ].fd = file_fd;
+		tmp_musicfiles.files[ tmp_musicfiles.count ].path
+		    = musicfilepaths[i];
 
-		if (file_fd != fileno(stdin) && close(file_fd) == -1)
-			warn("error closing %s", files[i]);
+		tmp_musicfiles.count += 1;
 	}
 
+	musicfiles->count = tmp_musicfiles.count;
+	musicfiles->files = tmp_musicfiles.files;
+
 	return 0;
+
+error:
+	for (i = 0; i < tmp_musicfiles.count; i++) {
+		file_fd = tmp_musicfiles.files[i].fd;
+		if (file_fd != fileno(stdin) && close(file_fd) == -1) {
+			warn("closing musicfile %s",
+			    tmp_musicfiles.files[i].path);
+		}
+	}
+
+	return 1;
+}
+
+static int
+handle_musicfiles(struct musicfiles *musicfiles, int sequencer_fd)
+{
+	int exitstatus, fd, ret;
+	char *path;
+	size_t i;
+
+	exitstatus = 0;
+
+	/* XXX how to check for !mdl_shutdown_main? */
+
+	for (i = 0; i < musicfiles->count; i++) {
+		fd   = musicfiles->files[i].fd;
+		path = musicfiles->files[i].path;
+
+		ret = _mdl_eval_in_interpreter(fd, sequencer_fd);
+		if (ret != 0) {
+			warnx("error in handling %s", path);
+			exitstatus = 1;
+		}
+
+		if (fd != fileno(stdin) && close(fd) == -1)
+			warn("error closing %s", path);
+
+		if (exitstatus != 0)
+			break;
+	}
+
+	return exitstatus;
 }
