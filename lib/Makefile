@@ -1,10 +1,11 @@
-# $Id: Makefile,v 1.56 2016/05/13 20:29:59 je Exp $
+# $Id: Makefile,v 1.57 2016/05/21 19:38:22 je Exp $
 
 SRCS=	interpreter.c instrument.c joinexpr.c lex.c midi.c midistream.c \
 	musicexpr.c parse.c protocol.c relative.c sequencer.c song.c track.c \
 	util.c
 
 PREFIX?=	/usr/local
+MANPREFIX?=	${PREFIX}/man
 COMPATDIR?=	../compat
 
 CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
@@ -31,8 +32,9 @@ libmdlafl.so: ${SRCS}
 
 # XXX What about the *.a files?  Library version numbering?
 install:
-	mkdir -p ${DESTDIR}${PREFIX}/lib
+	mkdir -p ${DESTDIR}${PREFIX}/lib ${DESTDIR}${MANPREFIX}/man5
 	install -s libmdl.so ${DESTDIR}${PREFIX}/lib/libmdl.so
+	install mdl.5 ${DESTDIR}${MANPREFIX}/man5/mdl.5
 
 lex.c: lex.l
 	lex -o lex.c $<

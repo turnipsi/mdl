@@ -1,8 +1,9 @@
-# $Id: Makefile,v 1.3 2016/05/14 20:27:19 je Exp $
+# $Id: Makefile,v 1.4 2016/05/21 19:38:24 je Exp $
 
 SRCS=	mdld.c
 
 PREFIX?=	/usr/local
+MANPREFIX?=	${PREFIX}/man
 COMPATDIR?=	../../compat
 
 LIBMDL_PATH?=	../../lib
@@ -30,8 +31,9 @@ afl-mdld: ${SRCS}
 
 .PHONY: install
 install: mdld
-	mkdir -p ${DESTDIR}${PREFIX}/bin
+	mkdir -p ${DESTDIR}${PREFIX}/bin ${DESTDIR}${MANPREFIX}/man1
 	install -s mdld ${DESTDIR}${PREFIX}/bin/mdld
+	install mdld.1 ${DESTDIR}${MANPREFIX}/man1/mdld.1
 
 .PHONY: clean
 clean:
