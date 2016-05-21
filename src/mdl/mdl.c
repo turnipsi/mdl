@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.13 2016/05/21 19:17:02 je Exp $ */
+/* $Id: mdl.c,v 1.14 2016/05/21 19:28:44 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -90,8 +90,7 @@ main(int argc, char *argv[])
 	char *devicepath;
 	char **musicfilepaths;
 	struct musicfiles musicfiles;
-	int musicfilecount, ch, nflag;
-	size_t ret;
+	int ch, musicfilecount, nflag, ret;
 	enum mididev_type mididev_type;
 
 #ifdef HAVE_MALLOC_OPTIONS
@@ -104,7 +103,11 @@ main(int argc, char *argv[])
 	nflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
 
-	if (pledge("proc recvfd rpath sendfd stdio unix wpath", NULL) == -1)
+	/* Use all pledge promises needed by sndio (except for "audio" which
+	 * I think is sio_* specific), plus "proc", "recvfd" and "sendfd". */
+	ret = pledge("cpath dns inet proc recvfd rpath sendfd stdio unix"
+	    " wpath", NULL);
+	if (ret == -1)
 		err(1, "pledge");
 
 	signal(SIGINT,  handle_signal);
@@ -152,8 +155,9 @@ main(int argc, char *argv[])
 	if (ret != 0)
 		errx(1, "error in starting up sequencer");
 
-	/* Now that sequencer has been forked, we can drop "wpath" pledge. */
-	if (pledge("proc recvfd rpath sendfd stdio unix", NULL) == -1)
+	/* Now that sequencer has been forked, we can drop all sndio related
+	 * pledges, plus "recvfd" only used by sequencer. */
+	if (pledge("proc rpath sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
 	ret = open_musicfiles(musicfilepaths, musicfilecount, &musicfiles);
@@ -161,7 +165,7 @@ main(int argc, char *argv[])
 		errx(1, "error in opening musicfiles");
 
 	/* Music files have been opened, we can drop "rpath" pledge. */
-	if (pledge("proc recvfd sendfd stdio unix", NULL) == -1)
+	if (pledge("proc sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
 	ret = handle_musicfiles(&musicfiles, sequencer.socket);
