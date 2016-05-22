@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.14 2016/05/21 19:28:44 je Exp $ */
+/* $Id: mdl.c,v 1.15 2016/05/22 19:39:52 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,7 +16,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/resource.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -192,39 +191,25 @@ static int
 open_musicfiles(char **musicfilepaths, size_t musicfilecount,
     struct musicfiles *musicfiles)
 {
-	struct rlimit limit;
 	char *stdinfiles[] = { "-" };
-	int file_fd, ret;
+	int file_fd;
 	size_t i;
-	rlim_t fd_limit;
 	struct musicfiles tmp_musicfiles;
-
-	ret = getrlimit(RLIMIT_NOFILE, &limit);
-	assert(ret != -1);
-
-	fd_limit = (int) MIN(limit.rlim_cur, MAX_MUSICFILES);
-
-	if (musicfilecount > fd_limit) {
-		warnx("cannot handle as many as %ld music files",
-		    musicfilecount);
-		return 1;
-	}
-
-	tmp_musicfiles.files = calloc(fd_limit, sizeof(struct musicfile));
-	if (tmp_musicfiles.files == NULL) {
-		warn("calloc");
-		return 1;
-	}
 
 	if (musicfilecount == 0) {
 		musicfilecount = 1;
 		musicfilepaths = stdinfiles;
 	}
 
+	tmp_musicfiles.files = calloc(musicfilecount,
+	    sizeof(struct musicfile));
+	if (tmp_musicfiles.files == NULL) {
+		warn("calloc");
+		return 1;
+	}
+
 	tmp_musicfiles.count = 0;
 	for (i = 0; i < musicfilecount; i++) {
-		assert(tmp_musicfiles.count < fd_limit);
-
 		if (strcmp(musicfilepaths[i], "-") == 0) {
 			file_fd = fileno(stdin);
 		} else {
@@ -236,8 +221,8 @@ open_musicfiles(char **musicfilepaths, size_t musicfilecount,
 		}
 
 		tmp_musicfiles.files[ tmp_musicfiles.count ].fd = file_fd;
-		tmp_musicfiles.files[ tmp_musicfiles.count ].path
-		    = musicfilepaths[i];
+		tmp_musicfiles.files[ tmp_musicfiles.count ].path =
+		    musicfilepaths[i];
 
 		tmp_musicfiles.count += 1;
 	}
