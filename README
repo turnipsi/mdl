@@ -3,11 +3,11 @@ in early stages of development and is probably not useful for you
 at the moment.  It is written primarily on OpenBSD, but should also
 work on other BSDs and Linux (but may not be quite there yet).
 
-Syntax mimicks the lilypond syntax but is not compatible.  Lilypond
-(http://lilypond.org/web/) is a nice project and is an inspiration
-but it has somewhat of a different focus than Mdl.  Lilypond is
-primarily designed for music typesetting, whereas Mdl does not try
-to do that at all.
+Syntax mimicks the Lilypond syntax but is not compatible.
+[Lilypond](http://lilypond.org/web/) is a nice project and is an
+inspiration but it has somewhat of a different focus than Mdl.
+Lilypond is primarily designed for music typesetting, whereas Mdl
+does not try to do that at all.
 
 Mdl project goals include:
 
