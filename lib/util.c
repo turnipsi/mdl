@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.36 2016/05/27 19:19:34 je Exp $ */
+/* $Id: util.c,v 1.37 2016/05/27 20:00:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -416,6 +416,12 @@ _mdl_wait_for_subprocess(const char *process_type, int pid)
 
 	_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
 	    process_type, pid, WEXITSTATUS(status));
+
+	if (WEXITSTATUS(status) != 0) {
+		warnx("bad status code from interpreter pid %d: %d", pid,
+		    WEXITSTATUS(status));
+		return 1;
+	}
 
 	return 0;
 }

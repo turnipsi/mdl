@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.16 2016/05/27 19:19:36 je Exp $ */
+/* $Id: mdl.c,v 1.17 2016/05/27 20:00:26 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -284,8 +284,11 @@ handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 		if (close(interp->sequencer_read_pipe) == -1)
 			warn("error closing read end of is_pipe");
 
-		if (_mdl_wait_for_subprocess("interpreter", interp->pid) != 0)
-			return 1;
+		ret = _mdl_wait_for_subprocess("interpreter", interp->pid);
+		if (ret != 0) {
+			warnx("error in interpreter subprocess");
+			exitstatus = 1;
+		}
 
 		/* XXX This is bollocks, obviously if interpreter subprocess
 		 * XXX has quit it tells us nothing about sequencer status. */
