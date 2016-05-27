@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.17 2016/05/27 20:00:26 je Exp $ */
+/* $Id: mdl.c,v 1.18 2016/05/27 20:36:35 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -247,26 +247,25 @@ error:
 static int
 handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 {
-	struct interpreter_process interp_a, interp_b;
-	struct interpreter_process *interp;
-	int exitstatus, fd, ret;
-	char *path;
+	struct interpreter_process interp;
+	int exitstatus, fd, ret, sequencer_is_playing;
+	char *curr_path, *prev_path;
 	size_t i;
 
 	exitstatus = 0;
-	interp = &interp_a;
-	path = NULL;
+	sequencer_is_playing = 0;
+
+	curr_path = NULL;
+	prev_path = NULL;
 
 	/* XXX how to check for !mdl_shutdown_main? */
 
 	/* XXX This currently plays only the first one... */
 	for (i = 0; i < musicfiles->count; i++) {
-		fd   = musicfiles->files[i].fd;
-		path = musicfiles->files[i].path;
+		curr_path = musicfiles->files[i].path;
+		fd        = musicfiles->files[i].fd;
 
-		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", path);
-
-		ret = _mdl_start_interpreter_process(interp, fd,
+		ret = _mdl_start_interpreter_process(&interp, fd,
 		    sequencer_socket);
 		if (ret != 0) {
 			warnx("could not start interpreter process");
@@ -274,38 +273,47 @@ handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 			break;
 		}
 
-		ret = _mdl_send_fd_through_socket(interp->sequencer_read_pipe,
+		if (sequencer_is_playing) {
+			/* XXX Wait for sequencer playback to finish. */
+			_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n",
+			    prev_path);
+		}
+
+		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
+
+		ret = _mdl_send_fd_through_socket(interp.sequencer_read_pipe,
 		    sequencer_socket);
 		if (ret != 0) {
 			warnx("could not send interpreter pipe to sequencer");
 			exitstatus = 1;
 		}
 
-		if (close(interp->sequencer_read_pipe) == -1)
+		sequencer_is_playing = 1;
+
+		if (close(interp.sequencer_read_pipe) == -1)
 			warn("error closing read end of is_pipe");
 
-		ret = _mdl_wait_for_subprocess("interpreter", interp->pid);
+		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
 		if (ret != 0) {
 			warnx("error in interpreter subprocess");
 			exitstatus = 1;
 		}
 
-		/* XXX This is bollocks, obviously if interpreter subprocess
-		 * XXX has quit it tells us nothing about sequencer status. */
-		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", path);
-
 		if (fd != fileno(stdin) && close(fd) == -1)
-			warn("error closing %s", path);
+			warn("error closing %s", curr_path);
 
 		if (exitstatus != 0)
 			break;
 
-		interp = (interp == &interp_a ? &interp_b : &interp_a);
+		prev_path = curr_path;
 	}
 
+	if (prev_path != NULL)
+		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", prev_path);
+
 	if (exitstatus != 0) {
-		assert(path != NULL);
-		warnx("error in handling %s", path);
+		assert(curr_path != NULL);
+		warnx("error in handling %s", curr_path);
 	}
 
 	return exitstatus;
