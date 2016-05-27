@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.35 2016/05/18 20:29:14 je Exp $ */
+/* $Id: util.c,v 1.36 2016/05/27 19:19:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,6 +16,7 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/socket.h>
 #include <sys/wait.h>
 
 #include <assert.h>
@@ -415,6 +416,37 @@ _mdl_wait_for_subprocess(const char *process_type, int pid)
 
 	_mdl_log(MDLLOG_PROCESS, 0, "%s pid %d exited with status code %d\n",
 	    process_type, pid, WEXITSTATUS(status));
+
+	return 0;
+}
+
+int
+_mdl_send_fd_through_socket(int fd, int socket)
+{
+	struct msghdr	msg;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr	hdr;
+		unsigned char	buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
+	cmsg->cmsg_level = SOL_SOCKET;
+	cmsg->cmsg_type = SCM_RIGHTS;
+
+	*(int *)CMSG_DATA(cmsg) = fd;
+
+	if (sendmsg(socket, &msg, 0) == -1) {
+		warn("sending fd through socket");
+		return 1;
+	}
 
 	return 0;
 }

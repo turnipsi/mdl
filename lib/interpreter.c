@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.56 2016/05/19 20:19:02 je Exp $ */
+/* $Id: interpreter.c,v 1.57 2016/05/27 19:19:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,8 +16,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <sys/socket.h>
-
 #include <assert.h>
 #include <err.h>
 #include <stdio.h>
@@ -34,13 +32,11 @@ extern struct musicexpr	*parsed_expr;
 extern unsigned int	 parse_errors;
 extern const char	*_mdl_process_type;
 
-static int	send_fd_through_socket(int, int);
-
 int
-_mdl_eval_in_interpreter(int file_fd, int sequencer_socket)
+_mdl_start_interpreter_process(struct interpreter_process *interp, int file_fd,
+    int sequencer_socket)
 {
 	int is_pipe[2];	/* interpreter-sequencer pipe */
-
 	int ret;
 	pid_t interpreter_pid;
 
@@ -114,31 +110,21 @@ interpreter_out:
 	if (close(is_pipe[1]) == -1)
 		warn("error closing write end of is_pipe");
 
-	if (send_fd_through_socket(is_pipe[0], sequencer_socket) != 0) {
-		/*
-		 * XXX What to do in case of error?
-		 * XXX What should we clean up?
-		 */
-	}
-
-	if (close(is_pipe[0]) == -1)
-		warn("error closing read end of is_pipe");
-
-	if (_mdl_wait_for_subprocess("interpreter", interpreter_pid) != 0)
-		return 1;
+	interp->pid = interpreter_pid;
+	interp->sequencer_read_pipe = is_pipe[0];
 
 	return 0;
 }
 
 int
-_mdl_handle_musicfile_and_socket(int file_fd, int sequencer_socket)
+_mdl_handle_musicfile_and_socket(int file_fd, int sequencer_read_pipe)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;
 	int level, ret;
 
 	assert(file_fd >= 0);
-	assert(sequencer_socket >= 0);
+	assert(sequencer_read_pipe >= 0);
 
 	eventstream = NULL;
 	level = 0;
@@ -169,7 +155,7 @@ _mdl_handle_musicfile_and_socket(int file_fd, int sequencer_socket)
 		goto finish;
 	}
 
-	wcount = _mdl_midi_write_midistream(sequencer_socket, eventstream,
+	wcount = _mdl_midi_write_midistream(sequencer_read_pipe, eventstream,
 	    level);
 	if (wcount == -1)
 		ret = 1;
@@ -182,35 +168,3 @@ finish:
 
 	return ret;
 }
-
-static int
-send_fd_through_socket(int fd, int socket)
-{
-	struct msghdr	msg;
-	struct cmsghdr *cmsg;
-	union {
-		struct cmsghdr	hdr;
-		unsigned char	buf[CMSG_SPACE(sizeof(int))];
-	} cmsgbuf;
-
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_control = &cmsgbuf.buf;
-	msg.msg_controllen = sizeof(cmsgbuf.buf);
-
-	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
-
-	cmsg = CMSG_FIRSTHDR(&msg);
-	cmsg->cmsg_len = CMSG_LEN(sizeof(int));
-	cmsg->cmsg_level = SOL_SOCKET;
-	cmsg->cmsg_type = SCM_RIGHTS;
-
-	*(int *)CMSG_DATA(cmsg) = fd;
-
-	if (sendmsg(socket, &msg, 0) == -1) {
-		warn("sending fd through socket");
-		return 1;
-	}
-
-	return 0;
-}
-

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.38 2016/05/11 20:30:01 je Exp $ */
+/* $Id: midistream.c,v 1.39 2016/05/27 19:19:34 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -124,7 +124,7 @@ finish:
 }
 
 ssize_t
-_mdl_midi_write_midistream(int sequencer_socket, struct mdl_stream *s,
+_mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
     int level)
 {
 	ssize_t nw, total_wcount, wsize;
@@ -145,7 +145,7 @@ _mdl_midi_write_midistream(int sequencer_socket, struct mdl_stream *s,
 
 	while (total_wcount < wsize) {
 		/* XXX what if nw == 0 (continuously)?  can that happen? */
-		nw = write(sequencer_socket,
+		nw = write(sequencer_read_pipe,
 		    ((char *) s->u.midievents + total_wcount),
 		    (wsize - total_wcount));
 		if (nw == -1) {
