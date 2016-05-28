@@ -1,2 +1,4 @@
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.song        :   added a new track "acoustic grand"
+mdl.main.song          : starting to play inputs/t-empty.mdl
+mdl.main.song          : finished playing inputs/t-empty.mdl
