@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.88 2016/05/19 20:19:02 je Exp $ */
+/* $Id: sequencer.c,v 1.89 2016/05/28 19:36:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -96,7 +96,6 @@ static int	sequencer_start_playing(struct songstate *,
     struct songstate *, struct sequencer_params *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
-static int	receive_fd_through_socket(int *, int);
 
 static int
 sequencer_init(enum mididev_type mididev_type, const char *devicepath,
@@ -303,7 +302,7 @@ sequencer_loop(int main_socket, int dry_run)
 
 		if (main_socket >= 0 && FD_ISSET(main_socket, &readfds)) {
 			old_interp_fd = interp_fd;
-			ret = receive_fd_through_socket(&interp_fd,
+			ret = _mdl_receive_fd_through_socket(&interp_fd,
 			    main_socket);
 			if (ret == -1) {
 				warnx("error receiving pipe from interpreter"
@@ -852,45 +851,4 @@ sequencer_close_songstate(struct songstate *ss,
 					warnx("error in turning off note"
 					    " %d on channel %d", n, c);
 			}
-}
-
-static int
-receive_fd_through_socket(int *received_fd, int socket)
-{
-	struct msghdr	msg;
-	struct cmsghdr *cmsg;
-	union {
-		struct cmsghdr	hdr;
-		unsigned char	buf[CMSG_SPACE(sizeof(int))];
-	} cmsgbuf;
-
-	memset(&msg, 0, sizeof(msg));
-	msg.msg_control    = &cmsgbuf.buf;
-	msg.msg_controllen = sizeof(cmsgbuf.buf);
-
-	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
-
-	if (recvmsg(socket, &msg, 0) == -1) {
-		warn("receiving fd through socket, recvmsg");
-		return -1;
-	}
-
-	if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
-		warn("receiving fd through socket, control message truncated");
-		return -1;
-	}
-
-	cmsg = CMSG_FIRSTHDR(&msg);
-
-	if (cmsg == NULL)
-		return 0;
-
-	if (cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
-	    cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
-		*received_fd = *(int *)CMSG_DATA(cmsg);
-		return 1;
-	}
-
-	warnx("did not receive fd while expecting for it");
-	return -1;
 }

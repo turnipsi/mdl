@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.37 2016/05/27 20:00:25 je Exp $ */
+/* $Id: util.c,v 1.38 2016/05/28 19:36:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -424,6 +424,47 @@ _mdl_wait_for_subprocess(const char *process_type, int pid)
 	}
 
 	return 0;
+}
+
+int
+_mdl_receive_fd_through_socket(int *received_fd, int socket)
+{
+	struct msghdr	msg;
+	struct cmsghdr *cmsg;
+	union {
+		struct cmsghdr	hdr;
+		unsigned char	buf[CMSG_SPACE(sizeof(int))];
+	} cmsgbuf;
+
+	memset(&msg, 0, sizeof(msg));
+	msg.msg_control    = &cmsgbuf.buf;
+	msg.msg_controllen = sizeof(cmsgbuf.buf);
+
+	memset(&cmsgbuf, 0, sizeof(cmsgbuf));
+
+	if (recvmsg(socket, &msg, 0) == -1) {
+		warn("receiving fd through socket, recvmsg");
+		return -1;
+	}
+
+	if ((msg.msg_flags & MSG_TRUNC) || (msg.msg_flags & MSG_CTRUNC)) {
+		warn("receiving fd through socket, control message truncated");
+		return -1;
+	}
+
+	cmsg = CMSG_FIRSTHDR(&msg);
+
+	if (cmsg == NULL)
+		return 0;
+
+	if (cmsg->cmsg_len == CMSG_LEN(sizeof(int)) &&
+	    cmsg->cmsg_level == SOL_SOCKET && cmsg->cmsg_type == SCM_RIGHTS) {
+		*received_fd = *(int *)CMSG_DATA(cmsg);
+		return 1;
+	}
+
+	warnx("did not receive fd while expecting for it");
+	return -1;
 }
 
 int
