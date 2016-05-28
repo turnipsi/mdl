@@ -1,7 +1,7 @@
-/* $Id: sequencer.c,v 1.89 2016/05/28 19:36:36 je Exp $ */
+/* $Id: sequencer.c,v 1.90 2016/05/28 21:03:04 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -57,7 +57,8 @@ struct notestate {
 enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
 
 struct sequencer_params {
-	int dry_run;
+	int	dry_run;
+	int	main_socket;
 };
 
 struct songstate {
@@ -75,36 +76,55 @@ extern char *_mdl_process_type;
 /* If this is set in signal handler, we should shut down. */
 volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 
-static int	sequencer_loop(int, int);
+static int	sequencer_loop(const struct sequencer_params *);
 static void	sequencer_calculate_timeout(struct songstate *,
-    struct timespec *, struct sequencer_params *);
-static void	sequencer_close(int);
+    struct timespec *, const struct sequencer_params *);
+static void	sequencer_close(const struct sequencer_params *);
 static void	sequencer_close_songstate(struct songstate *,
-    struct sequencer_params *);
+    const struct sequencer_params *);
 static void	sequencer_free_songstate(struct songstate *);
+static int	sequencer_handle_main_socket(int *, int *);
 static void	sequencer_handle_signal(int);
-static int	sequencer_init(enum mididev_type, const char *, int);
+static int	sequencer_init(const struct sequencer_params *,
+    enum mididev_type, const char *);
 static void	sequencer_init_songstate(struct songstate *,
     enum playback_state);
 static int	sequencer_noteevent(struct songstate *, struct midievent *,
-    struct sequencer_params *);
+    const struct sequencer_params *);
 static int	sequencer_play_music(struct songstate *,
-    struct sequencer_params *);
+    const struct sequencer_params *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
 static int	sequencer_reset_songstate(struct songstate *);
 static int	sequencer_start_playing(struct songstate *,
-    struct songstate *, struct sequencer_params *);
+    struct songstate *, const struct sequencer_params *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
 
 static int
-sequencer_init(enum mididev_type mididev_type, const char *devicepath,
-    int dry_run)
+sequencer_init(const struct sequencer_params *seq_params,
+    enum mididev_type mididev_type, const char *devicepath)
 {
-	if (dry_run)
-		return 0;
+	sigset_t loop_sigmask;
 
-	return _mdl_midi_open_device(mididev_type, devicepath);
+	signal(SIGINT,  sequencer_handle_signal);
+	signal(SIGTERM, sequencer_handle_signal);
+
+	(void) sigemptyset(&loop_sigmask);
+	(void) sigaddset(&loop_sigmask, SIGINT);
+	(void) sigaddset(&loop_sigmask, SIGTERM);
+	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
+
+	if (fcntl(seq_params->main_socket, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set main_socket non-blocking");
+		return 1;
+	}
+
+	if (!seq_params->dry_run) {
+		if (_mdl_midi_open_device(mididev_type, devicepath) != 0)
+			return 1;
+	}
+
+	return 0;
 }
 
 static void
@@ -120,6 +140,7 @@ int
 _mdl_start_sequencer_process(struct sequencer_process *sequencer,
     enum mididev_type mididev_type, const char *devicepath, int dry_run)
 {
+	struct sequencer_params seq_params;
 	int ms_sp[2];	/* main-sequencer socketpair */
 	int sequencer_retvalue, ret;
 	pid_t sequencer_pid;
@@ -170,7 +191,9 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 		if (close(ms_sp[0]) == -1)
 			warn("error closing first end of ms_sp");
 
-		ret = sequencer_init(mididev_type, devicepath, dry_run);
+		seq_params.dry_run = dry_run;
+		seq_params.main_socket = ms_sp[1];
+		ret = sequencer_init(&seq_params, mididev_type, devicepath);
 		if (ret != 0) {
 			warnx("problem initializing sequencer");
 			sequencer_retvalue = 1;
@@ -182,7 +205,7 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 			_exit(1);
 		}
 
-		sequencer_retvalue = sequencer_loop(ms_sp[1], dry_run);
+		sequencer_retvalue = sequencer_loop(&seq_params);
 	finish:
 		if (pledge("stdio", NULL) == -1) {
 			warn("pledge");
@@ -209,37 +232,21 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 }
 
 static int
-sequencer_loop(int main_socket, int dry_run)
+sequencer_loop(const struct sequencer_params *seq_params)
 {
 	struct songstate song1, song2;
 	struct songstate *playback_song, *reading_song, *tmp_song;
-	struct sequencer_params seq_params;
 	fd_set readfds;
-	int retvalue, interp_fd, old_interp_fd, ret, nr;
+	int main_socket, retvalue, interp_fd, ret, nr;
 	struct timespec timeout, *timeout_p;
-	sigset_t loop_sigmask, select_sigmask;
+	sigset_t select_sigmask;
 
+	main_socket = seq_params->main_socket;
 	retvalue = 0;
-
-	seq_params.dry_run = dry_run;
 
 	interp_fd = -1;
 	playback_song = &song1;
 	reading_song = &song2;
-
-	if (fcntl(main_socket, F_SETFL, O_NONBLOCK) == -1) {
-		warn("could not set main_socket non-blocking");
-		sequencer_close(dry_run);
-		return 1;
-	}
-
-	signal(SIGINT,  sequencer_handle_signal);
-	signal(SIGTERM, sequencer_handle_signal);
-
-	(void) sigemptyset(&loop_sigmask);
-	(void) sigaddset(&loop_sigmask, SIGINT);
-	(void) sigaddset(&loop_sigmask, SIGTERM);
-	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
 
 	(void) sigemptyset(&select_sigmask);
 
@@ -263,7 +270,7 @@ sequencer_loop(int main_socket, int dry_run)
 
 		if (playback_song->playback_state == PLAYING) {
 			sequencer_calculate_timeout(playback_song,
-			    &timeout, &seq_params);
+			    &timeout, seq_params);
 			timeout_p = &timeout;
 		} else {
 			timeout_p = NULL;
@@ -292,7 +299,7 @@ sequencer_loop(int main_socket, int dry_run)
 		}
 
 		if (playback_song->playback_state == PLAYING) {
-			ret = sequencer_play_music(playback_song, &seq_params);
+			ret = sequencer_play_music(playback_song, seq_params);
 			if (ret != 0) {
 				warnx("error when playing music");
 				retvalue = 1;
@@ -301,36 +308,14 @@ sequencer_loop(int main_socket, int dry_run)
 		}
 
 		if (main_socket >= 0 && FD_ISSET(main_socket, &readfds)) {
-			old_interp_fd = interp_fd;
-			ret = _mdl_receive_fd_through_socket(&interp_fd,
-			    main_socket);
-			if (ret == -1) {
-				warnx("error receiving pipe from interpreter"
-					" to sequencer");
+			ret = sequencer_handle_main_socket(&main_socket,
+			    &interp_fd);
+			if (ret != 0) {
 				retvalue = 1;
 				goto finish;
 			}
-			if (ret == 0) {
-				main_socket = -1;
-			} else {
-				assert(old_interp_fd != interp_fd);
-				if (old_interp_fd >= 0 &&
-				    close(old_interp_fd) == -1)
-					warn("closing old interpreter fd");
-				/*
-				 * We have new interp_fd, make it
-				 * non-blocking and go back to select().
-				 */
-				if (fcntl(interp_fd, F_SETFL, O_NONBLOCK)
-				    == -1) {
-					warn("could not set interp_fd"
-					       " non-blocking");
-					retvalue = 1;
-					goto finish;
-				}
-				continue;
-			}
-
+			/* interp_fd might have changed and old was closed. */
+			continue;
 		}
 
 		if (interp_fd >= 0 && FD_ISSET(interp_fd, &readfds)) {
@@ -350,7 +335,7 @@ sequencer_loop(int main_socket, int dry_run)
 				playback_song = tmp_song;
 
 				ret = sequencer_start_playing(playback_song,
-				    reading_song, &seq_params);
+				    reading_song, seq_params);
 				if (ret != 0) {
 					retvalue = 1;
 					goto finish;
@@ -367,12 +352,12 @@ finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
 		warn("closing interpreter fd");
 
-	sequencer_close_songstate(playback_song, &seq_params);
+	sequencer_close_songstate(playback_song, seq_params);
 
 	sequencer_free_songstate(playback_song);
 	sequencer_free_songstate(reading_song);
 
-	sequencer_close(dry_run);
+	sequencer_close(seq_params);
 
 	return retvalue;
 }
@@ -398,7 +383,7 @@ sequencer_init_songstate(struct songstate *ss, enum playback_state ps)
 
 static void
 sequencer_calculate_timeout(struct songstate *ss, struct timespec *timeout,
-    struct sequencer_params *seq_params)
+    const struct sequencer_params *seq_params)
 {
 	struct timespec current_time, notetime;
 	int ret;
@@ -441,7 +426,35 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_play_music(struct songstate *ss, struct sequencer_params *seq_params)
+sequencer_handle_main_socket(int *main_socket, int *interp_fd)
+{
+	int old_interp_fd, ret;
+
+	old_interp_fd = *interp_fd;
+
+	ret = _mdl_receive_fd_through_socket(interp_fd, *main_socket);
+	if (ret == -1) {
+		warnx("error receiving pipe from interpreter to sequencer");
+		return 1;
+	} else if (ret == 0) {
+		*main_socket = -1;
+	} else {
+		assert(old_interp_fd != *interp_fd);
+		if (old_interp_fd >= 0 && close(old_interp_fd) == -1)
+			warn("closing old interpreter fd");
+		/* We have new interp_fd, make it non-blocking. */
+		if (fcntl(*interp_fd, F_SETFL, O_NONBLOCK) == -1) {
+			warn("could not set interp_fd non-blocking");
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static int
+sequencer_play_music(struct songstate *ss,
+    const struct sequencer_params *seq_params)
 {
 	struct eventpointer *ce;
 	struct midievent *me;
@@ -498,7 +511,7 @@ sequencer_play_music(struct songstate *ss, struct sequencer_params *seq_params)
 
 static int
 sequencer_noteevent(struct songstate *ss, struct midievent *me,
-    struct sequencer_params *seq_params)
+    const struct sequencer_params *seq_params)
 {
 	int ret;
 	struct notestate *nstate;
@@ -652,7 +665,7 @@ sequencer_reset_songstate(struct songstate *ss)
 
 static int
 sequencer_start_playing(struct songstate *ss, struct songstate *old_ss,
-    struct sequencer_params *seq_params)
+    const struct sequencer_params *seq_params)
 {
 	struct notestate old, new;
 	struct eventpointer ce;
@@ -823,9 +836,9 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 }
 
 static void
-sequencer_close(int dry_run)
+sequencer_close(const struct sequencer_params *seq_params)
 {
-	if (dry_run)
+	if (seq_params->dry_run)
 		return;
 
 	_mdl_midi_close_device();
@@ -833,7 +846,7 @@ sequencer_close(int dry_run)
 
 static void
 sequencer_close_songstate(struct songstate *ss,
-    struct sequencer_params *seq_params)
+    const struct sequencer_params *seq_params)
 {
 	struct midievent note_off;
 	int c, n, ret;
