@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.38 2016/05/28 19:36:36 je Exp $ */
+/* $Id: util.c,v 1.39 2016/05/30 20:15:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -56,6 +56,7 @@ static const char *logtype_strings[] = {
 	"parsing",	/* MDLLOG_PARSING                */
 	"process",	/* MDLLOG_PROCESS                */
 	"relative",	/* MDLLOG_RELATIVE               */
+	"seq",		/* MDLLOG_SEQ                    */
 	"song",		/* MDLLOG_SONG                   */
 };
 
