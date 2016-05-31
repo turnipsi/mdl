@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.19 2016/05/31 10:27:36 je Exp $ */
+/* $Id: mdl.c,v 1.20 2016/05/31 10:37:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -278,7 +278,7 @@ handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 		if (sequencer_is_playing) {
 			/* XXX Wait for sequencer playback to finish, do this
 			 * XXX right. */
-		    	ret = wait_for_sequencer_event(sequencer_socket);
+			ret = wait_for_sequencer_event(sequencer_socket);
 			if (ret != 0)
 				break;
 

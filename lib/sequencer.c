@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.92 2016/05/31 10:27:35 je Exp $ */
+/* $Id: sequencer.c,v 1.93 2016/05/31 10:37:52 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,11 +19,14 @@
 #include <sys/queue.h>
 #include <sys/select.h>
 #include <sys/socket.h>
+#include <sys/types.h>
+#include <sys/uio.h>
 
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <imsg.h>
 #include <math.h>
 #include <signal.h>
 #include <stdio.h>
@@ -71,6 +74,9 @@ struct sequencer {
 	int			main_socket;
 	struct songstate	song1;
 	struct songstate	song2;
+	struct songstate       *playback_song;
+	struct songstate       *reading_song;
+	struct imsgbuf		imsgbuf;
 };
 
 extern char *_mdl_process_type;
@@ -87,7 +93,7 @@ static void	sequencer_close_songstate(const struct sequencer *,
 static void	sequencer_free_songstate(struct songstate *);
 static int	sequencer_handle_main_socket(int *, int *);
 static void	sequencer_handle_signal(int);
-static int	sequencer_init(const struct sequencer *, enum mididev_type,
+static int	sequencer_init(struct sequencer *, enum mididev_type,
     const char *);
 static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
@@ -105,7 +111,7 @@ static void	sequencer_time_for_next_note(struct songstate *ss,
 static const char *ss_label(const struct sequencer *, struct songstate *);
 
 static int
-sequencer_init(const struct sequencer *seq, enum mididev_type mididev_type,
+sequencer_init(struct sequencer *seq, enum mididev_type mididev_type,
     const char *devicepath)
 {
 	sigset_t loop_sigmask;
@@ -127,6 +133,12 @@ sequencer_init(const struct sequencer *seq, enum mididev_type mididev_type,
 		if (_mdl_midi_open_device(mididev_type, devicepath) != 0)
 			return 1;
 	}
+
+	seq->reading_song = &seq->song1;
+	seq->playback_song = &seq->song2;
+
+	sequencer_init_songstate(seq, seq->playback_song, IDLE);
+	sequencer_init_songstate(seq, seq->reading_song, READING);
 
 	return 0;
 }
@@ -238,7 +250,7 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 static int
 sequencer_loop(struct sequencer *seq)
 {
-	struct songstate *playback_song, *reading_song, *tmp_song;
+	struct songstate *tmp_song;
 	fd_set readfds;
 	int main_socket, retvalue, interp_fd, ret, nr;
 	struct timespec timeout, *timeout_p;
@@ -248,36 +260,31 @@ sequencer_loop(struct sequencer *seq)
 	retvalue = 0;
 
 	interp_fd = -1;
-	reading_song = &seq->song1;
-	playback_song = &seq->song2;
-
-	(void) sigemptyset(&select_sigmask);
-
-	sequencer_init_songstate(seq, playback_song, IDLE);
-	sequencer_init_songstate(seq, reading_song, READING);
 
 	_mdl_log(MDLLOG_SEQ, 0, "starting sequencer loop\n");
 
+	(void) sigemptyset(&select_sigmask);
+
 	for (;;) {
-		assert(playback_song->playback_state == IDLE ||
-		    playback_song->playback_state == PLAYING);
-		assert(reading_song->playback_state == READING ||
-		    reading_song->playback_state == FREEING_EVENTSTREAM);
+		assert(seq->playback_song->playback_state == IDLE ||
+		    seq->playback_song->playback_state == PLAYING);
+		assert(seq->reading_song->playback_state == READING ||
+		    seq->reading_song->playback_state == FREEING_EVENTSTREAM);
 
 		_mdl_log(MDLLOG_SEQ, 0, "new sequencer loop iteration\n");
 
 		FD_ZERO(&readfds);
 
 		if (main_socket >= 0
-		      && playback_song->playback_state != PLAYING)
+		      && seq->playback_song->playback_state != PLAYING)
 			FD_SET(main_socket, &readfds);
 
-		ret = sequencer_reset_songstate(seq, reading_song);
+		ret = sequencer_reset_songstate(seq, seq->reading_song);
 		if (ret && interp_fd >= 0)
 			FD_SET(interp_fd, &readfds);
 
-		if (playback_song->playback_state == PLAYING) {
-			sequencer_calculate_timeout(seq, playback_song,
+		if (seq->playback_song->playback_state == PLAYING) {
+			sequencer_calculate_timeout(seq, seq->playback_song,
 			    &timeout);
 			timeout_p = &timeout;
 		} else {
@@ -307,8 +314,8 @@ sequencer_loop(struct sequencer *seq)
 			goto finish;
 		}
 
-		if (playback_song->playback_state == PLAYING) {
-			ret = sequencer_play_music(seq, playback_song);
+		if (seq->playback_song->playback_state == PLAYING) {
+			ret = sequencer_play_music(seq, seq->playback_song);
 			if (ret != 0) {
 				warnx("error when playing music");
 				retvalue = 1;
@@ -338,9 +345,9 @@ sequencer_loop(struct sequencer *seq)
 		if (interp_fd >= 0 && FD_ISSET(interp_fd, &readfds)) {
 			_mdl_log(MDLLOG_SEQ, 0,
 			    "reading eventstream to songstate %s\n",
-			    ss_label(seq, reading_song));
+			    ss_label(seq, seq->reading_song));
 
-			nr = sequencer_read_to_eventstream(reading_song,
+			nr = sequencer_read_to_eventstream(seq->reading_song,
 			    interp_fd);
 			if (nr == -1) {
 				retvalue = 1;
@@ -352,17 +359,17 @@ sequencer_loop(struct sequencer *seq)
 				 * reading_song becomes the playback song.
 				 */
 
-				tmp_song      = reading_song;
-				reading_song  = playback_song;
-				playback_song = tmp_song;
+				tmp_song           = seq->reading_song;
+				seq->reading_song  = seq->playback_song;
+				seq->playback_song = tmp_song;
 
 				_mdl_log(MDLLOG_SEQ, 0,
 				    "received a new playback stream,"
 				    " playback songstate is now %s\n",
-				    ss_label(seq, playback_song));
+				    ss_label(seq, seq->playback_song));
 
 				ret = sequencer_start_playing(seq,
-				    playback_song, reading_song);
+				    seq->playback_song, seq->reading_song);
 				if (ret != 0) {
 					retvalue = 1;
 					goto finish;
@@ -379,10 +386,10 @@ finish:
 	if (interp_fd >= 0 && close(interp_fd) == -1)
 		warn("closing interpreter fd");
 
-	sequencer_close_songstate(seq, playback_song);
+	sequencer_close_songstate(seq, seq->playback_song);
 
-	sequencer_free_songstate(playback_song);
-	sequencer_free_songstate(reading_song);
+	sequencer_free_songstate(seq->playback_song);
+	sequencer_free_songstate(seq->reading_song);
 
 	sequencer_close(seq);
 
