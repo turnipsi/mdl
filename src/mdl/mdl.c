@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.18 2016/05/27 20:36:35 je Exp $ */
+/* $Id: mdl.c,v 1.19 2016/05/31 10:27:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,6 +64,8 @@ static void	handle_signal(int);
 static int	open_musicfiles(char **, size_t, struct musicfiles *);
 static int	handle_musicfiles(struct musicfiles *, int);
 static void __dead usage(void);
+
+static int	wait_for_sequencer_event(int);
 
 static void __dead
 usage(void)
@@ -274,7 +276,12 @@ handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 		}
 
 		if (sequencer_is_playing) {
-			/* XXX Wait for sequencer playback to finish. */
+			/* XXX Wait for sequencer playback to finish, do this
+			 * XXX right. */
+		    	ret = wait_for_sequencer_event(sequencer_socket);
+			if (ret != 0)
+				break;
+
 			_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n",
 			    prev_path);
 		}
@@ -317,4 +324,25 @@ handle_musicfiles(struct musicfiles *musicfiles, int sequencer_socket)
 	}
 
 	return exitstatus;
+}
+
+static int
+wait_for_sequencer_event(int sequencer_socket)
+{
+	char buf[1024];
+	ssize_t nr;
+
+	/* XXX use imsg-stuff instead of this */
+
+	nr = read(sequencer_socket, buf, 1024);
+	if (nr == -1) {
+		warn("read in wait_for_sequencer_event");
+		return 1;
+	}
+	if (nr == 0) {
+		warnx("expected something from sequencer");
+		return 1;
+	}
+
+	return 0;
 }
