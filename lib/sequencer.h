@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.16 2016/06/02 18:31:21 je Exp $ */
+/* $Id: sequencer.h,v 1.17 2016/06/02 19:38:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,7 +33,9 @@ struct sequencer_process {
 	struct imsgbuf	ibuf;
 };
 
-enum sequencer_event { SEQ_SONG_END, };
+enum main_event { MAINEVENT_NEW_SONG, MAINEVENT_REPLACE_SONG, };
+
+enum sequencer_event { SEQEVENT_SONG_END, };
 
 __BEGIN_DECLS
 int	_mdl_start_sequencer_process(struct sequencer_process *,

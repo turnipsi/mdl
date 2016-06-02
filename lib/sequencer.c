@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.94 2016/06/02 18:31:20 je Exp $ */
+/* $Id: sequencer.c,v 1.95 2016/06/02 19:38:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -92,7 +92,7 @@ static void	sequencer_close(const struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
-static int	sequencer_handle_main_socket(struct sequencer *, int *);
+static int	sequencer_handle_main_event(struct sequencer *, int *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(struct sequencer *, enum mididev_type,
     const char *);
@@ -346,7 +346,7 @@ sequencer_loop(struct sequencer *seq)
 			 * to a new value.  It may also set
 			 * seq->main_socket_shutdown to 1.
 			 */
-			ret = sequencer_handle_main_socket(seq, &interp_fd);
+			ret = sequencer_handle_main_event(seq, &interp_fd);
 			if (ret != 0) {
 				retvalue = 1;
 				goto finish;
@@ -497,17 +497,18 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_handle_main_socket(struct sequencer *seq, int *interp_fd)
+sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 {
-	int old_interp_fd, ret;
+	struct imsg imsg;
+	ssize_t nr;
 
-	old_interp_fd = *interp_fd;
-
-	ret = _mdl_receive_fd_through_socket(interp_fd, seq->main_socket);
-	if (ret == -1) {
-		warnx("error receiving pipe from interpreter to sequencer");
+	nr = imsg_read(&seq->ibuf);
+	if (nr == -1 && errno != EAGAIN) {
+		warnx("error in reading event from main / imsg_read");
 		return 1;
-	} else if (ret == 0) {
+	}
+
+	if (nr == 0) {
 		/*
 		 * Main process has closed the main_socket.
 		 * We close it later elsewhere.
@@ -515,16 +516,53 @@ sequencer_handle_main_socket(struct sequencer *seq, int *interp_fd)
 		_mdl_log(MDLLOG_SEQ, 0,
 		    "main socket has been shutdown by the main process\n");
 		seq->main_socket_shutdown = 1;
-	} else {
-		_mdl_log(MDLLOG_SEQ, 0, "received new interpreter pipe\n");
-		assert(old_interp_fd != *interp_fd);
-		if (old_interp_fd >= 0 && close(old_interp_fd) == -1)
-			warn("closing old interpreter fd");
-		/* We have new interp_fd, make it non-blocking. */
-		if (fcntl(*interp_fd, F_SETFL, O_NONBLOCK) == -1) {
-			warn("could not set interp_fd non-blocking");
+		return 0;
+	}
+
+	for (;;) {
+		nr = imsg_get(&seq->ibuf, &imsg);
+		if (nr == -1) {
+			warnx("error in reading event from main / imsg_get");
 			return 1;
 		}
+		if (nr == 0)
+			return 0;
+
+		switch (imsg.hdr.type) {
+		case MAINEVENT_NEW_SONG:
+			/* XXX MAINEVENT_NEW_SONG should do more than this. */
+			if (imsg.fd == -1) {
+				warnx("did not receive an interpreter pipe"
+				    " with MAINEVENT_NEW_SONG");
+				return 1;
+			}
+			assert(*interp_fd != imsg.fd);
+
+			_mdl_log(MDLLOG_SEQ, 0,
+			    "received new interpreter pipe\n");
+
+			/* We have new interp_fd, make it non-blocking. */
+			if (fcntl(imsg.fd, F_SETFL, O_NONBLOCK) == -1) {
+				warn("could not set interp_fd non-blocking,"
+				    " not accepting it");
+				if (close(imsg.fd) == -1)
+					warn("closing new interpreter fd");
+				return 1;
+			}
+			if (*interp_fd >= 0 && close(*interp_fd) == -1)
+				warn("closing old interpreter fd");
+
+			*interp_fd = imsg.fd;
+
+			break;
+		case MAINEVENT_REPLACE_SONG:
+			assert(0);
+			break;
+		default:
+			assert(0);
+		}
+
+		imsg_free(&imsg);
 	}
 
 	return 0;
@@ -547,9 +585,11 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			if (me->eventtype == SONG_END) {
 				ss->playback_state = IDLE;
 
-				ret = send_event_to_main(seq, SEQ_SONG_END);
+				ret = send_event_to_main(seq,
+				    SEQEVENT_SONG_END);
 				if (ret == -1) {
-					warnx("error sending SEQ_SONG_END");
+					warnx("error sending"
+					    " SEQEVENT_SONG_END");
 					return 1;
 				}
 

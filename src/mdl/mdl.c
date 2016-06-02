@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.21 2016/06/02 18:31:22 je Exp $ */
+/* $Id: mdl.c,v 1.22 2016/06/02 19:39:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,6 +68,9 @@ static int	open_musicfiles(char **, size_t, struct musicfiles *);
 static int	handle_musicfiles(struct sequencer_process *,
     struct musicfiles *);
 static void __dead usage(void);
+
+static int	send_event_to_sequencer(struct sequencer_process *,
+    enum main_event, int, const void *, u_int16_t);
 
 static int	wait_for_sequencer_event(struct sequencer_process *,
     enum sequencer_event event);
@@ -289,9 +292,10 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		if (sequencer_is_playing) {
 			/* XXX Wait for sequencer playback to finish, do this
 			 * XXX right. */
-			_mdl_log(MDLLOG_SONG, 0, "waiting for SEQ_SONG_END\n");
+			_mdl_log(MDLLOG_SONG, 0,
+			    "waiting for SEQEVENT_SONG_END\n");
 			ret = wait_for_sequencer_event(seq_proc,
-			    SEQ_SONG_END);
+			    SEQEVENT_SONG_END);
 			if (ret != 0) {
 				exitstatus = 1;
 				break;
@@ -303,17 +307,14 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
-		ret = _mdl_send_fd_through_socket(interp.sequencer_read_pipe,
-		    seq_proc->socket);
+		ret = send_event_to_sequencer(seq_proc, MAINEVENT_NEW_SONG,
+		    interp.sequencer_read_pipe, "", 0);
 		if (ret != 0) {
-			warnx("could not send interpreter pipe to sequencer");
+			warnx("could not request new song from sequencer");
 			exitstatus = 1;
 		}
 
 		sequencer_is_playing = 1;
-
-		if (close(interp.sequencer_read_pipe) == -1)
-			warn("error closing read end of is_pipe");
 
 		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
 		if (ret != 0) {
@@ -338,12 +339,32 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		warnx("error in handling %s", curr_path);
 	}
 
-	if (wait_for_sequencer_event(seq_proc, SEQ_SONG_END) == -1) {
+	if (wait_for_sequencer_event(seq_proc, SEQEVENT_SONG_END) == -1) {
 		warnx("error in waiting for sequencer event");
 		exitstatus = 1;
 	}
 
 	return exitstatus;
+}
+
+static int
+send_event_to_sequencer(struct sequencer_process *seq_proc,
+    enum main_event event, int fd, const void *data, u_int16_t datalen)
+{
+	int ret;
+
+	ret = imsg_compose(&seq_proc->ibuf, event, 0, 0, fd, data, datalen);
+	if (ret == -1) {
+		warnx("error in sending event to sequencer / imsg_compose");
+		return 1;
+	}
+
+	if (imsg_flush(&seq_proc->ibuf) == -1) {
+		warnx("error in sending event to sequencer / imsg_flush");
+		return 1;
+	}
+
+	return 0;
 }
 
 static int

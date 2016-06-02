@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.32 2016/05/30 20:15:26 je Exp $ */
+/* $Id: util.h,v 1.33 2016/06/02 19:38:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,8 +76,6 @@ int			_mdl_stream_increment(struct mdl_stream *);
 void			_mdl_stream_free(struct mdl_stream *);
 void __dead		_mdl_unimplemented(void);
 
-int	_mdl_receive_fd_through_socket(int *, int);
-int	_mdl_send_fd_through_socket(int, int);
 int	_mdl_show_version(void);
 int	_mdl_wait_for_subprocess(const char *, int);
 
