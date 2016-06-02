@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.15 2016/05/17 19:34:19 je Exp $ */
+/* $Id: sequencer.h,v 1.16 2016/06/02 18:31:21 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,12 +19,21 @@
 #ifndef MDL_SEQUENCER_H
 #define MDL_SEQUENCER_H
 
+#include <sys/types.h>
+#include <sys/queue.h>
+#include <sys/uio.h>
+
+#include <imsg.h>
+
 #include "midi.h"
 
 struct sequencer_process {
-	int	socket;
-	pid_t	pid;
+	int		socket;
+	pid_t		pid;
+	struct imsgbuf	ibuf;
 };
+
+enum sequencer_event { SEQ_SONG_END, };
 
 __BEGIN_DECLS
 int	_mdl_start_sequencer_process(struct sequencer_process *,

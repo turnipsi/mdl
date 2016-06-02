@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.93 2016/05/31 10:37:52 je Exp $ */
+/* $Id: sequencer.c,v 1.94 2016/06/02 18:31:20 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -72,11 +72,12 @@ struct songstate {
 struct sequencer {
 	int			dry_run;
 	int			main_socket;
+	int			main_socket_shutdown;
 	struct songstate	song1;
 	struct songstate	song2;
 	struct songstate       *playback_song;
 	struct songstate       *reading_song;
-	struct imsgbuf		imsgbuf;
+	struct imsgbuf		ibuf;
 };
 
 extern char *_mdl_process_type;
@@ -91,7 +92,7 @@ static void	sequencer_close(const struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
-static int	sequencer_handle_main_socket(int *, int *);
+static int	sequencer_handle_main_socket(struct sequencer *, int *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(struct sequencer *, enum mididev_type,
     const char *);
@@ -99,7 +100,7 @@ static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
 static int	sequencer_noteevent(const struct sequencer *,
     struct songstate *, struct midievent *);
-static int	sequencer_play_music(const struct sequencer *,
+static int	sequencer_play_music(struct sequencer *,
     struct songstate *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
 static int	sequencer_reset_songstate(struct sequencer *,
@@ -108,6 +109,7 @@ static int	sequencer_start_playing(const struct sequencer *,
     struct songstate *, struct songstate *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
+static int	send_event_to_main(struct sequencer *, enum sequencer_event);
 static const char *ss_label(const struct sequencer *, struct songstate *);
 
 static int
@@ -124,6 +126,8 @@ sequencer_init(struct sequencer *seq, enum mididev_type mididev_type,
 	(void) sigaddset(&loop_sigmask, SIGTERM);
 	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
 
+	seq->main_socket_shutdown = 0;
+
 	if (fcntl(seq->main_socket, F_SETFL, O_NONBLOCK) == -1) {
 		warn("could not set main_socket non-blocking");
 		return 1;
@@ -137,8 +141,10 @@ sequencer_init(struct sequencer *seq, enum mididev_type mididev_type,
 	seq->reading_song = &seq->song1;
 	seq->playback_song = &seq->song2;
 
-	sequencer_init_songstate(seq, seq->playback_song, IDLE);
 	sequencer_init_songstate(seq, seq->reading_song, READING);
+	sequencer_init_songstate(seq, seq->playback_song, IDLE);
+
+	imsg_init(&seq->ibuf, seq->main_socket);
 
 	return 0;
 }
@@ -153,7 +159,7 @@ sequencer_handle_signal(int signo)
 }
 
 int
-_mdl_start_sequencer_process(struct sequencer_process *sequencer,
+_mdl_start_sequencer_process(struct sequencer_process *seq_proc,
     enum mididev_type mididev_type, const char *devicepath, int dry_run)
 {
 	struct sequencer seq;
@@ -241,8 +247,10 @@ _mdl_start_sequencer_process(struct sequencer_process *sequencer,
 	if (close(ms_sp[1]) == -1)
 		warn("error closing second end of ms_sp");
 
-	sequencer->pid = sequencer_pid;
-	sequencer->socket = ms_sp[0];
+	seq_proc->pid = sequencer_pid;
+	seq_proc->socket = ms_sp[0];
+
+	imsg_init(&seq_proc->ibuf, seq_proc->socket);
 
 	return 0;
 }
@@ -252,11 +260,10 @@ sequencer_loop(struct sequencer *seq)
 {
 	struct songstate *tmp_song;
 	fd_set readfds;
-	int main_socket, retvalue, interp_fd, ret, nr;
+	int retvalue, interp_fd, ret, nr;
 	struct timespec timeout, *timeout_p;
 	sigset_t select_sigmask;
 
-	main_socket = seq->main_socket;
 	retvalue = 0;
 
 	interp_fd = -1;
@@ -273,11 +280,20 @@ sequencer_loop(struct sequencer *seq)
 
 		_mdl_log(MDLLOG_SEQ, 0, "new sequencer loop iteration\n");
 
+		ret = msgbuf_write(&seq->ibuf.w);
+		if (ret == -1) {
+			if (errno != EAGAIN) {
+				warnx("msgbuf_write error in sequencer");
+				goto finish;
+			}
+			/* XXX set max timeout to 100ms or some such */
+		}
+
 		FD_ZERO(&readfds);
 
-		if (main_socket >= 0
+		if (!seq->main_socket_shutdown
 		      && seq->playback_song->playback_state != PLAYING)
-			FD_SET(main_socket, &readfds);
+			FD_SET(seq->main_socket, &readfds);
 
 		ret = sequencer_reset_songstate(seq, seq->reading_song);
 		if (ret && interp_fd >= 0)
@@ -291,7 +307,7 @@ sequencer_loop(struct sequencer *seq)
 			timeout_p = NULL;
 		}
 
-		if (main_socket == -1 && interp_fd == -1 &&
+		if (seq->main_socket_shutdown && interp_fd == -1 &&
 		    timeout_p == NULL) {
 			_mdl_log(MDLLOG_SEQ, 0,
 			    "nothing more to do, exiting sequencer loop\n");
@@ -323,14 +339,14 @@ sequencer_loop(struct sequencer *seq)
 			}
 		}
 
-		if (main_socket >= 0 && FD_ISSET(main_socket, &readfds)) {
+		if (!seq->main_socket_shutdown &&
+		    FD_ISSET(seq->main_socket, &readfds)) {
 			/*
 			 * sequencer_handle_main_socket() may change interp_fd
-			 * to new value.  It may also set main_socket to -1 in
-			 * case it is no longer operational.
+			 * to a new value.  It may also set
+			 * seq->main_socket_shutdown to 1.
 			 */
-			ret = sequencer_handle_main_socket(&main_socket,
-			    &interp_fd);
+			ret = sequencer_handle_main_socket(seq, &interp_fd);
 			if (ret != 0) {
 				retvalue = 1;
 				goto finish;
@@ -392,6 +408,9 @@ finish:
 	sequencer_free_songstate(seq->reading_song);
 
 	sequencer_close(seq);
+
+	if (imsg_flush(&seq->ibuf) == -1)
+		warnx("error in imsg_flush");
 
 	return retvalue;
 }
@@ -478,13 +497,13 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_handle_main_socket(int *main_socket, int *interp_fd)
+sequencer_handle_main_socket(struct sequencer *seq, int *interp_fd)
 {
 	int old_interp_fd, ret;
 
 	old_interp_fd = *interp_fd;
 
-	ret = _mdl_receive_fd_through_socket(interp_fd, *main_socket);
+	ret = _mdl_receive_fd_through_socket(interp_fd, seq->main_socket);
 	if (ret == -1) {
 		warnx("error receiving pipe from interpreter to sequencer");
 		return 1;
@@ -494,8 +513,8 @@ sequencer_handle_main_socket(int *main_socket, int *interp_fd)
 		 * We close it later elsewhere.
 		 */
 		_mdl_log(MDLLOG_SEQ, 0,
-		    "main socket has been closed by the main process\n");
-		*main_socket = -1;
+		    "main socket has been shutdown by the main process\n");
+		seq->main_socket_shutdown = 1;
 	} else {
 		_mdl_log(MDLLOG_SEQ, 0, "received new interpreter pipe\n");
 		assert(old_interp_fd != *interp_fd);
@@ -512,7 +531,7 @@ sequencer_handle_main_socket(int *main_socket, int *interp_fd)
 }
 
 static int
-sequencer_play_music( const struct sequencer *seq, struct songstate *ss)
+sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 {
 	struct eventpointer *ce;
 	struct midievent *me;
@@ -527,7 +546,13 @@ sequencer_play_music( const struct sequencer *seq, struct songstate *ss)
 
 			if (me->eventtype == SONG_END) {
 				ss->playback_state = IDLE;
-				/* XXX write(seq->main_socket, "a", 1); */
+
+				ret = send_event_to_main(seq, SEQ_SONG_END);
+				if (ret == -1) {
+					warnx("error sending SEQ_SONG_END");
+					return 1;
+				}
+
 				return 0;
 			}
 
@@ -565,6 +590,12 @@ sequencer_play_music( const struct sequencer *seq, struct songstate *ss)
 	}
 
 	return 0;
+}
+
+static int
+send_event_to_main(struct sequencer *seq, enum sequencer_event event)
+{
+	return imsg_compose(&seq->ibuf, event, 0, 0, -1, "", 0);
 }
 
 static int
