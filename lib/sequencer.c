@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.95 2016/06/02 19:38:59 je Exp $ */
+/* $Id: sequencer.c,v 1.96 2016/06/02 20:30:05 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -383,6 +383,11 @@ sequencer_loop(struct sequencer *seq)
 				    "received a new playback stream,"
 				    " playback songstate is now %s\n",
 				    ss_label(seq, seq->playback_song));
+
+				/* XXX Start new song from beginning.
+				 * XXX This is not always what is supposed to
+				 * XXX happen. */
+				seq->reading_song->time_as_measures = 0.0;
 
 				ret = sequencer_start_playing(seq,
 				    seq->playback_song, seq->reading_song);
