@@ -34,7 +34,7 @@ Mdl project goals include:
     language itself with Tcl or some other such scripting language
     (extension language must provide a "safe"-mode to evaluate
     expressions)
-  - provide a library than can be linked to by other programs
+  - provide a library that can be linked to by other programs
   - use OpenBSD default license or public domain
   - be portable across *BSDs and Linux, possibly others
   - be an old-school unix program, do not follow latest trends
