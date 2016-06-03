@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.96 2016/06/02 20:30:05 je Exp $ */
+/* $Id: sequencer.c,v 1.97 2016/06/03 19:54:44 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -57,10 +57,15 @@ struct notestate {
 	unsigned int velocity : 7;
 };
 
+struct channel_state {
+	struct notestate notestates[MIDI_NOTE_COUNT];
+	u_int8_t instrument;
+};
+
 enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
 
 struct songstate {
-	struct notestate notestates[MIDI_CHANNEL_COUNT][MIDI_NOTE_COUNT];
+	struct channel_state channelstates[MIDI_CHANNEL_COUNT];
 	struct eventstream es;
 	struct eventpointer current_event;
 	struct timespec latest_tempo_change_as_time;
@@ -384,11 +389,6 @@ sequencer_loop(struct sequencer *seq)
 				    " playback songstate is now %s\n",
 				    ss_label(seq, seq->playback_song));
 
-				/* XXX Start new song from beginning.
-				 * XXX This is not always what is supposed to
-				 * XXX happen. */
-				seq->reading_song->time_as_measures = 0.0;
-
 				ret = sequencer_start_playing(seq,
 				    seq->playback_song, seq->reading_song);
 				if (ret != 0) {
@@ -439,7 +439,11 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 	    "initializing a new songstate %s to state \"%s\"\n",
 	   ss_label(seq, ss), strings[ps]);
 
-	memset(ss->notestates, 0, sizeof(ss->notestates));
+	/*
+	 * This memset() sets the default instrument for all channels to 0
+	 * ("acoustic grand"), and all notes are off with velocity 0.
+	 */
+	memset(ss->channelstates, 0, sizeof(ss->channelstates));
 
 	ss->current_event.block = NULL;
 	ss->current_event.index = 0;
@@ -654,17 +658,18 @@ sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
 	if (ret == 0) {
 		switch (me->eventtype) {
 		case INSTRUMENT_CHANGE:
-			/* XXX What to do here? */
+			ss->channelstates[me->u.instrument_change.channel]
+			    .instrument = me->u.instrument_change.code;
 			break;
 		case NOTEOFF:
-			nstate = &ss->notestates[me->u.note.channel]
-			    [me->u.note.note];
+			nstate = &ss->channelstates[me->u.note.channel]
+			    .notestates[me->u.note.note];
 			nstate->state = 0;
 			nstate->velocity = 0;
 			break;
 		case NOTEON:
-			nstate = &ss->notestates[me->u.note.channel]
-			    [me->u.note.note];
+			nstate = &ss->channelstates[me->u.note.channel]
+			    .notestates[me->u.note.note];
 			nstate->state = 1;
 			nstate->velocity = me->u.note.velocity;
 			break;
@@ -816,7 +821,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	struct notestate old, new;
 	struct eventpointer ce;
 	struct midievent note_off, note_on, *me;
-	int c, n, ret;
+	int instrument_changed, retrigger_note, c, n, ret;
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -834,21 +839,21 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 
 			switch (me->eventtype) {
 			case INSTRUMENT_CHANGE:
-				/* XXX Should this do something? */
-				assert(0);
+				ss->channelstates[me->u.instrument_change.channel]
+				    .instrument = me->u.instrument_change.code;
 				break;
 			case NOTEON:
-				ss->notestates[me->u.note.channel]
-				    [me->u.note.note].state = 1;
-				ss->notestates[me->u.note.channel]
-				    [me->u.note.note].velocity =
+				ss->channelstates[me->u.note.channel]
+				    .notestates[me->u.note.note].state = 1;
+				ss->channelstates[me->u.note.channel]
+				    .notestates[me->u.note.note].velocity =
 				    me->u.note.velocity;
 				break;
 			case NOTEOFF:
-				ss->notestates[me->u.note.channel]
-				    [me->u.note.note].state = 0;
-				ss->notestates[me->u.note.channel]
-				    [me->u.note.note].velocity = 0;
+				ss->channelstates[me->u.note.channel]
+				    .notestates[me->u.note.note].state = 0;
+				ss->channelstates[me->u.note.channel]
+				    .notestates[me->u.note.note].velocity = 0;
 				break;
 			case SONG_END:
 				/* This has been handled above. */
@@ -867,9 +872,13 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	 *   (start or turn off notes according to new playback song).
 	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
+		instrument_changed =
+		    (old_ss->channelstates[c].instrument !=
+		         ss->channelstates[c].instrument);
+
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
-			old = old_ss->notestates[c][n];
-			new = ss->notestates[c][n];
+			old = old_ss->channelstates[c].notestates[n];
+			new = ss->channelstates[c].notestates[n];
 
 			note_off.eventtype = NOTEOFF;
 			note_off.u.note.channel = c;
@@ -881,26 +890,33 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			note_on.u.note.note = n;
 			note_on.u.note.velocity = new.velocity;
 
-			if (old.state && new.state &&
-			    old.velocity != new.velocity) {
-				/*
-				 * Note is playing in different velocity,
-				 * so play the note again.
-				 */
-				ret = sequencer_noteevent(seq, ss, &note_off);
+			/*
+			 * Retrigger note if instrument has changed
+			 * or if note is playing with a changed velocity.
+			 */
+			retrigger_note = instrument_changed ||
+			    (old.state && new.state &&
+			    old.velocity != new.velocity);
+
+			if (retrigger_note) {
+				ret = sequencer_noteevent(seq, old_ss,
+				    &note_off);
 				if (ret != 0)
 					return ret;
-				ret = sequencer_noteevent(seq, ss, &note_on);
+				ret = sequencer_noteevent(seq, old_ss,
+				    &note_on);
 				if (ret != 0)
 					return ret;
 			} else if (old.state && !new.state) {
 				/* Note is playing, but should no longer be. */
-				ret = sequencer_noteevent(seq, ss, &note_off);
+				ret = sequencer_noteevent(seq, old_ss,
+				    &note_off);
 				if (ret != 0)
 					return ret;
 			} else if (!old.state && new.state) {
 				/* Note is not playing, but should be. */
-				ret = sequencer_noteevent(seq, ss, &note_on);
+				ret = sequencer_noteevent(seq, old_ss,
+				    &note_on);
 				if (ret != 0)
 					return ret;
 			}
@@ -909,12 +925,15 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			 * sequencer_noteevent() should also have
 			 * a side effect to make these true:
 			 */
-			assert(old_ss->notestates[c][n].state ==
-			    ss->notestates[c][n].state &&
-			    old_ss->notestates[c][n].velocity ==
-			    ss->notestates[c][n].velocity
+			assert(old_ss->channelstates[c].notestates[n].state ==
+			    ss->channelstates[c].notestates[n].state &&
+			    old_ss->channelstates[c].notestates[n].velocity ==
+			    ss->channelstates[c].notestates[n].velocity
 			);
 		}
+
+		assert(old_ss->channelstates[c].instrument ==
+		           ss->channelstates[c].instrument);
 	}
 
 	ret = clock_gettime(CLOCK_MONOTONIC, &ss->latest_tempo_change_as_time);
@@ -994,7 +1013,7 @@ sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++)
 		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
-			if (ss->notestates[c][n].state) {
+			if (ss->channelstates[c].notestates[n].state) {
 				note_off.eventtype = NOTEOFF;
 				note_off.u.note.channel = c;
 				note_off.u.note.note = n;
