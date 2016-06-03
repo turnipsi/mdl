@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.97 2016/06/03 19:54:44 je Exp $ */
+/* $Id: sequencer.c,v 1.98 2016/06/03 20:52:14 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -91,6 +91,7 @@ extern char *_mdl_process_type;
 volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 
 static int	sequencer_loop(struct sequencer *);
+static int	sequencer_accept_interp_fd(int *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     struct songstate *, struct timespec *);
 static void	sequencer_close(const struct sequencer *);
@@ -457,6 +458,34 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 	ss->time_as_measures = 0.0;
 }
 
+static int
+sequencer_accept_interp_fd(int *interp_fd, int new_fd)
+{
+	if (new_fd == -1) {
+		warnx("did not receive an interpreter pipe when expecting it");
+		return 1;
+	}
+
+	assert(*interp_fd != new_fd);
+
+	_mdl_log(MDLLOG_SEQ, 0, "received new interpreter pipe\n");
+
+	/* We have new interp_fd, make it non-blocking. */
+	if (fcntl(new_fd, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set interp_fd non-blocking, not accepting it");
+		if (close(new_fd) == -1)
+			warn("closing new interpreter fd");
+		return 1;
+	}
+
+	if (*interp_fd >= 0 && close(*interp_fd) == -1)
+		warn("closing old interpreter fd");
+
+	*interp_fd = new_fd;
+
+	return 0;
+}
+
 static void
 sequencer_calculate_timeout(const struct sequencer *seq, struct songstate *ss,
     struct timespec *timeout)
@@ -510,6 +539,7 @@ sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 {
 	struct imsg imsg;
 	ssize_t nr;
+	int ret;
 
 	nr = imsg_read(&seq->ibuf);
 	if (nr == -1 && errno != EAGAIN) {
@@ -539,33 +569,20 @@ sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 
 		switch (imsg.hdr.type) {
 		case MAINEVENT_NEW_SONG:
-			/* XXX MAINEVENT_NEW_SONG should do more than this. */
-			if (imsg.fd == -1) {
-				warnx("did not receive an interpreter pipe"
-				    " with MAINEVENT_NEW_SONG");
+			/* XXX MAINEVENT_NEW_SONG should do more */
+			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
+			if (ret != 0) {
+				imsg_free(&imsg);
 				return 1;
 			}
-			assert(*interp_fd != imsg.fd);
-
-			_mdl_log(MDLLOG_SEQ, 0,
-			    "received new interpreter pipe\n");
-
-			/* We have new interp_fd, make it non-blocking. */
-			if (fcntl(imsg.fd, F_SETFL, O_NONBLOCK) == -1) {
-				warn("could not set interp_fd non-blocking,"
-				    " not accepting it");
-				if (close(imsg.fd) == -1)
-					warn("closing new interpreter fd");
-				return 1;
-			}
-			if (*interp_fd >= 0 && close(*interp_fd) == -1)
-				warn("closing old interpreter fd");
-
-			*interp_fd = imsg.fd;
-
 			break;
 		case MAINEVENT_REPLACE_SONG:
-			assert(0);
+			/* XXX MAINEVENT_REPLACE_SONG should do more */
+			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
+			if (ret != 0) {
+				imsg_free(&imsg);
+				return 1;
+			}
 			break;
 		default:
 			assert(0);
