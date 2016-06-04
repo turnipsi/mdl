@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.100 2016/06/04 20:07:45 je Exp $ */
+/* $Id: sequencer.c,v 1.101 2016/06/04 20:10:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -847,7 +847,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
-			if (me->time_as_measures >= ss->time_as_measures)
+			if (me->time_as_measures >= old_ss->time_as_measures)
 				break;
 
 			switch (me->eventtype) {
