@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.98 2016/06/03 20:52:14 je Exp $ */
+/* $Id: sequencer.c,v 1.99 2016/06/04 19:15:14 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -296,10 +296,7 @@ sequencer_loop(struct sequencer *seq)
 		}
 
 		FD_ZERO(&readfds);
-
-		if (!seq->main_socket_shutdown
-		      && seq->playback_song->playback_state != PLAYING)
-			FD_SET(seq->main_socket, &readfds);
+		FD_SET(seq->main_socket, &readfds);
 
 		ret = sequencer_reset_songstate(seq, seq->reading_song);
 		if (ret && interp_fd >= 0)
@@ -345,8 +342,7 @@ sequencer_loop(struct sequencer *seq)
 			}
 		}
 
-		if (!seq->main_socket_shutdown &&
-		    FD_ISSET(seq->main_socket, &readfds)) {
+		if (FD_ISSET(seq->main_socket, &readfds)) {
 			/*
 			 * sequencer_handle_main_socket() may change interp_fd
 			 * to a new value.  It may also set
