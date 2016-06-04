@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.101 2016/06/04 20:10:11 je Exp $ */
+/* $Id: sequencer.c,v 1.102 2016/06/04 20:49:14 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -70,7 +70,7 @@ struct songstate {
 	struct eventpointer current_event;
 	struct timespec latest_tempo_change_as_time;
 	float latest_tempo_change_as_measures, tempo, time_as_measures;
-	int got_song_end, measure_length;
+	int got_song_end, keep_position_when_switched_to, measure_length;
 	enum playback_state playback_state;
 };
 
@@ -113,6 +113,7 @@ static int	sequencer_reset_songstate(struct sequencer *,
     struct songstate *);
 static int	sequencer_start_playing(const struct sequencer *,
     struct songstate *, struct songstate *);
+static int	sequencer_switch_songs(struct sequencer *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
 static int	send_event_to_main(struct sequencer *, enum sequencer_event);
@@ -264,7 +265,6 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 static int
 sequencer_loop(struct sequencer *seq)
 {
-	struct songstate *tmp_song;
 	fd_set readfds;
 	int retvalue, interp_fd, ret, nr;
 	struct timespec timeout, *timeout_p;
@@ -376,23 +376,10 @@ sequencer_loop(struct sequencer *seq)
 				 * We have a new playback stream, great!
 				 * reading_song becomes the playback song.
 				 */
-
-				tmp_song           = seq->reading_song;
-				seq->reading_song  = seq->playback_song;
-				seq->playback_song = tmp_song;
-
-				_mdl_log(MDLLOG_SEQ, 0,
-				    "received a new playback stream,"
-				    " playback songstate is now %s\n",
-				    ss_label(seq, seq->playback_song));
-
-				ret = sequencer_start_playing(seq,
-				    seq->playback_song, seq->reading_song);
-				if (ret != 0) {
+				if (sequencer_switch_songs(seq) != 0) {
 					retvalue = 1;
 					goto finish;
 				}
-
 				if (close(interp_fd) == -1)
 					warn("closing interpreter fd");
 				interp_fd = -1;
@@ -445,6 +432,7 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 	ss->current_event.block = NULL;
 	ss->current_event.index = 0;
 	ss->got_song_end = 0;
+	ss->keep_position_when_switched_to = 0;
 	ss->latest_tempo_change_as_measures = 0;
 	ss->latest_tempo_change_as_time.tv_sec = 0;
 	ss->latest_tempo_change_as_time.tv_nsec = 0;
@@ -565,7 +553,6 @@ sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 
 		switch (imsg.hdr.type) {
 		case MAINEVENT_NEW_SONG:
-			/* XXX MAINEVENT_NEW_SONG should do more */
 			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
 			if (ret != 0) {
 				imsg_free(&imsg);
@@ -573,12 +560,12 @@ sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 			}
 			break;
 		case MAINEVENT_REPLACE_SONG:
-			/* XXX MAINEVENT_REPLACE_SONG should do more */
 			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
 			if (ret != 0) {
 				imsg_free(&imsg);
 				return 1;
 			}
+			seq->reading_song->keep_position_when_switched_to = 1;
 			break;
 		default:
 			assert(0);
@@ -828,7 +815,7 @@ sequencer_reset_songstate(struct sequencer *seq, struct songstate *ss)
 }
 
 static int
-sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
+sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
     struct songstate *old_ss)
 {
 	struct notestate old, new;
@@ -841,31 +828,32 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	 * and do a "shadow playback" to determine what our midi state
 	 * should be.
 	 */
-	ce = ss->current_event;
-	SIMPLEQ_FOREACH(ce.block, &ss->es, entries) {
+	ce = new_ss->current_event;
+	SIMPLEQ_FOREACH(ce.block, &new_ss->es, entries) {
 		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
 			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
-			if (me->time_as_measures >= old_ss->time_as_measures)
+			if (me->time_as_measures >= new_ss->time_as_measures)
 				break;
 
 			switch (me->eventtype) {
 			case INSTRUMENT_CHANGE:
-				ss->channelstates[me->u.instr_change.channel]
+				new_ss->channelstates
+				    [me->u.instr_change.channel]
 				    .instrument = me->u.instr_change.code;
 				break;
 			case NOTEON:
-				ss->channelstates[me->u.note.channel]
+				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].state = 1;
-				ss->channelstates[me->u.note.channel]
+				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].velocity =
 				    me->u.note.velocity;
 				break;
 			case NOTEOFF:
-				ss->channelstates[me->u.note.channel]
+				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].state = 0;
-				ss->channelstates[me->u.note.channel]
+				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].velocity = 0;
 				break;
 			case SONG_END:
@@ -876,8 +864,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 				assert(0);
 			}
 		}
-		ss->current_event.block = ce.block;
-		ss->current_event.index = ce.index;
+		new_ss->current_event.block = ce.block;
+		new_ss->current_event.index = ce.index;
 	}
 
 	/*
@@ -886,11 +874,11 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
 		instr_changed = (old_ss->channelstates[c].instrument !=
-		    ss->channelstates[c].instrument);
+		    new_ss->channelstates[c].instrument);
 
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->channelstates[c].notestates[n];
-			new = ss->channelstates[c].notestates[n];
+			new = new_ss->channelstates[c].notestates[n];
 
 			note_off.eventtype = NOTEOFF;
 			note_off.u.note.channel = c;
@@ -938,25 +926,51 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			 * a side effect to make these true:
 			 */
 			assert(old_ss->channelstates[c].notestates[n].state ==
-			    ss->channelstates[c].notestates[n].state &&
+			    new_ss->channelstates[c].notestates[n].state &&
 			    old_ss->channelstates[c].notestates[n].velocity ==
-			    ss->channelstates[c].notestates[n].velocity
+			    new_ss->channelstates[c].notestates[n].velocity
 			);
 		}
 
 		assert(old_ss->channelstates[c].instrument ==
-		           ss->channelstates[c].instrument);
+		       new_ss->channelstates[c].instrument);
 	}
 
-	ret = clock_gettime(CLOCK_MONOTONIC, &ss->latest_tempo_change_as_time);
+	ret = clock_gettime(CLOCK_MONOTONIC,
+	    &new_ss->latest_tempo_change_as_time);
 	assert(ret == 0);
 
-	ss->playback_state = PLAYING;
+	new_ss->playback_state = PLAYING;
 	old_ss->playback_state = FREEING_EVENTSTREAM;
 
 	return 0;
 }
 
+static int
+sequencer_switch_songs(struct sequencer *seq)
+{
+	struct songstate *old_ss;
+	int ret;
+
+	old_ss             = seq->playback_song;
+	seq->playback_song = seq->reading_song;
+	seq->reading_song  = old_ss;
+
+	_mdl_log(MDLLOG_SEQ, 0,
+	    "received a new playback stream, playback songstate is now %s\n",
+	    ss_label(seq, seq->playback_song));
+
+	seq->playback_song->time_as_measures =
+	    seq->playback_song->keep_position_when_switched_to
+		? old_ss->time_as_measures
+		: 0.0;
+
+	ret = sequencer_start_playing(seq, seq->playback_song, old_ss);
+	if (ret != 0)
+		return 1;
+
+	return 0;
+}
 static void
 sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 {

@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.22 2016/06/02 19:39:00 je Exp $ */
+/* $Id: mdl.c,v 1.23 2016/06/04 20:49:16 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -331,9 +331,6 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		prev_path = curr_path;
 	}
 
-	if (prev_path != NULL)
-		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", prev_path);
-
 	if (exitstatus != 0) {
 		assert(curr_path != NULL);
 		warnx("error in handling %s", curr_path);
@@ -343,6 +340,9 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		warnx("error in waiting for sequencer event");
 		exitstatus = 1;
 	}
+
+	if (prev_path != NULL)
+		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", prev_path);
 
 	return exitstatus;
 }
