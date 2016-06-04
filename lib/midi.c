@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.30 2016/05/18 08:26:17 je Exp $ */
+/* $Id: midi.c,v 1.31 2016/06/04 20:07:45 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -212,19 +212,19 @@ _mdl_midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 
 	switch (me.eventtype) {
 	case INSTRUMENT_CHANGE:
-		ret = midi_check_range(me.u.instrument_change.code, 0,
+		ret = midi_check_range(me.u.instr_change.code, 0,
 		    MIDI_INSTRUMENT_MAX);
 		if (!ret) {
 			warnx("instrument code is invalid: %d",
-			    me.u.instrument_change.code);
+			    me.u.instr_change.code);
 			return 0;
 		}
 
-		ret = midi_check_range(me.u.instrument_change.channel, 0,
+		ret = midi_check_range(me.u.instr_change.channel, 0,
 		    MIDI_CHANNEL_COUNT-1);
 		if (!ret) {
 			warnx("midievent channel is invalid: %d",
-			    me.u.instrument_change.channel);
+			    me.u.instr_change.channel);
 			return 0;
 		}
 
@@ -282,8 +282,8 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 	case INSTRUMENT_CHANGE:
 		midievent_size = 2;
 		midievent[0] = (u_int8_t) (MIDI_INSTRUMENT_CHANGE_BASE +
-		    me->u.instrument_change.channel);
-		midievent[1] = me->u.instrument_change.code;
+		    me->u.instr_change.channel);
+		midievent[1] = me->u.instr_change.code;
 		break;
 	case NOTEON:
 	case NOTEOFF:
@@ -348,8 +348,8 @@ _mdl_midievent_log(enum logtype logtype, const char *prefix,
 		_mdl_log(logtype, level,
 		    "%s instrument change time=%.3f channel=%d"
 		    " instrument=%d\n", prefix, midievent->time_as_measures,
-		    midievent->u.instrument_change.channel,
-		    midievent->u.instrument_change.code);
+		    midievent->u.instr_change.channel,
+		    midievent->u.instr_change.code);
 		break;
 	case NOTEOFF:
 	case NOTEON:

@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.99 2016/06/04 19:15:14 je Exp $ */
+/* $Id: sequencer.c,v 1.100 2016/06/04 20:07:45 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -671,8 +671,8 @@ sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
 	if (ret == 0) {
 		switch (me->eventtype) {
 		case INSTRUMENT_CHANGE:
-			ss->channelstates[me->u.instrument_change.channel]
-			    .instrument = me->u.instrument_change.code;
+			ss->channelstates[me->u.instr_change.channel]
+			    .instrument = me->u.instr_change.code;
 			break;
 		case NOTEOFF:
 			nstate = &ss->channelstates[me->u.note.channel]
@@ -834,7 +834,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	struct notestate old, new;
 	struct eventpointer ce;
 	struct midievent note_off, note_on, *me;
-	int instrument_changed, retrigger_note, c, n, ret;
+	int instr_changed, retrigger_note, c, n, ret;
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -847,13 +847,13 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			me = &ce.block->events[ ce.index ];
 			if (me->eventtype == SONG_END)
 				break;
-			if (me->time_as_measures >= old_ss->time_as_measures)
+			if (me->time_as_measures >= ss->time_as_measures)
 				break;
 
 			switch (me->eventtype) {
 			case INSTRUMENT_CHANGE:
-				ss->channelstates[me->u.instrument_change.channel]
-				    .instrument = me->u.instrument_change.code;
+				ss->channelstates[me->u.instr_change.channel]
+				    .instrument = me->u.instr_change.code;
 				break;
 			case NOTEON:
 				ss->channelstates[me->u.note.channel]
@@ -885,9 +885,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 	 *   (start or turn off notes according to new playback song).
 	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
-		instrument_changed =
-		    (old_ss->channelstates[c].instrument !=
-		         ss->channelstates[c].instrument);
+		instr_changed = (old_ss->channelstates[c].instrument !=
+		    ss->channelstates[c].instrument);
 
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->channelstates[c].notestates[n];
@@ -907,7 +906,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *ss,
 			 * Retrigger note if instrument has changed
 			 * or if note is playing with a changed velocity.
 			 */
-			retrigger_note = instrument_changed ||
+			retrigger_note = instr_changed ||
 			    (old.state && new.state &&
 			    old.velocity != new.velocity);
 

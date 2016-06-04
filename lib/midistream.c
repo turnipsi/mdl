@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.39 2016/05/27 19:19:34 je Exp $ */
+/* $Id: midistream.c,v 1.40 2016/06/04 20:07:45 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -312,8 +312,8 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 		memset(midievent, 0, sizeof(struct midievent));
 		midievent->eventtype = INSTRUMENT_CHANGE;
 		midievent->time_as_measures = tmn.time_as_measures;
-		midievent->u.instrument_change.channel = midichannel;
-		midievent->u.instrument_change.code = tmn.instrument->code;
+		midievent->u.instr_change.channel = midichannel;
+		midievent->u.instr_change.code = tmn.instrument->code;
 
 		_mdl_midievent_log(MDLLOG_MIDISTREAM,
 		    "sending to sequencer", midievent, level);
