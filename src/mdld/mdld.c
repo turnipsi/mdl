@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.11 2016/05/19 20:19:04 je Exp $ */
+/* $Id: mdld.c,v 1.12 2016/06/06 20:14:22 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -47,7 +47,7 @@ extern char	*malloc_options;
 
 static int	setup_socketdir(const char *);
 static void	handle_signal(int);
-static int	handle_connections(int, struct sequencer_process);
+static int	handle_connections(struct sequencer_process *, int);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -78,7 +78,7 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	struct sequencer_process sequencer;
+	struct sequencer_process seq_proc;
 	char *devicepath, *socketpath;
 	int ch, exitstatus, server_socket;
 	size_t ret;
@@ -96,8 +96,8 @@ main(int argc, char *argv[])
 	server_socket = -1;
 	socketpath = NULL;
 
-	sequencer.pid = 0;
-	sequencer.socket = -1;
+	seq_proc.pid = 0;
+	seq_proc.socket = -1;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -152,7 +152,7 @@ main(int argc, char *argv[])
 		goto finish;
 	}
 
-	ret = _mdl_start_sequencer_process(&sequencer, mididev_type,
+	ret = _mdl_start_sequencer_process(&seq_proc, mididev_type,
 	    devicepath, 0);
 	if (ret != 0) {
 		warnx("error in starting up sequencer");
@@ -164,7 +164,7 @@ main(int argc, char *argv[])
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_connections(server_socket, sequencer);
+	ret = handle_connections(&seq_proc, server_socket);
 	if (ret != 0) {
 		warnx("error in handling connections");
 		exitstatus = 1;
@@ -183,11 +183,11 @@ finish:
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (sequencer.socket >= 0 && close(sequencer.socket) == -1)
+	if (seq_proc.socket >= 0 && close(seq_proc.socket) == -1)
 		warn("error closing sequencer connection");
 
-	if (sequencer.pid > 0) {
-		ret = _mdl_wait_for_subprocess("sequencer", sequencer.pid);
+	if (seq_proc.pid > 0) {
+		ret = _mdl_wait_for_subprocess("sequencer", seq_proc.pid);
 		if (ret != 0) {
 			errx(1, "error when waiting for sequencer subprocess");
 			exitstatus = 1;
@@ -251,10 +251,11 @@ setup_socketdir(const char *socketpath)
 }
 
 static int
-handle_connections(int server_socket, struct sequencer_process sequencer)
+handle_connections(struct sequencer_process *seq_proc, int server_socket)
 {
-	int client_fd, ret, retvalue;
+	struct interpreter_process interp;
 	struct sockaddr_storage socket_addr;
+	int client_fd, ret, retvalue;
 	fd_set readfds;
 	socklen_t socket_len;
 	sigset_t loop_sigmask, select_sigmask;
@@ -290,16 +291,33 @@ handle_connections(int server_socket, struct sequencer_process sequencer)
 			break;
 		}
 
-		ret = _mdl_eval_in_interpreter(client_fd, sequencer.socket);
+		ret = _mdl_start_interpreter_process(&interp, client_fd,
+		    seq_proc->socket);
 		if (ret != 0) {
-			warnx("error in evaluating expression in interpreter");
+			warnx("could not start interpreter process");
 			retvalue = 1;
 			break;
+		}
+
+		ret = _mdl_send_event_to_sequencer(seq_proc,
+		    MAINEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
+		if (ret != 0) {
+			warnx("could not request new song from sequencer");
+			retvalue = 1;
+		}
+
+		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
+		if (ret != 0) {
+			warnx("error in interpreter subprocess");
+			retvalue = 1;
 		}
 
 		if (close(client_fd) == -1)
 			warn("error closing client connection");
 		client_fd = -1;
+
+		if (retvalue != 0)
+			break;
 	}
 
 	if (client_fd >= 0 && close(client_fd) == -1)

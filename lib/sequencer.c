@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.102 2016/06/04 20:49:14 je Exp $ */
+/* $Id: sequencer.c,v 1.103 2016/06/06 20:14:20 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -261,6 +261,27 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 
 	return 0;
 }
+
+int
+_mdl_send_event_to_sequencer(struct sequencer_process *seq_proc,
+    enum main_event event, int fd, const void *data, u_int16_t datalen)
+{
+	int ret;
+
+	ret = imsg_compose(&seq_proc->ibuf, event, 0, 0, fd, data, datalen);
+	if (ret == -1) {
+		warnx("error in sending event to sequencer / imsg_compose");
+		return 1;
+	}
+
+	if (imsg_flush(&seq_proc->ibuf) == -1) {
+		warnx("error in sending event to sequencer / imsg_flush");
+		return 1;
+	}
+
+	return 0;
+}
+
 
 static int
 sequencer_loop(struct sequencer *seq)

@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.17 2016/06/02 19:38:59 je Exp $ */
+/* $Id: sequencer.h,v 1.18 2016/06/06 20:14:20 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -40,6 +40,8 @@ enum sequencer_event { SEQEVENT_SONG_END, };
 __BEGIN_DECLS
 int	_mdl_start_sequencer_process(struct sequencer_process *,
     enum mididev_type, const char *, int);
+int	_mdl_send_event_to_sequencer(struct sequencer_process *,
+    enum main_event, int, const void *, u_int16_t);
 __END_DECLS
 
 #endif /* !MDL_SEQUENCER_H */

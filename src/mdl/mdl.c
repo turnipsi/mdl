@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.23 2016/06/04 20:49:16 je Exp $ */
+/* $Id: mdl.c,v 1.24 2016/06/06 20:14:21 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,9 +68,6 @@ static int	open_musicfiles(char **, size_t, struct musicfiles *);
 static int	handle_musicfiles(struct sequencer_process *,
     struct musicfiles *);
 static void __dead usage(void);
-
-static int	send_event_to_sequencer(struct sequencer_process *,
-    enum main_event, int, const void *, u_int16_t);
 
 static int	wait_for_sequencer_event(struct sequencer_process *,
     enum sequencer_event event);
@@ -264,11 +261,11 @@ handle_musicfiles(struct sequencer_process *seq_proc,
     struct musicfiles *musicfiles)
 {
 	struct interpreter_process interp;
-	int exitstatus, fd, ret, sequencer_is_playing;
+	int fd, ret, retvalue, sequencer_is_playing;
 	char *curr_path, *prev_path;
 	size_t i;
 
-	exitstatus = 0;
+	retvalue = 0;
 	sequencer_is_playing = 0;
 
 	curr_path = NULL;
@@ -285,7 +282,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		    seq_proc->socket);
 		if (ret != 0) {
 			warnx("could not start interpreter process");
-			exitstatus = 1;
+			retvalue = 1;
 			break;
 		}
 
@@ -297,7 +294,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 			ret = wait_for_sequencer_event(seq_proc,
 			    SEQEVENT_SONG_END);
 			if (ret != 0) {
-				exitstatus = 1;
+				retvalue = 1;
 				break;
 			}
 
@@ -307,11 +304,11 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
-		ret = send_event_to_sequencer(seq_proc, MAINEVENT_NEW_SONG,
-		    interp.sequencer_read_pipe, "", 0);
+		ret = _mdl_send_event_to_sequencer(seq_proc,
+		    MAINEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
 		if (ret != 0) {
 			warnx("could not request new song from sequencer");
-			exitstatus = 1;
+			retvalue = 1;
 		}
 
 		sequencer_is_playing = 1;
@@ -319,52 +316,32 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
 		if (ret != 0) {
 			warnx("error in interpreter subprocess");
-			exitstatus = 1;
+			retvalue = 1;
 		}
 
 		if (fd != fileno(stdin) && close(fd) == -1)
 			warn("error closing %s", curr_path);
 
-		if (exitstatus != 0)
+		if (retvalue != 0)
 			break;
 
 		prev_path = curr_path;
 	}
 
-	if (exitstatus != 0) {
+	if (retvalue != 0) {
 		assert(curr_path != NULL);
 		warnx("error in handling %s", curr_path);
 	}
 
 	if (wait_for_sequencer_event(seq_proc, SEQEVENT_SONG_END) == -1) {
 		warnx("error in waiting for sequencer event");
-		exitstatus = 1;
+		retvalue = 1;
 	}
 
 	if (prev_path != NULL)
 		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", prev_path);
 
-	return exitstatus;
-}
-
-static int
-send_event_to_sequencer(struct sequencer_process *seq_proc,
-    enum main_event event, int fd, const void *data, u_int16_t datalen)
-{
-	int ret;
-
-	ret = imsg_compose(&seq_proc->ibuf, event, 0, 0, fd, data, datalen);
-	if (ret == -1) {
-		warnx("error in sending event to sequencer / imsg_compose");
-		return 1;
-	}
-
-	if (imsg_flush(&seq_proc->ibuf) == -1) {
-		warnx("error in sending event to sequencer / imsg_flush");
-		return 1;
-	}
-
-	return 0;
+	return retvalue;
 }
 
 static int
