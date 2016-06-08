@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.12 2016/06/06 20:14:22 je Exp $ */
+/* $Id: mdld.c,v 1.13 2016/06/08 20:09:10 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,6 +48,7 @@ extern char	*malloc_options;
 static int	setup_socketdir(const char *);
 static void	handle_signal(int);
 static int	handle_connections(struct sequencer_process *, int);
+static int	handle_client_connection(struct sequencer_process *, int);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -253,15 +254,11 @@ setup_socketdir(const char *socketpath)
 static int
 handle_connections(struct sequencer_process *seq_proc, int server_socket)
 {
-	struct interpreter_process interp;
-	struct sockaddr_storage socket_addr;
-	int client_fd, ret, retvalue;
+	int ret, retvalue;
 	fd_set readfds;
-	socklen_t socket_len;
 	sigset_t loop_sigmask, select_sigmask;
 
 	retvalue = 0;
-	client_fd = -1;
 
 	(void) sigemptyset(&loop_sigmask);
 	(void) sigaddset(&loop_sigmask, SIGINT);
@@ -270,8 +267,13 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 
 	(void) sigemptyset(&select_sigmask);
 
+	/* XXX what if sequencer crashes?  how should that be handled?
+	 * XXX handle SIGCHLD?   or pselect for seq_proc->socket?
+	 * XXX (some events from that should probably be handled anyway) */
+
 	while (!mdld_shutdown_main) {
 		FD_ZERO(&readfds);
+		FD_SET(seq_proc->socket, &readfds);
 		FD_SET(server_socket, &readfds);
 
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
@@ -282,45 +284,63 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 			break;
 		}
 
-		socket_len = sizeof(socket_addr);
-		client_fd = accept(server_socket,
-		    (struct sockaddr *)&socket_addr, &socket_len);
-		if (client_fd == -1) {
-			warn("accept");
-			retvalue = 1;
-			break;
+		if (FD_ISSET(server_socket, &readfds)) {
+			ret = handle_client_connection(seq_proc,
+			    server_socket);
+			if (ret != 0)
+				warnx("error in handling client connection");
+			continue;
 		}
 
-		ret = _mdl_start_interpreter_process(&interp, client_fd,
-		    seq_proc->socket);
-		if (ret != 0) {
-			warnx("could not start interpreter process");
-			retvalue = 1;
-			break;
+		if (FD_ISSET(seq_proc->socket, &readfds)) {
+			/* XXX */
 		}
-
-		ret = _mdl_send_event_to_sequencer(seq_proc,
-		    MAINEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
-		if (ret != 0) {
-			warnx("could not request new song from sequencer");
-			retvalue = 1;
-		}
-
-		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
-		if (ret != 0) {
-			warnx("error in interpreter subprocess");
-			retvalue = 1;
-		}
-
-		if (close(client_fd) == -1)
-			warn("error closing client connection");
-		client_fd = -1;
-
-		if (retvalue != 0)
-			break;
 	}
 
-	if (client_fd >= 0 && close(client_fd) == -1)
+	return retvalue;
+}
+
+static int
+handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
+{
+	struct interpreter_process interp;
+	struct sockaddr_storage socket_addr;
+	socklen_t socket_len;
+	int client_fd, ret, retvalue;
+
+	socket_len = sizeof(socket_addr);
+	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
+	    &socket_len);
+	if (client_fd == -1) {
+		warn("accept");
+		return 1;
+	}
+
+	ret = _mdl_start_interpreter_process(&interp, client_fd,
+	    seq_proc->socket);
+	if (ret != 0) {
+		warnx("could not start interpreter process");
+		retvalue = 1;
+		goto finish;
+	}
+
+	ret = _mdl_send_event_to_sequencer(seq_proc,
+	    MAINEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
+	if (ret != 0) {
+		warnx("could not request new song from sequencer");
+		retvalue = 1;
+		goto finish;
+	}
+
+	ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
+	if (ret != 0) {
+		warnx("error in interpreter subprocess");
+		retvalue = 1;
+		goto finish;
+	}
+
+finish:
+	if (close(client_fd) == -1)
 		warn("error closing client connection");
 
 	return retvalue;
