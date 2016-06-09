@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.13 2016/06/08 20:09:10 je Exp $ */
+/* $Id: mdld.c,v 1.14 2016/06/09 18:34:27 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,7 @@ static int	setup_socketdir(const char *);
 static void	handle_signal(int);
 static int	handle_connections(struct sequencer_process *, int);
 static int	handle_client_connection(struct sequencer_process *, int);
+static int	handle_sequencer_events(struct sequencer_process *);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -267,10 +268,6 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 
 	(void) sigemptyset(&select_sigmask);
 
-	/* XXX what if sequencer crashes?  how should that be handled?
-	 * XXX handle SIGCHLD?   or pselect for seq_proc->socket?
-	 * XXX (some events from that should probably be handled anyway) */
-
 	while (!mdld_shutdown_main) {
 		FD_ZERO(&readfds);
 		FD_SET(seq_proc->socket, &readfds);
@@ -293,11 +290,62 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 		}
 
 		if (FD_ISSET(seq_proc->socket, &readfds)) {
-			/* XXX */
+			if (handle_sequencer_events(seq_proc) != 0) {
+				warnx("error in sequencer connection");
+				retvalue = 1;
+				break;
+			}
 		}
 	}
 
 	return retvalue;
+}
+
+static int
+handle_sequencer_events(struct sequencer_process *seq_proc)
+{
+	struct imsg imsg;
+	ssize_t nr, datalen;
+
+	/* XXX Should sequencer events handled at all here?  Or should
+	 * XXX we have some new socketpair between each client and sequencer?
+	 * XXX And mdld does not care? */
+
+	nr = imsg_read(&seq_proc->ibuf);
+	if (nr == -1) {
+		if (errno == EAGAIN)
+			return 0;
+		warnx("error in handle_sequencer_events/imsg_read");
+		return 1;
+	}
+	if (nr == 0) {
+		warnx("sequencer connection closed");
+		return 1;
+	}
+
+	for (;;) {
+		nr = imsg_get(&seq_proc->ibuf, &imsg);
+		if (nr == -1) {
+			warnx("error in handle_sequencer_events/imsg_get");
+			return 1;
+		}
+		if (nr == 0)
+			return 0;
+
+		datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
+
+		switch (imsg.hdr.type) {
+		case SEQEVENT_SONG_END:
+			/* XXX Is this useful here? */
+			break;
+		default:
+			warnx("Unknown sequencer event received");
+		}
+
+		imsg_free(&imsg);
+	}
+
+	return 0;
 }
 
 static int
