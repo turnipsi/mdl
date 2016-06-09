@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.103 2016/06/06 20:14:20 je Exp $ */
+/* $Id: sequencer.c,v 1.104 2016/06/09 19:18:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -841,7 +841,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 {
 	struct notestate old, new;
 	struct eventpointer ce;
-	struct midievent note_off, note_on, *me;
+	struct midievent change_instrument, note_off, note_on, *me;
 	int instr_changed, retrigger_note, c, n, ret;
 
 	/*
@@ -897,6 +897,18 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 		instr_changed = (old_ss->channelstates[c].instrument !=
 		    new_ss->channelstates[c].instrument);
 
+		if (instr_changed) {
+			change_instrument.eventtype = INSTRUMENT_CHANGE;
+			change_instrument.u.instr_change.channel = c;
+			change_instrument.u.instr_change.code =
+			    new_ss->channelstates[c].instrument;
+
+			ret = sequencer_noteevent(seq, old_ss,
+			    &change_instrument);
+			if (ret != 0)
+				return ret;
+		}
+
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			old = old_ss->channelstates[c].notestates[n];
 			new = new_ss->channelstates[c].notestates[n];
@@ -912,12 +924,15 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 			note_on.u.note.velocity = new.velocity;
 
 			/*
-			 * Retrigger note if instrument has changed
-			 * or if note is playing with a changed velocity.
+			 * Retrigger note if:
+			 *   1. note is playing on old and new songstate
+			 *     AND
+			 *   2a. instrument has changed
+			 *     OR
+			 *   2b. velocity has changed
 			 */
-			retrigger_note = instr_changed ||
-			    (old.state && new.state &&
-			    old.velocity != new.velocity);
+			retrigger_note = old.state && new.state &&
+			    ((old.velocity != new.velocity) || instr_changed);
 
 			if (retrigger_note) {
 				ret = sequencer_noteevent(seq, old_ss,
