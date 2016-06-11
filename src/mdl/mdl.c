@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.25 2016/06/11 19:20:50 je Exp $ */
+/* $Id: mdl.c,v 1.26 2016/06/11 20:44:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -305,7 +305,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
 		ret = _mdl_send_event_to_sequencer(seq_proc,
-		    SERVEREVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
+		    CLIENTEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
 		if (ret != 0) {
 			warnx("could not request new song from sequencer");
 			retvalue = 1;

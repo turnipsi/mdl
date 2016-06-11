@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.15 2016/06/11 19:20:50 je Exp $ */
+/* $Id: mdld.c,v 1.16 2016/06/11 20:44:42 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -373,7 +373,7 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 	}
 
 	ret = _mdl_send_event_to_sequencer(seq_proc,
-	    SERVEREVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
+	    CLIENTEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
 	if (ret != 0) {
 		warnx("could not request new song from sequencer");
 		retvalue = 1;
