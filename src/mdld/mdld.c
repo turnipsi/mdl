@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.14 2016/06/09 18:34:27 je Exp $ */
+/* $Id: mdld.c,v 1.15 2016/06/11 19:20:50 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -54,7 +54,7 @@ static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
 /* If set in signal handler, we should shut down. */
-volatile sig_atomic_t mdld_shutdown_main = 0;
+volatile sig_atomic_t mdld_shutdown_server = 0;
 
 extern int loglevel;
 
@@ -74,7 +74,7 @@ handle_signal(int signo)
 	assert(signo == SIGINT || signo == SIGTERM);
 
 	if (signo == SIGINT || signo == SIGTERM)
-		mdld_shutdown_main = 1;
+		mdld_shutdown_server = 1;
 }
 
 int
@@ -90,7 +90,7 @@ main(int argc, char *argv[])
 	malloc_options = (char *) "AFGJPS";
 #endif /* HAVE_MALLOC_OPTIONS */
 
-	_mdl_process_type = "main";
+	_mdl_process_type = "server";
 
 	devicepath = NULL;
 	exitstatus = 0;
@@ -140,7 +140,7 @@ main(int argc, char *argv[])
 	if (argc != 0)
 		errx(1, "extra arguments after options");
 
-	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
+	_mdl_log(MDLLOG_PROCESS, 0, "new server process, pid %d\n", getpid());
 
 	if ((socketpath = _mdl_get_socketpath()) == NULL)
 		errx(1, "error in determining server socket path");
@@ -268,7 +268,7 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 
 	(void) sigemptyset(&select_sigmask);
 
-	while (!mdld_shutdown_main) {
+	while (!mdld_shutdown_server) {
 		FD_ZERO(&readfds);
 		FD_SET(seq_proc->socket, &readfds);
 		FD_SET(server_socket, &readfds);
@@ -373,7 +373,7 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 	}
 
 	ret = _mdl_send_event_to_sequencer(seq_proc,
-	    MAINEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
+	    SERVEREVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
 	if (ret != 0) {
 		warnx("could not request new song from sequencer");
 		retvalue = 1;
