@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.105 2016/06/11 19:07:21 je Exp $ */
+/* $Id: sequencer.c,v 1.106 2016/06/11 19:08:46 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -95,7 +95,7 @@ static int	sequencer_loop(struct sequencer *);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     struct songstate *, struct timespec *);
-static void	sequencer_close(const struct sequencer *);
+static void	sequencer_close(struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
@@ -409,18 +409,7 @@ sequencer_loop(struct sequencer *seq)
 	}
 
 finish:
-	if (seq->interp_fd >= 0 && close(seq->interp_fd) == -1)
-		warn("closing interpreter pipe");
-
-	sequencer_close_songstate(seq, seq->playback_song);
-
-	sequencer_free_songstate(seq->playback_song);
-	sequencer_free_songstate(seq->reading_song);
-
 	sequencer_close(seq);
-
-	if (imsg_flush(&seq->ibuf) == -1)
-		warnx("error in imsg_flush");
 
 	return retvalue;
 }
@@ -1060,8 +1049,19 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 }
 
 static void
-sequencer_close(const struct sequencer *seq)
+sequencer_close(struct sequencer *seq)
 {
+	if (seq->interp_fd >= 0 && close(seq->interp_fd) == -1)
+		warn("closing interpreter pipe");
+
+	sequencer_close_songstate(seq, seq->playback_song);
+
+	sequencer_free_songstate(seq->playback_song);
+	sequencer_free_songstate(seq->reading_song);
+
+	if (imsg_flush(&seq->ibuf) == -1)
+		warnx("error in imsg_flush");
+
 	if (seq->dry_run)
 		return;
 
