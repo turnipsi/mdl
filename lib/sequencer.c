@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.104 2016/06/09 19:18:01 je Exp $ */
+/* $Id: sequencer.c,v 1.105 2016/06/11 19:07:21 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,6 +76,7 @@ struct songstate {
 
 struct sequencer {
 	int			dry_run;
+	int			interp_fd;
 	int			main_socket;
 	int			main_socket_shutdown;
 	struct songstate	song1;
@@ -91,14 +92,14 @@ extern char *_mdl_process_type;
 volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 
 static int	sequencer_loop(struct sequencer *);
-static int	sequencer_accept_interp_fd(int *, int);
+static int	sequencer_accept_interp_fd(struct sequencer *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     struct songstate *, struct timespec *);
 static void	sequencer_close(const struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
-static int	sequencer_handle_main_event(struct sequencer *, int *);
+static int	sequencer_handle_main_event(struct sequencer *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(struct sequencer *, enum mididev_type,
     const char *);
@@ -133,6 +134,7 @@ sequencer_init(struct sequencer *seq, enum mididev_type mididev_type,
 	(void) sigaddset(&loop_sigmask, SIGTERM);
 	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
 
+	seq->interp_fd = -1;
 	seq->main_socket_shutdown = 0;
 
 	if (fcntl(seq->main_socket, F_SETFL, O_NONBLOCK) == -1) {
@@ -287,13 +289,11 @@ static int
 sequencer_loop(struct sequencer *seq)
 {
 	fd_set readfds;
-	int retvalue, interp_fd, ret, nr;
+	int retvalue, ret, nr;
 	struct timespec timeout, *timeout_p;
 	sigset_t select_sigmask;
 
 	retvalue = 0;
-
-	interp_fd = -1;
 
 	_mdl_log(MDLLOG_SEQ, 0, "starting sequencer loop\n");
 
@@ -320,8 +320,8 @@ sequencer_loop(struct sequencer *seq)
 		FD_SET(seq->main_socket, &readfds);
 
 		ret = sequencer_reset_songstate(seq, seq->reading_song);
-		if (ret && interp_fd >= 0)
-			FD_SET(interp_fd, &readfds);
+		if (ret && seq->interp_fd >= 0)
+			FD_SET(seq->interp_fd, &readfds);
 
 		if (seq->playback_song->playback_state == PLAYING) {
 			sequencer_calculate_timeout(seq, seq->playback_song,
@@ -331,7 +331,7 @@ sequencer_loop(struct sequencer *seq)
 			timeout_p = NULL;
 		}
 
-		if (seq->main_socket_shutdown && interp_fd == -1 &&
+		if (seq->main_socket_shutdown && seq->interp_fd == -1 &&
 		    timeout_p == NULL) {
 			_mdl_log(MDLLOG_SEQ, 0,
 			    "nothing more to do, exiting sequencer loop\n");
@@ -365,29 +365,29 @@ sequencer_loop(struct sequencer *seq)
 
 		if (FD_ISSET(seq->main_socket, &readfds)) {
 			/*
-			 * sequencer_handle_main_socket() may change interp_fd
-			 * to a new value.  It may also set
+			 * sequencer_handle_main_socket() may change
+			 * seq->interp_fd to a new value.  It may also set
 			 * seq->main_socket_shutdown to 1.
 			 */
-			ret = sequencer_handle_main_event(seq, &interp_fd);
-			if (ret != 0) {
+			if (sequencer_handle_main_event(seq) != 0) {
 				retvalue = 1;
 				goto finish;
 			}
 			/*
-			 * interp_fd might have changed, in which case the
-			 * old interp_fd was closed.
+			 * seq->interp_fd might have changed, in which case
+			 * the seq->interp_fd was closed.
 			 */
 			continue;
 		}
 
-		if (interp_fd >= 0 && FD_ISSET(interp_fd, &readfds)) {
+		if (seq->interp_fd >= 0 &&
+		    FD_ISSET(seq->interp_fd, &readfds)) {
 			_mdl_log(MDLLOG_SEQ, 0,
 			    "reading eventstream to songstate %s\n",
 			    ss_label(seq, seq->reading_song));
 
 			nr = sequencer_read_to_eventstream(seq->reading_song,
-			    interp_fd);
+			    seq->interp_fd);
 			if (nr == -1) {
 				retvalue = 1;
 				goto finish;
@@ -401,16 +401,16 @@ sequencer_loop(struct sequencer *seq)
 					retvalue = 1;
 					goto finish;
 				}
-				if (close(interp_fd) == -1)
-					warn("closing interpreter fd");
-				interp_fd = -1;
+				if (close(seq->interp_fd) == -1)
+					warn("closing interpreter pipe");
+				seq->interp_fd = -1;
 			}
 		}
 	}
 
 finish:
-	if (interp_fd >= 0 && close(interp_fd) == -1)
-		warn("closing interpreter fd");
+	if (seq->interp_fd >= 0 && close(seq->interp_fd) == -1)
+		warn("closing interpreter pipe");
 
 	sequencer_close_songstate(seq, seq->playback_song);
 
@@ -464,29 +464,30 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 }
 
 static int
-sequencer_accept_interp_fd(int *interp_fd, int new_fd)
+sequencer_accept_interp_fd(struct sequencer *seq, int new_fd)
 {
 	if (new_fd == -1) {
 		warnx("did not receive an interpreter pipe when expecting it");
 		return 1;
 	}
 
-	assert(*interp_fd != new_fd);
+	assert(seq->interp_fd != new_fd);
 
 	_mdl_log(MDLLOG_SEQ, 0, "received new interpreter pipe\n");
 
-	/* We have new interp_fd, make it non-blocking. */
+	/* We have new seq->interp_fd, make it non-blocking. */
 	if (fcntl(new_fd, F_SETFL, O_NONBLOCK) == -1) {
-		warn("could not set interp_fd non-blocking, not accepting it");
+		warn("could not set seq->interp_fd non-blocking,"
+		    " not accepting it");
 		if (close(new_fd) == -1)
 			warn("closing new interpreter fd");
 		return 1;
 	}
 
-	if (*interp_fd >= 0 && close(*interp_fd) == -1)
-		warn("closing old interpreter fd");
+	if (seq->interp_fd >= 0 && close(seq->interp_fd) == -1)
+		warn("closing old seq->interp_fd");
 
-	*interp_fd = new_fd;
+	seq->interp_fd = new_fd;
 
 	return 0;
 }
@@ -540,7 +541,7 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
+sequencer_handle_main_event(struct sequencer *seq)
 {
 	struct imsg imsg;
 	ssize_t nr;
@@ -574,14 +575,14 @@ sequencer_handle_main_event(struct sequencer *seq, int *interp_fd)
 
 		switch (imsg.hdr.type) {
 		case MAINEVENT_NEW_SONG:
-			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
+			ret = sequencer_accept_interp_fd(seq, imsg.fd);
 			if (ret != 0) {
 				imsg_free(&imsg);
 				return 1;
 			}
 			break;
 		case MAINEVENT_REPLACE_SONG:
-			ret = sequencer_accept_interp_fd(interp_fd, imsg.fd);
+			ret = sequencer_accept_interp_fd(seq, imsg.fd);
 			if (ret != 0) {
 				imsg_free(&imsg);
 				return 1;
