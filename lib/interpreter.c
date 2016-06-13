@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.57 2016/05/27 19:19:34 je Exp $ */
+/* $Id: interpreter.c,v 1.58 2016/06/13 20:55:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,8 +33,8 @@ extern unsigned int	 parse_errors;
 extern const char	*_mdl_process_type;
 
 int
-_mdl_start_interpreter_process(struct interpreter_process *interp, int file_fd,
-    int sequencer_socket)
+_mdl_start_interpreter_process(struct interpreter_process *interp,
+    int mdlfile_fd, int sequencer_socket)
 {
 	int is_pipe[2];	/* interpreter-sequencer pipe */
 	int ret;
@@ -88,9 +88,9 @@ _mdl_start_interpreter_process(struct interpreter_process *interp, int file_fd,
 			goto interpreter_out;
 		}
 
-		ret = _mdl_handle_musicfile_and_socket(file_fd, is_pipe[1]);
+		ret = _mdl_interpret_musicfile(mdlfile_fd, is_pipe[1]);
 
-		if (file_fd != fileno(stdin) && close(file_fd) == -1)
+		if (mdlfile_fd != fileno(stdin) && close(mdlfile_fd) == -1)
 			warn("error closing music file");
 
 		if (close(is_pipe[1]) == -1)
@@ -117,20 +117,20 @@ interpreter_out:
 }
 
 int
-_mdl_handle_musicfile_and_socket(int file_fd, int sequencer_read_pipe)
+_mdl_interpret_musicfile(int mdlfile_fd, int sequencer_read_pipe)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;
 	int level, ret;
 
-	assert(file_fd >= 0);
+	assert(mdlfile_fd >= 0);
 	assert(sequencer_read_pipe >= 0);
 
 	eventstream = NULL;
 	level = 0;
 	ret = 0;
 
-	if ((yyin = fdopen(file_fd, "r")) == NULL) {
+	if ((yyin = fdopen(mdlfile_fd, "r")) == NULL) {
 		warn("could not setup input stream for lex");
 		return 1;
 	}

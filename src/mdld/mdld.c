@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.16 2016/06/11 20:44:42 je Exp $ */
+/* $Id: mdld.c,v 1.17 2016/06/13 20:55:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,10 +46,10 @@ extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	setup_socketdir(const char *);
+static int	get_musicfile_fd(struct imsgbuf *);
 static void	handle_signal(int);
 static int	handle_connections(struct sequencer_process *, int);
 static int	handle_client_connection(struct sequencer_process *, int);
-static int	handle_sequencer_events(struct sequencer_process *);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -269,8 +269,8 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 	(void) sigemptyset(&select_sigmask);
 
 	while (!mdld_shutdown_server) {
+		/* XXX for a loop as simple as this pselect() is not needed */
 		FD_ZERO(&readfds);
-		FD_SET(seq_proc->socket, &readfds);
 		FD_SET(server_socket, &readfds);
 
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
@@ -288,83 +288,66 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 				warnx("error in handling client connection");
 			continue;
 		}
-
-		if (FD_ISSET(seq_proc->socket, &readfds)) {
-			if (handle_sequencer_events(seq_proc) != 0) {
-				warnx("error in sequencer connection");
-				retvalue = 1;
-				break;
-			}
-		}
 	}
 
 	return retvalue;
 }
 
 static int
-handle_sequencer_events(struct sequencer_process *seq_proc)
-{
-	struct imsg imsg;
-	ssize_t nr, datalen;
-
-	/* XXX Should sequencer events handled at all here?  Or should
-	 * XXX we have some new socketpair between each client and sequencer?
-	 * XXX And mdld does not care? */
-
-	nr = imsg_read(&seq_proc->ibuf);
-	if (nr == -1) {
-		if (errno == EAGAIN)
-			return 0;
-		warnx("error in handle_sequencer_events/imsg_read");
-		return 1;
-	}
-	if (nr == 0) {
-		warnx("sequencer connection closed");
-		return 1;
-	}
-
-	for (;;) {
-		nr = imsg_get(&seq_proc->ibuf, &imsg);
-		if (nr == -1) {
-			warnx("error in handle_sequencer_events/imsg_get");
-			return 1;
-		}
-		if (nr == 0)
-			return 0;
-
-		datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
-
-		switch (imsg.hdr.type) {
-		case SEQEVENT_SONG_END:
-			/* XXX Is this useful here? */
-			break;
-		default:
-			warnx("Unknown sequencer event received");
-		}
-
-		imsg_free(&imsg);
-	}
-
-	return 0;
-}
-
-static int
 handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 {
 	struct interpreter_process interp;
+	struct imsgbuf client_ibuf;
 	struct sockaddr_storage socket_addr;
 	socklen_t socket_len;
-	int client_fd, ret, retvalue;
+	int cs_sp[2];
+	int client_socket, musicfile_fd, ret, retvalue;
+
+	cs_sp[0] = -1;
+	cs_sp[1] = -1;
+	musicfile_fd = -1;
 
 	socket_len = sizeof(socket_addr);
-	client_fd = accept(server_socket, (struct sockaddr *)&socket_addr,
+	client_socket = accept(server_socket, (struct sockaddr *)&socket_addr,
 	    &socket_len);
-	if (client_fd == -1) {
+	if (client_socket == -1) {
 		warn("accept");
 		return 1;
 	}
 
-	ret = _mdl_start_interpreter_process(&interp, client_fd,
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
+		warn("could not setup socketpair for client <-> sequencer");
+		retvalue = 1;
+		goto finish;
+	}
+
+	imsg_init(&client_ibuf, client_socket);
+
+	ret = imsg_compose(&seq_proc->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[0], "", 0);
+	if (ret == -1 || imsg_flush(&seq_proc->ibuf) == -1) {
+		warnx("sending new client event to sequencer");
+		retvalue = 1;
+		goto finish;
+	}
+	cs_sp[0] = -1;
+
+	ret = imsg_compose(&client_ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[1], "", 0);
+	if (ret == -1 || imsg_flush(&client_ibuf) == -1) {
+		warnx("sending new sequencer socket to client");
+		retvalue = 1;
+		goto finish;
+	}
+	cs_sp[1] = -1;
+
+	if ((musicfile_fd = get_musicfile_fd(&client_ibuf)) == -1) {
+		warnx("did not receive new music file descriptor from client");
+		retvalue = 1;
+		goto finish;
+	}
+
+	ret = _mdl_start_interpreter_process(&interp, musicfile_fd,
 	    seq_proc->socket);
 	if (ret != 0) {
 		warnx("could not start interpreter process");
@@ -372,13 +355,19 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 		goto finish;
 	}
 
-	ret = _mdl_send_event_to_sequencer(seq_proc,
-	    CLIENTEVENT_NEW_SONG, interp.sequencer_read_pipe, "", 0);
-	if (ret != 0) {
-		warnx("could not request new song from sequencer");
+	ret = imsg_compose(&client_ibuf, SERVEREVENT_NEW_INTERPRETER, 0, 0,
+	    interp.sequencer_read_pipe, "", 0);
+	if (ret == -1 || imsg_flush(&client_ibuf) == -1) {
+		warnx("sending interpreter pipe to client");
 		retvalue = 1;
 		goto finish;
 	}
+
+	/*
+	 * Client should now pass interpreter_fd to sequencer through the
+	 * socketpair created above.  We wait for client and interpreter to
+	 * do their work, before we listen for next clients.
+	 */
 
 	ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
 	if (ret != 0) {
@@ -388,8 +377,18 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 	}
 
 finish:
-	if (close(client_fd) == -1)
-		warn("error closing client connection");
+	if (cs_sp[0] >= 0 && close(cs_sp[0]) == -1)
+		warn("closing first end of cs_sp");
+	if (cs_sp[1] >= 0 && close(cs_sp[1]) == -1)
+		warn("closing second end of cs_sp");
+	if (musicfile_fd >= 0 && close(musicfile_fd) == -1)
+		warn("closing music file descriptor");
+
+	if (client_socket >= 0) {
+		imsg_clear(&client_ibuf);
+		if (close(client_socket) == -1)
+			warn("closing client connection");
+	}
 
 	return retvalue;
 }
@@ -439,4 +438,28 @@ fail:
 		warn("error closing server socket");
 
 	return -1;
+}
+
+static int
+get_musicfile_fd(struct imsgbuf *ibuf)
+{
+	struct imsg imsg;
+	ssize_t nr;
+
+	if ((nr = imsg_read(ibuf)) == -1 || nr == 0) {
+		warnx("error in imsg_read");
+		return 1;
+	}
+	
+	if ((nr = imsg_get(ibuf, &imsg)) == -1 || nr == 0) {
+		warnx("error in imsg_get");
+		return 1;
+	}
+
+	if (imsg.hdr.type != CLIENTEVENT_NEW_MUSICFD) {
+		warnx("received event was not a new music descriptor event");
+		return 1;
+	}
+
+	return imsg.fd;
 }

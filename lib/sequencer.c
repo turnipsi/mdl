@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.108 2016/06/11 20:44:37 je Exp $ */
+/* $Id: sequencer.c,v 1.109 2016/06/13 20:55:31 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -155,6 +155,7 @@ sequencer_init(struct sequencer *seq, int dry_run, int client_socket,
 	sequencer_init_songstate(seq, seq->reading_song, READING);
 	sequencer_init_songstate(seq, seq->playback_song, IDLE);
 
+	/* XXX matching imsg_clear() ? */
 	imsg_init(&seq->ibuf, seq->client_socket);
 
 	return 0;
@@ -260,31 +261,11 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	seq_proc->pid = sequencer_pid;
 	seq_proc->socket = cs_sp[0];
 
+	/* XXX matching imsg_clear() ? */
 	imsg_init(&seq_proc->ibuf, seq_proc->socket);
 
 	return 0;
 }
-
-int
-_mdl_send_event_to_sequencer(struct sequencer_process *seq_proc,
-    enum client_event event, int fd, const void *data, u_int16_t datalen)
-{
-	int ret;
-
-	ret = imsg_compose(&seq_proc->ibuf, event, 0, 0, fd, data, datalen);
-	if (ret == -1) {
-		warnx("error in sending event to sequencer / imsg_compose");
-		return 1;
-	}
-
-	if (imsg_flush(&seq_proc->ibuf) == -1) {
-		warnx("error in sending event to sequencer / imsg_flush");
-		return 1;
-	}
-
-	return 0;
-}
-
 
 static int
 sequencer_loop(struct sequencer *seq)
@@ -580,7 +561,9 @@ sequencer_handle_client_event(struct sequencer *seq)
 			seq->reading_song->keep_position_when_switched_to = 1;
 			break;
 		default:
-			assert(0);
+			warnx("unknown event received from client");
+			imsg_free(&imsg);
+			return 1;
 		}
 
 		imsg_free(&imsg);

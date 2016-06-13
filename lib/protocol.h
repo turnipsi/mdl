@@ -1,4 +1,4 @@
-/* $Id: protocol.h,v 1.1 2016/05/13 20:29:59 je Exp $ */
+/* $Id: protocol.h,v 1.2 2016/06/13 20:55:31 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,11 @@
 
 #ifndef MDL_PROTOCOL_H
 #define MDL_PROTOCOL_H
+
+enum server_event {
+	SERVEREVENT_NEW_CLIENT,
+	SERVEREVENT_NEW_INTERPRETER,
+};
 
 __BEGIN_DECLS
 char	*_mdl_get_socketpath(void);
