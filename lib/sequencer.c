@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.109 2016/06/13 20:55:31 je Exp $ */
+/* $Id: sequencer.c,v 1.110 2016/06/14 11:47:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -99,7 +99,7 @@ static void	sequencer_close(struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
-static int	sequencer_handle_client_event(struct sequencer *);
+static int	sequencer_handle_client_events(struct sequencer *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(struct sequencer *, int, int, enum mididev_type,
     const char *);
@@ -347,11 +347,11 @@ sequencer_loop(struct sequencer *seq)
 
 		if (FD_ISSET(seq->client_socket, &readfds)) {
 			/*
-			 * sequencer_handle_client_event() may change
+			 * sequencer_handle_client_events() may change
 			 * seq->interp_fd to a new value.  It may also set
 			 * seq->client_socket_shutdown to 1.
 			 */
-			if (sequencer_handle_client_event(seq) != 0) {
+			if (sequencer_handle_client_events(seq) != 0) {
 				retvalue = 1;
 				goto finish;
 			}
@@ -512,9 +512,10 @@ sequencer_free_songstate(struct songstate *ss)
 }
 
 static int
-sequencer_handle_client_event(struct sequencer *seq)
+sequencer_handle_client_events(struct sequencer *seq)
 {
 	struct imsg imsg;
+	enum client_event event;
 	ssize_t nr;
 	int ret;
 
@@ -544,7 +545,13 @@ sequencer_handle_client_event(struct sequencer *seq)
 		if (nr == 0)
 			return 0;
 
-		switch (imsg.hdr.type) {
+		event = imsg.hdr.type;
+		switch (event) {
+		case CLIENTEVENT_NEW_MUSICFD:
+			warnx("sequencer received new music file descriptor,"
+			    " this should not happen");
+			imsg_free(&imsg);
+			return 1;
 		case CLIENTEVENT_NEW_SONG:
 			ret = sequencer_accept_interp_fd(seq, imsg.fd);
 			if (ret != 0) {
