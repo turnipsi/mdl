@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.27 2016/06/13 20:55:32 je Exp $ */
+/* $Id: mdl.c,v 1.28 2016/06/14 12:15:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -181,16 +181,8 @@ main(int argc, char *argv[])
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (shutdown(seq_proc.socket, SHUT_WR) == -1)
-		warn("error shutting down sequencer connection");
-
-	if (_mdl_wait_for_subprocess("sequencer", seq_proc.pid) != 0)
-		errx(1, "error when waiting for sequencer subprocess");
-
-	/* XXX read all from sequencer.socket? */
-
-	if (close(seq_proc.socket) == -1)
-		warn("error closing sequencer connection");
+	if (_mdl_disconnect_sequencer_process(&seq_proc) != 0)
+		errx(1, "error when disconnecting sequencer subprocess");
 
 	free(musicfiles.files);
 

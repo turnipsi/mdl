@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.17 2016/06/13 20:55:33 je Exp $ */
+/* $Id: mdld.c,v 1.18 2016/06/14 12:15:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -185,16 +185,8 @@ finish:
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (seq_proc.socket >= 0 && close(seq_proc.socket) == -1)
-		warn("error closing sequencer connection");
-
-	if (seq_proc.pid > 0) {
-		ret = _mdl_wait_for_subprocess("sequencer", seq_proc.pid);
-		if (ret != 0) {
-			errx(1, "error when waiting for sequencer subprocess");
-			exitstatus = 1;
-		}
-	}
+	if (_mdl_disconnect_sequencer_process(&seq_proc) != 0)
+		warnx("error in disconnecting to sequencer process");
 
 	_mdl_logging_close();
 

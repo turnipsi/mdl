@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.110 2016/06/14 11:47:53 je Exp $ */
+/* $Id: sequencer.c,v 1.111 2016/06/14 12:15:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -155,7 +155,6 @@ sequencer_init(struct sequencer *seq, int dry_run, int client_socket,
 	sequencer_init_songstate(seq, seq->reading_song, READING);
 	sequencer_init_songstate(seq, seq->playback_song, IDLE);
 
-	/* XXX matching imsg_clear() ? */
 	imsg_init(&seq->ibuf, seq->client_socket);
 
 	return 0;
@@ -178,6 +177,9 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	int cs_sp[2];	/* client-sequencer socketpair */
 	int sequencer_retvalue, ret;
 	pid_t sequencer_pid;
+
+	seq_proc->pid = 0;
+	seq_proc->socket = -1;
 
 	/* Setup socketpair for client <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
@@ -261,10 +263,56 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	seq_proc->pid = sequencer_pid;
 	seq_proc->socket = cs_sp[0];
 
-	/* XXX matching imsg_clear() ? */
 	imsg_init(&seq_proc->ibuf, seq_proc->socket);
 
 	return 0;
+}
+
+int
+_mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
+{
+	int retvalue;
+	ssize_t nr;
+
+	/* Sequencer process was never established, so just return. */
+	if (seq_proc->pid == 0)
+		return 0;
+
+	retvalue = 0;
+
+	if (imsg_flush(&seq_proc->ibuf) == -1) {
+		warnx("error flushing imsg buffers to sequencer");
+		retvalue = 1;
+	}
+
+	if (shutdown(seq_proc->socket, SHUT_WR) == -1)
+		warn("error shutting down sequencer connection");
+
+	for (;;) {
+		nr = imsg_read(&seq_proc->ibuf);
+		if (nr == -1) {
+			warnx("error in reading sequencer events");
+			break;
+		}
+		if (nr == 0)
+			break;
+		imsg_free(&seq_proc->ibuf);
+	}
+
+	imsg_clear(&seq_proc->ibuf);
+
+	ret = _mdl_wait_for_subprocess("sequencer", seq_proc->pid);
+	if (ret != 0) {
+		warnx("error when waiting for sequencer subprocess");
+		retvalue = 1;
+	}
+
+	if (close(seq_proc->socket) == -1) {
+		warn("error closing sequencer socket connection");
+		retvalue = 1;
+	}
+
+	return retvalue;
 }
 
 static int
@@ -1052,6 +1100,7 @@ sequencer_close(struct sequencer *seq)
 
 	if (imsg_flush(&seq->ibuf) == -1)
 		warnx("error in imsg_flush");
+	imsg_clear(&seq->ibuf);
 
 	if (seq->dry_run)
 		return;
