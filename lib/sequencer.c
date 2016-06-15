@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.111 2016/06/14 12:15:32 je Exp $ */
+/* $Id: sequencer.c,v 1.112 2016/06/15 20:19:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,6 +35,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "ipc.h"
 #include "midi.h"
 #include "sequencer.h"
 
@@ -78,12 +79,13 @@ struct sequencer {
 	int			dry_run;
 	int			interp_fd;
 	int			client_socket;
-	int			client_socket_shutdown;
+	int			server_socket;
 	struct songstate	song1;
 	struct songstate	song2;
 	struct songstate       *playback_song;
 	struct songstate       *reading_song;
-	struct imsgbuf		ibuf;
+	struct imsgbuf		client_ibuf;
+	struct imsgbuf		server_ibuf;
 };
 
 extern char *_mdl_process_type;
@@ -92,6 +94,7 @@ extern char *_mdl_process_type;
 volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 
 static int	sequencer_loop(struct sequencer *);
+static int	sequencer_accept_client_socket(struct sequencer *, int);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     struct songstate *, struct timespec *);
@@ -100,6 +103,7 @@ static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
 static void	sequencer_free_songstate(struct songstate *);
 static int	sequencer_handle_client_events(struct sequencer *);
+static int	sequencer_handle_server_events(struct sequencer *);
 static void	sequencer_handle_signal(int);
 static int	sequencer_init(struct sequencer *, int, int, enum mididev_type,
     const char *);
@@ -117,11 +121,10 @@ static int	sequencer_start_playing(const struct sequencer *,
 static int	sequencer_switch_songs(struct sequencer *);
 static void	sequencer_time_for_next_note(struct songstate *ss,
     struct timespec *notetime);
-static int	send_event_to_client(struct sequencer *, enum sequencer_event);
 static const char *ss_label(const struct sequencer *, struct songstate *);
 
 static int
-sequencer_init(struct sequencer *seq, int dry_run, int client_socket,
+sequencer_init(struct sequencer *seq, int dry_run, int server_socket,
     enum mididev_type mididev_type, const char *devicepath)
 {
 	sigset_t loop_sigmask;
@@ -134,13 +137,13 @@ sequencer_init(struct sequencer *seq, int dry_run, int client_socket,
 	(void) sigaddset(&loop_sigmask, SIGTERM);
 	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
 
-	seq->client_socket = client_socket;
-	seq->client_socket_shutdown = 0;
+	seq->client_socket = -1;
 	seq->dry_run = dry_run;
 	seq->interp_fd = -1;
+	seq->server_socket = server_socket;
 
-	if (fcntl(seq->client_socket, F_SETFL, O_NONBLOCK) == -1) {
-		warn("could not set client_socket non-blocking");
+	if (fcntl(seq->server_socket, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set server_socket non-blocking");
 		return 1;
 	}
 
@@ -155,7 +158,7 @@ sequencer_init(struct sequencer *seq, int dry_run, int client_socket,
 	sequencer_init_songstate(seq, seq->reading_song, READING);
 	sequencer_init_songstate(seq, seq->playback_song, IDLE);
 
-	imsg_init(&seq->ibuf, seq->client_socket);
+	imsg_init(&seq->server_ibuf, seq->server_socket);
 
 	return 0;
 }
@@ -174,15 +177,15 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
     enum mididev_type mididev_type, const char *devicepath, int dry_run)
 {
 	struct sequencer seq;
-	int cs_sp[2];	/* client-sequencer socketpair */
+	int ss_sp[2];	/* client-sequencer socketpair */
 	int sequencer_retvalue, ret;
 	pid_t sequencer_pid;
 
 	seq_proc->pid = 0;
 	seq_proc->socket = -1;
 
-	/* Setup socketpair for client <-> sequencer communication. */
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
+	/* Setup socketpair for server <-> sequencer communication. */
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ss_sp) == -1) {
 		warn("could not setup socketpair for client <-> sequencer");
 		return 1;
 	}
@@ -193,10 +196,10 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	/* Fork the midi sequencer process. */
 	if ((sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
-		if (close(cs_sp[0]) == -1)
-			warn("error closing first end of cs_sp");
-		if (close(cs_sp[1]) == -1)
-			warn("error closing second end of cs_sp");
+		if (close(ss_sp[0]) == -1)
+			warn("error closing first end of ss_sp");
+		if (close(ss_sp[1]) == -1)
+			warn("error closing second end of ss_sp");
 		return 1;
 	}
 
@@ -224,10 +227,10 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 		 * XXX We should close all file descriptors that sequencer
 		 * XXX does not need... does this do that?
 		 */
-		if (close(cs_sp[0]) == -1)
-			warn("error closing first end of cs_sp");
+		if (close(ss_sp[0]) == -1)
+			warn("error closing first end of ss_sp");
 
-		ret = sequencer_init(&seq, dry_run, cs_sp[1], mididev_type,
+		ret = sequencer_init(&seq, dry_run, ss_sp[1], mididev_type,
 		    devicepath);
 		if (ret != 0) {
 			warnx("problem initializing sequencer");
@@ -247,21 +250,21 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 			_exit(1);
 		}
 
-		if (close(cs_sp[1]) == -1)
+		if (close(ss_sp[1]) == -1)
 			warn("closing client socket");
 		if (fflush(NULL) == EOF) {
-			warn("error flushing streams in sequencer"
-			       " before exit");
+			warn("error flushing streams in sequencer before"
+			       " exit");
 		}
 		_mdl_logging_close();
 		_exit(sequencer_retvalue);
 	}
 
-	if (close(cs_sp[1]) == -1)
-		warn("error closing second end of cs_sp");
+	if (close(ss_sp[1]) == -1)
+		warn("error closing second end of ss_sp");
 
 	seq_proc->pid = sequencer_pid;
-	seq_proc->socket = cs_sp[0];
+	seq_proc->socket = ss_sp[0];
 
 	imsg_init(&seq_proc->ibuf, seq_proc->socket);
 
@@ -296,13 +299,11 @@ _mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
 		}
 		if (nr == 0)
 			break;
-		imsg_free(&seq_proc->ibuf);
 	}
 
 	imsg_clear(&seq_proc->ibuf);
 
-	ret = _mdl_wait_for_subprocess("sequencer", seq_proc->pid);
-	if (ret != 0) {
+	if (_mdl_wait_for_subprocess("sequencer", seq_proc->pid) != 0) {
 		warnx("error when waiting for sequencer subprocess");
 		retvalue = 1;
 	}
@@ -337,17 +338,21 @@ sequencer_loop(struct sequencer *seq)
 
 		_mdl_log(MDLLOG_SEQ, 0, "new sequencer loop iteration\n");
 
-		ret = msgbuf_write(&seq->ibuf.w);
-		if (ret == -1) {
-			if (errno != EAGAIN) {
-				warnx("msgbuf_write error in sequencer");
-				goto finish;
+		if (seq->client_socket >= 0) {
+			if (msgbuf_write(&seq->client_ibuf.w) == -1) {
+				if (errno != EAGAIN) {
+					warnx("msgbuf_write error");
+					goto finish;
+				}
+				/* XXX set max timeout to 100ms or some such */
 			}
-			/* XXX set max timeout to 100ms or some such */
 		}
 
 		FD_ZERO(&readfds);
-		FD_SET(seq->client_socket, &readfds);
+		if (seq->client_socket >= 0)
+			FD_SET(seq->client_socket, &readfds);
+		if (seq->server_socket >= 0)
+			FD_SET(seq->server_socket, &readfds);
 
 		ret = sequencer_reset_songstate(seq, seq->reading_song);
 		if (ret && seq->interp_fd >= 0)
@@ -361,8 +366,8 @@ sequencer_loop(struct sequencer *seq)
 			timeout_p = NULL;
 		}
 
-		if (seq->client_socket_shutdown && seq->interp_fd == -1 &&
-		    timeout_p == NULL) {
+		if (seq->client_socket == -1 && seq->interp_fd == -1 &&
+		    seq->server_socket == -1 && timeout_p == NULL) {
 			_mdl_log(MDLLOG_SEQ, 0,
 			    "nothing more to do, exiting sequencer loop\n");
 			retvalue = 0;
@@ -393,19 +398,36 @@ sequencer_loop(struct sequencer *seq)
 			}
 		}
 
+		if (FD_ISSET(seq->server_socket, &readfds)) {
+			/*
+			 * sequencer_handle_server_events() may close and set
+			 * seq->client_socket to a new value.  It may also
+			 * close and set seq->server_socket to -1.
+			 */
+			if (sequencer_handle_server_events(seq) != 0) {
+				retvalue = 1;
+				goto finish;
+			}
+			/*
+			 * Restart loop because seq->client_socket might have
+			 * changed.
+			 */
+			continue;
+		}
+
 		if (FD_ISSET(seq->client_socket, &readfds)) {
 			/*
-			 * sequencer_handle_client_events() may change
-			 * seq->interp_fd to a new value.  It may also set
-			 * seq->client_socket_shutdown to 1.
+			 * sequencer_handle_client_events() may close
+			 * seq->client_socket and/or seq->interp_fd and set
+			 * them to a new value.
 			 */
 			if (sequencer_handle_client_events(seq) != 0) {
 				retvalue = 1;
 				goto finish;
 			}
 			/*
-			 * seq->interp_fd might have changed, in which case
-			 * the seq->interp_fd was closed.
+			 * Restart loop because seq->client_socket and/or
+			 * seq->interp_fd might have changed.
 			 */
 			continue;
 		}
@@ -483,6 +505,40 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 }
 
 static int
+sequencer_accept_client_socket(struct sequencer *seq, int new_fd)
+{
+	if (new_fd == -1) {
+		warnx("did not receive a client socket when expecting it");
+		return 1;
+	}
+
+	assert(seq->client_socket != new_fd);
+	
+	_mdl_log(MDLLOG_SEQ, 0, "received new client socket\n");
+
+	/* We have new client socket, make it non-blocking. */
+	if (fcntl(new_fd, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set new client socket non-blocking,"
+		    " not accepting it");
+		if (close(new_fd) == -1)
+			warn("closing new client socket");
+		return 1;
+	}
+
+	if (imsg_flush(&seq->client_ibuf) == -1)
+		warnx("error when flushing client socket buffers");
+	imsg_clear(&seq->client_ibuf);
+
+	if (seq->client_socket >= 0 && close(seq->client_socket) == -1)
+		warn("closing old client socket");
+
+	seq->client_socket = new_fd;
+	imsg_init(&seq->client_ibuf, seq->client_socket);
+
+	return 0;
+}
+
+static int
 sequencer_accept_interp_fd(struct sequencer *seq, int new_fd)
 {
 	if (new_fd == -1) {
@@ -494,17 +550,17 @@ sequencer_accept_interp_fd(struct sequencer *seq, int new_fd)
 
 	_mdl_log(MDLLOG_SEQ, 0, "received new interpreter pipe\n");
 
-	/* We have new seq->interp_fd, make it non-blocking. */
+	/* We have new interpreter pipe, make it non-blocking. */
 	if (fcntl(new_fd, F_SETFL, O_NONBLOCK) == -1) {
-		warn("could not set seq->interp_fd non-blocking,"
+		warn("could not set new interpreter pipe non-blocking,"
 		    " not accepting it");
 		if (close(new_fd) == -1)
-			warn("closing new interpreter fd");
+			warn("closing new interpreter pipe");
 		return 1;
 	}
 
 	if (seq->interp_fd >= 0 && close(seq->interp_fd) == -1)
-		warn("closing old seq->interp_fd");
+		warn("closing old interpreter pipe");
 
 	seq->interp_fd = new_fd;
 
@@ -567,25 +623,24 @@ sequencer_handle_client_events(struct sequencer *seq)
 	ssize_t nr;
 	int ret;
 
-	nr = imsg_read(&seq->ibuf);
+	nr = imsg_read(&seq->client_ibuf);
 	if (nr == -1 && errno != EAGAIN) {
 		warnx("error in reading event from client / imsg_read");
 		return 1;
 	}
 
 	if (nr == 0) {
-		/*
-		 * Main process has closed the client_socket.
-		 * We close it later elsewhere.
-		 */
+		/* Client process has shutdown/closed the client_socket. */
 		_mdl_log(MDLLOG_SEQ, 0,
 		    "client socket has been shutdown by the client process\n");
-		seq->client_socket_shutdown = 1;
+		if (close(seq->client_socket) == -1)
+			warnx("closing client socket");
+		seq->client_socket = -1;
 		return 0;
 	}
 
 	for (;;) {
-		nr = imsg_get(&seq->ibuf, &imsg);
+		nr = imsg_get(&seq->client_ibuf, &imsg);
 		if (nr == -1) {
 			warnx("error in reading event from client / imsg_get");
 			return 1;
@@ -628,6 +683,66 @@ sequencer_handle_client_events(struct sequencer *seq)
 }
 
 static int
+sequencer_handle_server_events(struct sequencer *seq)
+{
+	struct imsg imsg;
+	enum server_event event;
+	ssize_t nr;
+	int ret;
+
+	nr = imsg_read(&seq->server_ibuf);
+	if (nr == -1 && errno != EAGAIN) {
+		warnx("error in reading event from server / imsg_read");
+		return 1;
+	}
+
+	if (nr == 0) {
+		/* Server process has shutdown/closed the server_socket. */
+		_mdl_log(MDLLOG_SEQ, 0,
+		    "server socket has been shutdown by the server process\n");
+		if (close(seq->server_socket) == -1)
+			warn("closing server socket");
+		seq->server_socket = -1;
+		return 0;
+	}
+
+	for (;;) {
+		nr = imsg_get(&seq->server_ibuf, &imsg);
+		if (nr == -1) {
+			warnx("error in reading event from server / imsg_get");
+			return 1;
+		}
+		if (nr == 0)
+			return 0;
+
+		event = imsg.hdr.type;
+		switch (event) {
+		case SERVEREVENT_NEW_CLIENT:
+			ret = sequencer_accept_client_socket(seq, imsg.fd);
+			if (ret != 0) {			
+				warnx("error in accepting new client socket");
+				imsg_free(&imsg);
+				return 1;
+			}
+			break;
+		case SERVEREVENT_NEW_INTERPRETER:
+			warnx("sequencer received new interpreter event from"
+			    " server, this should not happen");
+			imsg_free(&imsg);
+			return 1;
+		default:
+			warnx("unknown event received from server");
+			imsg_free(&imsg);
+			return 1;
+		}
+
+		imsg_free(&imsg);
+	}
+
+	return 0;
+}
+
+static int
 sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 {
 	struct eventpointer *ce;
@@ -644,12 +759,15 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			if (me->eventtype == SONG_END) {
 				ss->playback_state = IDLE;
 
-				ret = send_event_to_client(seq,
-				    SEQEVENT_SONG_END);
-				if (ret == -1) {
-					warnx("error sending"
-					    " SEQEVENT_SONG_END");
-					return 1;
+				if (seq->client_socket >= 0) {
+					ret = imsg_compose(&seq->client_ibuf,
+					    SEQEVENT_SONG_END, 0, 0, -1, "",
+					    0);
+					if (ret == -1) {
+						warnx("error sending"
+						    " SEQEVENT_SONG_END");
+						return 1;
+					}
 				}
 
 				return 0;
@@ -689,12 +807,6 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	}
 
 	return 0;
-}
-
-static int
-send_event_to_client(struct sequencer *seq, enum sequencer_event event)
-{
-	return imsg_compose(&seq->ibuf, event, 0, 0, -1, "", 0);
 }
 
 static int
@@ -1071,6 +1183,9 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 	 * This is tricky to get right... naively dividing
 	 * time_for_note_since_latest_tempo_change_in_ns / 1000000000.0
 	 * does not always work, because of floating point rounding errors.
+	 * XXX Should floating point be used for timing information at all?
+	 * XXX (There may be issues in timing accuracy with very long music
+	 * XXX playback... should calculate how much that could be.)
 	 */
 	time_for_note_since_latest_tempo_change.tv_sec =
 	    rintf((time_for_note_since_latest_tempo_change_in_ns -
@@ -1098,9 +1213,21 @@ sequencer_close(struct sequencer *seq)
 	sequencer_free_songstate(seq->playback_song);
 	sequencer_free_songstate(seq->reading_song);
 
-	if (imsg_flush(&seq->ibuf) == -1)
-		warnx("error in imsg_flush");
-	imsg_clear(&seq->ibuf);
+	if (seq->client_socket >= 0) {
+		if (imsg_flush(&seq->client_ibuf) == -1)
+			warnx("error flushing imsg buffers to client");
+		imsg_clear(&seq->client_ibuf);
+		if (close(seq->client_socket) == -1)
+			warn("closing client socket");
+	}
+
+	if (seq->server_socket >= 0) {
+		if (imsg_flush(&seq->server_ibuf) == -1)
+			warnx("error flushing imsg buffers to server");
+		imsg_clear(&seq->server_ibuf);
+		if (close(seq->server_socket) == -1)
+			warn("closing server socket");
+	}
 
 	if (seq->dry_run)
 		return;

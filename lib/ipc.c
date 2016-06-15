@@ -1,4 +1,4 @@
-/* $Id: protocol.h,v 1.2 2016/06/13 20:55:31 je Exp $ */
+/* $Id: ipc.c,v 1.1 2016/06/15 20:19:36 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,16 +16,34 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef MDL_PROTOCOL_H
-#define MDL_PROTOCOL_H
+#include <sys/types.h>
 
-enum server_event {
-	SERVEREVENT_NEW_CLIENT,
-	SERVEREVENT_NEW_INTERPRETER,
-};
+#include <err.h>
+#include <stdio.h>
+#include <unistd.h>
 
-__BEGIN_DECLS
-char	*_mdl_get_socketpath(void);
-__END_DECLS
+#include "ipc.h"
 
-#endif /* !MDL_PROTOCOL_H */
+#define SOCKETPATH_LEN	104
+
+char *
+_mdl_get_socketpath(void)
+{
+	static char socketpath[SOCKETPATH_LEN];
+	uid_t uid;
+	int ret;
+
+	uid = geteuid();
+	if (uid == 0) {
+		ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl/socket");
+	} else {
+		ret = snprintf(socketpath, SOCKETPATH_LEN,
+		    "/tmp/mdl-%u/socket", uid);
+	}
+	if (ret == -1 || ret >= SOCKETPATH_LEN) {
+		warnx("snprintf error for server socketpath");
+		return NULL;
+	}
+
+	return socketpath;
+}

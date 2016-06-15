@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.22 2016/06/14 12:15:32 je Exp $ */
+/* $Id: sequencer.h,v 1.23 2016/06/15 20:19:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,16 +31,6 @@ struct sequencer_process {
 	int		socket;
 	pid_t		pid;
 	struct imsgbuf	ibuf;
-};
-
-enum client_event {
-	CLIENTEVENT_NEW_MUSICFD,
-	CLIENTEVENT_NEW_SONG,
-	CLIENTEVENT_REPLACE_SONG,
-};
-
-enum sequencer_event {
-	SEQEVENT_SONG_END,
 };
 
 __BEGIN_DECLS

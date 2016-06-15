@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.18 2016/06/14 12:15:33 je Exp $ */
+/* $Id: mdld.c,v 1.19 2016/06/15 20:19:39 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -34,8 +34,8 @@
 #include <unistd.h>
 
 #include "interpreter.h"
+#include "ipc.h"
 #include "midi.h"
-#include "protocol.h"
 #include "sequencer.h"
 #include "util.h"
 

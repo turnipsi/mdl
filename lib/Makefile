@@ -1,8 +1,7 @@
-# $Id: Makefile,v 1.58 2016/06/02 18:31:20 je Exp $
+# $Id: Makefile,v 1.59 2016/06/15 20:19:36 je Exp $
 
-SRCS=	interpreter.c instrument.c joinexpr.c lex.c midi.c midistream.c \
-	musicexpr.c parse.c protocol.c relative.c sequencer.c song.c track.c \
-	util.c
+SRCS=	interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c midistream.c \
+	musicexpr.c parse.c relative.c sequencer.c song.c track.c util.c
 
 PREFIX?=	/usr/local
 MANPREFIX?=	${PREFIX}/man
