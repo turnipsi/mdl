@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.112 2016/06/15 20:19:36 je Exp $ */
+/* $Id: sequencer.c,v 1.113 2016/06/16 19:53:44 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -251,7 +251,7 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 		}
 
 		if (close(ss_sp[1]) == -1)
-			warn("closing client socket");
+			warn("closing server socket");
 		if (fflush(NULL) == EOF) {
 			warn("error flushing streams in sequencer before"
 			       " exit");
@@ -398,11 +398,12 @@ sequencer_loop(struct sequencer *seq)
 			}
 		}
 
-		if (FD_ISSET(seq->server_socket, &readfds)) {
+		if (seq->server_socket >= 0 &&
+		    FD_ISSET(seq->server_socket, &readfds)) {
 			/*
 			 * sequencer_handle_server_events() may close and set
 			 * seq->client_socket to a new value.  It may also
-			 * close and set seq->server_socket to -1.
+			 * set seq->server_socket to -1 (disabling it).
 			 */
 			if (sequencer_handle_server_events(seq) != 0) {
 				retvalue = 1;
@@ -415,7 +416,8 @@ sequencer_loop(struct sequencer *seq)
 			continue;
 		}
 
-		if (FD_ISSET(seq->client_socket, &readfds)) {
+		if (seq->client_socket >= 0 &&
+		    FD_ISSET(seq->client_socket, &readfds)) {
 			/*
 			 * sequencer_handle_client_events() may close
 			 * seq->client_socket and/or seq->interp_fd and set
@@ -525,12 +527,14 @@ sequencer_accept_client_socket(struct sequencer *seq, int new_fd)
 		return 1;
 	}
 
-	if (imsg_flush(&seq->client_ibuf) == -1)
-		warnx("error when flushing client socket buffers");
-	imsg_clear(&seq->client_ibuf);
-
-	if (seq->client_socket >= 0 && close(seq->client_socket) == -1)
-		warn("closing old client socket");
+	if (seq->client_socket >= 0) {
+		/* XXX Note this may block the sequencer process. */
+		if (imsg_flush(&seq->client_ibuf) == -1)
+			warnx("error when flushing client socket buffers");
+		imsg_clear(&seq->client_ibuf);
+		if (close(seq->client_socket) == -1)
+			warn("closing old client socket");
+	}
 
 	seq->client_socket = new_fd;
 	imsg_init(&seq->client_ibuf, seq->client_socket);
@@ -700,8 +704,15 @@ sequencer_handle_server_events(struct sequencer *seq)
 		/* Server process has shutdown/closed the server_socket. */
 		_mdl_log(MDLLOG_SEQ, 0,
 		    "server socket has been shutdown by the server process\n");
-		if (close(seq->server_socket) == -1)
-			warn("closing server socket");
+		/*
+		 * Do not close the server socket, just flush imsg buffers
+		 * and mark it disabled.  It is not our responsibility to
+		 * close it.
+		 * XXX Note this may block the sequencer process.
+		 */
+		if (imsg_flush(&seq->server_ibuf) == -1)
+			warnx("error flushing imsg buffers to server");
+		imsg_clear(&seq->server_ibuf);
 		seq->server_socket = -1;
 		return 0;
 	}
@@ -1219,15 +1230,12 @@ sequencer_close(struct sequencer *seq)
 		imsg_clear(&seq->client_ibuf);
 		if (close(seq->client_socket) == -1)
 			warn("closing client socket");
+		seq->client_socket = -1;
 	}
 
-	if (seq->server_socket >= 0) {
-		if (imsg_flush(&seq->server_ibuf) == -1)
-			warnx("error flushing imsg buffers to server");
-		imsg_clear(&seq->server_ibuf);
-		if (close(seq->server_socket) == -1)
-			warn("closing server socket");
-	}
+	if (imsg_flush(&seq->server_ibuf) == -1)
+		warnx("error flushing imsg buffers to server");
+	imsg_clear(&seq->server_ibuf);
 
 	if (seq->dry_run)
 		return;
