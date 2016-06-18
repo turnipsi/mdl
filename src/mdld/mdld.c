@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.19 2016/06/15 20:19:39 je Exp $ */
+/* $Id: mdld.c,v 1.20 2016/06/18 20:25:29 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,8 +48,8 @@ extern char	*malloc_options;
 static int	setup_socketdir(const char *);
 static int	get_musicfile_fd(struct imsgbuf *);
 static void	handle_signal(int);
-static int	handle_connections(struct sequencer_process *, int);
-static int	handle_client_connection(struct sequencer_process *, int);
+static int	handle_connections(struct sequencer_connection *, int);
+static int	handle_client_connection(struct sequencer_connection *, int);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -99,7 +99,7 @@ main(int argc, char *argv[])
 	socketpath = NULL;
 
 	seq_proc.pid = 0;
-	seq_proc.socket = -1;
+	seq_proc.conn.socket = -1;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -166,7 +166,7 @@ main(int argc, char *argv[])
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_connections(&seq_proc, server_socket);
+	ret = handle_connections(&seq_proc.conn, server_socket);
 	if (ret != 0) {
 		warnx("error in handling connections");
 		exitstatus = 1;
@@ -245,7 +245,7 @@ setup_socketdir(const char *socketpath)
 }
 
 static int
-handle_connections(struct sequencer_process *seq_proc, int server_socket)
+handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 {
 	int ret, retvalue;
 	fd_set readfds;
@@ -274,7 +274,7 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 		}
 
 		if (FD_ISSET(server_socket, &readfds)) {
-			ret = handle_client_connection(seq_proc,
+			ret = handle_client_connection(seq_conn,
 			    server_socket);
 			if (ret != 0)
 				warnx("error in handling client connection");
@@ -286,7 +286,8 @@ handle_connections(struct sequencer_process *seq_proc, int server_socket)
 }
 
 static int
-handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
+handle_client_connection(struct sequencer_connection *seq_conn,
+    int server_socket)
 {
 	struct interpreter_process interp;
 	struct imsgbuf client_ibuf;
@@ -315,9 +316,9 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 
 	imsg_init(&client_ibuf, client_socket);
 
-	ret = imsg_compose(&seq_proc->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
 	    cs_sp[0], "", 0);
-	if (ret == -1 || imsg_flush(&seq_proc->ibuf) == -1) {
+	if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
 		warnx("sending new client event to sequencer");
 		retvalue = 1;
 		goto finish;
@@ -340,7 +341,7 @@ handle_client_connection(struct sequencer_process *seq_proc, int server_socket)
 	}
 
 	ret = _mdl_start_interpreter_process(&interp, musicfile_fd,
-	    seq_proc->socket);
+	    seq_conn->socket);
 	if (ret != 0) {
 		warnx("could not start interpreter process");
 		retvalue = 1;

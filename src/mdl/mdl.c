@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.29 2016/06/15 20:19:38 je Exp $ */
+/* $Id: mdl.c,v 1.30 2016/06/18 20:25:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -65,11 +65,11 @@ char *_mdl_process_type;
 
 static void	handle_signal(int);
 static int	open_musicfiles(char **, size_t, struct musicfiles *);
-static int	handle_musicfiles(struct sequencer_process *,
+static int	handle_musicfiles(struct sequencer_connection *,
     struct musicfiles *);
 static void __dead usage(void);
 
-static int	wait_for_sequencer_event(struct sequencer_process *,
+static int	wait_for_sequencer_event(struct sequencer_connection *,
     enum sequencer_event event);
 
 static void __dead
@@ -174,7 +174,7 @@ main(int argc, char *argv[])
 	if (pledge("proc sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(&seq_proc, &musicfiles);
+	ret = handle_musicfiles(&seq_proc.conn, &musicfiles);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
@@ -249,7 +249,7 @@ error:
 }
 
 static int
-handle_musicfiles(struct sequencer_process *seq_proc,
+handle_musicfiles(struct sequencer_connection *seq_conn,
     struct musicfiles *musicfiles)
 {
 	struct interpreter_process interp;
@@ -271,7 +271,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		fd        = musicfiles->files[i].fd;
 
 		ret = _mdl_start_interpreter_process(&interp, fd,
-		    seq_proc->socket);
+		    seq_conn->socket);
 		if (ret != 0) {
 			warnx("could not start interpreter process");
 			retvalue = 1;
@@ -283,7 +283,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 			 * XXX right. */
 			_mdl_log(MDLLOG_SONG, 0,
 			    "waiting for SEQEVENT_SONG_END\n");
-			ret = wait_for_sequencer_event(seq_proc,
+			ret = wait_for_sequencer_event(seq_conn,
 			    SEQEVENT_SONG_END);
 			if (ret != 0) {
 				retvalue = 1;
@@ -296,9 +296,9 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
-		ret = imsg_compose(&seq_proc->ibuf, CLIENTEVENT_NEW_SONG, 0, 0,
+		ret = imsg_compose(&seq_conn->ibuf, CLIENTEVENT_NEW_SONG, 0, 0,
 		    interp.sequencer_read_pipe, "", 0);
-		if (ret == -1 || imsg_flush(&seq_proc->ibuf) == -1) {
+		if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
 			warnx("could not request new song from sequencer");
 			retvalue = 1;
 		}
@@ -325,7 +325,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 		warnx("error in handling %s", curr_path);
 	}
 
-	if (wait_for_sequencer_event(seq_proc, SEQEVENT_SONG_END) == -1) {
+	if (wait_for_sequencer_event(seq_conn, SEQEVENT_SONG_END) == -1) {
 		warnx("error in waiting for sequencer event");
 		retvalue = 1;
 	}
@@ -337,7 +337,7 @@ handle_musicfiles(struct sequencer_process *seq_proc,
 }
 
 static int
-wait_for_sequencer_event(struct sequencer_process *seq_proc,
+wait_for_sequencer_event(struct sequencer_connection *seq_conn,
     enum sequencer_event event)
 {
 	struct imsg imsg;
@@ -347,7 +347,7 @@ wait_for_sequencer_event(struct sequencer_process *seq_proc,
 	found = 0;
 
 	while (!found) {
-		nr = imsg_read(&seq_proc->ibuf);
+		nr = imsg_read(&seq_conn->ibuf);
 		if (nr == -1) {
 			warnx("error in wait_for_sequencer_event/imsg_read");
 			return 1;
@@ -357,7 +357,7 @@ wait_for_sequencer_event(struct sequencer_process *seq_proc,
 			return 1;
 		}
 
-		nr = imsg_get(&seq_proc->ibuf, &imsg);
+		nr = imsg_get(&seq_conn->ibuf, &imsg);
 		if (nr == -1) {
 			warnx("error in wait_for_sequencer_event/imsg_get");
 			return 1;

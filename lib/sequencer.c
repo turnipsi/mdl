@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.113 2016/06/16 19:53:44 je Exp $ */
+/* $Id: sequencer.c,v 1.114 2016/06/18 20:25:27 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -182,7 +182,7 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	pid_t sequencer_pid;
 
 	seq_proc->pid = 0;
-	seq_proc->socket = -1;
+	seq_proc->conn.socket = -1;
 
 	/* Setup socketpair for server <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ss_sp) == -1) {
@@ -264,35 +264,31 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 		warn("error closing second end of ss_sp");
 
 	seq_proc->pid = sequencer_pid;
-	seq_proc->socket = ss_sp[0];
+	seq_proc->conn.socket = ss_sp[0];
 
-	imsg_init(&seq_proc->ibuf, seq_proc->socket);
+	imsg_init(&seq_proc->conn.ibuf, seq_proc->conn.socket);
 
 	return 0;
 }
 
 int
-_mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
+_mdl_disconnect_sequencer_connection(struct sequencer_connection *seq_conn)
 {
 	int retvalue;
 	ssize_t nr;
 
-	/* Sequencer process was never established, so just return. */
-	if (seq_proc->pid == 0)
-		return 0;
-
 	retvalue = 0;
 
-	if (imsg_flush(&seq_proc->ibuf) == -1) {
+	if (imsg_flush(&seq_conn->ibuf) == -1) {
 		warnx("error flushing imsg buffers to sequencer");
 		retvalue = 1;
 	}
 
-	if (shutdown(seq_proc->socket, SHUT_WR) == -1)
+	if (shutdown(seq_conn->socket, SHUT_WR) == -1)
 		warn("error shutting down sequencer connection");
 
 	for (;;) {
-		nr = imsg_read(&seq_proc->ibuf);
+		nr = imsg_read(&seq_conn->ibuf);
 		if (nr == -1) {
 			warnx("error in reading sequencer events");
 			break;
@@ -301,19 +297,32 @@ _mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
 			break;
 	}
 
-	imsg_clear(&seq_proc->ibuf);
+	imsg_clear(&seq_conn->ibuf);
 
-	if (_mdl_wait_for_subprocess("sequencer", seq_proc->pid) != 0) {
-		warnx("error when waiting for sequencer subprocess");
-		retvalue = 1;
-	}
-
-	if (close(seq_proc->socket) == -1) {
+	if (close(seq_conn->socket) == -1) {
 		warn("error closing sequencer socket connection");
 		retvalue = 1;
 	}
 
 	return retvalue;
+}
+
+int
+_mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
+{
+	/* Sequencer process was never established, so just return. */
+	if (seq_proc->pid == 0)
+		return 0;
+
+	if (_mdl_disconnect_sequencer_connection(&seq_proc->conn) != 0)
+		warnx("error in disconnecting sequencer connection");
+
+	if (_mdl_wait_for_subprocess("sequencer", seq_proc->pid) != 0) {
+		warnx("error when waiting for sequencer subprocess");
+		return 1;
+	}
+
+	return 0;
 }
 
 static int
