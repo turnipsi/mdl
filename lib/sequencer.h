@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.24 2016/06/18 20:25:27 je Exp $ */
+/* $Id: sequencer.h,v 1.25 2016/06/19 19:49:09 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,15 +32,11 @@ struct sequencer_connection {
 	struct imsgbuf	ibuf;
 };
 
-struct sequencer_process {
-	pid_t				pid;
-	struct sequencer_connection	conn;
-};
-
 __BEGIN_DECLS
 int	_mdl_disconnect_sequencer_connection(struct sequencer_connection *);
-int	_mdl_disconnect_sequencer_process(struct sequencer_process *);
-int	_mdl_start_sequencer_process(struct sequencer_process *,
+int	_mdl_disconnect_sequencer_process(pid_t,
+    struct sequencer_connection *);
+int	_mdl_start_sequencer_process(pid_t *, struct sequencer_connection *,
     enum mididev_type, const char *, int);
 __END_DECLS
 

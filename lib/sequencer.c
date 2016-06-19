@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.114 2016/06/18 20:25:27 je Exp $ */
+/* $Id: sequencer.c,v 1.115 2016/06/19 19:49:09 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -173,16 +173,17 @@ sequencer_handle_signal(int signo)
 }
 
 int
-_mdl_start_sequencer_process(struct sequencer_process *seq_proc,
-    enum mididev_type mididev_type, const char *devicepath, int dry_run)
+_mdl_start_sequencer_process(pid_t *sequencer_pid,
+    struct sequencer_connection *seq_conn, enum mididev_type mididev_type,
+    const char *devicepath, int dry_run)
 {
 	struct sequencer seq;
 	int ss_sp[2];	/* client-sequencer socketpair */
 	int sequencer_retvalue, ret;
-	pid_t sequencer_pid;
+	pid_t tmp_sequencer_pid;
 
-	seq_proc->pid = 0;
-	seq_proc->conn.socket = -1;
+	*sequencer_pid = 0;
+	seq_conn->socket = -1;
 
 	/* Setup socketpair for server <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ss_sp) == -1) {
@@ -194,7 +195,7 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 		warn("error flushing streams before sequencer fork");
 
 	/* Fork the midi sequencer process. */
-	if ((sequencer_pid = fork()) == -1) {
+	if ((tmp_sequencer_pid = fork()) == -1) {
 		warn("could not fork sequencer process");
 		if (close(ss_sp[0]) == -1)
 			warn("error closing first end of ss_sp");
@@ -203,7 +204,7 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 		return 1;
 	}
 
-	if (sequencer_pid == 0) {
+	if (tmp_sequencer_pid == 0) {
 		/*
 		 * We are in sequencer process, start sequencer loop.
 		 */
@@ -263,10 +264,10 @@ _mdl_start_sequencer_process(struct sequencer_process *seq_proc,
 	if (close(ss_sp[1]) == -1)
 		warn("error closing second end of ss_sp");
 
-	seq_proc->pid = sequencer_pid;
-	seq_proc->conn.socket = ss_sp[0];
+	*sequencer_pid = tmp_sequencer_pid;
+	seq_conn->socket = ss_sp[0];
 
-	imsg_init(&seq_proc->conn.ibuf, seq_proc->conn.socket);
+	imsg_init(&seq_conn->ibuf, seq_conn->socket);
 
 	return 0;
 }
@@ -308,16 +309,17 @@ _mdl_disconnect_sequencer_connection(struct sequencer_connection *seq_conn)
 }
 
 int
-_mdl_disconnect_sequencer_process(struct sequencer_process *seq_proc)
+_mdl_disconnect_sequencer_process(pid_t sequencer_pid,
+    struct sequencer_connection *seq_conn)
 {
 	/* Sequencer process was never established, so just return. */
-	if (seq_proc->pid == 0)
+	if (sequencer_pid == 0)
 		return 0;
 
-	if (_mdl_disconnect_sequencer_connection(&seq_proc->conn) != 0)
+	if (_mdl_disconnect_sequencer_connection(seq_conn) != 0)
 		warnx("error in disconnecting sequencer connection");
 
-	if (_mdl_wait_for_subprocess("sequencer", seq_proc->pid) != 0) {
+	if (_mdl_wait_for_subprocess("sequencer", sequencer_pid) != 0) {
 		warnx("error when waiting for sequencer subprocess");
 		return 1;
 	}

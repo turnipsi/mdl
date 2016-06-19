@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.20 2016/06/18 20:25:29 je Exp $ */
+/* $Id: mdld.c,v 1.21 2016/06/19 19:49:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -80,7 +80,8 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	struct sequencer_process seq_proc;
+	struct sequencer_connection seq_conn;
+	pid_t sequencer_pid;
 	char *devicepath, *socketpath;
 	int ch, exitstatus, server_socket;
 	size_t ret;
@@ -98,8 +99,8 @@ main(int argc, char *argv[])
 	server_socket = -1;
 	socketpath = NULL;
 
-	seq_proc.pid = 0;
-	seq_proc.conn.socket = -1;
+	sequencer_pid = 0;
+	seq_conn.socket = -1;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -154,8 +155,8 @@ main(int argc, char *argv[])
 		goto finish;
 	}
 
-	ret = _mdl_start_sequencer_process(&seq_proc, mididev_type,
-	    devicepath, 0);
+	ret = _mdl_start_sequencer_process(&sequencer_pid, &seq_conn,
+	    mididev_type, devicepath, 0);
 	if (ret != 0) {
 		warnx("error in starting up sequencer");
 		exitstatus = 1;
@@ -166,7 +167,7 @@ main(int argc, char *argv[])
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_connections(&seq_proc.conn, server_socket);
+	ret = handle_connections(&seq_conn, server_socket);
 	if (ret != 0) {
 		warnx("error in handling connections");
 		exitstatus = 1;
@@ -185,7 +186,7 @@ finish:
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (_mdl_disconnect_sequencer_process(&seq_proc) != 0)
+	if (_mdl_disconnect_sequencer_process(sequencer_pid, &seq_conn) != 0)
 		warnx("error in disconnecting to sequencer process");
 
 	_mdl_logging_close();

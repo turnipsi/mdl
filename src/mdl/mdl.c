@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.30 2016/06/18 20:25:28 je Exp $ */
+/* $Id: mdl.c,v 1.31 2016/06/19 19:49:10 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -92,7 +92,8 @@ handle_signal(int signo)
 int
 main(int argc, char *argv[])
 {
-	struct sequencer_process seq_proc;
+	struct sequencer_connection seq_conn;
+	pid_t sequencer_pid;
 	char *devicepath;
 	char **musicfilepaths;
 	struct musicfiles musicfiles;
@@ -156,8 +157,8 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfilepaths = argv;
 
-	ret = _mdl_start_sequencer_process(&seq_proc, mididev_type,
-	    devicepath, nflag);
+	ret = _mdl_start_sequencer_process(&sequencer_pid, &seq_conn,
+	    mididev_type, devicepath, nflag);
 	if (ret != 0)
 		errx(1, "error in starting up sequencer");
 
@@ -174,14 +175,14 @@ main(int argc, char *argv[])
 	if (pledge("proc sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(&seq_proc.conn, &musicfiles);
+	ret = handle_musicfiles(&seq_conn, &musicfiles);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (_mdl_disconnect_sequencer_process(&seq_proc) != 0)
+	if (_mdl_disconnect_sequencer_process(sequencer_pid, &seq_conn) != 0)
 		errx(1, "error when disconnecting sequencer subprocess");
 
 	free(musicfiles.files);
