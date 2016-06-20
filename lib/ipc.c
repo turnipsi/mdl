@@ -1,4 +1,4 @@
-/* $Id: ipc.c,v 1.1 2016/06/15 20:19:36 je Exp $ */
+/* $Id: ipc.c,v 1.2 2016/06/20 19:08:07 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,23 +24,22 @@
 
 #include "ipc.h"
 
-#define SOCKETPATH_LEN	104
-
-char *
+const char *
 _mdl_get_socketpath(void)
 {
-	static char socketpath[SOCKETPATH_LEN];
+	static char socketpath[MDL_SOCKETPATH_LEN];
 	uid_t uid;
 	int ret;
 
 	uid = geteuid();
 	if (uid == 0) {
-		ret = snprintf(socketpath, SOCKETPATH_LEN, "/tmp/mdl/socket");
+		ret = snprintf(socketpath, MDL_SOCKETPATH_LEN,
+		    "/tmp/mdl/socket");
 	} else {
-		ret = snprintf(socketpath, SOCKETPATH_LEN,
+		ret = snprintf(socketpath, MDL_SOCKETPATH_LEN,
 		    "/tmp/mdl-%u/socket", uid);
 	}
-	if (ret == -1 || ret >= SOCKETPATH_LEN) {
+	if (ret == -1 || ret >= MDL_SOCKETPATH_LEN) {
 		warnx("snprintf error for server socketpath");
 		return NULL;
 	}

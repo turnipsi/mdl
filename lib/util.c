@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.40 2016/06/02 19:38:59 je Exp $ */
+/* $Id: util.c,v 1.41 2016/06/20 19:08:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,7 @@ struct {
 static const char *logtype_strings[] = {
 	"clock",	/* MDLLOG_CLOCK                  */
 	"exprconv",	/* MDLLOG_EXPRCONV               */
+	"ipc",		/* MDLLOG_IPC			 */
 	"joins",	/* MDLLOG_JOINS                  */
 	"midi",		/* MDLLOG_MIDI                   */
 	"midistream",	/* MDLLOG_MIDISTREAM             */

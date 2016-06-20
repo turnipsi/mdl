@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.115 2016/06/19 19:49:09 je Exp $ */
+/* $Id: sequencer.c,v 1.116 2016/06/20 19:08:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -182,7 +182,6 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 	int sequencer_retvalue, ret;
 	pid_t tmp_sequencer_pid;
 
-	*sequencer_pid = 0;
 	seq_conn->socket = -1;
 
 	/* Setup socketpair for server <-> sequencer communication. */

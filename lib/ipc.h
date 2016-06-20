@@ -1,4 +1,4 @@
-/* $Id: ipc.h,v 1.1 2016/06/15 20:19:36 je Exp $ */
+/* $Id: ipc.h,v 1.2 2016/06/20 19:08:07 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,8 @@
 #ifndef MDL_PROTOCOL_H
 #define MDL_PROTOCOL_H
 
+#define MDL_SOCKETPATH_LEN	104
+
 enum client_event {
 	CLIENTEVENT_NEW_MUSICFD,
 	CLIENTEVENT_NEW_SONG,
@@ -35,7 +37,7 @@ enum server_event {
 };
 
 __BEGIN_DECLS
-char	*_mdl_get_socketpath(void);
+const char	*_mdl_get_socketpath(void);
 __END_DECLS
 
 #endif /* !MDL_PROTOCOL_H */

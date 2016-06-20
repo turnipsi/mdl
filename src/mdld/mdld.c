@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.21 2016/06/19 19:49:11 je Exp $ */
+/* $Id: mdld.c,v 1.22 2016/06/20 19:08:09 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,8 +38,6 @@
 #include "midi.h"
 #include "sequencer.h"
 #include "util.h"
-
-#define SOCKETPATH_LEN	104
 
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
@@ -82,7 +80,7 @@ main(int argc, char *argv[])
 {
 	struct sequencer_connection seq_conn;
 	pid_t sequencer_pid;
-	char *devicepath, *socketpath;
+	const char *devicepath, *socketpath;
 	int ch, exitstatus, server_socket;
 	size_t ret;
 	enum mididev_type mididev_type;
@@ -197,15 +195,15 @@ finish:
 static int
 setup_socketdir(const char *socketpath)
 {
-	char socketpath_copy[SOCKETPATH_LEN];
+	char socketpath_copy[MDL_SOCKETPATH_LEN];
 	char *socketpath_dir;
 	struct stat sb;
 	size_t s;
 	uid_t uid;
 	mode_t mask, omask;
 
-	s = strlcpy(socketpath_copy, socketpath, SOCKETPATH_LEN);
-	if (s >= SOCKETPATH_LEN) {
+	s = strlcpy(socketpath_copy, socketpath, MDL_SOCKETPATH_LEN);
+	if (s >= MDL_SOCKETPATH_LEN) {
 		warnx("error in making a copy of socketpath");
 		return 1;
 	}
@@ -400,8 +398,8 @@ setup_server_socket(const char *socketpath)
 
 	memset(&sun, 0, sizeof(struct sockaddr_un));
 	sun.sun_family = AF_UNIX;
-	ret = strlcpy(sun.sun_path, socketpath, SOCKETPATH_LEN);
-	assert(ret < SOCKETPATH_LEN);
+	ret = strlcpy(sun.sun_path, socketpath, MDL_SOCKETPATH_LEN);
+	assert(ret < MDL_SOCKETPATH_LEN);
 
 	if ((server_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		warn("could not open socket %s", socketpath);

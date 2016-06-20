@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.31 2016/06/19 19:49:10 je Exp $ */
+/* $Id: mdl.c,v 1.32 2016/06/20 19:08:08 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -64,8 +64,9 @@ extern int loglevel;
 char *_mdl_process_type;
 
 static void	handle_signal(int);
-static int	open_musicfiles(char **, size_t, struct musicfiles *);
-static int	handle_musicfiles(struct sequencer_connection *,
+static int	establish_server_connection(struct sequencer_connection *);
+static int	open_musicfiles(struct musicfiles *, char **, size_t);
+static int	handle_musicfiles(int, struct sequencer_connection *,
     struct musicfiles *);
 static void __dead usage(void);
 
@@ -97,7 +98,8 @@ main(int argc, char *argv[])
 	char *devicepath;
 	char **musicfilepaths;
 	struct musicfiles musicfiles;
-	int ch, musicfilecount, nflag, ret;
+	int ch, connect_to_server, force_server_connection, musicfilecount;
+	int nflag, ret, server_socket;
 	enum mididev_type mididev_type;
 
 #ifdef HAVE_MALLOC_OPTIONS
@@ -106,9 +108,15 @@ main(int argc, char *argv[])
 
 	_mdl_process_type = "main";
 
+	/* XXX should be settable through command line arguments */
+	connect_to_server = 1;
+	force_server_connection = 0;
+
+	server_socket = -1;
 	devicepath = NULL;
 	nflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
+	sequencer_pid = 0;
 
 	/* Use all pledge promises needed by sndio (except for "audio" which
 	 * I think is sio_* specific), plus "proc", "recvfd" and "sendfd". */
@@ -157,17 +165,29 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfilepaths = argv;
 
-	ret = _mdl_start_sequencer_process(&sequencer_pid, &seq_conn,
-	    mididev_type, devicepath, nflag);
-	if (ret != 0)
-		errx(1, "error in starting up sequencer");
+	if (connect_to_server) {
+		/*
+		 * May fail, in which case server_socket == -1
+		 * seq_conn is not set.
+		 */
+		server_socket = establish_server_connection(&seq_conn);
+	}
+
+	if (server_socket == -1) {
+		if (force_server_connection)
+			errx(1, "forced a server connection, but it failed");
+		ret = _mdl_start_sequencer_process(&sequencer_pid, &seq_conn,
+		    mididev_type, devicepath, nflag);
+		if (ret != 0)
+			errx(1, "error in starting up sequencer");
+	}
 
 	/* Now that sequencer has been forked, we can drop all sndio related
 	 * pledges, plus "recvfd" only used by sequencer. */
 	if (pledge("proc rpath sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
-	ret = open_musicfiles(musicfilepaths, musicfilecount, &musicfiles);
+	ret = open_musicfiles(&musicfiles, musicfilepaths, musicfilecount);
 	if (ret != 0)
 		errx(1, "error in opening musicfiles");
 
@@ -175,15 +195,20 @@ main(int argc, char *argv[])
 	if (pledge("proc sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(&seq_conn, &musicfiles);
+	ret = handle_musicfiles(server_socket, &seq_conn, &musicfiles);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (_mdl_disconnect_sequencer_process(sequencer_pid, &seq_conn) != 0)
-		errx(1, "error when disconnecting sequencer subprocess");
+	if (sequencer_pid) {
+		ret = _mdl_disconnect_sequencer_process(sequencer_pid,
+		    &seq_conn);
+		if (ret != 0)
+			errx(1, "error when disconnecting sequencer"
+			    " subprocess");
+	}
 
 	free(musicfiles.files);
 
@@ -193,8 +218,86 @@ main(int argc, char *argv[])
 }
 
 static int
-open_musicfiles(char **musicfilepaths, size_t musicfilecount,
-    struct musicfiles *musicfiles)
+establish_server_connection(struct sequencer_connection *seq_conn)
+{
+	struct sockaddr_un sun;
+	struct imsgbuf ibuf;
+	struct imsg imsg;
+	const char *socketpath;
+	ssize_t nr;
+	int client_socket, imsg_init_done, ret, seq_socket;
+
+	client_socket = -1;
+	imsg_init_done = 0;
+	seq_socket = -1;
+
+	if ((socketpath = _mdl_get_socketpath()) == NULL) {
+		warnx("could not determine mdl socketpath");
+		goto error;
+	}
+
+	if ((client_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
+		warn("could not create a client socket");
+		goto error;
+	}
+
+	memset(&sun, 0, sizeof(struct sockaddr_un));
+	sun.sun_family = AF_UNIX;
+	ret = strlcpy(sun.sun_path, socketpath, MDL_SOCKETPATH_LEN);
+	assert(ret < MDL_SOCKETPATH_LEN);
+	ret = connect(client_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
+	if (ret == -1) {
+		warn("could not connect to server");
+		goto error;
+	}
+
+	_mdl_log(MDLLOG_IPC, 0, "connected to server\n");
+
+	imsg_init(&ibuf, client_socket);
+	imsg_init_done = 1;
+	if ((nr = imsg_read(&ibuf)) == -1 || nr == 0) {
+		warnx("error in reading from server / imsg_read");
+		goto error;
+	}
+
+
+	if ((nr == imsg_get(&ibuf, &imsg)) == -1 || nr == 0) {
+		warnx("error in reading from server / imsg_get");
+		goto error;
+	}
+
+	if (imsg.hdr.type != SERVEREVENT_NEW_CLIENT) {
+		warnx("received an unexpected event from server");
+		goto error;
+	}
+
+	if (imsg.fd == -1) {
+		warnx("did not receive a sequencer socket");
+		goto error;
+	}
+
+	_mdl_log(MDLLOG_IPC, 0, "received a sequencer socket\n");
+
+	seq_conn->socket = imsg.fd;
+	imsg_init(&seq_conn->ibuf, seq_conn->socket);
+
+	imsg_clear(&ibuf);
+
+	return client_socket;
+
+error:
+	if (imsg_init_done)
+		imsg_clear(&ibuf);
+
+	if (client_socket >= 0 && close(client_socket) == -1)
+		warn("closing client socket");
+
+	return -1;
+}
+
+static int
+open_musicfiles(struct musicfiles *musicfiles, char **musicfilepaths,
+    size_t musicfilecount)
 {
 	char *stdinfiles[] = { "-" };
 	int file_fd;
@@ -250,33 +353,35 @@ error:
 }
 
 static int
-handle_musicfiles(struct sequencer_connection *seq_conn,
+handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
     struct musicfiles *musicfiles)
 {
 	struct interpreter_process interp;
-	int fd, ret, retvalue, sequencer_is_playing;
+	int fd, handle_interpreter, ret, retvalue, sequencer_is_playing;
 	char *curr_path, *prev_path;
 	size_t i;
 
 	retvalue = 0;
 	sequencer_is_playing = 0;
+	handle_interpreter = (server_socket == -1);
 
 	curr_path = NULL;
 	prev_path = NULL;
 
 	/* XXX how to check for !mdl_shutdown_main? */
 
-	/* XXX This currently plays only the first one... */
 	for (i = 0; i < musicfiles->count; i++) {
 		curr_path = musicfiles->files[i].path;
 		fd        = musicfiles->files[i].fd;
 
-		ret = _mdl_start_interpreter_process(&interp, fd,
-		    seq_conn->socket);
-		if (ret != 0) {
-			warnx("could not start interpreter process");
-			retvalue = 1;
-			break;
+		if (handle_interpreter) {
+			ret = _mdl_start_interpreter_process(&interp, fd,
+			    seq_conn->socket);
+			if (ret != 0) {
+				warnx("could not start interpreter process");
+				retvalue = 1;
+				break;
+			}
 		}
 
 		if (sequencer_is_playing) {
@@ -297,6 +402,7 @@ handle_musicfiles(struct sequencer_connection *seq_conn,
 
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
+		/* XXX interp? */
 		ret = imsg_compose(&seq_conn->ibuf, CLIENTEVENT_NEW_SONG, 0, 0,
 		    interp.sequencer_read_pipe, "", 0);
 		if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
@@ -306,10 +412,13 @@ handle_musicfiles(struct sequencer_connection *seq_conn,
 
 		sequencer_is_playing = 1;
 
-		ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
-		if (ret != 0) {
-			warnx("error in interpreter subprocess");
-			retvalue = 1;
+		if (handle_interpreter) {
+			ret = _mdl_wait_for_subprocess("interpreter",
+			    interp.pid);
+			if (ret != 0) {
+				warnx("error in interpreter subprocess");
+				retvalue = 1;
+			}
 		}
 
 		if (fd != fileno(stdin) && close(fd) == -1)
