@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.32 2016/06/20 19:08:08 je Exp $ */
+/* $Id: mdl.c,v 1.33 2016/06/21 20:06:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -52,6 +52,11 @@ struct musicfiles {
 	size_t			count;
 };
 
+struct server_connection {
+	int		socket;
+	struct imsgbuf	ibuf;
+};
+
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
@@ -64,10 +69,13 @@ extern int loglevel;
 char *_mdl_process_type;
 
 static void	handle_signal(int);
-static int	establish_server_connection(struct sequencer_connection *);
+static int	establish_sequencer_connection(struct server_connection *,
+    struct sequencer_connection *);
+static int	establish_server_connection(struct server_connection *);
+static int	get_interp_pipe(struct server_connection *);
 static int	open_musicfiles(struct musicfiles *, char **, size_t);
-static int	handle_musicfiles(int, struct sequencer_connection *,
-    struct musicfiles *);
+static int	handle_musicfiles(struct server_connection *,
+    struct sequencer_connection *, struct musicfiles *);
 static void __dead usage(void);
 
 static int	wait_for_sequencer_event(struct sequencer_connection *,
@@ -94,12 +102,14 @@ int
 main(int argc, char *argv[])
 {
 	struct sequencer_connection seq_conn;
+	struct server_connection server_conn;
 	pid_t sequencer_pid;
 	char *devicepath;
 	char **musicfilepaths;
 	struct musicfiles musicfiles;
 	int ch, connect_to_server, force_server_connection, musicfilecount;
-	int nflag, ret, server_socket;
+	int nflag, ret, sequencer_connection_established;
+	int server_connection_established;
 	enum mididev_type mididev_type;
 
 #ifdef HAVE_MALLOC_OPTIONS
@@ -112,7 +122,6 @@ main(int argc, char *argv[])
 	connect_to_server = 1;
 	force_server_connection = 0;
 
-	server_socket = -1;
 	devicepath = NULL;
 	nflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
@@ -165,15 +174,25 @@ main(int argc, char *argv[])
 	musicfilecount = argc;
 	musicfilepaths = argv;
 
+	sequencer_connection_established = 0;
+	server_connection_established = 0;
 	if (connect_to_server) {
-		/*
-		 * May fail, in which case server_socket == -1
-		 * seq_conn is not set.
-		 */
-		server_socket = establish_server_connection(&seq_conn);
+		ret = establish_server_connection(&server_conn);
+		if (ret == 0) {
+			ret = establish_sequencer_connection(&server_conn,
+			    &seq_conn);
+			if (ret != 0) {
+				imsg_clear(&server_conn.ibuf);
+				if (close(server_conn.socket) == -1)
+					warn("closing server connection");
+			} else {
+				sequencer_connection_established = 1;
+				server_connection_established = 1;
+			}
+		}
 	}
 
-	if (server_socket == -1) {
+	if (!sequencer_connection_established) {
 		if (force_server_connection)
 			errx(1, "forced a server connection, but it failed");
 		ret = _mdl_start_sequencer_process(&sequencer_pid, &seq_conn,
@@ -195,14 +214,16 @@ main(int argc, char *argv[])
 	if (pledge("proc sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 
-	ret = handle_musicfiles(server_socket, &seq_conn, &musicfiles);
+	ret = handle_musicfiles(
+	    (server_connection_established ? &server_conn : NULL),
+	    &seq_conn, &musicfiles);
 	if (ret != 0)
 		errx(1, "error in handling musicfiles");
 
 	if (pledge("stdio", NULL) == -1)
 		err(1, "pledge");
 
-	if (sequencer_pid) {
+	if (sequencer_pid != 0) {
 		ret = _mdl_disconnect_sequencer_process(sequencer_pid,
 		    &seq_conn);
 		if (ret != 0)
@@ -218,27 +239,63 @@ main(int argc, char *argv[])
 }
 
 static int
-establish_server_connection(struct sequencer_connection *seq_conn)
+establish_sequencer_connection(struct server_connection *server_conn,
+    struct sequencer_connection *seq_conn)
+{
+	struct imsg imsg;
+	ssize_t nr;
+	int seq_socket;
+
+	seq_socket = -1;
+
+	if ((nr = imsg_read(&server_conn->ibuf)) == -1 || nr == 0) {
+		warnx("error in reading from server / imsg_read");
+		return 1;
+	}
+
+
+	if ((nr == imsg_get(&server_conn->ibuf, &imsg)) == -1 || nr == 0) {
+		warnx("error in reading from server / imsg_get");
+		return 1;
+	}
+
+	if (imsg.hdr.type != SERVEREVENT_NEW_CLIENT) {
+		warnx("received an unexpected event from server");
+		imsg_free(&imsg);
+		return 1;
+	}
+
+	if (imsg.fd == -1) {
+		warnx("did not receive a sequencer socket");
+		imsg_free(&imsg);
+		return 1;
+	}
+
+	_mdl_log(MDLLOG_IPC, 0, "received a sequencer socket\n");
+
+	seq_conn->socket = imsg.fd;
+	imsg_free(&imsg);
+
+	imsg_init(&seq_conn->ibuf, seq_conn->socket);
+
+	return 0;
+}
+
+static int
+establish_server_connection(struct server_connection *server_conn)
 {
 	struct sockaddr_un sun;
-	struct imsgbuf ibuf;
-	struct imsg imsg;
 	const char *socketpath;
-	ssize_t nr;
-	int client_socket, imsg_init_done, ret, seq_socket;
-
-	client_socket = -1;
-	imsg_init_done = 0;
-	seq_socket = -1;
+	int client_socket, ret;
 
 	if ((socketpath = _mdl_get_socketpath()) == NULL) {
 		warnx("could not determine mdl socketpath");
-		goto error;
+		return 1;
 	}
 
 	if ((client_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
 		warn("could not create a client socket");
-		goto error;
+		return 1;
 	}
 
 	memset(&sun, 0, sizeof(struct sockaddr_un));
@@ -248,51 +305,17 @@ establish_server_connection(struct sequencer_connection *seq_conn)
 	ret = connect(client_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
 	if (ret == -1) {
 		warn("could not connect to server");
-		goto error;
+		if (close(client_socket) == -1)
+			warn("closing client socket");
+		return 1;
 	}
 
 	_mdl_log(MDLLOG_IPC, 0, "connected to server\n");
 
-	imsg_init(&ibuf, client_socket);
-	imsg_init_done = 1;
-	if ((nr = imsg_read(&ibuf)) == -1 || nr == 0) {
-		warnx("error in reading from server / imsg_read");
-		goto error;
-	}
+	server_conn->socket = client_socket;
+	imsg_init(&server_conn->ibuf, server_conn->socket);
 
-
-	if ((nr == imsg_get(&ibuf, &imsg)) == -1 || nr == 0) {
-		warnx("error in reading from server / imsg_get");
-		goto error;
-	}
-
-	if (imsg.hdr.type != SERVEREVENT_NEW_CLIENT) {
-		warnx("received an unexpected event from server");
-		goto error;
-	}
-
-	if (imsg.fd == -1) {
-		warnx("did not receive a sequencer socket");
-		goto error;
-	}
-
-	_mdl_log(MDLLOG_IPC, 0, "received a sequencer socket\n");
-
-	seq_conn->socket = imsg.fd;
-	imsg_init(&seq_conn->ibuf, seq_conn->socket);
-
-	imsg_clear(&ibuf);
-
-	return client_socket;
-
-error:
-	if (imsg_init_done)
-		imsg_clear(&ibuf);
-
-	if (client_socket >= 0 && close(client_socket) == -1)
-		warn("closing client socket");
-
-	return -1;
+	return 0;
 }
 
 static int
@@ -353,17 +376,17 @@ error:
 }
 
 static int
-handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
-    struct musicfiles *musicfiles)
+handle_musicfiles(struct server_connection *server_conn,
+    struct sequencer_connection *seq_conn, struct musicfiles *musicfiles)
 {
 	struct interpreter_process interp;
-	int fd, handle_interpreter, ret, retvalue, sequencer_is_playing;
 	char *curr_path, *prev_path;
 	size_t i;
+	int fd, interp_pipe, ret, retvalue;
+	int sequencer_is_playing;
 
 	retvalue = 0;
 	sequencer_is_playing = 0;
-	handle_interpreter = (server_socket == -1);
 
 	curr_path = NULL;
 	prev_path = NULL;
@@ -374,7 +397,28 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 		curr_path = musicfiles->files[i].path;
 		fd        = musicfiles->files[i].fd;
 
-		if (handle_interpreter) {
+		if (server_conn != NULL) {
+			ret = imsg_compose(&server_conn->ibuf,
+			    CLIENTEVENT_NEW_MUSICFD, 0, 0, fd, "", 0);
+			if (ret == -1 ||
+			    imsg_flush(&server_conn->ibuf) == -1) {
+				warnx("error sending a music file descriptor"
+				    " to server");
+				retvalue = 1;
+				break;
+			} else {
+				/* Successful send closes this. */
+				musicfiles->files[i].fd = -1;
+			}
+	
+			interp_pipe = get_interp_pipe(server_conn);
+			if (interp_pipe == -1) {
+				warnx("error in getting an interpreter pipe"
+				    " from server");
+				retvalue = 1;
+				break;
+			}
+		} else {
 			ret = _mdl_start_interpreter_process(&interp, fd,
 			    seq_conn->socket);
 			if (ret != 0) {
@@ -382,12 +426,11 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 				retvalue = 1;
 				break;
 			}
+			interp_pipe = interp.sequencer_read_pipe;
 		}
 
 		if (sequencer_is_playing) {
-			/* XXX Wait for sequencer playback to finish, do this
-			 * XXX right. */
-			_mdl_log(MDLLOG_SONG, 0,
+			_mdl_log(MDLLOG_IPC, 0,
 			    "waiting for SEQEVENT_SONG_END\n");
 			ret = wait_for_sequencer_event(seq_conn,
 			    SEQEVENT_SONG_END);
@@ -402,9 +445,8 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 
 		_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", curr_path);
 
-		/* XXX interp? */
 		ret = imsg_compose(&seq_conn->ibuf, CLIENTEVENT_NEW_SONG, 0, 0,
-		    interp.sequencer_read_pipe, "", 0);
+		    interp_pipe, "", 0);
 		if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
 			warnx("could not request new song from sequencer");
 			retvalue = 1;
@@ -412,7 +454,7 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 
 		sequencer_is_playing = 1;
 
-		if (handle_interpreter) {
+		if (server_conn == NULL) {
 			ret = _mdl_wait_for_subprocess("interpreter",
 			    interp.pid);
 			if (ret != 0) {
@@ -420,9 +462,6 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 				retvalue = 1;
 			}
 		}
-
-		if (fd != fileno(stdin) && close(fd) == -1)
-			warn("error closing %s", curr_path);
 
 		if (retvalue != 0)
 			break;
@@ -442,6 +481,14 @@ handle_musicfiles(int server_socket, struct sequencer_connection *seq_conn,
 
 	if (prev_path != NULL)
 		_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n", prev_path);
+
+	for (i = 0; i < musicfiles->count; i++) {
+		fd = musicfiles->files[i].fd;
+		if (fd == -1)
+			continue;
+		if (fd != fileno(stdin) && close(fd) == -1)
+			warn("error closing %s", musicfiles->files[i].path);
+	}
 
 	return retvalue;
 }
@@ -484,4 +531,38 @@ wait_for_sequencer_event(struct sequencer_connection *seq_conn,
 	}
 
 	return 0;
+}
+
+static int
+get_interp_pipe(struct server_connection *server_conn)
+{
+	struct imsg imsg;
+	ssize_t nr;
+
+	if ((nr = imsg_read(&server_conn->ibuf)) == -1 || nr == 0) {
+		warnx("error reading interpreter pipe / imsg_read");
+		return 1;
+	}
+
+
+	if ((nr = imsg_get(&server_conn->ibuf, &imsg)) == -1 || nr == 0) {
+		warnx("error reading interpreter pipe / imsg_get");
+		return 1;
+	}
+
+	if (imsg.hdr.type != SERVEREVENT_NEW_INTERPRETER) {
+		warnx("received an unexpected event from server");
+		imsg_free(&imsg);
+		return 1;
+	}
+
+	if (imsg.fd == -1) {
+		warnx("did not receive an interpreter socket");
+		imsg_free(&imsg);
+		return 1;
+	}
+
+	imsg_free(&imsg);
+
+	return imsg.fd;
 }
