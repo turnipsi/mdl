@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.34 2016/06/22 20:13:51 je Exp $ */
+/* $Id: mdl.c,v 1.35 2016/06/22 20:39:54 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,6 +76,7 @@ static int	get_interp_pipe(struct server_connection *);
 static int	open_musicfiles(struct musicfiles *, char **, size_t);
 static int	handle_musicfiles(struct server_connection *,
     struct sequencer_connection *, struct musicfiles *);
+static int	replace_server_with_client_conn(struct sequencer_connection *);
 static void __dead usage(void);
 
 static int	wait_for_sequencer_event(struct sequencer_connection *,
@@ -217,6 +218,9 @@ main(int argc, char *argv[])
 		    mididev_type, devicepath, nflag);
 		if (ret != 0)
 			errx(1, "error in starting up sequencer");
+		if (replace_server_with_client_conn(&seq_conn) != 0)
+			errx(1, "error in setting up sequencer client"
+			    " connection");
 	}
 
 	/* Now that sequencer has been forked, we can drop all sndio related
@@ -432,7 +436,7 @@ handle_musicfiles(struct server_connection *server_conn,
 				/* Successful send closes this. */
 				musicfiles->files[i].fd = -1;
 			}
-	
+
 			interp_pipe = get_interp_pipe(server_conn);
 			if (interp_pipe == -1) {
 				warnx("error in getting an interpreter pipe"
@@ -587,4 +591,36 @@ get_interp_pipe(struct server_connection *server_conn)
 	imsg_free(&imsg);
 
 	return imsg.fd;
+}
+
+static int
+replace_server_with_client_conn(struct sequencer_connection *seq_conn)
+{
+	int cs_sp[2];
+	int ret;
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
+		warn("could not setup socketpair for client <-> sequencer");
+		return 1;
+	}
+
+	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[0], "", 0);
+	if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
+		warnx("sending new client event to sequencer");
+		if (close(cs_sp[0]) == -1)
+			warn("closing first end of cs_sp");
+		if (close(cs_sp[1]) == -1)
+			warn("closing second end of cs_sp");
+		return 1;
+	}
+
+	imsg_clear(&seq_conn->ibuf);
+	if (close(seq_conn->socket) == -1)
+		warn("error closing server <-> sequencer socket");
+
+	seq_conn->socket = cs_sp[1];
+	imsg_init(&seq_conn->ibuf, seq_conn->socket);
+
+	return 0;
 }

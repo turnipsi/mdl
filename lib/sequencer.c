@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.116 2016/06/20 19:08:07 je Exp $ */
+/* $Id: sequencer.c,v 1.117 2016/06/22 20:39:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -186,7 +186,7 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 
 	/* Setup socketpair for server <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ss_sp) == -1) {
-		warn("could not setup socketpair for client <-> sequencer");
+		warn("could not setup socketpair for server <-> sequencer");
 		return 1;
 	}
 
@@ -740,7 +740,7 @@ sequencer_handle_server_events(struct sequencer *seq)
 		switch (event) {
 		case SERVEREVENT_NEW_CLIENT:
 			ret = sequencer_accept_client_socket(seq, imsg.fd);
-			if (ret != 0) {			
+			if (ret != 0) {
 				warnx("error in accepting new client socket");
 				imsg_free(&imsg);
 				return 1;
