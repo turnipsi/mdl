@@ -1,6 +1,6 @@
-.\"	$Id: mdl.1,v 1.3 2016/05/30 20:15:27 je Exp $
+.\"	$Id: mdl.1,v 1.4 2016/06/22 20:13:51 je Exp $
 .\"
-.\" Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+.\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
 .\" Permission to use, copy, modify, and distribute this software for any
 .\" purpose with or without fee is hereby granted, provided that the above
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: May 30 2016 $
+.Dd $Mdocdate: June 22 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -24,7 +24,7 @@
 .Nd a music description language with a MIDI sequencer
 .Sh SYNOPSIS
 .Nm mdl
-.Op Fl nv
+.Op Fl cnsv
 .Op Fl d Ar debuglevel
 .Op Fl f Ar device
 .Op Fl m Ar MIDI-interface
@@ -39,6 +39,16 @@ syntax but is not compatible.
 .Pp
 The options are as follows:
 .Bl -tag -width Ds
+.It Fl c
+Force a client mode.
+.Nm
+normally connects to a server,
+but if that fails then it falls back to standalone mode.
+However, with
+.Fl c
+option
+.Nm
+exits with error if connecting to a server fails.
 .It Fl d Ar debuglevel
 Set
 .Ar debuglevel
@@ -49,6 +59,7 @@ more detailed debugging messages are printed.
 Other possible values are
 .Cm clock ,
 .Cm exprconv ,
+.Cm ipc ,
 .Cm joins ,
 .Cm midi ,
 .Cm midistream ,
@@ -76,7 +87,7 @@ MIDI devices this is the name of the
 MIDI device with the default value of
 .Dq default .
 See the
-.Ar -m
+.Fl m
 option for setting the MIDI-interface type.
 .It Fl m Ar MIDI-interface
 Set the
@@ -95,7 +106,17 @@ option for supported MIDI-interfaces
 and the default MIDI-interface type used.
 .It Fl n
 Dry run.
-Do everything else but do not actually play music.
+Do most things except do not actually play music
+or establish any server connections
+(implies the
+.Fl s
+option).
+.It Fl s
+Run
+.Nm
+in standalone mode,
+in which it does not connect to a server,
+but manages interpreter and sequencer subprocesses by itself.
 .It Fl v
 Show
 .Nm

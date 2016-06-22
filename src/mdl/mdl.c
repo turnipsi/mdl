@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.33 2016/06/21 20:06:07 je Exp $ */
+/* $Id: mdl.c,v 1.34 2016/06/22 20:13:51 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -71,7 +71,7 @@ char *_mdl_process_type;
 static void	handle_signal(int);
 static int	establish_sequencer_connection(struct server_connection *,
     struct sequencer_connection *);
-static int	establish_server_connection(struct server_connection *);
+static int	establish_server_connection(struct server_connection *, int);
 static int	get_interp_pipe(struct server_connection *);
 static int	open_musicfiles(struct musicfiles *, char **, size_t);
 static int	handle_musicfiles(struct server_connection *,
@@ -107,8 +107,9 @@ main(int argc, char *argv[])
 	char *devicepath;
 	char **musicfilepaths;
 	struct musicfiles musicfiles;
-	int ch, connect_to_server, force_server_connection, musicfilecount;
-	int nflag, ret, sequencer_connection_established;
+	int cflag, nflag, sflag;
+	int ch, connect_to_server, force_server_connection;
+	int musicfilecount, ret, sequencer_connection_established;
 	int server_connection_established;
 	enum mididev_type mididev_type;
 
@@ -118,12 +119,14 @@ main(int argc, char *argv[])
 
 	_mdl_process_type = "main";
 
-	/* XXX should be settable through command line arguments */
+	cflag = 0;
+	nflag = 0;
+	sflag = 0;
+
 	connect_to_server = 1;
 	force_server_connection = 0;
 
 	devicepath = NULL;
-	nflag = 0;
 	mididev_type = DEFAULT_MIDIDEV_TYPE;
 	sequencer_pid = 0;
 
@@ -139,8 +142,11 @@ main(int argc, char *argv[])
 
 	_mdl_logging_init();
 
-	while ((ch = getopt(argc, argv, "d:f:m:nv")) != -1) {
+	while ((ch = getopt(argc, argv, "cd:f:m:nsv")) != -1) {
 		switch (ch) {
+		case 'c':
+			cflag = 1;
+			break;
 		case 'd':
 			if (_mdl_logging_setopts(optarg) == -1)
 				errx(1, "error in setting logging opts");
@@ -155,6 +161,10 @@ main(int argc, char *argv[])
 			break;
 		case 'n':
 			nflag = 1;
+			sflag = 1;	/* -n implies -s */
+			break;
+		case 's':
+			sflag = 1;
 			break;
 		case 'v':
 			if (_mdl_show_version() != 0)
@@ -169,6 +179,13 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	if (cflag && sflag)
+		errx(1, "-c and -s options are mutually exclusive");
+	if (cflag)
+		force_server_connection = 1;
+	if (sflag)
+		connect_to_server = 0;
+
 	_mdl_log(MDLLOG_PROCESS, 0, "new main process, pid %d\n", getpid());
 
 	musicfilecount = argc;
@@ -177,7 +194,8 @@ main(int argc, char *argv[])
 	sequencer_connection_established = 0;
 	server_connection_established = 0;
 	if (connect_to_server) {
-		ret = establish_server_connection(&server_conn);
+		ret = establish_server_connection(&server_conn,
+		    force_server_connection);
 		if (ret == 0) {
 			ret = establish_sequencer_connection(&server_conn,
 			    &seq_conn);
@@ -282,19 +300,22 @@ establish_sequencer_connection(struct server_connection *server_conn,
 }
 
 static int
-establish_server_connection(struct server_connection *server_conn)
+establish_server_connection(struct server_connection *server_conn,
+    int force_server_connection)
 {
 	struct sockaddr_un sun;
 	const char *socketpath;
 	int client_socket, ret;
 
 	if ((socketpath = _mdl_get_socketpath()) == NULL) {
-		warnx("could not determine mdl socketpath");
+		if (force_server_connection)
+			warnx("could not determine mdl socketpath");
 		return 1;
 	}
 
 	if ((client_socket = socket(AF_UNIX, SOCK_STREAM, 0)) == -1) {
-		warn("could not create a client socket");
+		if (force_server_connection)
+			warn("could not create a client socket");
 		return 1;
 	}
 
@@ -304,8 +325,9 @@ establish_server_connection(struct server_connection *server_conn)
 	assert(ret < MDL_SOCKETPATH_LEN);
 	ret = connect(client_socket, (struct sockaddr *)&sun, SUN_LEN(&sun));
 	if (ret == -1) {
-		warn("could not connect to server");
-		if (close(client_socket) == -1)
+		if (force_server_connection)
+			warn("could not connect to server");
+		if (close(client_socket) == -1 && force_server_connection)
 			warn("closing client socket");
 		return 1;
 	}
