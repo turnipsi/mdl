@@ -40,9 +40,9 @@ Mdl project goals include:
   - be an old-school unix program, do not follow latest trends
   - overthrow the music business! ;-)
 
-What Mdl is not:
+What Mdl is not or does not do:
 
-  - not a synth, it does not produce audio
-  - music typesetter, it does not produce sheet music
+  - is not a synth, it does not produce audio
+  - is not a music typesetter, it does not produce sheet music
     (use lilypond for that)
   - does not provide a GUI-interface
