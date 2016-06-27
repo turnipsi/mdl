@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.36 2016/06/27 20:00:51 je Exp $ */
+/* $Id: mdl.c,v 1.37 2016/06/27 20:07:31 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -510,9 +510,9 @@ handle_musicfiles(struct server_connection *server_conn,
 
 	for (i = 0; i < musicfiles->count; i++) {
 		fd = musicfiles->files[i].fd;
-		if (fd == -1)
+		if (fd == -1 || fd == fileno(stdin))
 			continue;
-		if (fd != fileno(stdin) && close(fd) == -1)
+		if (close(fd) == -1)
 			warn("error closing %s", musicfiles->files[i].path);
 	}
 
