@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.35 2016/06/22 20:39:54 je Exp $ */
+/* $Id: mdl.c,v 1.36 2016/06/27 20:00:51 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -567,25 +567,24 @@ get_interp_pipe(struct server_connection *server_conn)
 
 	if ((nr = imsg_read(&server_conn->ibuf)) == -1 || nr == 0) {
 		warnx("error reading interpreter pipe / imsg_read");
-		return 1;
+		return -1;
 	}
-
 
 	if ((nr = imsg_get(&server_conn->ibuf, &imsg)) == -1 || nr == 0) {
 		warnx("error reading interpreter pipe / imsg_get");
-		return 1;
+		return -1;
 	}
 
 	if (imsg.hdr.type != SERVEREVENT_NEW_INTERPRETER) {
 		warnx("received an unexpected event from server");
 		imsg_free(&imsg);
-		return 1;
+		return -1;
 	}
 
 	if (imsg.fd == -1) {
-		warnx("did not receive an interpreter socket");
+		warnx("did not receive an interpreter pipe");
 		imsg_free(&imsg);
-		return 1;
+		return -1;
 	}
 
 	imsg_free(&imsg);
