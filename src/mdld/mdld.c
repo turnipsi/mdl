@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.22 2016/06/20 19:08:09 je Exp $ */
+/* $Id: mdld.c,v 1.23 2016/06/30 20:40:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,15 +16,18 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <sys/uio.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <imsg.h>
 #include <libgen.h>
 #include <limits.h>
 #include <signal.h>
@@ -39,15 +42,27 @@
 #include "sequencer.h"
 #include "util.h"
 
+struct client_connection {
+	int				socket;
+	struct imsgbuf			ibuf;
+	TAILQ_ENTRY(client_connection)	tq;
+};
+
+TAILQ_HEAD(clientlist, client_connection);
+
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
 
 static int	setup_socketdir(const char *);
-static int	get_musicfile_fd(struct imsgbuf *);
+static int	accept_new_client_connection(struct client_connection **,
+    struct sequencer_connection *, int);
+static int	handle_client_connection(struct client_connection *,
+    struct sequencer_connection *, struct clientlist *);
+static int	handle_musicfd_event(struct client_connection *,
+    struct sequencer_connection *, int);
 static void	handle_signal(int);
 static int	handle_connections(struct sequencer_connection *, int);
-static int	handle_client_connection(struct sequencer_connection *, int);
 static int	setup_server_socket(const char *);
 static void __dead usage(void);
 
@@ -246,11 +261,15 @@ setup_socketdir(const char *socketpath)
 static int
 handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 {
-	int ret, retvalue;
+	struct client_connection *client_conn, *cc_tmp;
 	fd_set readfds;
 	sigset_t loop_sigmask, select_sigmask;
+	int ret, retvalue;
+	struct clientlist clients;
 
 	retvalue = 0;
+
+	TAILQ_INIT(&clients);
 
 	(void) sigemptyset(&loop_sigmask);
 	(void) sigaddset(&loop_sigmask, SIGINT);
@@ -260,9 +279,11 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	(void) sigemptyset(&select_sigmask);
 
 	while (!mdld_shutdown_server) {
-		/* XXX for a loop as simple as this pselect() is not needed */
 		FD_ZERO(&readfds);
 		FD_SET(server_socket, &readfds);
+
+		TAILQ_FOREACH(client_conn, &clients, tq)
+			FD_SET(client_conn->socket, &readfds);
 
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
 		    &select_sigmask);
@@ -272,12 +293,24 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 			break;
 		}
 
+		TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp) {
+			if (FD_ISSET(client_conn->socket, &readfds)) {
+				/* May remove client_conn from clients. */
+				ret = handle_client_connection(client_conn,
+				    seq_conn, &clients);
+				if (ret != 0)
+					warnx("error in handling client");
+			}
+		}
+
 		if (FD_ISSET(server_socket, &readfds)) {
-			ret = handle_client_connection(seq_conn,
-			    server_socket);
-			if (ret != 0)
-				warnx("error in handling client connection");
-			continue;
+			ret = accept_new_client_connection(&client_conn,
+			    seq_conn, server_socket);
+			if (ret != 0) {
+				warnx("error in accepting new client");
+				continue;
+			}
+			TAILQ_INSERT_HEAD(&clients, client_conn, tq);
 		}
 	}
 
@@ -285,104 +318,186 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 }
 
 static int
-handle_client_connection(struct sequencer_connection *seq_conn,
-    int server_socket)
+handle_client_connection(struct client_connection *client_conn,
+    struct sequencer_connection *seq_conn, struct clientlist *clients)
+{
+	enum client_event event;
+	struct imsg imsg;
+	ssize_t nr;
+	int retvalue;
+
+	retvalue = 0;
+
+	if ((nr = imsg_read(&client_conn->ibuf)) == -1) {
+		warnx("error in imsg_read");
+		retvalue = 1;
+		goto close_connection;
+	}
+
+	if (nr == 0)
+		goto close_connection;
+
+	if ((nr = imsg_get(&client_conn->ibuf, &imsg)) == -1) {
+		warnx("error in imsg_get");
+		retvalue = 1;
+		goto close_connection;
+	}
+
+	if (nr == 0)
+		goto close_connection;
+
+	event = imsg.hdr.type;
+	switch (event) {
+	case CLIENTEVENT_NEW_MUSICFD:
+		if (imsg.fd == -1)
+			warnx("no music descriptor received when expected");
+		handle_musicfd_event(client_conn, seq_conn, imsg.fd);
+		break;
+	case CLIENTEVENT_NEW_SONG:
+	case CLIENTEVENT_REPLACE_SONG:
+		warnx("client sent an event to server that should have been"
+		    " sent to sequencer");
+		retvalue = 1;
+		break;
+	default:
+		warnx("unknown event received from client");
+		retvalue = 1;
+	}
+
+	imsg_free(&imsg);
+
+	return retvalue;
+
+close_connection:
+	imsg_clear(&client_conn->ibuf);
+	if (close(client_conn->socket) == -1)
+		warn("error closing client connection");
+	TAILQ_REMOVE(clients, client_conn, tq);
+	free(client_conn);
+
+	return retvalue;
+}
+
+static int
+handle_musicfd_event(struct client_connection *client_conn,
+    struct sequencer_connection *seq_conn, int musicfile_fd)
+
 {
 	struct interpreter_process interp;
-	struct imsgbuf client_ibuf;
-	struct sockaddr_storage socket_addr;
-	socklen_t socket_len;
-	int cs_sp[2];
-	int client_socket, musicfile_fd, ret, retvalue;
+	int ret;
 
-	cs_sp[0] = -1;
-	cs_sp[1] = -1;
-	musicfile_fd = -1;
-
-	socket_len = sizeof(socket_addr);
-	client_socket = accept(server_socket, (struct sockaddr *)&socket_addr,
-	    &socket_len);
-	if (client_socket == -1) {
-		warn("accept");
-		return 1;
-	}
-
-	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
-		warn("could not setup socketpair for client <-> sequencer");
-		retvalue = 1;
-		goto finish;
-	}
-
-	imsg_init(&client_ibuf, client_socket);
-
-	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
-	    cs_sp[0], "", 0);
-	if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
-		warnx("sending new client event to sequencer");
-		retvalue = 1;
-		goto finish;
-	}
-	cs_sp[0] = -1;
-
-	ret = imsg_compose(&client_ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
-	    cs_sp[1], "", 0);
-	if (ret == -1 || imsg_flush(&client_ibuf) == -1) {
-		warnx("sending new sequencer socket to client");
-		retvalue = 1;
-		goto finish;
-	}
-	cs_sp[1] = -1;
-
-	if ((musicfile_fd = get_musicfile_fd(&client_ibuf)) == -1) {
-		warnx("did not receive new music file descriptor from client");
-		retvalue = 1;
-		goto finish;
-	}
+	_mdl_log(MDLLOG_IPC, 0, "received a new musicfile descriptor,"
+	    " starting an interpreter\n");
 
 	ret = _mdl_start_interpreter_process(&interp, musicfile_fd,
 	    seq_conn->socket);
+	if (close(musicfile_fd) == -1)
+		warn("closing musicfile descriptor");
 	if (ret != 0) {
 		warnx("could not start interpreter process");
-		retvalue = 1;
-		goto finish;
+		return 1;
 	}
 
-	ret = imsg_compose(&client_ibuf, SERVEREVENT_NEW_INTERPRETER, 0, 0,
-	    interp.sequencer_read_pipe, "", 0);
-	if (ret == -1 || imsg_flush(&client_ibuf) == -1) {
+	_mdl_log(MDLLOG_IPC, 0, "sending interpreter pipe to sequencer\n");
+
+	ret = imsg_compose(&client_conn->ibuf, SERVEREVENT_NEW_INTERPRETER, 0,
+	    0, interp.sequencer_read_pipe, "", 0);
+	if (ret == -1 || imsg_flush(&client_conn->ibuf) == -1) {
 		warnx("sending interpreter pipe to client");
-		retvalue = 1;
-		goto finish;
+		return 1;
 	}
 
 	/*
-	 * Client should now pass interpreter_fd to sequencer through the
-	 * socketpair created above.  We wait for client and interpreter to
-	 * do their work, before we listen for next clients.
+	 * Client should now pass interpreter_fd to sequencer through its
+	 * own client <-> sequencer communication socket.
+	 * We wait for client and interpreter to do their work, before we
+	 * listen for next clients. (XXX is this okay?)
 	 */
+
+	_mdl_log(MDLLOG_IPC, 0, "waiting for interpreter (pid %d) to finish",
+	    interp.pid);
 
 	ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
 	if (ret != 0) {
 		warnx("error in interpreter subprocess");
-		retvalue = 1;
-		goto finish;
+		return 1;
 	}
 
-finish:
+	return 0;
+}
+
+static int
+accept_new_client_connection(struct client_connection **new_client_conn,
+    struct sequencer_connection *seq_conn, int server_socket)
+{
+	struct client_connection *client_conn;
+	struct sockaddr_storage socket_addr;
+	socklen_t socket_len;
+	int cs_sp[2];
+	int client_conn_ok, ret;
+
+	client_conn = NULL;
+	client_conn_ok = 0;
+	cs_sp[0] = -1;
+	cs_sp[1] = -1;
+
+	if ((client_conn = malloc(sizeof(struct client_connection))) == NULL) {
+		warn("malloc in accept_new_client_connection");
+		return 1;
+	}
+
+	socket_len = sizeof(socket_addr);
+	client_conn->socket = accept(server_socket,
+	    (struct sockaddr *)&socket_addr, &socket_len);
+	if (client_conn->socket == -1) {
+		warn("accept");
+		goto error;
+	}
+
+	imsg_init(&client_conn->ibuf, client_conn->socket);
+	client_conn_ok = 1;
+
+	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
+		warn("could not setup socketpair for client <-> sequencer");
+		goto error;
+	}
+
+	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[0], "", 0);
+	if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
+		warnx("sending new client socket to sequencer");
+		goto error;
+	}
+	cs_sp[0] = -1; /* closed by imsg_compose/imsg_flush */
+
+	ret = imsg_compose(&client_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[1], "", 0);
+	if (ret == -1 || imsg_flush(&client_conn->ibuf) == -1) {
+		warnx("sending new sequencer socket to client");
+		goto error;
+	}
+	cs_sp[1] = -1; /* closed by imsg_compose/imsg_flush */
+
+	*new_client_conn = client_conn;
+
+	return 0;
+
+error:
 	if (cs_sp[0] >= 0 && close(cs_sp[0]) == -1)
 		warn("closing first end of cs_sp");
 	if (cs_sp[1] >= 0 && close(cs_sp[1]) == -1)
 		warn("closing second end of cs_sp");
-	if (musicfile_fd >= 0 && close(musicfile_fd) == -1)
-		warn("closing music file descriptor");
 
-	if (client_socket >= 0) {
-		imsg_clear(&client_ibuf);
-		if (close(client_socket) == -1)
+	if (client_conn_ok) {
+		imsg_clear(&client_conn->ibuf);
+		if (close(client_conn->socket) == -1)
 			warn("closing client connection");
 	}
 
-	return retvalue;
+	if (client_conn != NULL)
+		free(client_conn);
+
+	return 1;
 }
 
 static int
@@ -430,28 +545,4 @@ fail:
 		warn("error closing server socket");
 
 	return -1;
-}
-
-static int
-get_musicfile_fd(struct imsgbuf *ibuf)
-{
-	struct imsg imsg;
-	ssize_t nr;
-
-	if ((nr = imsg_read(ibuf)) == -1 || nr == 0) {
-		warnx("error in imsg_read");
-		return 1;
-	}
-	
-	if ((nr = imsg_get(ibuf, &imsg)) == -1 || nr == 0) {
-		warnx("error in imsg_get");
-		return 1;
-	}
-
-	if (imsg.hdr.type != CLIENTEVENT_NEW_MUSICFD) {
-		warnx("received event was not a new music descriptor event");
-		return 1;
-	}
-
-	return imsg.fd;
 }
