@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.16 2016/05/10 09:06:26 je Exp $
+# $Id: configure,v 1.17 2016/06/30 19:29:07 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -60,6 +60,16 @@ check_dead() {
   check_cc <<'EOF'
 #include <sys/types.h>
 void __dead foo(void);
+int main(void) {}
+EOF
+}
+
+check_imsg() {
+  check_cc <<'EOF'
+#include <sys/types.h>
+#include <sys/queue.h>
+#include <sys/uio.h>
+#include <imsg.h>
 int main(void) {}
 EOF
 }
@@ -159,6 +169,14 @@ fi
 
 if do_check malloc_options check_malloc_options; then
   append_to_config_h '#define HAVE_MALLOC_OPTIONS 1'
+fi
+
+if do_check imsg check_imsg; then
+  append_to_config_h '#define HAVE_IMSG 1'
+else
+  append_to_config_mk 'SRCS += ${COMPATDIR}/imsg-buffer.c'
+  append_to_config_mk 'SRCS += ${COMPATDIR}/imsg.c'
+  include_compat_h=true
 fi
 
 if do_check 'pledge()' check_pledge; then
