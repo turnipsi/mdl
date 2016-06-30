@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.37 2016/06/27 20:07:31 je Exp $ */
+/* $Id: mdl.c,v 1.38 2016/06/30 19:31:19 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -266,9 +266,6 @@ establish_sequencer_connection(struct server_connection *server_conn,
 {
 	struct imsg imsg;
 	ssize_t nr;
-	int seq_socket;
-
-	seq_socket = -1;
 
 	if ((nr = imsg_read(&server_conn->ibuf)) == -1 || nr == 0) {
 		warnx("error in reading from server / imsg_read");
@@ -524,7 +521,7 @@ wait_for_sequencer_event(struct sequencer_connection *seq_conn,
     enum sequencer_event event)
 {
 	struct imsg imsg;
-	ssize_t nr, datalen;
+	ssize_t nr;
 	int found;
 
 	found = 0;
@@ -547,8 +544,6 @@ wait_for_sequencer_event(struct sequencer_connection *seq_conn,
 		}
 		if (nr == 0)
 			continue;
-
-		datalen = imsg.hdr.len - IMSG_HEADER_SIZE;
 
 		if (imsg.hdr.type == event)
 			found = 1;
