@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.118 2016/07/01 19:52:17 je Exp $ */
+/* $Id: sequencer.c,v 1.119 2016/07/01 19:59:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -525,7 +525,7 @@ sequencer_accept_client_socket(struct sequencer *seq, int new_fd)
 	}
 
 	assert(seq->client_socket != new_fd);
-	
+
 	_mdl_log(MDLLOG_SEQ, 0, "received new client socket\n");
 
 	/* We have new client socket, make it non-blocking. */
