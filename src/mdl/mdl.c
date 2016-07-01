@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.38 2016/06/30 19:31:19 je Exp $ */
+/* $Id: mdl.c,v 1.39 2016/07/01 19:52:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -80,7 +80,7 @@ static int	replace_server_with_client_conn(struct sequencer_connection *);
 static void __dead usage(void);
 
 static int	wait_for_sequencer_event(struct sequencer_connection *,
-    enum sequencer_event event);
+    enum mdl_event);
 
 static void __dead
 usage(void)
@@ -518,7 +518,7 @@ handle_musicfiles(struct server_connection *server_conn,
 
 static int
 wait_for_sequencer_event(struct sequencer_connection *seq_conn,
-    enum sequencer_event event)
+    enum mdl_event event)
 {
 	struct imsg imsg;
 	ssize_t nr;

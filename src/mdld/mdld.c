@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.23 2016/06/30 20:40:57 je Exp $ */
+/* $Id: mdld.c,v 1.24 2016/07/01 19:52:20 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -321,7 +321,7 @@ static int
 handle_client_connection(struct client_connection *client_conn,
     struct sequencer_connection *seq_conn, struct clientlist *clients)
 {
-	enum client_event event;
+	enum mdl_event event;
 	struct imsg imsg;
 	ssize_t nr;
 	int retvalue;
@@ -354,9 +354,20 @@ handle_client_connection(struct client_connection *client_conn,
 		handle_musicfd_event(client_conn, seq_conn, imsg.fd);
 		break;
 	case CLIENTEVENT_NEW_SONG:
+		warnx("server received a new song event from client");
+		retvalue = 1;
+		break;
 	case CLIENTEVENT_REPLACE_SONG:
-		warnx("client sent an event to server that should have been"
-		    " sent to sequencer");
+		warnx("server received a replace song event from client");
+		retvalue = 1;
+		break;
+	case SEQEVENT_SONG_END:
+		warnx("server received a sequencer event from client");
+		retvalue = 1;
+		break;
+	case SERVEREVENT_NEW_CLIENT:
+	case SERVEREVENT_NEW_INTERPRETER:
+		warnx("server received a server event from client");
 		retvalue = 1;
 		break;
 	default:

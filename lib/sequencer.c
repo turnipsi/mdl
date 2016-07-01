@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.117 2016/06/22 20:39:53 je Exp $ */
+/* $Id: sequencer.c,v 1.118 2016/07/01 19:52:17 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -633,9 +633,9 @@ static int
 sequencer_handle_client_events(struct sequencer *seq)
 {
 	struct imsg imsg;
-	enum client_event event;
+	enum mdl_event event;
 	ssize_t nr;
-	int ret;
+	int ret, retvalue;
 
 	nr = imsg_read(&seq->client_ibuf);
 	if (nr == -1 && errno != EAGAIN) {
@@ -653,56 +653,65 @@ sequencer_handle_client_events(struct sequencer *seq)
 		return 0;
 	}
 
-	for (;;) {
+	retvalue = 0;
+
+	while (retvalue == 0) {
 		nr = imsg_get(&seq->client_ibuf, &imsg);
 		if (nr == -1) {
 			warnx("error in reading event from client / imsg_get");
-			return 1;
+			retvalue = 1;
+			break;
 		}
 		if (nr == 0)
-			return 0;
+			break;
 
 		event = imsg.hdr.type;
 		switch (event) {
 		case CLIENTEVENT_NEW_MUSICFD:
 			warnx("sequencer received new music file descriptor,"
 			    " this should not happen");
-			imsg_free(&imsg);
-			return 1;
+			retvalue = 1;
+			break;
 		case CLIENTEVENT_NEW_SONG:
 			ret = sequencer_accept_interp_fd(seq, imsg.fd);
-			if (ret != 0) {
-				imsg_free(&imsg);
-				return 1;
-			}
+			if (ret != 0)
+				retvalue = 1;
 			break;
 		case CLIENTEVENT_REPLACE_SONG:
 			ret = sequencer_accept_interp_fd(seq, imsg.fd);
 			if (ret != 0) {
-				imsg_free(&imsg);
-				return 1;
+				retvalue = 1;
+				break;
 			}
 			seq->reading_song->keep_position_when_switched_to = 1;
 			break;
+		case SEQEVENT_SONG_END:
+			warnx("received a sequencer event from client");
+			retvalue = 1;
+			break;
+		case SERVEREVENT_NEW_CLIENT:
+		case SERVEREVENT_NEW_INTERPRETER:
+			warnx("received a server event from client");
+			retvalue = 1;
+			break;
 		default:
 			warnx("unknown event received from client");
-			imsg_free(&imsg);
-			return 1;
+			retvalue = 1;
 		}
 
 		imsg_free(&imsg);
 	}
 
-	return 0;
+	return retvalue;
 }
 
 static int
 sequencer_handle_server_events(struct sequencer *seq)
 {
 	struct imsg imsg;
-	enum server_event event;
+	enum mdl_event event;
 	ssize_t nr;
-	int ret;
+	int ret, retvalue;
 
 	nr = imsg_read(&seq->server_ibuf);
 	if (nr == -1 && errno != EAGAIN) {
@@ -727,40 +736,51 @@ sequencer_handle_server_events(struct sequencer *seq)
 		return 0;
 	}
 
-	for (;;) {
+	retvalue = 0;
+
+	while (retvalue == 0) {
 		nr = imsg_get(&seq->server_ibuf, &imsg);
 		if (nr == -1) {
 			warnx("error in reading event from server / imsg_get");
-			return 1;
+			retvalue = 1;
+			break;
 		}
 		if (nr == 0)
-			return 0;
+			break;
 
 		event = imsg.hdr.type;
 		switch (event) {
+		case CLIENTEVENT_NEW_MUSICFD:
+		case CLIENTEVENT_NEW_SONG:
+		case CLIENTEVENT_REPLACE_SONG:
+			warnx("received a client event from server");
+			retvalue = 1;
+			break;
+		case SEQEVENT_SONG_END:
+			warnx("received a sequencer event from server");
+			retvalue = 1;
+			break;
 		case SERVEREVENT_NEW_CLIENT:
 			ret = sequencer_accept_client_socket(seq, imsg.fd);
 			if (ret != 0) {
 				warnx("error in accepting new client socket");
-				imsg_free(&imsg);
-				return 1;
+				retvalue = 1;
 			}
 			break;
 		case SERVEREVENT_NEW_INTERPRETER:
 			warnx("sequencer received new interpreter event from"
 			    " server, this should not happen");
-			imsg_free(&imsg);
-			return 1;
+			retvalue = 1;
+			break;
 		default:
 			warnx("unknown event received from server");
-			imsg_free(&imsg);
-			return 1;
+			retvalue = 1;
 		}
 
 		imsg_free(&imsg);
 	}
 
-	return 0;
+	return retvalue;
 }
 
 static int

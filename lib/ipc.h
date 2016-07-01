@@ -1,4 +1,4 @@
-/* $Id: ipc.h,v 1.2 2016/06/20 19:08:07 je Exp $ */
+/* $Id: ipc.h,v 1.3 2016/07/01 19:52:17 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,17 +21,11 @@
 
 #define MDL_SOCKETPATH_LEN	104
 
-enum client_event {
+enum mdl_event {
 	CLIENTEVENT_NEW_MUSICFD,
 	CLIENTEVENT_NEW_SONG,
 	CLIENTEVENT_REPLACE_SONG,
-};
-
-enum sequencer_event {
 	SEQEVENT_SONG_END,
-};
-
-enum server_event {
 	SERVEREVENT_NEW_CLIENT,
 	SERVEREVENT_NEW_INTERPRETER,
 };
