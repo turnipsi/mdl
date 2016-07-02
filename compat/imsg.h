@@ -18,7 +18,9 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#ifndef HAVE_IMSG
+#ifdef HAVE_IMSG
+#include_next <imsg.h>
+#else
 
 #ifndef _IMSG_H_
 #define _IMSG_H_
