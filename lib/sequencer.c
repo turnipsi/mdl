@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.119 2016/07/01 19:59:59 je Exp $ */
+/* $Id: sequencer.c,v 1.120 2016/07/02 20:10:55 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -205,7 +205,7 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 
 	if (tmp_sequencer_pid == 0) {
 		/*
-		 * We are in sequencer process, start sequencer loop.
+		 * We are in the sequencer process.
 		 */
 
 		/*
@@ -218,6 +218,8 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 			warn("pledge");
 			_exit(1);
 		}
+
+		setproctitle("sequencer");
 
 		_mdl_logging_clear();
 		_mdl_process_type = "seq";

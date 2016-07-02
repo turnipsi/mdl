@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.39 2016/07/01 19:52:18 je Exp $ */
+/* $Id: mdl.c,v 1.40 2016/07/02 20:10:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -223,8 +223,10 @@ main(int argc, char *argv[])
 			    " connection");
 	}
 
-	/* Now that sequencer has been forked, we can drop all sndio related
-	 * pledges, plus "recvfd" only used by sequencer. */
+	/*
+	 * Now that sequencer has been forked, we can drop all sndio related
+	 * pledges, plus "recvfd" only used by sequencer.
+	 */
 	if (pledge("proc rpath sendfd stdio", NULL) == -1)
 		err(1, "pledge");
 

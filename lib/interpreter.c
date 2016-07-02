@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.58 2016/06/13 20:55:31 je Exp $ */
+/* $Id: interpreter.c,v 1.59 2016/07/02 20:10:55 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <err.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -67,6 +68,8 @@ _mdl_start_interpreter_process(struct interpreter_process *interp,
 			warn("pledge");
 			_exit(1);
 		}
+
+		setproctitle("interpreter");
 
 		_mdl_logging_clear();
 		_mdl_process_type = "interp";
