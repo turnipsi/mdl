@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.24 2016/07/01 19:52:20 je Exp $ */
+/* $Id: mdld.c,v 1.25 2016/07/03 20:03:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -287,7 +287,9 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
 		    &select_sigmask);
-		if (ret == -1 && errno != EINTR) {
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 			warn("error in pselect");
 			retvalue = 1;
 			break;
