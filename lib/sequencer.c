@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.120 2016/07/02 20:10:55 je Exp $ */
+/* $Id: sequencer.c,v 1.121 2016/07/03 20:08:37 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -342,7 +342,7 @@ sequencer_loop(struct sequencer *seq)
 
 	(void) sigemptyset(&select_sigmask);
 
-	for (;;) {
+	while (!_mdl_shutdown_sequencer) {
 		assert(seq->playback_song->playback_state == IDLE ||
 		    seq->playback_song->playback_state == PLAYING);
 		assert(seq->reading_song->playback_state == READING ||
@@ -388,15 +388,10 @@ sequencer_loop(struct sequencer *seq)
 
 		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, timeout_p,
 		    &select_sigmask);
-		if (ret == -1 && errno != EINTR) {
+		if (ret == -1) {
+			if (errno == EINTR)
+				continue;
 			warn("error in pselect");
-			retvalue = 1;
-			goto finish;
-		}
-
-		if (_mdl_shutdown_sequencer) {
-			_mdl_log(MDLLOG_PROCESS, 0,
-			    "sequencer received shutdown signal\n");
 			retvalue = 1;
 			goto finish;
 		}
@@ -472,6 +467,12 @@ sequencer_loop(struct sequencer *seq)
 				seq->interp_fd = -1;
 			}
 		}
+	}
+
+	if (_mdl_shutdown_sequencer) {
+		_mdl_log(MDLLOG_PROCESS, 0,
+		    "sequencer received shutdown signal\n");
+		retvalue = 1;
 	}
 
 finish:
