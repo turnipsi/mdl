@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.121 2016/07/03 20:08:37 je Exp $ */
+/* $Id: sequencer.c,v 1.122 2016/07/03 20:20:03 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -641,7 +641,7 @@ sequencer_handle_client_events(struct sequencer *seq)
 	int ret, retvalue;
 
 	nr = imsg_read(&seq->client_ibuf);
-	if (nr == -1 && errno != EAGAIN) {
+	if (nr == -1) {
 		warnx("error in reading event from client / imsg_read");
 		return 1;
 	}
@@ -717,7 +717,7 @@ sequencer_handle_server_events(struct sequencer *seq)
 	int ret, retvalue;
 
 	nr = imsg_read(&seq->server_ibuf);
-	if (nr == -1 && errno != EAGAIN) {
+	if (nr == -1) {
 		warnx("error in reading event from server / imsg_read");
 		return 1;
 	}
