@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.122 2016/07/03 20:20:03 je Exp $ */
+/* $Id: sequencer.c,v 1.123 2016/07/06 20:29:21 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -182,8 +182,6 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 	int sequencer_retvalue, ret;
 	pid_t tmp_sequencer_pid;
 
-	seq_conn->socket = -1;
-
 	/* Setup socketpair for server <-> sequencer communication. */
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, ss_sp) == -1) {
 		warn("could not setup socketpair for server <-> sequencer");
@@ -266,6 +264,8 @@ _mdl_start_sequencer_process(pid_t *sequencer_pid,
 		warn("error closing second end of ss_sp");
 
 	*sequencer_pid = tmp_sequencer_pid;
+
+	seq_conn->pending_writes = 0;
 	seq_conn->socket = ss_sp[0];
 
 	imsg_init(&seq_conn->ibuf, seq_conn->socket);
@@ -313,9 +313,8 @@ int
 _mdl_disconnect_sequencer_process(pid_t sequencer_pid,
     struct sequencer_connection *seq_conn)
 {
-	/* Sequencer process was never established, so just return. */
-	if (sequencer_pid == 0)
-		return 0;
+	assert(sequencer_pid > 0);
+	assert(seq_conn != NULL);
 
 	if (_mdl_disconnect_sequencer_connection(seq_conn) != 0)
 		warnx("error in disconnecting sequencer connection");

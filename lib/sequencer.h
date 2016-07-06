@@ -1,4 +1,4 @@
-/* $Id: sequencer.h,v 1.25 2016/06/19 19:49:09 je Exp $ */
+/* $Id: sequencer.h,v 1.26 2016/07/06 20:29:21 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,6 +28,7 @@
 #include "midi.h"
 
 struct sequencer_connection {
+	int		pending_writes;
 	int		socket;
 	struct imsgbuf	ibuf;
 };

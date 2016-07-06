@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.40 2016/07/02 20:10:57 je Exp $ */
+/* $Id: mdl.c,v 1.41 2016/07/06 20:29:23 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -221,6 +221,7 @@ main(int argc, char *argv[])
 		if (replace_server_with_client_conn(&seq_conn) != 0)
 			errx(1, "error in setting up sequencer client"
 			    " connection");
+		/* XXX should change sequencer connection to non-blocking? */
 	}
 
 	/*
@@ -294,6 +295,7 @@ establish_sequencer_connection(struct server_connection *server_conn,
 
 	_mdl_log(MDLLOG_IPC, 0, "received a sequencer socket\n");
 
+	seq_conn->pending_writes = 0;
 	seq_conn->socket = imsg.fd;
 	imsg_free(&imsg);
 
@@ -615,7 +617,9 @@ replace_server_with_client_conn(struct sequencer_connection *seq_conn)
 	if (close(seq_conn->socket) == -1)
 		warn("error closing server <-> sequencer socket");
 
+	seq_conn->pending_writes = 0;
 	seq_conn->socket = cs_sp[1];
+
 	imsg_init(&seq_conn->ibuf, seq_conn->socket);
 
 	return 0;

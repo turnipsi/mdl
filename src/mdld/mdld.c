@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.25 2016/07/03 20:03:30 je Exp $ */
+/* $Id: mdld.c,v 1.26 2016/07/06 20:29:24 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,6 +27,7 @@
 #include <assert.h>
 #include <err.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <imsg.h>
 #include <libgen.h>
 #include <limits.h>
@@ -43,9 +44,10 @@
 #include "util.h"
 
 struct client_connection {
-	int				socket;
-	struct imsgbuf			ibuf;
 	TAILQ_ENTRY(client_connection)	tq;
+	struct imsgbuf			ibuf;
+	int				pending_writes;
+	int				socket;
 };
 
 TAILQ_HEAD(clientlist, client_connection);
@@ -57,7 +59,8 @@ extern char	*malloc_options;
 static int	setup_socketdir(const char *);
 static int	accept_new_client_connection(struct client_connection **,
     struct sequencer_connection *, int);
-static int	handle_client_connection(struct client_connection *,
+static void	drop_client(struct client_connection *, struct clientlist *);
+static int	handle_client_events(struct client_connection *,
     struct sequencer_connection *, struct clientlist *);
 static int	handle_musicfd_event(struct client_connection *,
     struct sequencer_connection *, int);
@@ -113,7 +116,6 @@ main(int argc, char *argv[])
 	socketpath = NULL;
 
 	sequencer_pid = 0;
-	seq_conn.socket = -1;
 
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
@@ -199,8 +201,12 @@ finish:
 	if (server_socket >= 0 && close(server_socket) == -1)
 		warn("error closing server socket");
 
-	if (_mdl_disconnect_sequencer_process(sequencer_pid, &seq_conn) != 0)
-		warnx("error in disconnecting to sequencer process");
+	if (sequencer_pid != 0) {
+		ret = _mdl_disconnect_sequencer_process(sequencer_pid,
+		    &seq_conn);
+		if (ret != 0)
+			warnx("error in disconnecting to sequencer process");
+	}
 
 	_mdl_logging_close();
 
@@ -262,7 +268,7 @@ static int
 handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 {
 	struct client_connection *client_conn, *cc_tmp;
-	fd_set readfds;
+	fd_set readfds, writefds;
 	sigset_t loop_sigmask, select_sigmask;
 	int ret, retvalue;
 	struct clientlist clients;
@@ -270,6 +276,11 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	retvalue = 0;
 
 	TAILQ_INIT(&clients);
+
+	if (fcntl(seq_conn->socket, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set sequencer connection socket non-blocking");
+		return 1;
+	}
 
 	(void) sigemptyset(&loop_sigmask);
 	(void) sigaddset(&loop_sigmask, SIGINT);
@@ -280,12 +291,20 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 
 	while (!mdld_shutdown_server) {
 		FD_ZERO(&readfds);
+		FD_ZERO(&writefds);
 		FD_SET(server_socket, &readfds);
+		FD_SET(seq_conn->socket, &readfds);
 
-		TAILQ_FOREACH(client_conn, &clients, tq)
+		if (seq_conn->pending_writes)
+			FD_SET(seq_conn->socket, &writefds);
+
+		TAILQ_FOREACH(client_conn, &clients, tq) {
 			FD_SET(client_conn->socket, &readfds);
+			if (client_conn->pending_writes)
+				FD_SET(client_conn->socket, &writefds);
+		}
 
-		ret = pselect(FD_SETSIZE, &readfds, NULL, NULL, NULL,
+		ret = pselect(FD_SETSIZE, &readfds, &writefds, NULL, NULL,
 		    &select_sigmask);
 		if (ret == -1) {
 			if (errno == EINTR)
@@ -295,15 +314,55 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 			break;
 		}
 
+		/* Handle sequencer connection. */
+
+		if (FD_ISSET(seq_conn->socket, &readfds)) {
+			warnx("sequencer event, what to do? XXX");
+			retvalue = 1;
+			break;
+		}
+
+		if (FD_ISSET(seq_conn->socket, &writefds)) {
+			if (imsg_flush(&seq_conn->ibuf) == -1) {
+				if (errno == EAGAIN)
+					continue;
+				warnx("error in sending messages to"
+				    " sequencer");
+				retvalue = 1;
+				break;
+			} else {
+				seq_conn->pending_writes = 0;
+			}
+		}
+
+		/* Handle client connections. */
+
 		TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp) {
 			if (FD_ISSET(client_conn->socket, &readfds)) {
 				/* May remove client_conn from clients. */
-				ret = handle_client_connection(client_conn,
+				ret = handle_client_events(client_conn,
 				    seq_conn, &clients);
-				if (ret != 0)
-					warnx("error in handling client");
+				if (ret != 0) {
+					warnx("error handling client events,"
+					    " dropping client");
+					drop_client(client_conn, &clients);
+					continue;
+				}
+			}
+			if (FD_ISSET(client_conn->socket, &writefds)) {
+				if (imsg_flush(&client_conn->ibuf) == -1) {
+					if (errno == EAGAIN)
+						continue;
+					warnx("error in sending messages to"
+					    " client, dropping client");
+					drop_client(client_conn, &clients);
+				} else {
+					client_conn->pending_writes = 0;
+				}
 			}
 		}
+
+		/* Handle new incoming clients. */
 
 		if (FD_ISSET(server_socket, &readfds)) {
 			ret = accept_new_client_connection(&client_conn,
@@ -319,8 +378,18 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	return retvalue;
 }
 
+static void
+drop_client(struct client_connection *client_conn, struct clientlist *clients)
+{
+	imsg_clear(&client_conn->ibuf);
+	if (close(client_conn->socket) == -1)
+		warn("error closing client connection");
+	TAILQ_REMOVE(clients, client_conn, tq);
+	free(client_conn);
+}
+
 static int
-handle_client_connection(struct client_connection *client_conn,
+handle_client_events(struct client_connection *client_conn,
     struct sequencer_connection *seq_conn, struct clientlist *clients)
 {
 	enum mdl_event event;
@@ -328,25 +397,29 @@ handle_client_connection(struct client_connection *client_conn,
 	ssize_t nr;
 	int retvalue;
 
-	retvalue = 0;
-
 	if ((nr = imsg_read(&client_conn->ibuf)) == -1) {
+		if (errno == EAGAIN)
+			return 0;
 		warnx("error in imsg_read");
-		retvalue = 1;
-		goto close_connection;
+		drop_client(client_conn, clients);
+		return 1;
 	}
 
-	if (nr == 0)
-		goto close_connection;
+	if (nr == 0) {
+		drop_client(client_conn, clients);
+		return 0;
+	}
 
 	if ((nr = imsg_get(&client_conn->ibuf, &imsg)) == -1) {
-		warnx("error in imsg_get");
-		retvalue = 1;
-		goto close_connection;
+		warnx("error in imsg_get, dropping clent");
+		drop_client(client_conn, clients);
+		return 1;
 	}
 
 	if (nr == 0)
-		goto close_connection;
+		return 0;
+
+	retvalue = 0;
 
 	event = imsg.hdr.type;
 	switch (event) {
@@ -380,21 +453,11 @@ handle_client_connection(struct client_connection *client_conn,
 	imsg_free(&imsg);
 
 	return retvalue;
-
-close_connection:
-	imsg_clear(&client_conn->ibuf);
-	if (close(client_conn->socket) == -1)
-		warn("error closing client connection");
-	TAILQ_REMOVE(clients, client_conn, tq);
-	free(client_conn);
-
-	return retvalue;
 }
 
 static int
 handle_musicfd_event(struct client_connection *client_conn,
     struct sequencer_connection *seq_conn, int musicfile_fd)
-
 {
 	struct interpreter_process interp;
 	int ret;
@@ -447,12 +510,11 @@ accept_new_client_connection(struct client_connection **new_client_conn,
 	struct sockaddr_storage socket_addr;
 	socklen_t socket_len;
 	int cs_sp[2];
-	int client_conn_ok, ret;
+	int client_imsg_init, ret;
 
-	client_conn = NULL;
-	client_conn_ok = 0;
 	cs_sp[0] = -1;
 	cs_sp[1] = -1;
+	client_imsg_init = 0;
 
 	if ((client_conn = malloc(sizeof(struct client_connection))) == NULL) {
 		warn("malloc in accept_new_client_connection");
@@ -467,29 +529,36 @@ accept_new_client_connection(struct client_connection **new_client_conn,
 		goto error;
 	}
 
-	imsg_init(&client_conn->ibuf, client_conn->socket);
-	client_conn_ok = 1;
+	if (fcntl(client_conn->socket, F_SETFL, O_NONBLOCK) == -1) {
+		warn("could not set new client socket non-blocking");
+		goto error;
+	}
 
 	if (socketpair(AF_UNIX, SOCK_STREAM, 0, cs_sp) == -1) {
 		warn("could not setup socketpair for client <-> sequencer");
 		goto error;
 	}
 
-	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
-	    cs_sp[0], "", 0);
-	if (ret == -1 || imsg_flush(&seq_conn->ibuf) == -1) {
-		warnx("sending new client socket to sequencer");
-		goto error;
-	}
-	cs_sp[0] = -1; /* closed by imsg_compose/imsg_flush */
+	imsg_init(&client_conn->ibuf, client_conn->socket);
+	client_imsg_init = 1;
 
 	ret = imsg_compose(&client_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
-	    cs_sp[1], "", 0);
-	if (ret == -1 || imsg_flush(&client_conn->ibuf) == -1) {
-		warnx("sending new sequencer socket to client");
+	    cs_sp[0], "", 0);
+	if (ret == -1) {
+		warnx("imsg_compose for client connection");
 		goto error;
 	}
-	cs_sp[1] = -1; /* closed by imsg_compose/imsg_flush */
+	cs_sp[0] = -1;
+	client_conn->pending_writes = 1;
+
+	ret = imsg_compose(&seq_conn->ibuf, SERVEREVENT_NEW_CLIENT, 0, 0,
+	    cs_sp[1], "", 0);
+	if (ret == -1) {
+		warnx("error sending client-sequencer socket to sequencer");
+		goto error;
+	}
+	cs_sp[1] = -1;
+	seq_conn->pending_writes = 1;
 
 	*new_client_conn = client_conn;
 
@@ -497,18 +566,15 @@ accept_new_client_connection(struct client_connection **new_client_conn,
 
 error:
 	if (cs_sp[0] >= 0 && close(cs_sp[0]) == -1)
-		warn("closing first end of cs_sp");
+		warn("closing first end of client <-> sequencer connection");
 	if (cs_sp[1] >= 0 && close(cs_sp[1]) == -1)
-		warn("closing second end of cs_sp");
+		warn("closing second end of client <-> sequencer connection");
 
-	if (client_conn_ok) {
+	if (client_imsg_init)
 		imsg_clear(&client_conn->ibuf);
-		if (close(client_conn->socket) == -1)
-			warn("closing client connection");
-	}
-
-	if (client_conn != NULL)
-		free(client_conn);
+	if (client_conn->socket >= 0 && close(client_conn->socket) == -1)
+		warn("closing client connection");
+	free(client_conn);
 
 	return 1;
 }
