@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.41 2016/07/06 20:29:23 je Exp $ */
+/* $Id: mdl.c,v 1.42 2016/07/07 20:56:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -427,15 +427,13 @@ handle_musicfiles(struct server_connection *server_conn,
 		if (server_conn != NULL) {
 			ret = imsg_compose(&server_conn->ibuf,
 			    CLIENTEVENT_NEW_MUSICFD, 0, 0, fd, "", 0);
+			musicfiles->files[i].fd = -1;
 			if (ret == -1 ||
 			    imsg_flush(&server_conn->ibuf) == -1) {
 				warnx("error sending a music file descriptor"
 				    " to server");
 				retvalue = 1;
 				break;
-			} else {
-				/* Successful send closes this. */
-				musicfiles->files[i].fd = -1;
 			}
 
 			interp_pipe = get_interp_pipe(server_conn);
@@ -516,6 +514,8 @@ handle_musicfiles(struct server_connection *server_conn,
 		if (close(fd) == -1)
 			warn("error closing %s", musicfiles->files[i].path);
 	}
+
+	imsg_clear(&server_conn->ibuf);
 
 	return retvalue;
 }

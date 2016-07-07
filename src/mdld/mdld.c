@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.26 2016/07/06 20:29:24 je Exp $ */
+/* $Id: mdld.c,v 1.27 2016/07/07 20:56:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -317,9 +317,8 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		/* Handle sequencer connection. */
 
 		if (FD_ISSET(seq_conn->socket, &readfds)) {
+			/* XXX */
 			warnx("sequencer event, what to do? XXX");
-			retvalue = 1;
-			break;
 		}
 
 		if (FD_ISSET(seq_conn->socket, &writefds)) {
@@ -338,17 +337,6 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		/* Handle client connections. */
 
 		TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp) {
-			if (FD_ISSET(client_conn->socket, &readfds)) {
-				/* May remove client_conn from clients. */
-				ret = handle_client_events(client_conn,
-				    seq_conn, &clients);
-				if (ret != 0) {
-					warnx("error handling client events,"
-					    " dropping client");
-					drop_client(client_conn, &clients);
-					continue;
-				}
-			}
 			if (FD_ISSET(client_conn->socket, &writefds)) {
 				if (imsg_flush(&client_conn->ibuf) == -1) {
 					if (errno == EAGAIN)
@@ -356,9 +344,20 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 					warnx("error in sending messages to"
 					    " client, dropping client");
 					drop_client(client_conn, &clients);
+					continue;
 				} else {
 					client_conn->pending_writes = 0;
 				}
+			}
+			if (FD_ISSET(client_conn->socket, &readfds)) {
+				/*
+				 * May remove client_conn from clients,
+				 * in which case it is also freed.
+				 */
+				ret = handle_client_events(client_conn,
+				    seq_conn, &clients);
+				if (ret != 0)
+					warnx("error handling client events");
 			}
 		}
 
