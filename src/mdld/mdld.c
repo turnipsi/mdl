@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.30 2016/07/09 15:33:10 je Exp $ */
+/* $Id: mdld.c,v 1.31 2016/07/09 21:10:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -52,6 +52,13 @@ struct client_connection {
 
 TAILQ_HEAD(clientlist, client_connection);
 
+struct interpreter_handler {
+	struct client_connection       *client_conn;
+	struct interpreter_process	process;
+	int				is_active;
+	int				next_musicfile_fd;
+};
+
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
 #endif /* HAVE_MALLOC_OPTIONS */
@@ -59,12 +66,15 @@ extern char	*malloc_options;
 static int	setup_socketdir(const char *);
 static int	accept_new_client_connection(struct client_connection **,
     struct sequencer_connection *, int);
-static void	drop_client(struct client_connection *, struct clientlist *);
+static void	drop_client(struct client_connection *, struct clientlist *,
+    struct interpreter_handler *);
 static int	handle_client_events(struct client_connection *,
-    struct sequencer_connection *, struct clientlist *);
+    struct interpreter_handler *, struct clientlist *);
+static int	handle_interpreter_process(struct interpreter_handler *,
+    struct sequencer_connection *);
 static int	handle_sequencer_events(struct sequencer_connection *);
 static int	handle_musicfd_event(struct client_connection *,
-    struct sequencer_connection *, int);
+    struct interpreter_handler *, int);
 static void	handle_signal(int);
 static int	handle_connections(struct sequencer_connection *, int);
 static int	setup_server_socket(const char *);
@@ -162,9 +172,11 @@ main(int argc, char *argv[])
 	if ((socketpath = _mdl_get_socketpath()) == NULL)
 		errx(1, "error in determining server socket path");
 
-	/* After calling setup_server_socket() we might have created the
+	/*
+	 * After calling setup_server_socket() we might have created the
 	 * socket in filesystem, so we must go through "finish" to unlink it
-	 * and exit.  Except if pledge() call fails we stop immediately. */
+	 * and exit.  Except if pledge() call fails we stop immediately.
+	 */
 	if ((server_socket = setup_server_socket(socketpath)) == -1) {
 		warnx("could not setup server socket");
 		exitstatus = 1;
@@ -269,12 +281,17 @@ static int
 handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 {
 	struct client_connection *client_conn, *cc_tmp;
+	struct clientlist clients;
+	struct interpreter_handler interp;
 	fd_set readfds, writefds;
 	sigset_t loop_sigmask, select_sigmask;
 	int ret, retvalue;
-	struct clientlist clients;
 
 	retvalue = 0;
+
+	interp.client_conn = NULL;
+	interp.is_active = 0;
+	interp.next_musicfile_fd = -1;
 
 	TAILQ_INIT(&clients);
 
@@ -284,6 +301,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	}
 
 	if (sigemptyset(&loop_sigmask) == -1 ||
+	    sigaddset(&loop_sigmask, SIGCHLD) == -1 ||
 	    sigaddset(&loop_sigmask, SIGINT) == -1 ||
 	    sigaddset(&loop_sigmask, SIGTERM) == -1 ||
 	    sigprocmask(SIG_BLOCK, &loop_sigmask, NULL) == -1 ||
@@ -292,7 +310,17 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		return 1;
 	}
 
-	while (!mdld_shutdown_server) {
+	for (;;) {
+		if (mdld_shutdown_server)
+			break;
+
+		if (handle_interpreter_process(&interp, seq_conn) != 0) {
+			warnx("error handling interpreter process");
+			retvalue = 1;
+			break;
+
+		}
+
 		FD_ZERO(&readfds);
 		FD_ZERO(&writefds);
 		FD_SET(server_socket, &readfds);
@@ -346,7 +374,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp) {
 			if (FD_ISSET(client_conn->socket, &readfds)) {
 				ret = handle_client_events(client_conn,
-				    seq_conn, &clients);
+				    &interp, &clients);
 				if (ret != 0)
 					warnx("error handling client events");
 				/*
@@ -362,7 +390,8 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 						continue;
 					warnx("error in sending messages to"
 					    " client, dropping client");
-					drop_client(client_conn, &clients);
+					drop_client(client_conn, &clients,
+					    &interp);
 				} else {
 					client_conn->pending_writes = 0;
 				}
@@ -382,7 +411,81 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		}
 	}
 
+	/* XXX Should kill the sequencer and interpreter processes. */
+
 	return retvalue;
+}
+
+static int
+handle_interpreter_process(struct interpreter_handler *interp,
+    struct sequencer_connection *seq_conn)
+{
+	int ret, status;
+	pid_t pid;
+
+	if (interp->is_active) {
+		pid = waitpid(interp->process.pid, &status, WNOHANG);
+		if (pid == -1) {
+			warn("waiting for interpreter process");
+			return 1;
+		}
+		if (pid == 0)
+			return 0;
+
+		_mdl_log(MDLLOG_IPC, 0, "interpreter (pid %d) has finished\n",
+		    interp->process.pid);
+
+		interp->is_active = 0;
+	}
+
+	if (interp->is_active || interp->next_musicfile_fd == -1)
+		return 0;
+
+	if (interp->client_conn == NULL) {
+		/*
+		 * The client connection that requested a new interpreter
+		 * process has been dropped, so nothing to do except close
+		 * the remaining file descriptor.
+		 */
+		if (close(interp->next_musicfile_fd) == -1)
+			warn("closing musicfile descriptor");
+		interp->next_musicfile_fd = -1;
+		return 0;
+	}
+
+	/* Start a new interpreter process. */
+
+	ret = _mdl_start_interpreter_process(&interp->process,
+	    interp->next_musicfile_fd, seq_conn->socket);
+	if (close(interp->next_musicfile_fd) == -1)
+		warn("closing musicfile descriptor");
+	interp->next_musicfile_fd = -1;
+	if (ret != 0) {
+		warnx("could not start interpreter process");
+		return 1;
+	}
+
+	interp->is_active = 1;
+
+	_mdl_log(MDLLOG_IPC, 0,
+	    "sending interpreter pipe to client (for sequencer)\n");
+
+	ret = imsg_compose(&interp->client_conn->ibuf,
+	    SERVEREVENT_NEW_INTERPRETER, 0, 0,
+	    interp->process.sequencer_read_pipe, "", 0);
+	if (ret == -1) {
+		warnx("sending interpreter pipe to client (for sequencer)");
+		return 1;
+	}
+
+	interp->client_conn->pending_writes = 1;
+
+	/*
+	 * Client should now pass the sequencer read pipe to sequencer
+	 * through its own client <-> sequencer communication socket.
+	 */
+
+	return 0;
 }
 
 static int
@@ -408,40 +511,42 @@ handle_sequencer_events(struct sequencer_connection *seq_conn)
 }
 
 static void
-drop_client(struct client_connection *client_conn, struct clientlist *clients)
+drop_client(struct client_connection *client_conn, struct clientlist *clients,
+    struct interpreter_handler *interp)
 {
 	imsg_clear(&client_conn->ibuf);
 	if (close(client_conn->socket) == -1)
 		warn("error closing client connection");
 	TAILQ_REMOVE(clients, client_conn, tq);
 	free(client_conn);
+	interp->client_conn = NULL;
 }
 
 static int
 handle_client_events(struct client_connection *client_conn,
-    struct sequencer_connection *seq_conn, struct clientlist *clients)
+    struct interpreter_handler *interp, struct clientlist *clients)
 {
 	enum mdl_event event;
 	struct imsg imsg;
 	ssize_t nr;
-	int retvalue;
+	int ret, retvalue;
 
 	if ((nr = imsg_read(&client_conn->ibuf)) == -1) {
 		if (errno == EAGAIN)
 			return 0;
 		warnx("error in imsg_read");
-		drop_client(client_conn, clients);
+		drop_client(client_conn, clients, interp);
 		return 1;
 	}
 
 	if (nr == 0) {
-		drop_client(client_conn, clients);
+		drop_client(client_conn, clients, interp);
 		return 0;
 	}
 
 	if ((nr = imsg_get(&client_conn->ibuf, &imsg)) == -1) {
-		warnx("error in imsg_get, dropping clent");
-		drop_client(client_conn, clients);
+		warnx("error in imsg_get, dropping client");
+		drop_client(client_conn, clients, interp);
 		return 1;
 	}
 
@@ -453,9 +558,11 @@ handle_client_events(struct client_connection *client_conn,
 	event = imsg.hdr.type;
 	switch (event) {
 	case CLIENTEVENT_NEW_MUSICFD:
-		if (imsg.fd == -1)
-			warnx("no music descriptor received when expected");
-		handle_musicfd_event(client_conn, seq_conn, imsg.fd);
+		ret = handle_musicfd_event(client_conn, interp, imsg.fd);
+		if (ret != 0) {
+			warnx("error handling CLIENTEVENT_NEW_MUSICFD event");
+			retvalue = 1;
+		}
 		break;
 	case CLIENTEVENT_NEW_SONG:
 		warnx("server received a new song event from client");
@@ -486,47 +593,26 @@ handle_client_events(struct client_connection *client_conn,
 
 static int
 handle_musicfd_event(struct client_connection *client_conn,
-    struct sequencer_connection *seq_conn, int musicfile_fd)
+    struct interpreter_handler *interp, int musicfile_fd)
 {
-	struct interpreter_process interp;
-	int ret;
-
-	_mdl_log(MDLLOG_IPC, 0, "received a new musicfile descriptor,"
-	    " starting an interpreter\n");
-
-	ret = _mdl_start_interpreter_process(&interp, musicfile_fd,
-	    seq_conn->socket);
-	if (close(musicfile_fd) == -1)
-		warn("closing musicfile descriptor");
-	if (ret != 0) {
-		warnx("could not start interpreter process");
+	if (musicfile_fd == -1) {
+		warnx("no music descriptor received when expected");
 		return 1;
 	}
 
-	_mdl_log(MDLLOG_IPC, 0, "sending interpreter pipe to sequencer\n");
+	_mdl_log(MDLLOG_IPC, 0, "received a new musicfile descriptor\n");
 
-	ret = imsg_compose(&client_conn->ibuf, SERVEREVENT_NEW_INTERPRETER, 0,
-	    0, interp.sequencer_read_pipe, "", 0);
-	if (ret == -1 || imsg_flush(&client_conn->ibuf) == -1) {
-		warnx("sending interpreter pipe to client");
-		return 1;
+	if (interp->is_active) {
+		if (kill(interp->process.pid, SIGTERM) == -1) {
+			warn("error killing the current interpreter");
+			return 1;
+		}
+		_mdl_log(MDLLOG_IPC, 0,
+		    "sent SIGTERM to interpreter process\n");
 	}
 
-	/*
-	 * Client should now pass interpreter_fd to sequencer through its
-	 * own client <-> sequencer communication socket.
-	 * We wait for client and interpreter to do their work, before we
-	 * listen for next clients. (XXX is this okay?)
-	 */
-
-	_mdl_log(MDLLOG_IPC, 0, "waiting for interpreter (pid %d) to finish\n",
-	    interp.pid);
-
-	ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
-	if (ret != 0) {
-		warnx("error in interpreter subprocess");
-		return 1;
-	}
+	interp->client_conn = client_conn;
+	interp->next_musicfile_fd = musicfile_fd;
 
 	return 0;
 }

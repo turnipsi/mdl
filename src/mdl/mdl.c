@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.42 2016/07/07 20:56:32 je Exp $ */
+/* $Id: mdl.c,v 1.43 2016/07/09 21:10:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -425,6 +425,8 @@ handle_musicfiles(struct server_connection *server_conn,
 		fd        = musicfiles->files[i].fd;
 
 		if (server_conn != NULL) {
+			_mdl_log(MDLLOG_IPC, 0,
+			    "sending music file descriptor to server\n");
 			ret = imsg_compose(&server_conn->ibuf,
 			    CLIENTEVENT_NEW_MUSICFD, 0, 0, fd, "", 0);
 			musicfiles->files[i].fd = -1;
@@ -587,6 +589,9 @@ get_interp_pipe(struct server_connection *server_conn)
 	}
 
 	imsg_free(&imsg);
+
+	_mdl_log(MDLLOG_IPC, 0,
+	    "received an interpreter pipe (for sequencer) from server\n");
 
 	return imsg.fd;
 }
