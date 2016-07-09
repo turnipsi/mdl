@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.28 2016/07/09 15:14:30 je Exp $ */
+/* $Id: mdld.c,v 1.29 2016/07/09 15:17:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -401,10 +401,9 @@ handle_sequencer_events(struct sequencer_connection *seq_conn)
 		return 1;
 	}
 
-	/* XXX Are we actually receiving sequencer events we should handle? */
-	assert(0);
+	warnx("received sequencer events on server, this should not happen");
 
-	return 0;
+	return 1;
 }
 
 static void
