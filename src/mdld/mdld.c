@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.27 2016/07/07 20:56:33 je Exp $ */
+/* $Id: mdld.c,v 1.28 2016/07/09 15:14:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -62,6 +62,7 @@ static int	accept_new_client_connection(struct client_connection **,
 static void	drop_client(struct client_connection *, struct clientlist *);
 static int	handle_client_events(struct client_connection *,
     struct sequencer_connection *, struct clientlist *);
+static int	handle_sequencer_events(struct sequencer_connection *);
 static int	handle_musicfd_event(struct client_connection *,
     struct sequencer_connection *, int);
 static void	handle_signal(int);
@@ -282,6 +283,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		return 1;
 	}
 
+	/* XXX check instead of (void) */
 	(void) sigemptyset(&loop_sigmask);
 	(void) sigaddset(&loop_sigmask, SIGINT);
 	(void) sigaddset(&loop_sigmask, SIGTERM);
@@ -317,8 +319,12 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		/* Handle sequencer connection. */
 
 		if (FD_ISSET(seq_conn->socket, &readfds)) {
-			/* XXX */
-			warnx("sequencer event, what to do? XXX");
+			ret = handle_sequencer_events(seq_conn);
+			if (ret != 0) {
+				warnx("error handling sequencer events");
+				retvalue = 1;
+				break;
+			}
 		}
 
 		if (FD_ISSET(seq_conn->socket, &writefds)) {
@@ -337,6 +343,18 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		/* Handle client connections. */
 
 		TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp) {
+			if (FD_ISSET(client_conn->socket, &readfds)) {
+				ret = handle_client_events(client_conn,
+				    seq_conn, &clients);
+				if (ret != 0)
+					warnx("error handling client events");
+				/*
+				 * handle_client_events() may remove
+				 * client_conn from clients, in which case it
+				 * is also freed, so jump to next client.
+				 */
+				continue;
+			}
 			if (FD_ISSET(client_conn->socket, &writefds)) {
 				if (imsg_flush(&client_conn->ibuf) == -1) {
 					if (errno == EAGAIN)
@@ -344,20 +362,9 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 					warnx("error in sending messages to"
 					    " client, dropping client");
 					drop_client(client_conn, &clients);
-					continue;
 				} else {
 					client_conn->pending_writes = 0;
 				}
-			}
-			if (FD_ISSET(client_conn->socket, &readfds)) {
-				/*
-				 * May remove client_conn from clients,
-				 * in which case it is also freed.
-				 */
-				ret = handle_client_events(client_conn,
-				    seq_conn, &clients);
-				if (ret != 0)
-					warnx("error handling client events");
 			}
 		}
 
@@ -375,6 +382,29 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	}
 
 	return retvalue;
+}
+
+static int
+handle_sequencer_events(struct sequencer_connection *seq_conn)
+{
+	ssize_t nr;
+
+	if ((nr = imsg_read(&seq_conn->ibuf)) == -1) {
+		if (errno == EAGAIN)
+			return 0;
+		warnx("error in imsg_read for sequencer connection");
+		return 1;
+	}
+
+	if (nr == 0) {
+		warnx("sequencer connection was closed");
+		return 1;
+	}
+
+	/* XXX Are we actually receiving sequencer events we should handle? */
+	assert(0);
+
+	return 0;
 }
 
 static void
@@ -489,7 +519,7 @@ handle_musicfd_event(struct client_connection *client_conn,
 	 * listen for next clients. (XXX is this okay?)
 	 */
 
-	_mdl_log(MDLLOG_IPC, 0, "waiting for interpreter (pid %d) to finish",
+	_mdl_log(MDLLOG_IPC, 0, "waiting for interpreter (pid %d) to finish\n",
 	    interp.pid);
 
 	ret = _mdl_wait_for_subprocess("interpreter", interp.pid);
