@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.123 2016/07/06 20:29:21 je Exp $ */
+/* $Id: sequencer.c,v 1.124 2016/07/09 15:33:08 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -132,10 +132,13 @@ sequencer_init(struct sequencer *seq, int dry_run, int server_socket,
 	signal(SIGINT,  sequencer_handle_signal);
 	signal(SIGTERM, sequencer_handle_signal);
 
-	(void) sigemptyset(&loop_sigmask);
-	(void) sigaddset(&loop_sigmask, SIGINT);
-	(void) sigaddset(&loop_sigmask, SIGTERM);
-	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
+	if (sigemptyset(&loop_sigmask) == -1 ||
+	    sigaddset(&loop_sigmask, SIGINT) == -1 ||
+	    sigaddset(&loop_sigmask, SIGTERM) == -1 ||
+	    sigprocmask(SIG_BLOCK, &loop_sigmask, NULL) == -1) {
+		warn("error setting up sequencer signal handling");
+		return 1;
+	}
 
 	seq->client_socket = -1;
 	seq->dry_run = dry_run;

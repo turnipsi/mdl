@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.29 2016/07/09 15:17:28 je Exp $ */
+/* $Id: mdld.c,v 1.30 2016/07/09 15:33:10 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -283,13 +283,14 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		return 1;
 	}
 
-	/* XXX check instead of (void) */
-	(void) sigemptyset(&loop_sigmask);
-	(void) sigaddset(&loop_sigmask, SIGINT);
-	(void) sigaddset(&loop_sigmask, SIGTERM);
-	(void) sigprocmask(SIG_BLOCK, &loop_sigmask, NULL);
-
-	(void) sigemptyset(&select_sigmask);
+	if (sigemptyset(&loop_sigmask) == -1 ||
+	    sigaddset(&loop_sigmask, SIGINT) == -1 ||
+	    sigaddset(&loop_sigmask, SIGTERM) == -1 ||
+	    sigprocmask(SIG_BLOCK, &loop_sigmask, NULL) == -1 ||
+	    sigemptyset(&select_sigmask) == -1) {
+		warn("error in setting up server signal handling");
+		return 1;
+	}
 
 	while (!mdld_shutdown_server) {
 		FD_ZERO(&readfds);
