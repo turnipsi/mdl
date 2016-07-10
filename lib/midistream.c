@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.40 2016/06/04 20:07:45 je Exp $ */
+/* $Id: midistream.c,v 1.41 2016/07/10 21:33:52 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -144,12 +144,11 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
 	wsize = s->count * sizeof(struct midievent);
 
 	while (total_wcount < wsize) {
-		/* XXX what if nw == 0 (continuously)?  can that happen? */
 		nw = write(sequencer_read_pipe,
 		    ((char *) s->u.midievents + total_wcount),
 		    (wsize - total_wcount));
 		if (nw == -1) {
-			if (errno == EAGAIN)
+			if (errno == EINTR)
 				continue;
 			warn("error writing to sequencer");
 			return -1;
