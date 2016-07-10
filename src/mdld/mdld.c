@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.31 2016/07/09 21:10:01 je Exp $ */
+/* $Id: mdld.c,v 1.32 2016/07/10 20:18:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -285,7 +285,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 	struct interpreter_handler interp;
 	fd_set readfds, writefds;
 	sigset_t loop_sigmask, select_sigmask;
-	int ret, retvalue;
+	int ret, retvalue, status;
 
 	retvalue = 0;
 
@@ -411,7 +411,26 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		}
 	}
 
-	/* XXX Should kill the sequencer and interpreter processes. */
+	/* Drop all clients. */
+	TAILQ_FOREACH_SAFE(client_conn, &clients, tq, cc_tmp)
+		drop_client(client_conn, &clients, &interp);
+
+	/* Exit the interpreter process. */
+
+	if (interp.next_musicfile_fd >= 0 &&
+	    close(interp.next_musicfile_fd) == -1)
+		warn("closing next musicfile descriptor");
+
+	if (interp.is_active) {
+		if (kill(interp.process.pid, SIGTERM) == -1) {
+			warn("error killing the current interpreter");
+		} else {
+			_mdl_log(MDLLOG_IPC, 0,
+			    "sent SIGTERM to interpreter process\n");
+			if (waitpid(interp.process.pid, &status, 0) == -1)
+				warn("waiting for interpreter");
+		}
+	}
 
 	return retvalue;
 }
@@ -514,12 +533,14 @@ static void
 drop_client(struct client_connection *client_conn, struct clientlist *clients,
     struct interpreter_handler *interp)
 {
+	if (interp->client_conn == client_conn)
+		interp->client_conn = NULL;
+
 	imsg_clear(&client_conn->ibuf);
 	if (close(client_conn->socket) == -1)
 		warn("error closing client connection");
 	TAILQ_REMOVE(clients, client_conn, tq);
 	free(client_conn);
-	interp->client_conn = NULL;
 }
 
 static int
@@ -610,6 +631,10 @@ handle_musicfd_event(struct client_connection *client_conn,
 		_mdl_log(MDLLOG_IPC, 0,
 		    "sent SIGTERM to interpreter process\n");
 	}
+
+	if (interp->next_musicfile_fd >= 0 &&
+	    close(interp->next_musicfile_fd) == -1)
+		warn("closing previous next musicfile descriptor");
 
 	interp->client_conn = client_conn;
 	interp->next_musicfile_fd = musicfile_fd;
