@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.124 2016/07/09 15:33:08 je Exp $ */
+/* $Id: sequencer.c,v 1.125 2016/07/10 21:02:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -130,6 +130,7 @@ sequencer_init(struct sequencer *seq, int dry_run, int server_socket,
 	sigset_t loop_sigmask;
 
 	signal(SIGINT,  sequencer_handle_signal);
+	signal(SIGPIPE, SIG_IGN);
 	signal(SIGTERM, sequencer_handle_signal);
 
 	if (sigemptyset(&loop_sigmask) == -1 ||

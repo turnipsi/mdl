@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.32 2016/07/10 20:18:57 je Exp $ */
+/* $Id: mdld.c,v 1.33 2016/07/10 21:02:42 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -133,6 +133,7 @@ main(int argc, char *argv[])
 		err(1, "pledge");
 
 	signal(SIGINT,  handle_signal);
+	signal(SIGPIPE, SIG_IGN);
 	signal(SIGTERM, handle_signal);
 
 	_mdl_logging_init();

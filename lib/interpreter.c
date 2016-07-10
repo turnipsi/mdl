@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.59 2016/07/02 20:10:55 je Exp $ */
+/* $Id: interpreter.c,v 1.60 2016/07/10 21:02:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,6 +18,7 @@
 
 #include <assert.h>
 #include <err.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -75,6 +76,8 @@ _mdl_start_interpreter_process(struct interpreter_process *interp,
 		_mdl_process_type = "interp";
 		_mdl_log(MDLLOG_PROCESS, 0,
 		    "new interpreter process, pid %d\n", getpid());
+
+		signal(SIGPIPE, SIG_IGN);
 
 		/*
 		 * Be strict here when closing file descriptors so that we
