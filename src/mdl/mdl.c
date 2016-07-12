@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.44 2016/07/10 21:02:41 je Exp $ */
+/* $Id: mdl.c,v 1.45 2016/07/12 20:07:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -518,7 +518,8 @@ handle_musicfiles(struct server_connection *server_conn,
 			warn("error closing %s", musicfiles->files[i].path);
 	}
 
-	imsg_clear(&server_conn->ibuf);
+	if (server_conn != NULL)
+		imsg_clear(&server_conn->ibuf);
 
 	return retvalue;
 }
