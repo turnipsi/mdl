@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.125 2016/07/10 21:02:40 je Exp $ */
+/* $Id: sequencer.c,v 1.126 2016/07/14 20:41:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -290,25 +290,9 @@ _mdl_disconnect_sequencer_connection(struct sequencer_connection *seq_conn)
 		retvalue = 1;
 	}
 
-	if (shutdown(seq_conn->socket, SHUT_WR) == -1)
-		warn("error shutting down sequencer connection");
-
-	for (;;) {
-		nr = imsg_read(&seq_conn->ibuf);
-		if (nr == -1) {
-			warnx("error in reading sequencer events");
-			break;
-		}
-		if (nr == 0)
-			break;
-	}
-
 	imsg_clear(&seq_conn->ibuf);
-
-	if (close(seq_conn->socket) == -1) {
+	if (close(seq_conn->socket) == -1)
 		warn("error closing sequencer socket connection");
-		retvalue = 1;
-	}
 
 	return retvalue;
 }

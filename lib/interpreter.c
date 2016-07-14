@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.61 2016/07/10 21:14:53 je Exp $ */
+/* $Id: interpreter.c,v 1.62 2016/07/14 20:41:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,7 +35,7 @@ extern unsigned int	 parse_errors;
 extern const char	*_mdl_process_type;
 
 int
-_mdl_start_interpreter_process(struct interpreter_process *interp,
+_mdl_interpreter_start_process(struct interpreter_process *interp,
     int mdlfile_fd, int sequencer_socket)
 {
 	int is_pipe[2];	/* interpreter-sequencer pipe */
@@ -96,7 +96,7 @@ _mdl_start_interpreter_process(struct interpreter_process *interp,
 			goto interpreter_out;
 		}
 
-		ret = _mdl_interpret_musicfile(mdlfile_fd, is_pipe[1]);
+		ret = _mdl_interpreter_do_musicfile(mdlfile_fd, is_pipe[1]);
 
 		if (mdlfile_fd != fileno(stdin) && close(mdlfile_fd) == -1)
 			warn("error closing music file");
@@ -125,7 +125,7 @@ interpreter_out:
 }
 
 int
-_mdl_interpret_musicfile(int mdlfile_fd, int sequencer_read_pipe)
+_mdl_interpreter_do_musicfile(int mdlfile_fd, int sequencer_read_pipe)
 {
 	struct mdl_stream *eventstream;
 	ssize_t wcount;

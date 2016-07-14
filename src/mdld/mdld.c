@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.33 2016/07/10 21:02:42 je Exp $ */
+/* $Id: mdld.c,v 1.34 2016/07/14 20:41:45 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,13 +51,6 @@ struct client_connection {
 };
 
 TAILQ_HEAD(clientlist, client_connection);
-
-struct interpreter_handler {
-	struct client_connection       *client_conn;
-	struct interpreter_process	process;
-	int				is_active;
-	int				next_musicfile_fd;
-};
 
 #ifdef HAVE_MALLOC_OPTIONS
 extern char	*malloc_options;
@@ -131,10 +124,6 @@ main(int argc, char *argv[])
 	if (pledge("cpath proc recvfd rpath sendfd stdio unix wpath",
 	    NULL) == -1)
 		err(1, "pledge");
-
-	signal(SIGINT,  handle_signal);
-	signal(SIGPIPE, SIG_IGN);
-	signal(SIGTERM, handle_signal);
 
 	_mdl_logging_init();
 
@@ -300,6 +289,10 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		warn("could not set sequencer connection socket non-blocking");
 		return 1;
 	}
+
+	signal(SIGINT,  handle_signal);
+	signal(SIGPIPE, SIG_IGN);
+	signal(SIGTERM, handle_signal);
 
 	if (sigemptyset(&loop_sigmask) == -1 ||
 	    sigaddset(&loop_sigmask, SIGCHLD) == -1 ||
@@ -475,7 +468,7 @@ handle_interpreter_process(struct interpreter_handler *interp,
 
 	/* Start a new interpreter process. */
 
-	ret = _mdl_start_interpreter_process(&interp->process,
+	ret = _mdl_interpreter_start_process(&interp->process,
 	    interp->next_musicfile_fd, seq_conn->socket);
 	if (close(interp->next_musicfile_fd) == -1)
 		warn("closing musicfile descriptor");

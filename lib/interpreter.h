@@ -1,4 +1,4 @@
-/* $Id: interpreter.h,v 1.12 2016/06/13 20:55:31 je Exp $ */
+/* $Id: interpreter.h,v 1.13 2016/07/14 20:41:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,9 +24,16 @@ struct interpreter_process {
 	pid_t	pid;
 };
 
+struct interpreter_handler {
+	struct client_connection       *client_conn;
+	struct interpreter_process	process;
+	int				is_active;
+	int				next_musicfile_fd;
+};
+
 __BEGIN_DECLS
-int	_mdl_start_interpreter_process(struct interpreter_process *, int, int);
-int	_mdl_interpret_musicfile(int, int);
+int	_mdl_interpreter_do_musicfile(int, int);
+int	_mdl_interpreter_start_process(struct interpreter_process *, int, int);
 int	yyparse(void);
 __END_DECLS
 
