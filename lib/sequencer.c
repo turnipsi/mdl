@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.126 2016/07/14 20:41:43 je Exp $ */
+/* $Id: sequencer.c,v 1.127 2016/07/15 18:56:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -281,7 +281,6 @@ int
 _mdl_disconnect_sequencer_connection(struct sequencer_connection *seq_conn)
 {
 	int retvalue;
-	ssize_t nr;
 
 	retvalue = 0;
 
