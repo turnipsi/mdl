@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.47 2016/07/16 19:37:36 je Exp $ */
+/* $Id: mdl.c,v 1.48 2016/07/16 21:25:24 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,12 +51,7 @@ struct musicfile {
 struct musicfiles {
 	struct musicfile       *files;
 	size_t			count;
-};
-
-struct musicfiles_state {
-	struct musicfiles      *mfs;
-	size_t			interp_i;
-	size_t			playing_i;
+	size_t			current;
 	int			all_done;
 };
 
@@ -82,14 +77,14 @@ static int	establish_sequencer_connection(struct server_connection *,
     struct sequencer_connection *);
 static int	establish_server_connection(struct server_connection *, int);
 static int	enqueue_song(struct server_connection *,
-    struct musicfiles_state *, struct interpreter_handler *, int);
+    struct musicfiles *, struct interpreter_handler *, int);
 static int	open_musicfiles(struct musicfiles *, char **, size_t);
 static int	handle_interpreter_process(struct interpreter_handler *,
-    struct sequencer_connection *, struct musicfiles_state *);
+    struct sequencer_connection *, struct musicfiles *);
 static int	handle_musicfiles(struct server_connection *,
     struct sequencer_connection *, struct musicfiles *);
 static int	handle_sequencer_events(struct server_connection *,
-    struct sequencer_connection *, struct musicfiles_state *,
+    struct sequencer_connection *, struct musicfiles *,
     struct interpreter_handler *);
 static int	handle_server_events(struct server_connection *,
     struct sequencer_connection *);
@@ -396,7 +391,10 @@ open_musicfiles(struct musicfiles *musicfiles, char **musicfilepaths,
 		tmp_musicfiles.count += 1;
 	}
 
-	*musicfiles = tmp_musicfiles;
+	musicfiles->all_done = 0;
+	musicfiles->count    = tmp_musicfiles.count;
+	musicfiles->current  = 0;
+	musicfiles->files    = tmp_musicfiles.files;
 
 	return 0;
 
@@ -416,7 +414,6 @@ static int
 handle_musicfiles(struct server_connection *server_conn,
     struct sequencer_connection *seq_conn, struct musicfiles *musicfiles)
 {
-	struct musicfiles_state mfs_state;
 	struct interpreter_handler interp;
 	fd_set readfds, writefds;
 	sigset_t loop_sigmask, select_sigmask;
@@ -425,11 +422,6 @@ handle_musicfiles(struct server_connection *server_conn,
 
 	assert(musicfiles->count >= 1);
 	assert(musicfiles->files != NULL);
-
-	mfs_state.all_done  = 0;
-	mfs_state.interp_i  = 0;
-	mfs_state.mfs       = musicfiles;
-	mfs_state.playing_i = 0;
 
 	retvalue = 0;
 
@@ -464,19 +456,19 @@ handle_musicfiles(struct server_connection *server_conn,
 		return 1;
 	}
 
-	ret = enqueue_song(server_conn, &mfs_state, &interp, 0);
+	ret = enqueue_song(server_conn, musicfiles, &interp, 0);
 	if (ret != 0) {
 		warnx("could not enqueue first song");
 		return 1;
 	}
 
-	while (!mfs_state.all_done) {
+	while (!musicfiles->all_done) {
 		if (mdl_shutdown_client)
 			break;
 
 		if (server_conn == NULL) {
 			ret = handle_interpreter_process(&interp, seq_conn,
-			    &mfs_state);
+			    musicfiles);
 			if (ret != 0) {
 				warnx("error handling interpreter process");
 				retvalue = 1;
@@ -511,7 +503,7 @@ handle_musicfiles(struct server_connection *server_conn,
 
 		if (FD_ISSET(seq_conn->socket, &readfds)) {
 			ret = handle_sequencer_events(server_conn, seq_conn,
-			    &mfs_state, &interp);
+			    musicfiles, &interp);
 			if (ret != 0) {
 				warnx("error handling sequencer events");
 				retvalue = 1;
@@ -587,7 +579,7 @@ handle_musicfiles(struct server_connection *server_conn,
 
 static int
 handle_interpreter_process(struct interpreter_handler *interp,
-    struct sequencer_connection *seq_conn, struct musicfiles_state *mfs_state)
+    struct sequencer_connection *seq_conn, struct musicfiles *musicfiles)
 {
 	int ret, status;
 	pid_t pid;
@@ -615,15 +607,15 @@ handle_interpreter_process(struct interpreter_handler *interp,
 	ret = _mdl_interpreter_start_process(&interp->process,
 	    interp->next_musicfile_fd, seq_conn->socket);
 
-	assert(mfs_state->interp_i < mfs_state->mfs->count);
+	assert(musicfiles->current < musicfiles->count);
 	assert(interp->next_musicfile_fd
-	    == mfs_state->mfs->files[ mfs_state->interp_i ].fd);
+	    == musicfiles->files[ musicfiles->current ].fd);
 	if (close(interp->next_musicfile_fd) == -1) {
 		warn("closing musicfile %s",
-		    mfs_state->mfs->files[ mfs_state->interp_i ].path);
+		    musicfiles->files[ musicfiles->current ].path);
 	}
 	interp->next_musicfile_fd = -1;
-	mfs_state->mfs->files[ mfs_state->interp_i ].fd = -1;
+	musicfiles->files[ musicfiles->current ].fd = -1;
 
 	if (ret != 0) {
 		warnx("could not start interpreter process");
@@ -648,7 +640,7 @@ handle_interpreter_process(struct interpreter_handler *interp,
 
 static int
 handle_sequencer_events(struct server_connection *server_conn,
-    struct sequencer_connection *seq_conn, struct musicfiles_state *mfs_state,
+    struct sequencer_connection *seq_conn, struct musicfiles *musicfiles,
     struct interpreter_handler *interp)
 {
 	struct imsg imsg;
@@ -690,8 +682,8 @@ handle_sequencer_events(struct server_connection *server_conn,
 			break;
 		case SEQEVENT_SONG_END:
 			_mdl_log(MDLLOG_SONG, 0, "finished playing %s\n",
-			    mfs_state->mfs->files[ mfs_state->interp_i ].path);
-			ret = enqueue_song(server_conn, mfs_state, interp, 1);
+			    musicfiles->files[ musicfiles->current ].path);
+			ret = enqueue_song(server_conn, musicfiles, interp, 1);
 			if (ret != 0) {
 				warnx("problem enqueueing next song");
 				retvalue = 1;
@@ -720,21 +712,21 @@ handle_sequencer_events(struct server_connection *server_conn,
 
 static int
 enqueue_song(struct server_connection *server_conn,
-    struct musicfiles_state *mfs_state, struct interpreter_handler *interp,
+    struct musicfiles *musicfiles, struct interpreter_handler *interp,
     int enqueue_next)
 {
 	struct musicfile *mf;
 	int ret;
 
 	if (enqueue_next)
-		mfs_state->interp_i += 1;
+		musicfiles->current += 1;
 
-	if (mfs_state->interp_i >= mfs_state->mfs->count) {
-		mfs_state->all_done = 1;
+	if (musicfiles->current >= musicfiles->count) {
+		musicfiles->all_done = 1;
 		return 0;
 	}
 
-	mf = &mfs_state->mfs->files[ mfs_state->interp_i ];
+	mf = &musicfiles->files[ musicfiles->current ];
 
 	_mdl_log(MDLLOG_SONG, 0, "starting to play %s\n", mf->path);
 
