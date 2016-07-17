@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.48 2016/07/16 21:25:24 je Exp $ */
+/* $Id: mdl.c,v 1.49 2016/07/17 20:04:29 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -281,7 +281,7 @@ establish_sequencer_connection(struct server_connection *server_conn,
 	}
 
 
-	if ((nr == imsg_get(&server_conn->ibuf, &imsg)) == -1 || nr == 0) {
+	if ((nr = imsg_get(&server_conn->ibuf, &imsg)) == -1 || nr == 0) {
 		warnx("error in reading from server / imsg_get");
 		return 1;
 	}
