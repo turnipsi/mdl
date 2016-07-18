@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.71 2016/05/11 20:30:01 je Exp $ */
+/* $Id: musicexpr.h,v 1.72 2016/07/18 20:25:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,6 +30,7 @@
 enum musicexpr_type {
 	ME_TYPE_ABSNOTE,
 	ME_TYPE_CHORD,
+	ME_TYPE_DRUM,
 	ME_TYPE_EMPTY,
 	ME_TYPE_FLATSIMULTENCE,
 	ME_TYPE_JOINEXPR,
@@ -46,10 +47,25 @@ enum musicexpr_type {
 #define ME_TYPE_COUNT (ME_TYPE_SIMULTENCE + 1)
 
 enum notesym {
-	NOTE_C, NOTE_D, NOTE_E, NOTE_F, NOTE_G, NOTE_A, NOTE_B, NOTE_MAX,
+	NOTE_C,
+	NOTE_D,
+	NOTE_E,
+	NOTE_F,
+	NOTE_G,
+	NOTE_A,
+	NOTE_B,
+	NOTE_MAX,	/* not a note */
 };
 
 enum notemod { NOTEMOD_ES, NOTEMOD_IS, };
+
+enum drumsym {
+	/* XXX missing many */
+	DRUM_BD,
+	DRUM_HH,
+	DRUM_SD,
+	DRUM_MAX,	/* not a drum */
+};
 
 enum chordtype {
 	CHORDTYPE_NONE,
@@ -100,6 +116,11 @@ struct relnote {
 
 struct rest {
 	float	length;
+};
+
+struct drum {
+	enum drumsym	drumsym;
+	float		length;
 };
 
 struct chord {
@@ -158,6 +179,7 @@ struct musicexpr {
 	union {
 		struct absnote		absnote;
 		struct chord		chord;
+		struct drum		drum;
 		struct flatsimultence	flatsimultence;
 		struct joinexpr		joinexpr;
 		struct melist		melist;

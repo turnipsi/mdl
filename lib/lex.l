@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.26 2016/05/03 09:32:51 je Exp $ */
+/* $Id: lex.l,v 1.27 2016/07/18 20:25:32 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,6 +26,7 @@
 #include "y.tab.h"
 
 static int	new_chordtype(enum chordtype);
+static int	new_drumsym(enum drumsym);
 static int	new_notesym(enum notesym);
 static int	new_texttoken(int);
 static void	update_textloc(struct textloc *);
@@ -79,6 +80,10 @@ f	{ return new_notesym(NOTE_F); }
 g	{ return new_notesym(NOTE_G); }
 a	{ return new_notesym(NOTE_A); }
 b	{ return new_notesym(NOTE_B); }
+
+bd	{ return new_drumsym(DRUM_BD); }
+hh	{ return new_drumsym(DRUM_HH); }
+sd	{ return new_drumsym(DRUM_SD); }
 
 r	{ update_textloc(&yylval.textloc.textloc); return RESTTOKEN; }
 
@@ -171,6 +176,14 @@ new_chordtype(enum chordtype chordtype)
 	update_textloc(&yylval.chordtype.textloc);
 	yylval.chordtype.expr = chordtype;
 	return CHORDTOKEN;
+}
+
+static int
+new_drumsym(enum drumsym drumsym)
+{
+	update_textloc(&yylval.drumsym.textloc);
+	yylval.drumsym.expr = drumsym;
+	return DRUMTOKEN;
 }
 
 static int

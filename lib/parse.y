@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.57 2016/05/11 20:30:01 je Exp $ */
+/* $Id: parse.y,v 1.58 2016/07/18 20:25:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -71,6 +71,16 @@ static float countlength(int, int);
 	} chordtype;
 
 	struct {
+		struct drum	expr;
+		struct textloc	textloc;
+	} drum;
+
+	struct {
+		enum drumsym	expr;
+		struct textloc	textloc;
+	} drumsym;
+
+	struct {
 		enum notesym	expr;
 		struct textloc	textloc;
 	} notesym;
@@ -110,6 +120,7 @@ static float countlength(int, int);
 %token	<string>	QUOTED_STRING
 
 %token	<chordtype>	CHORDTOKEN
+%token	<drumsym>	DRUMTOKEN
 
 %token	<textloc>	RELSIMULTENCE_START
 			RELSIMULTENCE_END
@@ -127,6 +138,7 @@ static float countlength(int, int);
 %type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
 %type	<chord>		chord
+%type	<drum>		drum
 %type	<rest>		rest
 %type	<i>		notemods octavemods lengthdots
 %type	<f>		notelength
@@ -155,6 +167,15 @@ musicexpr:
 			YYERROR;
 		}
 		$$->u.chord = $1.expr;
+	  }
+	| drum {
+		$$ = _mdl_musicexpr_new(ME_TYPE_DRUM, $1.textloc, 0);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->u.drum = $1.expr;
 	  }
 	| joinexpr {
 		$$ = _mdl_musicexpr_new(ME_TYPE_JOINEXPR, $1.textloc, 0);
@@ -204,6 +225,13 @@ chord:
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	}
 	;
+
+drum:
+	DRUMTOKEN notelength {
+		$$.expr.drumsym = $1.expr;
+		$$.expr.length  = $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	};
 
 joinexpr:
 	musicexpr JOINEXPR musicexpr {

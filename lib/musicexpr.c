@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.100 2016/05/11 20:30:01 je Exp $ */
+/* $Id: musicexpr.c,v 1.101 2016/07/18 20:25:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -992,6 +992,7 @@ _mdl_musicexpr_id_string(const struct musicexpr *me)
 	static const char *strings[] = {
 		"absnote",		/* ME_TYPE_ABSNOTE */
 		"chord",		/* ME_TYPE_CHORD */
+		"drum",			/* ME_TYPE_DRUM */
 		"empty",		/* ME_TYPE_EMPTY */
 		"flatsimultence",	/* ME_TYPE_FLATSIMULTENCE */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
