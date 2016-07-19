@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.101 2016/07/18 20:25:32 je Exp $ */
+/* $Id: musicexpr.c,v 1.102 2016/07/19 20:06:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,6 +68,7 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
@@ -472,6 +473,7 @@ _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 	case ME_TYPE_CHORD:
 		_mdl_musicexpr_apply_noteoffset(me->u.chord.me, offset, level);
 		break;
+	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
 		/* Nothing to do. */
 		break;
@@ -569,6 +571,9 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 		_mdl_musicexpr_stretch_length(me->u.chord.me,
 		    factor);
 		break;
+	case ME_TYPE_DRUM:
+		me->u.drum.length *= factor;
+		break;
 	case ME_TYPE_EMPTY:
 		break;
 	case ME_TYPE_FLATSIMULTENCE:
@@ -626,6 +631,9 @@ musicexpr_calc_length(struct musicexpr *me)
 		break;
         case ME_TYPE_CHORD:
 		length = musicexpr_calc_length(me->u.chord.me);
+		break;
+        case ME_TYPE_DRUM:
+		length = me->u.drum.length;
 		break;
         case ME_TYPE_EMPTY:
 		break;
@@ -700,6 +708,10 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_musicexpr_log_chordtype(me->u.chord.chordtype, logtype,
 		    level+1, prefix);
 		_mdl_musicexpr_log(me->u.chord.me, logtype, level+1, prefix);
+		break;
+	case ME_TYPE_DRUM:
+		_mdl_log(logtype, level, "%s%s drumsym=%s length=%.3f\n",
+		    prefix, me_id, me->u.drum.drumsym, me->u.drum.length);
 		break;
 	case ME_TYPE_EMPTY:
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
@@ -856,6 +868,7 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:

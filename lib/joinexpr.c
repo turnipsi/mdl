@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.56 2016/05/11 20:30:01 je Exp $ */
+/* $Id: joinexpr.c,v 1.57 2016/07/19 20:06:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,6 +59,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
 	case ME_TYPE_REST:
 		/* No subexpressions, nothing to do. */
@@ -215,6 +216,16 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 				return a;
 			}
 			_mdl_log(MDLLOG_JOINS, level, "chords do not match\n");
+			break;
+		case ME_TYPE_DRUM:
+			if (a->u.drum.drumsym == b->u.drum.drumsym) {
+				_mdl_log(MDLLOG_JOINS, level,
+				    "matched drums\n");
+				a->u.drum.length += b->u.drum.length;
+				_mdl_musicexpr_free(b, level+1);
+				return a;
+			}
+			_mdl_log(MDLLOG_JOINS, level, "drums do not match\n");
 			break;
 		case ME_TYPE_EMPTY:
 			_mdl_log(MDLLOG_JOINS, level,

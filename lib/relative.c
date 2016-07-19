@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.21 2016/05/11 20:30:01 je Exp $ */
+/* $Id: relative.c,v 1.22 2016/07/19 20:06:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -104,6 +104,15 @@ relative_to_absolute(struct musicexpr *me,
 		if (me->u.chord.chordtype == CHORDTYPE_NONE)
 			me->u.chord.chordtype = prev_exprs->chordtype;
 		prev_exprs->chordtype = me->u.chord.chordtype;
+		break;
+	case ME_TYPE_DRUM:
+		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
+
+		if (me->u.drum.length == 0) {
+			me->u.drum.length = prev_exprs->absnote.length;
+		} else {
+			prev_exprs->absnote.length = me->u.drum.length;
+		}
 		break;
 	case ME_TYPE_EMPTY:
 		break;
