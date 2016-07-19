@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.102 2016/07/19 20:06:59 je Exp $ */
+/* $Id: musicexpr.c,v 1.103 2016/07/19 20:32:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -277,6 +277,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_DRUM:
 		if ((cloned = _mdl_musicexpr_clone(me, level)) == NULL)
 			return 1;
 		offsetexpr = _mdl_musicexpr_new(ME_TYPE_OFFSETEXPR,
@@ -302,7 +303,13 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		TAILQ_INSERT_TAIL(&flatme->u.flatsimultence.me->u.melist,
 		    offsetexpr, tq);
 
-		*next_offset += cloned->u.absnote.length;
+		if (me->me_type == ME_TYPE_ABSNOTE) {
+			*next_offset += cloned->u.absnote.length;
+		} else if (me->me_type == ME_TYPE_DRUM) {
+			*next_offset += cloned->u.drum.length;
+		} else {
+			assert(0);
+		}
 		break;
 	case ME_TYPE_CHORD:
 		noteoffsetexpr = _mdl_chord_to_noteoffsetexpr(me->u.chord,
