@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.17 2016/06/30 19:29:07 je Exp $
+# $Id: configure,v 1.18 2016/07/20 19:38:22 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -143,7 +143,7 @@ do_check() {
   checkname=$1
   checkfunc=$2
 
-  echo -n "Checking for ${checkname}... "
+  printf 'Checking for %s... ' $checkname
   if $checkfunc; then
     echo ok.
   else
