@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.41 2016/07/10 21:33:52 je Exp $ */
+/* $Id: midistream.c,v 1.42 2016/07/20 19:46:16 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -436,14 +436,6 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	_mdl_musicexpr_log(me, MDLLOG_MIDISTREAM, level+1, NULL);
 
 	level += 1;
-
-	/*
-	 * XXX What about ME_TYPE_REST, that might almost be currently
-	 * XXX possible? (it is probably better if SONG_END could have
-	 * XXX offset information so that the final rest would be
-	 * XXX unnecessary and we could expect only ME_TYPE_ABSNOTEs
-	 * XXX here).
-	 */
 
 	assert(me->me_type == ME_TYPE_ABSNOTE);
 
