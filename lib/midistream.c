@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.42 2016/07/20 19:46:16 je Exp $ */
+/* $Id: midistream.c,v 1.43 2016/07/21 20:10:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -36,25 +36,26 @@
 #define INSTRUMENT_CHANNEL_COUNT	(MIDI_CHANNEL_COUNT - 1)
 
 struct miditracks {
-	struct instrument *instrument;
-	struct track *track;
-	int notecount[MIDI_NOTE_COUNT];
-	int total_notecount;
+	struct instrument      *instrument;
+	struct track	       *track;
+	int			notecount[MIDI_NOTE_COUNT];
+	int			total_notecount;
 };
 
 static struct mdl_stream *midi_eventstream_new(void);
 static struct mdl_stream *offsetexprstream_new(void);
 static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
     float, int);
-static int add_noteoff_to_midievents(struct mdl_stream *, struct trackmidinote,
-    struct miditracks *, int);
-static int add_noteon_to_midievents(struct mdl_stream *, struct trackmidinote,
-    struct miditracks *, int);
 static struct mdl_stream *trackmidievents_to_midievents(struct mdl_stream *,
     float, int);
-static int add_musicexpr_to_trackmidievents(struct mdl_stream *,
+
+static int	add_noteoff_to_midievents(struct mdl_stream *,
+    struct trackmidinote, struct miditracks *, int);
+static int	add_noteon_to_midievents(struct mdl_stream *,
+    struct trackmidinote, struct miditracks *, int);
+static int	add_musicexpr_to_trackmidievents(struct mdl_stream *,
     const struct musicexpr *, float, int);
-static int compare_trackmidievents(const void *, const void *);
+static int	compare_trackmidievents(const void *, const void *);
 
 struct mdl_stream *
 _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
