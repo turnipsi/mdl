@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.43 2016/07/21 20:10:18 je Exp $ */
+/* $Id: midistream.c,v 1.44 2016/07/21 20:15:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@
 
 #define DEFAULT_MIDICHANNEL		0
 #define DEFAULT_VELOCITY		80
+#define DRUM_MIDICHANNEL		9
 #define INSTRUMENT_CHANNEL_COUNT	(MIDI_CHANNEL_COUNT - 1)
 
 struct miditracks {
@@ -258,7 +259,7 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	}
 
 	/* Midi channel 10 (index 9) is reserved for drums. */
-	midichannel = (ch <= 8 ? ch : (ch + 1));
+	midichannel = (ch <= DRUM_MIDICHANNEL-1 ? ch : (ch + 1));
 	tmn.note.channel = midichannel;
 
 	midievent = &midi_es->u.midievents[ midi_es->count ];
@@ -303,7 +304,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote tmn,
 	}
 
 	/* Midi channel 10 (index 9) is reserved for drums. */
-	midichannel = (ch <= 8 ? ch : (ch + 1));
+	midichannel = (ch <= DRUM_MIDICHANNEL-1 ? ch : (ch + 1));
 	tmn.note.channel = midichannel;
 
 	if (instr_tracks[ch].instrument != tmn.instrument) {
