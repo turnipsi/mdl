@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.49 2016/07/17 20:04:29 je Exp $ */
+/* $Id: mdl.c,v 1.50 2016/07/22 19:15:09 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -561,14 +561,16 @@ handle_musicfiles(struct server_connection *server_conn,
 	}
 
 	if (interp.is_active) {
-		if (kill(interp.process.pid, SIGTERM) == -1) {
+		_mdl_log(MDLLOG_IPC, 0,
+		    "sending SIGTERM to interpreter process\n");
+		if (kill(interp.process.pid, SIGTERM) == -1 &&
+		    errno != ESRCH) {
+			/* ESRCH returned on some systems with zombies. */
+			/* XXX prefer pipes to terminate interpreter? */
 			warn("error killing the current interpreter");
-		} else {
-			_mdl_log(MDLLOG_IPC, 0,
-			    "sent SIGTERM to interpreter process\n");
-			if (waitpid(interp.process.pid, &status, 0) == -1)
-				warn("waiting for interpreter");
 		}
+		if (waitpid(interp.process.pid, &status, 0) == -1)
+			warn("waiting for interpreter");
 	}
 
 	if (server_conn != NULL)
