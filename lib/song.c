@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.12 2016/07/19 20:06:59 je Exp $ */
+/* $Id: song.c,v 1.13 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,18 +43,25 @@ _mdl_song_new(struct musicexpr *me, int level)
 	SLIST_INIT(&song->tracklist);
 
 	if (connect_tracks_to_song(song, me, level) != 0) {
-		free(song);
+		_mdl_song_free(song);
 		return NULL;
 	}
 
 	track = _mdl_song_find_track_or_new(song, "acoustic grand", level);
 	if (track == NULL) {
-		warnx("could not create the default track");
-		free(song);
+		warnx("could not create the default toned instrument track");
+		_mdl_song_free(song);
 		return NULL;
 	}
+	song->default_tonedtrack = track;
 
-	song->default_track = track;
+	track = _mdl_song_find_track_or_new(song, "drums", level);
+	if (track == NULL) {
+		warnx("could not create the default drumkit track");
+		_mdl_song_free(song);
+		return NULL;
+	}
+	song->default_drumtrack = track;
 
 	return song;
 }

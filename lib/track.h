@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.6 2016/05/10 20:39:43 je Exp $ */
+/* $Id: track.h,v 1.7 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,7 +30,7 @@ struct track {
 
 __BEGIN_DECLS
 struct instrument *
-_mdl_track_get_default_instrument(struct track *);
+_mdl_track_get_default_instrument(enum instrument_type, struct track *);
 __END_DECLS
 
 #endif /* !MDL_TRACK_H */

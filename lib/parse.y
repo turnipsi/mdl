@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.58 2016/07/18 20:25:32 je Exp $ */
+/* $Id: parse.y,v 1.59 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -228,8 +228,11 @@ chord:
 
 drum:
 	DRUMTOKEN notelength {
-		$$.expr.drumsym = $1.expr;
-		$$.expr.length  = $2.expr;
+		$$.expr.drumsym    = $1.expr;
+		$$.expr.instrument = NULL;
+		$$.expr.length     = $2.expr;
+		$$.expr.track      = NULL;
+
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	};
 

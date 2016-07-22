@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.4 2016/05/10 20:39:43 je Exp $ */
+/* $Id: track.c,v 1.5 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,7 +22,8 @@
 #include "track.h"
 
 struct instrument *
-_mdl_track_get_default_instrument(struct track *track)
+_mdl_track_get_default_instrument(enum instrument_type type,
+    struct track *track)
 {
-	return _mdl_get_instrument(INSTR_TONED, track->name);
+	return _mdl_get_instrument(type, track->name);
 }

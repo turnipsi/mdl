@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.23 2016/07/20 19:48:24 je Exp $ */
+/* $Id: relative.c,v 1.24 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,8 +29,10 @@
 #include "util.h"
 
 struct previous_relative_exprs {
-	struct absnote absnote;
-	enum chordtype chordtype;
+	struct absnote	absnote;
+	struct drum	drum;
+	float		length;
+	enum chordtype	chordtype;
 };
 
 static void	relative_to_absolute(struct musicexpr *,
@@ -49,8 +51,9 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 
 	level += 1;
 
-	/* Set default values for the first absolute note. */
-	instrument = _mdl_track_get_default_instrument(song->default_track);
+	/* Set default values for the first absolute note (toned). */
+	instrument = _mdl_track_get_default_instrument(INSTR_TONED,
+	    song->default_tonedtrack);
 	if (instrument != NULL) {
 		prev_relative_exprs.absnote.instrument = instrument;
 	} else {
@@ -59,10 +62,25 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	}
 	assert(prev_relative_exprs.absnote.instrument != NULL);
 
-	prev_relative_exprs.absnote.length = 0.25;
+	prev_relative_exprs.length = 0.25;
+
 	prev_relative_exprs.absnote.notesym = NOTE_C;
 	prev_relative_exprs.absnote.note = 60;
-	prev_relative_exprs.absnote.track = song->default_track;
+	prev_relative_exprs.absnote.track = song->default_tonedtrack;
+
+	/* Set default values for the first absolute note. */
+	instrument = _mdl_track_get_default_instrument(INSTR_DRUMKIT,
+	    song->default_drumtrack);
+	if (instrument != NULL) {
+		prev_relative_exprs.drum.instrument = instrument;
+	} else {
+		prev_relative_exprs.drum.instrument =
+		    _mdl_get_instrument(INSTR_DRUMKIT, "drums");
+	}
+	assert(prev_relative_exprs.drum.instrument != NULL);
+
+	prev_relative_exprs.drum.drumsym = DRUM_BD;
+	prev_relative_exprs.drum.track = song->default_drumtrack;
 
 	/* Set default value for the first chordtype. */
 	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
@@ -109,20 +127,18 @@ relative_to_absolute(struct musicexpr *me,
 		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		if (me->u.drum.length == 0) {
-			me->u.drum.length = prev_exprs->absnote.length;
+			me->u.drum.length = prev_exprs->length;
 		} else {
-			prev_exprs->absnote.length = me->u.drum.length;
+			prev_exprs->length = me->u.drum.length;
 		}
 		break;
 	case ME_TYPE_EMPTY:
 		break;
 	case ME_TYPE_FLATSIMULTENCE:
 		if (me->u.flatsimultence.length == 0) {
-			me->u.flatsimultence.length
-			    = prev_exprs->absnote.length;
+			me->u.flatsimultence.length = prev_exprs->length;
 		} else {
-			prev_exprs->absnote.length
-			    = me->u.flatsimultence.length;
+			prev_exprs->length = me->u.flatsimultence.length;
 		}
 		relative_to_absolute(me->u.flatsimultence.me, prev_exprs,
 		    level);
@@ -141,10 +157,18 @@ relative_to_absolute(struct musicexpr *me,
 	case ME_TYPE_ONTRACK:
 		prev_exprs_copy = *prev_exprs;
 		prev_exprs->absnote.track = me->u.ontrack.track;
-		instrument =
-		    _mdl_track_get_default_instrument(me->u.ontrack.track);
+		prev_exprs->drum.track = me->u.ontrack.track;
+
+		instrument = _mdl_track_get_default_instrument(INSTR_TONED,
+		    me->u.ontrack.track);
 		if (instrument != NULL)
 			prev_exprs->absnote.instrument = instrument;
+
+		instrument = _mdl_track_get_default_instrument(INSTR_DRUMKIT,
+		    me->u.ontrack.track);
+		if (instrument != NULL)
+			prev_exprs->drum.instrument = instrument;
+
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);
 		*prev_exprs = prev_exprs_copy;
 		break;
@@ -172,7 +196,7 @@ relative_to_absolute(struct musicexpr *me,
 		absnote = prev_exprs->absnote;
 		absnote.length = relnote.length;
 		if (absnote.length == 0)
-			absnote.length = prev_exprs->absnote.length;
+			absnote.length = prev_exprs->length;
 		absnote.note = note;
 		absnote.notesym = relnote.notesym;
 
@@ -180,15 +204,16 @@ relative_to_absolute(struct musicexpr *me,
 		me->u.absnote = absnote;
 
 		prev_exprs->absnote = absnote;
+		prev_exprs->length  = absnote.length;
 
 		break;
 	case ME_TYPE_REST:
 		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level, NULL);
 
 		if (me->u.rest.length == 0) {
-			me->u.rest.length = prev_exprs->absnote.length;
+			me->u.rest.length = prev_exprs->length;
 		} else {
-			prev_exprs->absnote.length = me->u.rest.length;
+			prev_exprs->length = me->u.rest.length;
 		}
 		break;
 	case ME_TYPE_RELSIMULTENCE:
@@ -199,7 +224,7 @@ relative_to_absolute(struct musicexpr *me,
 		 * get it from previous length.
 		 */
 		if (me->u.scaledexpr.length == 0)
-			me->u.scaledexpr.length = prev_exprs->absnote.length;
+			me->u.scaledexpr.length = prev_exprs->length;
 
 		/*
 		 * Order should not generally matter in simultences, except
@@ -218,7 +243,7 @@ relative_to_absolute(struct musicexpr *me,
 		*prev_exprs = prev_exprs_copy;
 
 		/* We also set default length for subsequent expressions. */
-		prev_exprs->absnote.length = me->u.scaledexpr.length;
+		prev_exprs->length = me->u.scaledexpr.length;
 
 		/*
 		 * relsimultence can now be treated like normal

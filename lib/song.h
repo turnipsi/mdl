@@ -1,4 +1,4 @@
-/* $Id: song.h,v 1.8 2016/07/21 20:10:18 je Exp $ */
+/* $Id: song.h,v 1.9 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -26,7 +26,8 @@ SLIST_HEAD(tracklist, track);
 
 struct song {
 	struct tracklist	tracklist;
-	struct track	       *default_track;
+	struct track	       *default_drumtrack;
+	struct track	       *default_tonedtrack;
 };
 
 __BEGIN_DECLS

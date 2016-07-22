@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.72 2016/07/18 20:25:32 je Exp $ */
+/* $Id: musicexpr.h,v 1.73 2016/07/22 20:17:26 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -107,6 +107,13 @@ struct absnote {
 	int			note;
 };
 
+struct drum {
+	struct instrument      *instrument;
+	struct track	       *track;
+	enum drumsym		drumsym;
+	float			length;
+};
+
 struct relnote {
 	enum notesym	notesym;
 	float		length;
@@ -116,11 +123,6 @@ struct relnote {
 
 struct rest {
 	float	length;
-};
-
-struct drum {
-	enum drumsym	drumsym;
-	float		length;
 };
 
 struct chord {
