@@ -1,4 +1,5 @@
 mdl.main.song          : starting to play inputs/t-mix-notes-and-chords-with-jumps.mdl
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.song        :   added a new track "acoustic grand"
+mdl.interp.song        :   added a new track "drums"
 mdl.main.song          : finished playing inputs/t-mix-notes-and-chords-with-jumps.mdl
