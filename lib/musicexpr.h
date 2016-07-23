@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.73 2016/07/22 20:17:26 je Exp $ */
+/* $Id: musicexpr.h,v 1.74 2016/07/23 20:31:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,15 +28,16 @@
 #define MINIMUM_MUSICEXPR_LENGTH	0.0001
 
 enum musicexpr_type {
+	ME_TYPE_ABSDRUM,
 	ME_TYPE_ABSNOTE,
 	ME_TYPE_CHORD,
-	ME_TYPE_DRUM,
 	ME_TYPE_EMPTY,
 	ME_TYPE_FLATSIMULTENCE,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_OFFSETEXPR,
 	ME_TYPE_ONTRACK,
+	ME_TYPE_RELDRUM,
 	ME_TYPE_RELNOTE,
 	ME_TYPE_RELSIMULTENCE,
 	ME_TYPE_REST,
@@ -99,6 +100,14 @@ enum chordtype {
 	CHORDTYPE_MAX,	/* not a chord */
 };
 
+struct absdrum {
+	struct instrument      *instrument;
+	struct track	       *track;
+	enum drumsym		drumsym;
+	float			length;
+	int			note;
+};
+
 struct absnote {
 	struct instrument      *instrument;
 	struct track	       *track;
@@ -107,11 +116,9 @@ struct absnote {
 	int			note;
 };
 
-struct drum {
-	struct instrument      *instrument;
-	struct track	       *track;
-	enum drumsym		drumsym;
-	float			length;
+struct reldrum {
+	enum drumsym	drumsym;
+	float		length;
 };
 
 struct relnote {
@@ -180,14 +187,15 @@ struct musicexpr {
 	enum musicexpr_type	me_type;
 	union {
 		struct absnote		absnote;
+		struct absdrum		absdrum;
 		struct chord		chord;
-		struct drum		drum;
 		struct flatsimultence	flatsimultence;
 		struct joinexpr		joinexpr;
 		struct melist		melist;
 		struct noteoffsetexpr	noteoffsetexpr;
 		struct offsetexpr	offsetexpr;
 		struct ontrack		ontrack;
+		struct reldrum		reldrum;
 		struct relnote		relnote;
 		struct rest		rest;
 		struct scaledexpr	scaledexpr;

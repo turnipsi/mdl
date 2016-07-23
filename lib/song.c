@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.13 2016/07/22 20:17:26 je Exp $ */
+/* $Id: song.c,v 1.14 2016/07/23 20:31:37 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -83,9 +83,10 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 	level += 1;
 
 	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 		break;

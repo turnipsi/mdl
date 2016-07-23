@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.104 2016/07/20 19:42:42 je Exp $ */
+/* $Id: musicexpr.c,v 1.105 2016/07/23 20:31:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -67,9 +67,10 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 	cloned->u = me->u;
 
 	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 		break;
@@ -276,8 +277,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	level += 1;
 
 	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_DRUM:
 		if ((cloned = _mdl_musicexpr_clone(me, level)) == NULL)
 			return 1;
 		offsetexpr = _mdl_musicexpr_new(ME_TYPE_OFFSETEXPR,
@@ -305,8 +306,8 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 
 		if (me->me_type == ME_TYPE_ABSNOTE) {
 			*next_offset += cloned->u.absnote.length;
-		} else if (me->me_type == ME_TYPE_DRUM) {
-			*next_offset += cloned->u.drum.length;
+		} else if (me->me_type == ME_TYPE_ABSDRUM) {
+			*next_offset += cloned->u.absdrum.length;
 		} else {
 			assert(0);
 		}
@@ -334,6 +335,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		    (old_offset + me->u.flatsimultence.length));
 		break;
 	case ME_TYPE_JOINEXPR:	/* XXX Is this correct? */
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
 		/* These should have been handled in previous phases. */
@@ -474,13 +476,15 @@ _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 	level += 1;
 
 	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
+		/* Nothing to do. */
+		break;
 	case ME_TYPE_ABSNOTE:
 		me->u.absnote.note += offset;
-		    break;
+		break;
 	case ME_TYPE_CHORD:
 		_mdl_musicexpr_apply_noteoffset(me->u.chord.me, offset, level);
 		break;
-	case ME_TYPE_DRUM:
 	case ME_TYPE_EMPTY:
 		/* Nothing to do. */
 		break;
@@ -506,6 +510,7 @@ _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 		_mdl_musicexpr_apply_noteoffset(me->u.ontrack.me, offset,
 		    level);
 		break;
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
 		/* These should have been handled in previous phases. */
@@ -574,12 +579,12 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 	case ME_TYPE_ABSNOTE:
 		me->u.absnote.length *= factor;
 		break;
+	case ME_TYPE_ABSDRUM:
+		me->u.absdrum.length *= factor;
+		break;
 	case ME_TYPE_CHORD:
 		_mdl_musicexpr_stretch_length(me->u.chord.me,
 		    factor);
-		break;
-	case ME_TYPE_DRUM:
-		me->u.drum.length *= factor;
 		break;
 	case ME_TYPE_EMPTY:
 		break;
@@ -601,6 +606,7 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 	case ME_TYPE_ONTRACK:
 		_mdl_musicexpr_stretch_length(me->u.ontrack.me, factor);
 		break;
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
 		/* These should have been handled in previous phases. */
@@ -633,14 +639,14 @@ musicexpr_calc_length(struct musicexpr *me)
 	length = 0.0;
 
 	switch (me->me_type) {
+        case ME_TYPE_ABSDRUM:
+		length = me->u.absdrum.length;
+		break;
         case ME_TYPE_ABSNOTE:
 		length = me->u.absnote.length;
 		break;
         case ME_TYPE_CHORD:
 		length = musicexpr_calc_length(me->u.chord.me);
-		break;
-        case ME_TYPE_DRUM:
-		length = me->u.drum.length;
 		break;
         case ME_TYPE_EMPTY:
 		break;
@@ -661,6 +667,7 @@ musicexpr_calc_length(struct musicexpr *me)
         case ME_TYPE_ONTRACK:
 		length = musicexpr_calc_length(me->u.ontrack.me);
 		break;
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
 		/* These should have been handled in previous phases. */
@@ -702,6 +709,14 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		prefix = "";
 
 	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
+		_mdl_log(logtype, level,
+		    "%s%s drumsym=%d note=%d length=%.3f instrument=\"%s\""
+		    " track=\"%s\"\n", prefix, me_id,
+		    me->u.absdrum.drumsym, me->u.absdrum.note,
+		    me->u.absdrum.length, me->u.absdrum.instrument->name,
+		    me->u.absdrum.track->name);
+		break;
 	case ME_TYPE_ABSNOTE:
 		_mdl_log(logtype, level,
 		    "%s%s notesym=%d note=%d length=%.3f instrument=\"%s\""
@@ -715,10 +730,6 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_musicexpr_log_chordtype(me->u.chord.chordtype, logtype,
 		    level+1, prefix);
 		_mdl_musicexpr_log(me->u.chord.me, logtype, level+1, prefix);
-		break;
-	case ME_TYPE_DRUM:
-		_mdl_log(logtype, level, "%s%s drumsym=%d length=%.3f\n",
-		    prefix, me_id, me->u.drum.drumsym, me->u.drum.length);
 		break;
 	case ME_TYPE_EMPTY:
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
@@ -768,6 +779,11 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_log(logtype, level, "%s%s track=%s\n", prefix, me_id,
 		    me->u.ontrack.track->name);
 		_mdl_musicexpr_log(me->u.ontrack.me, logtype, level+1, prefix);
+		break;
+	case ME_TYPE_RELDRUM:
+		_mdl_log(logtype, level, "%s%s drumsym=%d length=%.3f\n",
+		    prefix, me_id, me->u.absdrum.drumsym,
+		    me->u.absdrum.length);
 		break;
 	case ME_TYPE_RELNOTE:
 		_mdl_log(logtype, level,
@@ -875,8 +891,9 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_DRUM:
+	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_EMPTY:
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 		break;
@@ -1010,15 +1027,16 @@ char *
 _mdl_musicexpr_id_string(const struct musicexpr *me)
 {
 	static const char *strings[] = {
+		"absdrum",		/* ME_TYPE_ABSDRUM */
 		"absnote",		/* ME_TYPE_ABSNOTE */
 		"chord",		/* ME_TYPE_CHORD */
-		"drum",			/* ME_TYPE_DRUM */
 		"empty",		/* ME_TYPE_EMPTY */
 		"flatsimultence",	/* ME_TYPE_FLATSIMULTENCE */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
 		"offsetexpr",		/* ME_TYPE_OFFSETEXPR */
 		"ontrack",		/* ME_TYPE_ONTRACK */
+		"reldrum",		/* ME_TYPE_RELDRUM */
 		"relnote",		/* ME_TYPE_RELNOTE */
 		"relsimultence",	/* ME_TYPE_RELSIMULTENCE */
 		"rest",			/* ME_TYPE_REST */

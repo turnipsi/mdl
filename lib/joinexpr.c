@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.57 2016/07/19 20:06:59 je Exp $ */
+/* $Id: joinexpr.c,v 1.58 2016/07/23 20:31:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,7 +59,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_DRUM:
+	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_EMPTY:
 	case ME_TYPE_REST:
 		/* No subexpressions, nothing to do. */
@@ -111,6 +111,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 		log_possible_join(me, level);
 		ret = _mdl_joinexpr_musicexpr(me->u.ontrack.me, level+1);
 		break;
+	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
 		/* These must have been handled in previous phases. */
@@ -189,6 +190,21 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 	if (at == bt) {
 		/* Handle cases where joined music expression types match. */
 		switch (at) {
+		case ME_TYPE_ABSDRUM:
+			/*
+			 * XXX This should also take into account the track
+			 * XXX parameter and possible instrument changes.
+			 */
+			if (a->u.absdrum.drumsym == b->u.absdrum.drumsym) {
+				_mdl_log(MDLLOG_JOINS, level,
+				    "matched absdrums\n");
+				a->u.absdrum.length += b->u.absdrum.length;
+				_mdl_musicexpr_free(b, level+1);
+				return a;
+			}
+			_mdl_log(MDLLOG_JOINS, level,
+			    "absdrums do not match\n");
+			break;
 		case ME_TYPE_ABSNOTE:
 			/*
 			 * XXX This should also take into account the track
@@ -217,16 +233,6 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 			}
 			_mdl_log(MDLLOG_JOINS, level, "chords do not match\n");
 			break;
-		case ME_TYPE_DRUM:
-			if (a->u.drum.drumsym == b->u.drum.drumsym) {
-				_mdl_log(MDLLOG_JOINS, level,
-				    "matched drums\n");
-				a->u.drum.length += b->u.drum.length;
-				_mdl_musicexpr_free(b, level+1);
-				return a;
-			}
-			_mdl_log(MDLLOG_JOINS, level, "drums do not match\n");
-			break;
 		case ME_TYPE_EMPTY:
 			_mdl_log(MDLLOG_JOINS, level,
 			    "joining two empty expressions\n");
@@ -239,6 +245,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 			_mdl_unimplemented();
 			break;
 		case ME_TYPE_JOINEXPR:
+		case ME_TYPE_RELDRUM:
 		case ME_TYPE_RELNOTE:
 		case ME_TYPE_RELSIMULTENCE:
 			/* These must have been handled in previous phases. */

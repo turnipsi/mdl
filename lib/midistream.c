@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.44 2016/07/21 20:15:08 je Exp $ */
+/* $Id: midistream.c,v 1.45 2016/07/23 20:31:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -430,7 +430,8 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
     const struct musicexpr *me, float timeoffset, int level)
 {
 	struct trackmidinote *tmnote;
-	int ret, new_note;
+	float length;
+	int new_note, ret;
 
 	_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding expression with offset %.3f to trackmidievents\n",
@@ -439,9 +440,18 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 
 	level += 1;
 
-	assert(me->me_type == ME_TYPE_ABSNOTE);
+	assert(me->me_type == ME_TYPE_ABSDRUM ||
+	    me->me_type == ME_TYPE_ABSNOTE);
 
-	new_note = me->u.absnote.note;
+	if (me->me_type == ME_TYPE_ABSDRUM) {
+		new_note = me->u.absdrum.note;
+		length = me->u.absdrum.length;
+	} else if (me->me_type == ME_TYPE_ABSNOTE) {
+		new_note = me->u.absnote.note;
+		length = me->u.absnote.length;
+	} else {
+		assert(0);
+	}
 
 	/* We accept and ignore notes that are out-of-range. */
 	if (new_note < 0 || MIDI_NOTE_COUNT <= new_note) {
@@ -449,28 +459,37 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		    "skipping note with value %d\n", new_note);
 		return 0;
 	}
-	assert(me->u.absnote.length > 0);
+	assert(length > 0);
 
 	/*
 	 * Ignore notes that are less than MINIMUM_MUSICEXPR_LENGTH.
 	 * Notes that have zero length trigger issues after midi events
 	 * are sorted.
 	 */
-	if (me->u.absnote.length < MINIMUM_MUSICEXPR_LENGTH) {
+	if (length < MINIMUM_MUSICEXPR_LENGTH) {
 		_mdl_log(MDLLOG_MIDISTREAM, level,
-		    "skipping note with length %.9f\n", me->u.absnote.length);
+		    "skipping note with length %.9f\n", length);
 		return 0;
 	}
 
 	tmnote = &trackmidi_es->u.trackmidinotes[ trackmidi_es->count ];
 	memset(tmnote, 0, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEON;
-	tmnote->instrument = me->u.absnote.instrument;
-	tmnote->note.channel = DEFAULT_MIDICHANNEL;
 	tmnote->note.note = new_note;
 	tmnote->note.velocity = DEFAULT_VELOCITY;
 	tmnote->time_as_measures = timeoffset;
-	tmnote->track = me->u.absnote.track;
+
+	if (me->me_type == ME_TYPE_ABSDRUM) {
+		tmnote->note.channel = DRUM_MIDICHANNEL;
+		tmnote->instrument = me->u.absdrum.instrument;
+		tmnote->track = me->u.absdrum.track;
+	} else if (me->me_type == ME_TYPE_ABSNOTE) {
+		tmnote->note.channel = DEFAULT_MIDICHANNEL;
+		tmnote->instrument = me->u.absnote.instrument;
+		tmnote->track = me->u.absnote.track;
+	} else {
+		assert(0);
+	}
 
 	ret = _mdl_stream_increment(trackmidi_es);
 	if (ret != 0)
@@ -479,12 +498,21 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	tmnote = &trackmidi_es->u.trackmidinotes[ trackmidi_es->count ];
 	memset(tmnote, 0, sizeof(struct trackmidinote));
 	tmnote->eventtype = NOTEOFF;
-	tmnote->instrument = me->u.absnote.instrument;
-	tmnote->note.channel = DEFAULT_MIDICHANNEL;
 	tmnote->note.note = new_note;
 	tmnote->note.velocity = 0;
 	tmnote->time_as_measures = timeoffset + me->u.absnote.length;
-	tmnote->track = me->u.absnote.track;
+
+	if (me->me_type == ME_TYPE_ABSDRUM) {
+		tmnote->note.channel = DRUM_MIDICHANNEL;
+		tmnote->instrument = me->u.absdrum.instrument;
+		tmnote->track = me->u.absdrum.track;
+	} else if (me->me_type == ME_TYPE_ABSNOTE) {
+		tmnote->note.channel = DEFAULT_MIDICHANNEL;
+		tmnote->instrument = me->u.absnote.instrument;
+		tmnote->track = me->u.absnote.track;
+	} else {
+		assert(0);
+	}
 
 	return _mdl_stream_increment(trackmidi_es);
 }
