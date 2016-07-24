@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.22 2016/06/04 20:07:45 je Exp $ */
+/* $Id: midi.h,v 1.23 2016/07/24 20:30:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,8 +51,9 @@ struct trackmidinote {
 	enum eventtype		eventtype;
 	struct instrument      *instrument;
 	struct midinote		note;
-	float			time_as_measures;
 	struct track	       *track;
+	float			time_as_measures;
+	int			autoallocate_channel;
 };
 
 struct midievent {
