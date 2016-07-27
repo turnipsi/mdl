@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.74 2016/07/23 20:31:36 je Exp $ */
+/* $Id: musicexpr.h,v 1.75 2016/07/27 20:27:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,11 +61,70 @@ enum notesym {
 enum notemod { NOTEMOD_ES, NOTEMOD_IS, };
 
 enum drumsym {
-	/* XXX missing many */
-	DRUM_BD,
-	DRUM_HH,
-	DRUM_SD,
-	DRUM_MAX,	/* not a drum */
+	DRUM_BDA,	/* acousticbassdrum */
+	DRUM_BD,	/* bassdrum         */
+	DRUM_SSH,	/* hisidestick      */
+	DRUM_SS,	/* sidestick        */
+	DRUM_SSL,	/* losidestick      */
+	DRUM_SNA,	/* acousticsnare    */
+	DRUM_SN,	/* snare            */
+	DRUM_HC,	/* handclap         */
+	DRUM_SNE,	/* electricsnare    */
+	DRUM_TOMFL,	/* lowfloortom      */
+	DRUM_HHC,	/* closedhihat      */
+	DRUM_HH,	/* hihat            */
+	DRUM_TOMFH,	/* highfloortom     */
+	DRUM_HHP,	/* pedalhihat       */
+	DRUM_TOML,	/* lowtom           */
+	DRUM_HHO,	/* openhihat        */
+	DRUM_HHHO,	/* halfopenhihat    */
+	DRUM_TOMML,	/* lowmidtom        */
+	DRUM_TOMMH,	/* himidtom         */
+	DRUM_CYMCA,	/* crashcymbala     */
+	DRUM_CYMC,	/* crashcymbal      */
+	DRUM_TOMH,	/* hightom          */
+	DRUM_CYMRA,	/* ridecymbala      */
+	DRUM_CYMR,	/* ridecymbal       */
+	DRUM_CYMCH,	/* chinesecymbal    */
+	DRUM_RB,	/* ridebell         */
+	DRUM_TAMB,	/* tambourine       */
+	DRUM_CYMS,	/* splashcymbal     */
+	DRUM_CB,	/* cowbell          */
+	DRUM_CYMCB,	/* crashcymbalb     */
+	DRUM_VIBS,	/* vibraslap        */
+	DRUM_CYMRB,	/* ridecymbalb      */
+	DRUM_BOHM,	/* mutehibongo      */
+	DRUM_BOH,	/* hibongo          */
+	DRUM_BOHO,	/* openhibongo      */
+	DRUM_BOLM,	/* mutelobongo      */
+	DRUM_BOL,	/* lobongo          */
+	DRUM_BOLO,	/* openlobongo      */
+	DRUM_CGHM,	/* mutehiconga      */
+	DRUM_CGLM,	/* muteloconga      */
+	DRUM_CGHO,	/* openhiconga      */
+	DRUM_CGH,	/* hiconga          */
+	DRUM_CGLO,	/* openloconga      */
+	DRUM_CGL,	/* loconga          */
+	DRUM_TIMH,	/* hitimbale        */
+	DRUM_TIML,	/* lotimbale        */
+	DRUM_AGH,	/* hiagogo          */
+	DRUM_AGL,	/* loagogo          */
+	DRUM_CAB,	/* cabasa           */
+	DRUM_MAR,	/* maracas          */
+	DRUM_WHS,	/* shortwhistle     */
+	DRUM_WHL,	/* longwhistle      */
+	DRUM_GUIS,	/* shortguiro       */
+	DRUM_GUIL,	/* longguiro        */
+	DRUM_GUI,	/* guiro            */
+	DRUM_CL,	/* claves           */
+	DRUM_WBH,	/* hiwoodblock      */
+	DRUM_WBL,	/* lowoodblock      */
+	DRUM_CUIM,	/* mutecuica        */
+	DRUM_CUIO,	/* opencuica        */
+	DRUM_TRIM,	/* mutetriangle     */
+	DRUM_TRI,	/* triangle         */
+	DRUM_TRIO,	/* opentriangle     */
+	DRUM_MAX,	/* NOT A DRUM       */
 };
 
 enum chordtype {

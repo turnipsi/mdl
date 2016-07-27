@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.25 2016/07/23 20:31:37 je Exp $ */
+/* $Id: relative.c,v 1.26 2016/07/27 20:27:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,6 +17,7 @@
  */
 
 #include <sys/queue.h>
+#include <sys/types.h>
 
 #include <assert.h>
 #include <stdlib.h>
@@ -37,7 +38,7 @@ struct previous_relative_exprs {
 
 static void	relative_to_absolute(struct musicexpr *,
     struct previous_relative_exprs *, int);
-static int	get_notevalue_for_drumsym(enum drumsym);
+static u_int8_t	get_notevalue_for_drumsym(enum drumsym);
 static int	compare_notesyms(enum notesym, enum notesym);
 
 void
@@ -312,13 +313,78 @@ relative_to_absolute(struct musicexpr *me,
 		_mdl_musicexpr_log(me, MDLLOG_RELATIVE, level+1, "--> ");
 }
 
-static int
+static u_int8_t
 get_notevalue_for_drumsym(enum drumsym drumsym)
 {
+	u_int8_t drummidinotenumbers[] = {
+		35,	/* DRUM_BDA,	acousticbassdrum */
+		36,	/* DRUM_BD,	bassdrum         */
+		37,	/* DRUM_SSH,	hisidestick      */
+		37,	/* DRUM_SS,	sidestick        */
+		37,	/* DRUM_SSL,	losidestick      */
+		38,	/* DRUM_SNA,	acousticsnare    */
+		38,	/* DRUM_SN,	snare            */
+		39,	/* DRUM_HC,	handclap         */
+		40,	/* DRUM_SNE,	electricsnare    */
+		41,	/* DRUM_TOMFL,	lowfloortom      */
+		42,	/* DRUM_HHC,	closedhihat      */
+		42,	/* DRUM_HH,	hihat            */
+		43,	/* DRUM_TOMFH,	highfloortom     */
+		44,	/* DRUM_HHP,	pedalhihat       */
+		45,	/* DRUM_TOML,	lowtom           */
+		46,	/* DRUM_HHO,	openhihat        */
+		46,	/* DRUM_HHHO,	halfopenhihat    */
+		47,	/* DRUM_TOMML,	lowmidtom        */
+		48,	/* DRUM_TOMMH,	himidtom         */
+		49,	/* DRUM_CYMCA,	crashcymbala     */
+		49,	/* DRUM_CYMC,	crashcymbal      */
+		50,	/* DRUM_TOMH,	hightom          */
+		51,	/* DRUM_CYMRA,	ridecymbala      */
+		51,	/* DRUM_CYMR,	ridecymbal       */
+		52,	/* DRUM_CYMCH,	chinesecymbal    */
+		53,	/* DRUM_RB,	ridebell         */
+		54,	/* DRUM_TAMB,	tambourine       */
+		55,	/* DRUM_CYMS,	splashcymbal     */
+		56,	/* DRUM_CB,	cowbell          */
+		57,	/* DRUM_CYMCB,	crashcymbalb     */
+		58,	/* DRUM_VIBS,	vibraslap        */
+		59,	/* DRUM_CYMRB,	ridecymbalb      */
+		60,	/* DRUM_BOHM,	mutehibongo      */
+		60,	/* DRUM_BOH,	hibongo          */
+		60,	/* DRUM_BOHO,	openhibongo      */
+		61,	/* DRUM_BOLM,	mutelobongo      */
+		61,	/* DRUM_BOL,	lobongo          */
+		61,	/* DRUM_BOLO,	openlobongo      */
+		62,	/* DRUM_CGHM,	mutehiconga      */
+		62,	/* DRUM_CGLM,	muteloconga      */
+		63,	/* DRUM_CGHO,	openhiconga      */
+		63,	/* DRUM_CGH,	hiconga          */
+		64,	/* DRUM_CGLO,	openloconga      */
+		64,	/* DRUM_CGL,	loconga          */
+		65,	/* DRUM_TIMH,	hitimbale        */
+		66,	/* DRUM_TIML,	lotimbale        */
+		67,	/* DRUM_AGH,	hiagogo          */
+		68,	/* DRUM_AGL,	loagogo          */
+		69,	/* DRUM_CAB,	cabasa           */
+		70,	/* DRUM_MAR,	maracas          */
+		71,	/* DRUM_WHS,	shortwhistle     */
+		72,	/* DRUM_WHL,	longwhistle      */
+		73,	/* DRUM_GUIS,	shortguiro       */
+		74,	/* DRUM_GUIL,	longguiro        */
+		74,	/* DRUM_GUI,	guiro            */
+		75,	/* DRUM_CL,	claves           */
+		76,	/* DRUM_WBH,	hiwoodblock      */
+		77,	/* DRUM_WBL,	lowoodblock      */
+		78,	/* DRUM_CUIM,	mutecuica        */
+		79,	/* DRUM_CUIO,	opencuica        */
+		80,	/* DRUM_TRIM,	mutetriangle     */
+		81,	/* DRUM_TRI,	triangle         */
+		81,	/* DRUM_TRIO,	opentriangle     */
+	};
+
 	assert(drumsym < DRUM_MAX);
 
-	/* XXX Should give the real values. */
-	return drumsym;
+	return drummidinotenumbers[drumsym];
 }
 
 /*

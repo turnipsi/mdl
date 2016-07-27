@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.27 2016/07/18 20:25:32 je Exp $ */
+/* $Id: lex.l,v 1.28 2016/07/27 20:27:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -81,9 +81,69 @@ g	{ return new_notesym(NOTE_G); }
 a	{ return new_notesym(NOTE_A); }
 b	{ return new_notesym(NOTE_B); }
 
-bd	{ return new_drumsym(DRUM_BD); }
-hh	{ return new_drumsym(DRUM_HH); }
-sd	{ return new_drumsym(DRUM_SD); }
+acousticbassdrum|bda	{ return new_drumsym(DRUM_BDA);   }
+bassdrum|bd		{ return new_drumsym(DRUM_BD);    }
+hisidestick|ssh		{ return new_drumsym(DRUM_SSH);   }
+sidestick|ss		{ return new_drumsym(DRUM_SS);    }
+losidestick|ssl		{ return new_drumsym(DRUM_SSL);   }
+acousticsnare|sna	{ return new_drumsym(DRUM_SNA);   }
+snare|sn		{ return new_drumsym(DRUM_SN);    }
+handclap|hc		{ return new_drumsym(DRUM_HC);    }
+electricsnare|sne	{ return new_drumsym(DRUM_SNE);   }
+lowfloortom|tomfl	{ return new_drumsym(DRUM_TOMFL); }
+closedhihat|hhc		{ return new_drumsym(DRUM_HHC);   }
+hihat|hh		{ return new_drumsym(DRUM_HH);    }
+highfloortom|tomfh	{ return new_drumsym(DRUM_TOMFH); }
+pedalhihat|hhp		{ return new_drumsym(DRUM_HHP);   }
+lowtom|toml		{ return new_drumsym(DRUM_TOML);  }
+openhihat|hho		{ return new_drumsym(DRUM_HHO);   }
+halfopenhihat|hhho	{ return new_drumsym(DRUM_HHHO);  }
+lowmidtom|tomml		{ return new_drumsym(DRUM_TOMML); }
+himidtom|tommh		{ return new_drumsym(DRUM_TOMMH); }
+crashcymbala|cymca	{ return new_drumsym(DRUM_CYMCA); }
+crashcymbal|cymc	{ return new_drumsym(DRUM_CYMC);  }
+hightom|tomh		{ return new_drumsym(DRUM_TOMH);  }
+ridecymbala|cymra	{ return new_drumsym(DRUM_CYMRA); }
+ridecymbal|cymr		{ return new_drumsym(DRUM_CYMR);  }
+chinesecymbal|cymch	{ return new_drumsym(DRUM_CYMCH); }
+ridebell|rb		{ return new_drumsym(DRUM_RB);    }
+tambourine|tamb		{ return new_drumsym(DRUM_TAMB);  }
+splashcymbal|cyms	{ return new_drumsym(DRUM_CYMS);  }
+cowbell|cb		{ return new_drumsym(DRUM_CB);    }
+crashcymbalb|cymcb	{ return new_drumsym(DRUM_CYMCB); }
+vibraslap|vibs		{ return new_drumsym(DRUM_VIBS);  }
+ridecymbalb|cymrb	{ return new_drumsym(DRUM_CYMRB); }
+mutehibongo|bohm	{ return new_drumsym(DRUM_BOHM);  }
+hibongo|boh		{ return new_drumsym(DRUM_BOH);   }
+openhibongo|boho	{ return new_drumsym(DRUM_BOHO);  }
+mutelobongo|bolm	{ return new_drumsym(DRUM_BOLM);  }
+lobongo|bol		{ return new_drumsym(DRUM_BOL);   }
+openlobongo|bolo	{ return new_drumsym(DRUM_BOLO);  }
+mutehiconga|cghm	{ return new_drumsym(DRUM_CGHM);  }
+muteloconga|cglm	{ return new_drumsym(DRUM_CGLM);  }
+openhiconga|cgho	{ return new_drumsym(DRUM_CGHO);  }
+hiconga|cgh		{ return new_drumsym(DRUM_CGH);   }
+openloconga|cglo	{ return new_drumsym(DRUM_CGLO);  }
+loconga|cgl		{ return new_drumsym(DRUM_CGL);   }
+hitimbale|timh		{ return new_drumsym(DRUM_TIMH);  }
+lotimbale|timl		{ return new_drumsym(DRUM_TIML);  }
+hiagogo|agh		{ return new_drumsym(DRUM_AGH);   }
+loagogo|agl		{ return new_drumsym(DRUM_AGL);   }
+cabasa|cab		{ return new_drumsym(DRUM_CAB);   }
+maracas|mar		{ return new_drumsym(DRUM_MAR);   }
+shortwhistle|whs	{ return new_drumsym(DRUM_WHS);   }
+longwhistle|whl		{ return new_drumsym(DRUM_WHL);   }
+shortguiro|guis		{ return new_drumsym(DRUM_GUIS);  }
+longguiro|guil		{ return new_drumsym(DRUM_GUIL);  }
+guiro|gui		{ return new_drumsym(DRUM_GUI);   }
+claves|cl		{ return new_drumsym(DRUM_CL);    }
+hiwoodblock|wbh		{ return new_drumsym(DRUM_WBH);   }
+lowoodblock|wbl		{ return new_drumsym(DRUM_WBL);   }
+mutecuica|cuim		{ return new_drumsym(DRUM_CUIM);  }
+opencuica|cuio		{ return new_drumsym(DRUM_CUIO);  }
+mutetriangle|trim	{ return new_drumsym(DRUM_TRIM);  }
+triangle|tri		{ return new_drumsym(DRUM_TRI);   }
+opentriangle|trio	{ return new_drumsym(DRUM_TRIO);  }
 
 r	{ update_textloc(&yylval.textloc.textloc); return RESTTOKEN; }
 
