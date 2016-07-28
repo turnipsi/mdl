@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.3 2016/07/28 16:44:51 je Exp $
+# $Id: run-tests,v 1.4 2016/07/28 16:56:32 je Exp $
 
 set -eu
 
@@ -41,6 +41,7 @@ test_inputs='
   t-drums-bass-snare
   t-drums-hihats
   t-drums-joined
+  t-drums-longnames
   t-drums-rhythmic-patterns
   t-drums-simultaneous
   t-empty

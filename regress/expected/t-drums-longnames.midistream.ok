@@ -1,0 +1,74 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.midistream  : joining music expressions
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.midistream  : making offset expression stream
+mdl.interp.midistream  :   offset expression stream to midi events
+mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
+mdl.interp.midistream  :       absdrum:19:1,1:1,4 drumsym=1 note=46 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
+mdl.interp.midistream  :       absdrum:21:1,6:1,8 drumsym=1 note=46 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
+mdl.interp.midistream  :       absdrum:23:1,10:1,12 drumsym=1 note=44 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
+mdl.interp.midistream  :       absdrum:25:1,14:1,16 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :       absdrum:27:2,1:2,4 drumsym=1 note=50 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.625 to trackmidievents
+mdl.interp.midistream  :       absdrum:29:2,6:2,10 drumsym=1 note=48 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
+mdl.interp.midistream  :       absdrum:31:2,12:2,16 drumsym=1 note=47 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.875 to trackmidievents
+mdl.interp.midistream  :       absdrum:33:2,18:2,21 drumsym=1 note=45 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.000 to trackmidievents
+mdl.interp.midistream  :       absdrum:35:4,1:4,10 drumsym=1 note=46 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.125 to trackmidievents
+mdl.interp.midistream  :       absdrum:37:4,12:4,20 drumsym=1 note=46 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.250 to trackmidievents
+mdl.interp.midistream  :       absdrum:39:4,22:4,31 drumsym=1 note=44 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.375 to trackmidievents
+mdl.interp.midistream  :       absdrum:41:4,33:4,43 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.500 to trackmidievents
+mdl.interp.midistream  :       absdrum:43:5,1:5,7 drumsym=1 note=50 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.625 to trackmidievents
+mdl.interp.midistream  :       absdrum:45:5,9:5,16 drumsym=1 note=48 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.750 to trackmidievents
+mdl.interp.midistream  :       absdrum:47:5,18:5,26 drumsym=1 note=47 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 1.875 to trackmidievents
+mdl.interp.midistream  :       absdrum:49:5,28:5,33 drumsym=1 note=45 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  : adding midievents to send queue:
+mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=9 instrument=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=9 note=46 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.125 channel=9 note=46 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=9 note=46 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=9 note=46 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=9 note=44 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=9 note=44 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.375 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=9 note=50 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.625 channel=9 note=50 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.625 channel=9 note=48 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=9 note=48 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=9 note=47 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.875 channel=9 note=47 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.875 channel=9 note=45 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=9 note=45 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=9 note=46 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.125 channel=9 note=46 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.125 channel=9 note=46 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=9 note=46 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.250 channel=9 note=44 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.375 channel=9 note=44 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.375 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.500 channel=9 note=50 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.625 channel=9 note=50 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.625 channel=9 note=48 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.750 channel=9 note=48 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.750 channel=9 note=47 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.875 channel=9 note=47 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=1.875 channel=9 note=45 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=9 note=45 velocity=0
+mdl.interp.midistream  :   sending to sequencer song end time=2.000
+mdl.interp.midistream  : writing midi stream to sequencer
+mdl.interp.midistream  :   wrote 408 bytes to sequencer
