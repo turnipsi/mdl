@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.105 2016/07/23 20:31:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.106 2016/07/28 16:50:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -782,8 +782,8 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		break;
 	case ME_TYPE_RELDRUM:
 		_mdl_log(logtype, level, "%s%s drumsym=%d length=%.3f\n",
-		    prefix, me_id, me->u.absdrum.drumsym,
-		    me->u.absdrum.length);
+		    prefix, me_id, me->u.reldrum.drumsym,
+		    me->u.reldrum.length);
 		break;
 	case ME_TYPE_RELNOTE:
 		_mdl_log(logtype, level,

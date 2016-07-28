@@ -2,7 +2,7 @@ mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.relative    :   converting relative expressions to absolute
 mdl.interp.relative    :     rel->abs for expression sequence:9:1,1:1,29
 mdl.interp.relative    :       rel->abs for expression reldrum:0:1,1:1,3
-mdl.interp.relative    :         reldrum:0:1,1:1,3 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :         reldrum:0:1,1:1,3 drumsym=1 length=0.250
 mdl.interp.relative    :           --> absdrum:0:1,1:1,3 drumsym=1 note=36 length=0.250 instrument="drums" track="drums"
 mdl.interp.relative    :       rel->abs for expression relnote:1:1,5:1,6
 mdl.interp.relative    :         relnote:1:1,5:1,6 notesym=0 notemods=0 length=0.125 octavemods=0
@@ -11,10 +11,10 @@ mdl.interp.relative    :       rel->abs for expression relnote:2:1,8:1,9
 mdl.interp.relative    :         relnote:2:1,8:1,9 notesym=4 notemods=0 length=0.000 octavemods=1
 mdl.interp.relative    :           --> absnote:2:1,8:1,9 notesym=4 note=67 length=0.125 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.relative    :       rel->abs for expression reldrum:3:1,14:1,16
-mdl.interp.relative    :         reldrum:3:1,14:1,16 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :         reldrum:3:1,14:1,16 drumsym=6 length=0.125
 mdl.interp.relative    :           --> absdrum:3:1,14:1,16 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.relative    :       rel->abs for expression reldrum:4:1,18:1,19
-mdl.interp.relative    :         reldrum:4:1,18:1,19 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :         reldrum:4:1,18:1,19 drumsym=6 length=0.000
 mdl.interp.relative    :           --> absdrum:4:1,18:1,19 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.relative    :       rel->abs for expression relnote:5:1,21:1,23
 mdl.interp.relative    :         relnote:5:1,21:1,23 notesym=0 notemods=0 length=0.062 octavemods=0
