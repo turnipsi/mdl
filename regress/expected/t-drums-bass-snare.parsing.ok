@@ -1,0 +1,6 @@
+mdl.interp.parsing     : parse ok, result:
+mdl.interp.parsing     :   sequence:4:1,1:1,11
+mdl.interp.parsing     :     reldrum:0:1,1:1,2 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     reldrum:1:1,4:1,5 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     reldrum:2:1,7:1,8 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     reldrum:3:1,10:1,11 drumsym=-791621424 length=-28026765312.000

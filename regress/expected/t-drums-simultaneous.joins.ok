@@ -1,0 +1,5 @@
+mdl.interp.midistream  : joining music expressions
+mdl.interp.joins       :   joining subexpressions in sequence:20:2,5:3,31
+mdl.interp.joins       :     joining subexpressions in simultence:19:2,5:3,31
+mdl.interp.joins       :       joining subexpressions in sequence:9:2,5:2,40
+mdl.interp.joins       :       joining subexpressions in sequence:18:3,5:3,31

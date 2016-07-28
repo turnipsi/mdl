@@ -1,0 +1,79 @@
+mdl.interp.mm          : created reldrum:0:1,1:1,3
+mdl.interp.mm          : created reldrum:1:1,5:1,6
+mdl.interp.mm          : created reldrum:2:1,8:1,9
+mdl.interp.mm          : created reldrum:3:1,11:1,12
+mdl.interp.mm          : created reldrum:4:1,17:1,18
+mdl.interp.mm          : created reldrum:5:1,20:1,21
+mdl.interp.mm          : created reldrum:6:1,23:1,24
+mdl.interp.mm          : created reldrum:7:1,26:1,27
+mdl.interp.mm          : created sequence:8:1,1:1,27
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:9:0,0:0,0
+mdl.interp.mm          :     created simultence:10:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:8:1,1:1,27 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:0:1,1:1,3 for flatsimultence:9:0,0:0,0
+mdl.interp.mm          :           created absdrum:11:1,1:1,3
+mdl.interp.mm          :           cloning absdrum:0:1,1:1,3 as absdrum:11:1,1:1,3
+mdl.interp.mm          :         created offsetexpr:12:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:1:1,5:1,6 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.125000
+mdl.interp.mm          :           created absdrum:13:1,5:1,6
+mdl.interp.mm          :           cloning absdrum:1:1,5:1,6 as absdrum:13:1,5:1,6
+mdl.interp.mm          :         created offsetexpr:14:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:2:1,8:1,9 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.125000 to 0.250000
+mdl.interp.mm          :           created absdrum:15:1,8:1,9
+mdl.interp.mm          :           cloning absdrum:2:1,8:1,9 as absdrum:15:1,8:1,9
+mdl.interp.mm          :         created offsetexpr:16:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:3:1,11:1,12 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.250000 to 0.375000
+mdl.interp.mm          :           created absdrum:17:1,11:1,12
+mdl.interp.mm          :           cloning absdrum:3:1,11:1,12 as absdrum:17:1,11:1,12
+mdl.interp.mm          :         created offsetexpr:18:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:4:1,17:1,18 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.375000 to 0.500000
+mdl.interp.mm          :           created absdrum:19:1,17:1,18
+mdl.interp.mm          :           cloning absdrum:4:1,17:1,18 as absdrum:19:1,17:1,18
+mdl.interp.mm          :         created offsetexpr:20:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:5:1,20:1,21 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.500000 to 0.625000
+mdl.interp.mm          :           created absdrum:21:1,20:1,21
+mdl.interp.mm          :           cloning absdrum:5:1,20:1,21 as absdrum:21:1,20:1,21
+mdl.interp.mm          :         created offsetexpr:22:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:6:1,23:1,24 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.625000 to 0.750000
+mdl.interp.mm          :           created absdrum:23:1,23:1,24
+mdl.interp.mm          :           cloning absdrum:6:1,23:1,24 as absdrum:23:1,23:1,24
+mdl.interp.mm          :         created offsetexpr:24:0,0:0,0
+mdl.interp.exprconv    :       inspecting absdrum:7:1,26:1,27 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.750000 to 0.875000
+mdl.interp.mm          :           created absdrum:25:1,26:1,27
+mdl.interp.mm          :           cloning absdrum:7:1,26:1,27 as absdrum:25:1,26:1,27
+mdl.interp.mm          :         created offsetexpr:26:0,0:0,0
+mdl.interp.mm          : freeing musicexpr flatsimultence:9:0,0:0,0
+mdl.interp.mm          :   freeing musicexpr simultence:10:0,0:0,0
+mdl.interp.mm          :     freeing musicexpr offsetexpr:12:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:11:1,1:1,3
+mdl.interp.mm          :     freeing musicexpr offsetexpr:14:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:13:1,5:1,6
+mdl.interp.mm          :     freeing musicexpr offsetexpr:16:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:15:1,8:1,9
+mdl.interp.mm          :     freeing musicexpr offsetexpr:18:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:17:1,11:1,12
+mdl.interp.mm          :     freeing musicexpr offsetexpr:20:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:19:1,17:1,18
+mdl.interp.mm          :     freeing musicexpr offsetexpr:22:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:21:1,20:1,21
+mdl.interp.mm          :     freeing musicexpr offsetexpr:24:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:23:1,23:1,24
+mdl.interp.mm          :     freeing musicexpr offsetexpr:26:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absdrum:25:1,26:1,27
+mdl.interp.mm          : freeing musicexpr sequence:8:1,1:1,27
+mdl.interp.mm          :   freeing musicexpr absdrum:0:1,1:1,3
+mdl.interp.mm          :   freeing musicexpr absdrum:1:1,5:1,6
+mdl.interp.mm          :   freeing musicexpr absdrum:2:1,8:1,9
+mdl.interp.mm          :   freeing musicexpr absdrum:3:1,11:1,12
+mdl.interp.mm          :   freeing musicexpr absdrum:4:1,17:1,18
+mdl.interp.mm          :   freeing musicexpr absdrum:5:1,20:1,21
+mdl.interp.mm          :   freeing musicexpr absdrum:6:1,23:1,24
+mdl.interp.mm          :   freeing musicexpr absdrum:7:1,26:1,27

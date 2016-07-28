@@ -1,0 +1,57 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.relative    :   converting relative expressions to absolute
+mdl.interp.relative    :     rel->abs for expression sequence:20:2,5:3,31
+mdl.interp.relative    :       rel->abs for expression simultence:19:2,5:3,31
+mdl.interp.relative    :         rel->abs for expression sequence:9:2,5:2,40
+mdl.interp.relative    :           rel->abs for expression reldrum:0:2,5:2,7
+mdl.interp.relative    :             reldrum:0:2,5:2,7 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:0:2,5:2,7 drumsym=1 note=36 length=0.250 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:1:2,9:2,11
+mdl.interp.relative    :             reldrum:1:2,9:2,11 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:1:2,9:2,11 drumsym=1 note=37 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:2:2,13:2,14
+mdl.interp.relative    :             reldrum:2:2,13:2,14 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:2:2,13:2,14 drumsym=1 note=37 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:3:2,21:2,23
+mdl.interp.relative    :             reldrum:3:2,21:2,23 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:3:2,21:2,23 drumsym=1 note=36 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:4:2,25:2,26
+mdl.interp.relative    :             reldrum:4:2,25:2,26 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:4:2,25:2,26 drumsym=1 note=36 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:5:2,28:2,31
+mdl.interp.relative    :             reldrum:5:2,28:2,31 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:5:2,28:2,31 drumsym=1 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:6:2,33:2,34
+mdl.interp.relative    :             reldrum:6:2,33:2,34 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:6:2,33:2,34 drumsym=1 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:7:2,36:2,37
+mdl.interp.relative    :             reldrum:7:2,36:2,37 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:7:2,36:2,37 drumsym=1 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:8:2,39:2,40
+mdl.interp.relative    :             reldrum:8:2,39:2,40 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:8:2,39:2,40 drumsym=1 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.relative    :         rel->abs for expression sequence:18:3,5:3,31
+mdl.interp.relative    :           rel->abs for expression reldrum:10:3,5:3,7
+mdl.interp.relative    :             reldrum:10:3,5:3,7 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:10:3,5:3,7 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:11:3,9:3,10
+mdl.interp.relative    :             reldrum:11:3,9:3,10 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:11:3,9:3,10 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:12:3,12:3,13
+mdl.interp.relative    :             reldrum:12:3,12:3,13 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:12:3,12:3,13 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:13:3,15:3,16
+mdl.interp.relative    :             reldrum:13:3,15:3,16 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:13:3,15:3,16 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:14:3,21:3,22
+mdl.interp.relative    :             reldrum:14:3,21:3,22 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:14:3,21:3,22 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:15:3,24:3,25
+mdl.interp.relative    :             reldrum:15:3,24:3,25 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:15:3,24:3,25 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:16:3,27:3,28
+mdl.interp.relative    :             reldrum:16:3,27:3,28 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:16:3,27:3,28 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.relative    :           rel->abs for expression reldrum:17:3,30:3,31
+mdl.interp.relative    :             reldrum:17:3,30:3,31 drumsym=-791621424 length=-28026765312.000
+mdl.interp.relative    :               --> absdrum:17:3,30:3,31 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"

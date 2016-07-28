@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.2 2016/05/13 20:28:33 je Exp $
+# $Id: run-tests,v 1.3 2016/07/28 16:44:51 je Exp $
 
 set -eu
 
@@ -37,6 +37,12 @@ test_inputs='
   t-chords-with-variable-lengths
   t-comments
   t-default-length
+  t-drums-and-notes
+  t-drums-bass-snare
+  t-drums-hihats
+  t-drums-joined
+  t-drums-rhythmic-patterns
+  t-drums-simultaneous
   t-empty
   t-join-chord-and-note
   t-join-chords

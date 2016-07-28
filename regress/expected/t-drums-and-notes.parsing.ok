@@ -1,0 +1,11 @@
+mdl.interp.parsing     : parse ok, result:
+mdl.interp.parsing     :   sequence:9:1,1:1,29
+mdl.interp.parsing     :     reldrum:0:1,1:1,3 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     relnote:1:1,5:1,6 notesym=0 notemods=0 length=0.125 octavemods=0
+mdl.interp.parsing     :     relnote:2:1,8:1,9 notesym=4 notemods=0 length=0.000 octavemods=1
+mdl.interp.parsing     :     reldrum:3:1,14:1,16 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     reldrum:4:1,18:1,19 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :     relnote:5:1,21:1,23 notesym=0 notemods=0 length=0.062 octavemods=0
+mdl.interp.parsing     :     relnote:6:1,25:1,25 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :     relnote:7:1,27:1,27 notesym=3 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :     relnote:8:1,29:1,29 notesym=1 notemods=0 length=0.000 octavemods=0

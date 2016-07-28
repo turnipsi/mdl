@@ -1,0 +1,42 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.midistream  : joining music expressions
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.midistream  : making offset expression stream
+mdl.interp.midistream  :   offset expression stream to midi events
+mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
+mdl.interp.midistream  :       absdrum:11:1,1:1,3 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
+mdl.interp.midistream  :       absdrum:13:1,5:1,6 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
+mdl.interp.midistream  :       absdrum:15:1,8:1,9 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
+mdl.interp.midistream  :       absdrum:17:1,11:1,12 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
+mdl.interp.midistream  :       absdrum:19:1,17:1,18 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.625 to trackmidievents
+mdl.interp.midistream  :       absdrum:21:1,20:1,21 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
+mdl.interp.midistream  :       absdrum:23:1,23:1,24 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :     adding expression with offset 0.875 to trackmidievents
+mdl.interp.midistream  :       absdrum:25:1,26:1,27 drumsym=1 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  : adding midievents to send queue:
+mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=9 instrument=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.125 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.375 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.625 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.625 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.875 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.875 channel=9 note=42 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=9 note=42 velocity=0
+mdl.interp.midistream  :   sending to sequencer song end time=1.000
+mdl.interp.midistream  : writing midi stream to sequencer
+mdl.interp.midistream  :   wrote 216 bytes to sequencer

@@ -1,0 +1,22 @@
+mdl.interp.parsing     : parse ok, result:
+mdl.interp.parsing     :   sequence:20:2,5:3,31
+mdl.interp.parsing     :     simultence:19:2,5:3,31
+mdl.interp.parsing     :       sequence:9:2,5:2,40
+mdl.interp.parsing     :         reldrum:0:2,5:2,7 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:1:2,9:2,11 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:2:2,13:2,14 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:3:2,21:2,23 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:4:2,25:2,26 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:5:2,28:2,31 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:6:2,33:2,34 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:7:2,36:2,37 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:8:2,39:2,40 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :       sequence:18:3,5:3,31
+mdl.interp.parsing     :         reldrum:10:3,5:3,7 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:11:3,9:3,10 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:12:3,12:3,13 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:13:3,15:3,16 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:14:3,21:3,22 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:15:3,24:3,25 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:16:3,27:3,28 drumsym=-791621424 length=-28026765312.000
+mdl.interp.parsing     :         reldrum:17:3,30:3,31 drumsym=-791621424 length=-28026765312.000
