@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.26 2016/07/27 20:27:56 je Exp $ */
+/* $Id: relative.c,v 1.27 2016/07/29 11:00:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -316,7 +316,7 @@ relative_to_absolute(struct musicexpr *me,
 static u_int8_t
 get_notevalue_for_drumsym(enum drumsym drumsym)
 {
-	u_int8_t drummidinotenumbers[] = {
+	static const u_int8_t drummidinotenumbers[] = {
 		35,	/* DRUM_BDA,	acousticbassdrum */
 		36,	/* DRUM_BD,	bassdrum         */
 		37,	/* DRUM_SSH,	hisidestick      */
