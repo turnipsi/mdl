@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.107 2016/07/31 17:18:40 je Exp $ */
+/* $Id: musicexpr.c,v 1.108 2016/07/31 17:19:55 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -833,10 +833,6 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		    prefix);
 		break;
 	case ME_TYPE_SEQUENCE:
-		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
-		_mdl_musicexpr_log_melist(me->u.melist, logtype, level+1,
-		    prefix);
-		break;
 	case ME_TYPE_SIMULTENCE:
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
 		_mdl_musicexpr_log_melist(me->u.melist, logtype, level+1,
