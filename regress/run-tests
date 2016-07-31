@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.4 2016/07/28 16:56:32 je Exp $
+# $Id: run-tests,v 1.5 2016/07/31 17:21:37 je Exp $
 
 set -eu
 
@@ -98,6 +98,8 @@ for input in $test_inputs; do
       diff -u "expected/${testname}.ok" "outputs/${testname}.log" 2>&1 \
 	| sed 's/^/    /'
     fi
+
+    tests_run=$(($tests_run + 1))
   done
 done
 
