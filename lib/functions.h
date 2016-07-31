@@ -1,4 +1,4 @@
-/* $Id: functions.h,v 1.1 2016/07/29 11:22:41 je Exp $ */
+/* $Id: functions.h,v 1.2 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -18,5 +18,11 @@
 
 #ifndef MDL_FUNCTIONS_H
 #define MDL_FUNCTIONS_H
+
+#include "musicexpr.h"
+
+__BEGIN_DECLS
+void	_mdl_functions_apply(struct musicexpr *, int level);
+__END_DECLS
 
 #endif /* !MDL_FUNCTIONS_H */

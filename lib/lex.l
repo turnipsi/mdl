@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.28 2016/07/27 20:27:56 je Exp $ */
+/* $Id: lex.l,v 1.29 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,9 +35,47 @@ static void	update_textloc(struct textloc *);
 
 %option noyywrap
 
+%x funcargs
+%x funcname
 %x quoted
 
 %%
+\\			{
+				update_textloc(NULL);
+				BEGIN(funcname);
+			}
+
+<funcname>[[:alpha:]]+	{
+				update_textloc(&yylval.string.textloc);
+				yylval.string.expr = strdup(yytext);
+				if (yylval.string.expr == NULL) {
+					yyerror("strdup failed for %s",
+					    yytext);
+					yyterminate();
+				}
+				BEGIN(funcargs);
+				return FUNCNAME_TOKEN;
+			}
+
+<funcname>[ \t]+	{ update_textloc(NULL); }
+<funcname>\\\n		{ update_textloc(NULL); }
+<funcname>\n|;		{ update_textloc(NULL); BEGIN(INITIAL); }
+
+<funcargs>[[:alnum:]]+	{
+				update_textloc(&yylval.string.textloc);
+				yylval.string.expr = strdup(yytext);
+				if (yylval.string.expr == NULL) {
+					yyerror("strdup failed for %s",
+					    yytext);
+					yyterminate();
+				}
+				return FUNCARG_TOKEN;
+			}
+
+<funcargs>[ \t]+	{ update_textloc(NULL); }
+<funcargs>\\\n		{ update_textloc(NULL); }
+<funcargs>\n|;		{ update_textloc(NULL); BEGIN(INITIAL); }
+
 \"			{ update_textloc(NULL); BEGIN(quoted); }
 
 <quoted>[[:alnum:] ]+	{

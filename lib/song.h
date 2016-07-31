@@ -1,4 +1,4 @@
-/* $Id: song.h,v 1.9 2016/07/22 20:17:26 je Exp $ */
+/* $Id: song.h,v 1.10 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,9 +31,10 @@ struct song {
 };
 
 __BEGIN_DECLS
-struct song    *_mdl_song_new(struct musicexpr *, int);
+struct song    *_mdl_song_new(void);
 struct track   *_mdl_song_find_track_or_new(struct song *, char *, int);
 void		_mdl_song_free(struct song *);
+int		_mdl_song_setup_tracks(struct song *, struct musicexpr *, int);
 __END_DECLS
 
 #endif /* !MDL_SONG_H */

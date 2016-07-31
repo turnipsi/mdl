@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.60 2016/07/23 20:31:36 je Exp $ */
+/* $Id: parse.y,v 1.61 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,6 +39,41 @@ static float countlength(int, int);
 	} chord;
 
 	struct {
+		enum chordtype	expr;
+		struct textloc	textloc;
+	} chordtype;
+
+	struct {
+		enum drumsym	expr;
+		struct textloc	textloc;
+	} drumsym;
+
+	struct {
+		float		expr;
+		struct textloc	textloc;
+	} f;
+
+	struct {
+		struct funcarg	expr;
+		struct textloc	textloc;
+	} funcarg;
+
+	struct {
+		struct funcarglist	expr;
+		struct textloc		textloc;
+	} funcarglist;
+
+	struct {
+		struct function	expr;
+		struct textloc	textloc;
+	} function;
+
+	struct {
+		int		expr;
+		struct textloc	textloc;
+	} i;
+
+	struct {
 		struct joinexpr	expr;
 		struct textloc	textloc;
 	} joinexpr;
@@ -51,9 +86,19 @@ static float countlength(int, int);
 	struct musicexpr       *musicexpr;
 
 	struct {
+		enum notesym	expr;
+		struct textloc	textloc;
+	} notesym;
+
+	struct {
 		struct ontrack	expr;
 		struct textloc	textloc;
 	} ontrack;
+
+	struct {
+		struct reldrum	expr;
+		struct textloc	textloc;
+	} reldrum;
 
 	struct {
 		struct relnote	expr;
@@ -66,39 +111,9 @@ static float countlength(int, int);
 	} rest;
 
 	struct {
-		enum chordtype	expr;
-		struct textloc	textloc;
-	} chordtype;
-
-	struct {
-		struct reldrum	expr;
-		struct textloc	textloc;
-	} reldrum;
-
-	struct {
-		enum drumsym	expr;
-		struct textloc	textloc;
-	} drumsym;
-
-	struct {
-		enum notesym	expr;
-		struct textloc	textloc;
-	} notesym;
-
-	struct {
 		char	       *expr;
 		struct textloc	textloc;
 	} string;
-
-	struct {
-		float		expr;
-		struct textloc	textloc;
-	} f;
-
-	struct {
-		int		expr;
-		struct textloc	textloc;
-	} i;
 
 	struct {
 		struct textloc	textloc;
@@ -113,11 +128,13 @@ static float countlength(int, int);
 
 %token	<textloc>	RESTTOKEN
 %token	<i>		LENGTHDOT
-%token	<i>		LENGTHNUMBER
-%token	<i>		OCTAVEUP
-%token	<i>		OCTAVEDOWN
+			LENGTHNUMBER
+			OCTAVEUP
+			OCTAVEDOWN
 
-%token	<string>	QUOTED_STRING
+%token	<string>	FUNCARG_TOKEN
+			FUNCNAME_TOKEN
+			QUOTED_STRING
 
 %token	<chordtype>	CHORDTOKEN
 %token	<drumsym>	DRUMTOKEN
@@ -132,16 +149,19 @@ static float countlength(int, int);
 %right	<textloc>	TRACK_OPERATOR
 %left	<textloc>	JOINEXPR
 
+%type	<chord>		chord
+%type	<f>		notelength
+%type	<funcarg>	funcarg
+%type	<funcarglist>	funcarglist
+%type	<function>	function
+%type	<i>		notemods octavemods lengthdots
+%type	<joinexpr>	joinexpr
 %type	<musicexpr>	grammar musicexpr relsimultence_expr
 			sequence_expr simultence_expr track_expr
 %type	<melist>	expression_list
-%type	<joinexpr>	joinexpr
 %type	<relnote>	relnote
-%type	<chord>		chord
 %type	<reldrum>	reldrum
 %type	<rest>		rest
-%type	<i>		notemods octavemods lengthdots
-%type	<f>		notelength
 
 %%
 
@@ -168,6 +188,17 @@ musicexpr:
 		}
 		$$->u.chord = $1.expr;
 	  }
+	| function {
+		$$ = _mdl_musicexpr_new(ME_TYPE_FUNCTION, $1.textloc, 0);
+		if ($$ == NULL) {
+			/* XXX stuff in function should be freed */
+
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->u.function = $1.expr;
+	}
 	| joinexpr {
 		$$ = _mdl_musicexpr_new(ME_TYPE_JOINEXPR, $1.textloc, 0);
 		if ($$ == NULL) {
@@ -176,7 +207,6 @@ musicexpr:
 			YYERROR;
 		}
 		$$->u.joinexpr = $1.expr;
-
 	  }
 	| reldrum {
 		$$ = _mdl_musicexpr_new(ME_TYPE_RELDRUM, $1.textloc, 0);
@@ -225,6 +255,31 @@ chord:
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
 	}
 	;
+
+function:
+	FUNCNAME_TOKEN funcarglist {
+		$$.expr.name = $1.expr;
+		$$.expr.args = $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	};
+
+funcarg:
+	FUNCARG_TOKEN {
+		$$.expr.arg = $1.expr;
+		$$.textloc  = $1.textloc;
+	}
+
+funcarglist:
+	funcarg {
+		TAILQ_INIT(&$$.expr);
+		TAILQ_INSERT_TAIL(&$$.expr, &$1.expr, tq);
+		$$.textloc = $1.textloc;
+	  }
+	| funcarglist funcarg {
+		$$.expr = $1.expr;
+		TAILQ_INSERT_TAIL(&$$.expr, &$2.expr, tq);
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	};
 
 reldrum:
 	DRUMTOKEN notelength {

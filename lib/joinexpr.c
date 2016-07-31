@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.58 2016/07/23 20:31:36 je Exp $ */
+/* $Id: joinexpr.c,v 1.59 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,6 +76,10 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 		log_possible_join(me, level);
 		ret = _mdl_joinexpr_musicexpr(me->u.flatsimultence.me,
 		    level+1);
+		break;
+	case ME_TYPE_FUNCTION:
+		/* Functions should have been handled before joining. */
+		assert(0);
 		break;
 	case ME_TYPE_JOINEXPR:
 		log_possible_join(me, level);
@@ -166,6 +170,10 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 	at = a->me_type;
 	bt = b->me_type;
 
+	/* We should have handled functions before entering here. */
+	assert(at != ME_TYPE_FUNCTION);
+	assert(bt != ME_TYPE_FUNCTION);
+
 	/* We should have handled the subexpressions before entering here. */
 	assert(at != ME_TYPE_JOINEXPR);
 	assert(bt != ME_TYPE_JOINEXPR);
@@ -244,6 +252,7 @@ join_two_musicexprs(struct musicexpr *a, struct musicexpr *b, int level)
 			    "joining two flatsimultences\n");
 			_mdl_unimplemented();
 			break;
+		case ME_TYPE_FUNCTION:
 		case ME_TYPE_JOINEXPR:
 		case ME_TYPE_RELDRUM:
 		case ME_TYPE_RELNOTE:

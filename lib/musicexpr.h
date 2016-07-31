@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.75 2016/07/27 20:27:56 je Exp $ */
+/* $Id: musicexpr.h,v 1.76 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@ enum musicexpr_type {
 	ME_TYPE_CHORD,
 	ME_TYPE_EMPTY,
 	ME_TYPE_FLATSIMULTENCE,
+	ME_TYPE_FUNCTION,
 	ME_TYPE_JOINEXPR,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_OFFSETEXPR,
@@ -196,6 +197,18 @@ struct chord {
 	struct musicexpr       *me;
 };
 
+struct funcarg {
+	char		       *arg;
+	TAILQ_ENTRY(funcarg)	tq;
+};
+
+TAILQ_HEAD(funcarglist, funcarg);
+
+struct function {
+	char		       *name;
+	struct funcarglist	args;
+};
+
 struct noteoffsetexpr {
 	struct musicexpr       *me;
 	int		       *offsets;
@@ -249,6 +262,7 @@ struct musicexpr {
 		struct absdrum		absdrum;
 		struct chord		chord;
 		struct flatsimultence	flatsimultence;
+		struct function		function;
 		struct joinexpr		joinexpr;
 		struct melist		melist;
 		struct noteoffsetexpr	noteoffsetexpr;

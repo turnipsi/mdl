@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.14 2016/07/23 20:31:37 je Exp $ */
+/* $Id: song.c,v 1.15 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,10 +30,9 @@ static int
 connect_tracks_to_song(struct song *, struct musicexpr *, int);
 
 struct song *
-_mdl_song_new(struct musicexpr *me, int level)
+_mdl_song_new(void)
 {
 	struct song *song;
-	struct track *track;
 
 	if ((song = malloc(sizeof(struct song))) == NULL) {
 		warn("malloc failure in mdl_new_song");
@@ -42,28 +41,34 @@ _mdl_song_new(struct musicexpr *me, int level)
 
 	SLIST_INIT(&song->tracklist);
 
+	return song;
+}
+
+int
+_mdl_song_setup_tracks(struct song *song, struct musicexpr *me, int level)
+{
+	struct track *track;
+
 	if (connect_tracks_to_song(song, me, level) != 0) {
-		_mdl_song_free(song);
-		return NULL;
+		warnx("could not connect tracks to song");
+		return 1;
 	}
 
 	track = _mdl_song_find_track_or_new(song, "acoustic grand", level);
 	if (track == NULL) {
 		warnx("could not create the default toned instrument track");
-		_mdl_song_free(song);
-		return NULL;
+		return 1;
 	}
 	song->default_tonedtrack = track;
 
 	track = _mdl_song_find_track_or_new(song, "drums", level);
 	if (track == NULL) {
 		warnx("could not create the default drumkit track");
-		_mdl_song_free(song);
-		return NULL;
+		return 1;
 	}
 	song->default_drumtrack = track;
 
-	return song;
+	return 0;
 }
 
 static int
@@ -96,6 +101,10 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 	case ME_TYPE_FLATSIMULTENCE:
 		ret = connect_tracks_to_song(song, me->u.flatsimultence.me,
 		    level);
+		break;
+	case ME_TYPE_FUNCTION:
+		/* Functions should not occur here. */
+		assert(0);
 		break;
 	case ME_TYPE_JOINEXPR:
 		ret = connect_tracks_to_song(song, me->u.joinexpr.a, level);

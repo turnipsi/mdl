@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.106 2016/07/28 16:50:07 je Exp $ */
+/* $Id: musicexpr.c,v 1.107 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,6 +35,7 @@ int musicexpr_id_counter = 0;
 
 static int	_mdl_musicexpr_clone_melist(struct melist *, struct melist,
     int);
+static void	_mdl_musicexpr_free_function(struct function *);
 static void	_mdl_musicexpr_log_chordtype(enum chordtype, enum logtype, int,
     char *);
 static void	_mdl_musicexpr_log_melist(struct melist, enum logtype, int,
@@ -89,6 +90,10 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 			free(cloned);
 			cloned = NULL;
 		}
+		break;
+	case ME_TYPE_FUNCTION:
+		/* XXX Functions must have been handled before cloning. */
+		assert(0);
 		break;
 	case ME_TYPE_JOINEXPR:
 		cloned->u.joinexpr.a = _mdl_musicexpr_clone(me->u.joinexpr.a,
@@ -334,6 +339,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		*next_offset = MAX(*next_offset,
 		    (old_offset + me->u.flatsimultence.length));
 		break;
+	case ME_TYPE_FUNCTION:
 	case ME_TYPE_JOINEXPR:	/* XXX Is this correct? */
 	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
@@ -492,6 +498,10 @@ _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 		_mdl_musicexpr_apply_noteoffset(me->u.flatsimultence.me,
 		    offset, level);
 		break;
+	case ME_TYPE_FUNCTION:
+		/* Functions should have been handled in previous phases. */
+		assert(0);
+		break;
 	case ME_TYPE_JOINEXPR:
 		_mdl_musicexpr_apply_noteoffset(me->u.joinexpr.a, offset,
 		    level);
@@ -592,6 +602,10 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 		_mdl_musicexpr_stretch_length(me->u.flatsimultence.me, factor);
 		me->u.flatsimultence.length *= factor;
 		break;
+	case ME_TYPE_FUNCTION:
+		/* Functions should have been handled in previous phases. */
+		assert(0);
+		break;
 	case ME_TYPE_JOINEXPR:
 		_mdl_musicexpr_stretch_length(me->u.joinexpr.a, factor);
 		_mdl_musicexpr_stretch_length(me->u.joinexpr.b, factor);
@@ -652,6 +666,10 @@ musicexpr_calc_length(struct musicexpr *me)
 		break;
         case ME_TYPE_FLATSIMULTENCE:
 		length = me->u.flatsimultence.length;
+		break;
+        case ME_TYPE_FUNCTION:
+		/* Functions should have been handled in previous phases. */
+		assert(0);
 		break;
         case ME_TYPE_JOINEXPR:
 		length = musicexpr_calc_length(me->u.joinexpr.a) +
@@ -739,6 +757,11 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		    me->u.flatsimultence.length);
 		_mdl_musicexpr_log(me->u.flatsimultence.me, logtype, level+1,
 		    prefix);
+		break;
+	case ME_TYPE_FUNCTION:
+		/* XXX Printing function arguments might be good? */
+		_mdl_log(logtype, level, "%s%s name=%s\n", prefix, me_id,
+		    me->u.function.name);
 		break;
 	case ME_TYPE_JOINEXPR:
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
@@ -903,6 +926,9 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 	case ME_TYPE_FLATSIMULTENCE:
 		_mdl_musicexpr_free(me->u.flatsimultence.me, level);
 		break;
+	case ME_TYPE_FUNCTION:
+		_mdl_musicexpr_free_function(&me->u.function);
+		break;
 	case ME_TYPE_JOINEXPR:
 		_mdl_musicexpr_free(me->u.joinexpr.a, level);
 		_mdl_musicexpr_free(me->u.joinexpr.b, level);
@@ -930,6 +956,18 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 	}
 
 	free(me);
+}
+
+static void
+_mdl_musicexpr_free_function(struct function *func)
+{
+	struct funcarg *p, *q;
+
+	TAILQ_FOREACH_SAFE(p, &func->args, tq, q) {
+		TAILQ_REMOVE(&func->args, p, tq);
+		free(p);
+	}
+	free(func->name);
 }
 
 void
@@ -1032,6 +1070,7 @@ _mdl_musicexpr_id_string(const struct musicexpr *me)
 		"chord",		/* ME_TYPE_CHORD */
 		"empty",		/* ME_TYPE_EMPTY */
 		"flatsimultence",	/* ME_TYPE_FLATSIMULTENCE */
+		"function",		/* ME_TYPE_FUNCTION */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
 		"offsetexpr",		/* ME_TYPE_OFFSETEXPR */

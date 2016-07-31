@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.27 2016/07/29 11:00:13 je Exp $ */
+/* $Id: relative.c,v 1.28 2016/07/31 17:18:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -138,6 +138,10 @@ relative_to_absolute(struct musicexpr *me,
 		}
 		relative_to_absolute(me->u.flatsimultence.me, prev_exprs,
 		    level);
+		break;
+	case ME_TYPE_FUNCTION:
+		/* Functions should not occur here. */
+		assert(0);
 		break;
 	case ME_TYPE_JOINEXPR:
 		relative_to_absolute(me->u.joinexpr.a, prev_exprs, level);
