@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.113 2016/08/01 20:50:49 je Exp $ */
+/* $Id: musicexpr.c,v 1.114 2016/08/01 20:51:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1182,6 +1182,9 @@ _mdl_musicexpr_iter_next(struct musicexpr_iter *iter)
 {
 	struct musicexpr *current;
 
+	if (iter->curr == NULL)
+		return NULL;
+
 	current = iter->curr;
 
 	switch (iter->me->me_type) {
@@ -1196,8 +1199,7 @@ _mdl_musicexpr_iter_next(struct musicexpr_iter *iter)
 	case ME_TYPE_SEQUENCE:
 	case ME_TYPE_SIMULTENCE:
 		/* Sequences and simultences have multiple subexpressions. */
-		if (iter->curr != NULL)
-			iter->curr = TAILQ_NEXT(iter->curr, tq);
+		iter->curr = TAILQ_NEXT(iter->curr, tq);
 		break;
 	default:
 		/* Other types have zero or one subexpressions. */
