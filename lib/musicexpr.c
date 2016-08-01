@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.111 2016/08/01 20:35:32 je Exp $ */
+/* $Id: musicexpr.c,v 1.112 2016/08/01 20:43:34 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1253,6 +1253,7 @@ _mdl_musicexpr_iter_next(struct musicexpr_iter *iter)
 		break;
 	default:
 		/* Other types have zero or one subexpressions. */
+		assert(iter->me->me_type < ME_TYPE_COUNT);
 		iter->curr = NULL;
 	}
 
