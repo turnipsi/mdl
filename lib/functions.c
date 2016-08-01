@@ -1,4 +1,4 @@
-/* $Id: functions.c,v 1.2 2016/07/31 17:18:40 je Exp $ */
+/* $Id: functions.c,v 1.3 2016/08/01 20:43:52 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,65 +16,25 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <assert.h>
-
 #include "musicexpr.h"
 
 void
 _mdl_functions_apply(struct musicexpr *me, int level)
 {
 	struct musicexpr *p;
-
-	/*
-	 * XXX There is probably a common pattern here: do some operation
-	 * XXX to all subexpressions... but the knowledge "what are the
-	 * XXX subexpressions" is not anywhere.
-	 */
+	struct musicexpr_iter iter;
 
 	level += 1;
 	
 	switch (me->me_type) {
-	case ME_TYPE_ABSDRUM:
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_EMPTY:
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_REST:
-		/* Nothing to do. */
-		break;
-	case ME_TYPE_CHORD:
-		_mdl_functions_apply(me->u.chord.me, level);
-		break;
-	case ME_TYPE_FLATSIMULTENCE:
-		_mdl_functions_apply(me->u.flatsimultence.me, level);
-		break;
 	case ME_TYPE_FUNCTION:
-		/* XXX For now, just replace with an empty expression: */
-		me->me_type = ME_TYPE_EMPTY;
-		break;
-	case ME_TYPE_JOINEXPR:
-		_mdl_functions_apply(me->u.joinexpr.a, level);
-		_mdl_functions_apply(me->u.joinexpr.b, level);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		_mdl_functions_apply(me->u.noteoffsetexpr.me, level);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		_mdl_functions_apply(me->u.offsetexpr.me, level);
-		break;
-	case ME_TYPE_ONTRACK:
-		_mdl_functions_apply(me->u.ontrack.me, level);
-		break;
-	case ME_TYPE_RELSIMULTENCE:
-	case ME_TYPE_SCALEDEXPR:
-		_mdl_functions_apply(me->u.scaledexpr.me, level);
-		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq)
-			_mdl_functions_apply(p, level);
-		break;
+		/* XXX For now, just replace with an empty
+		 * XXX expression.  This is not only wrong, but we leak
+		 * XXX memory later. */
+		 me->me_type = ME_TYPE_EMPTY;
 	default:
-		assert(0);
+		iter = _mdl_musicexpr_iter_new(me);
+		while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
+			_mdl_functions_apply(p, level);
 	}
 }
