@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.108 2016/07/31 17:19:55 je Exp $ */
+/* $Id: musicexpr.c,v 1.109 2016/08/01 19:49:34 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,12 @@
 
 int musicexpr_id_counter = 0;
 
+static struct musicexpr	*musicexpr_tq(enum musicexpr_type me_type,
+    int, struct musicexpr *, va_list va);
+static struct musicexpr	*musicexpr_simultence(int, struct musicexpr *, ...);
+static struct musicexpr	*musicexpr_scale_in_time(struct musicexpr *, float,
+    int);
+
 static int	_mdl_musicexpr_clone_melist(struct melist *, struct melist,
     int);
 static void	_mdl_musicexpr_free_function(struct function *);
@@ -40,17 +46,13 @@ static void	_mdl_musicexpr_log_chordtype(enum chordtype, enum logtype, int,
     char *);
 static void	_mdl_musicexpr_log_melist(struct melist, enum logtype, int,
     char *);
-static struct musicexpr *musicexpr_tq(enum musicexpr_type me_type,
-    int, struct musicexpr *, va_list va);
-static struct musicexpr *musicexpr_simultence(int, struct musicexpr *, ...);
+static void	_mdl_musicexpr_apply_noteoffset(struct musicexpr *, int, int);
+static void	_mdl_musicexpr_stretch_length(struct musicexpr *,
+    float);
+
 static int	add_musicexpr_to_flat_simultence(struct musicexpr *,
     struct musicexpr *, float *, int);
-void _mdl_musicexpr_apply_noteoffset(struct musicexpr *, int, int);
-static struct musicexpr *musicexpr_scale_in_time(struct musicexpr *, float,
-    int);
 static float	musicexpr_calc_length(struct musicexpr *);
-void		_mdl_musicexpr_stretch_length(struct musicexpr *,
-    float);
 
 struct musicexpr *
 _mdl_musicexpr_clone(struct musicexpr *me, int level)
@@ -466,7 +468,7 @@ _mdl_musicexpr_to_flat_simultence(struct musicexpr *me, int level)
 	return flatme;
 }
 
-void
+static void
 _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 {
 	struct musicexpr *p;
@@ -578,7 +580,7 @@ musicexpr_scale_in_time(struct musicexpr *me, float target_length, int level)
 	return new_me;
 }
 
-void
+static void
 _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 {
 	struct musicexpr *p;

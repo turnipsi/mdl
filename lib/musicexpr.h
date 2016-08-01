@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.76 2016/07/31 17:18:40 je Exp $ */
+/* $Id: musicexpr.h,v 1.77 2016/08/01 19:49:34 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -293,8 +293,6 @@ struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *,
 char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
 void			_mdl_musicexpr_free_melist(struct melist, int);
 void			_mdl_free_melist(struct musicexpr *);
-void			_mdl_musicexpr_apply_noteoffset(struct musicexpr *,
-    int, int);
 struct textloc _mdl_textloc_zero(void);
 struct textloc _mdl_join_textlocs(struct textloc,
     struct textloc);
