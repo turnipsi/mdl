@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.109 2016/08/01 19:49:34 je Exp $ */
+/* $Id: musicexpr.c,v 1.110 2016/08/01 20:34:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1177,3 +1177,85 @@ _mdl_join_textlocs(struct textloc a, struct textloc b)
 
 	return x;
 }
+
+struct musicexpr_iter
+_mdl_musicexpr_iter_new(struct musicexpr *me)
+{
+	struct musicexpr_iter iter;
+
+	iter.me = me;
+	iter.curr = NULL;
+
+	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
+	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_EMPTY:
+	case ME_TYPE_FUNCTION:
+	case ME_TYPE_RELDRUM:
+	case ME_TYPE_RELNOTE:
+	case ME_TYPE_REST:
+		/* No subexpressions to iterate. */
+		break;
+	case ME_TYPE_CHORD:
+		iter.curr = me->u.chord.me;
+		break;
+	case ME_TYPE_FLATSIMULTENCE:
+		iter.curr = me->u.flatsimultence.me;
+		break;
+	case ME_TYPE_JOINEXPR:
+		iter.curr = me->u.joinexpr.a;
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		iter.curr = me->u.noteoffsetexpr.me;
+		break;
+	case ME_TYPE_OFFSETEXPR:
+		iter.curr = me->u.offsetexpr.me;
+		break;
+	case ME_TYPE_ONTRACK:
+		iter.curr = me->u.ontrack.me;
+		break;
+	case ME_TYPE_RELSIMULTENCE:
+	case ME_TYPE_SCALEDEXPR:
+		iter.curr = me->u.scaledexpr.me;
+		break;
+	case ME_TYPE_SEQUENCE:
+	case ME_TYPE_SIMULTENCE:
+		iter.curr = TAILQ_FIRST(&me->u.melist);
+		break;
+	default:
+		assert(0);
+	}
+
+	return iter;
+}
+
+struct musicexpr *
+_mdl_musicexpr_iter_next(struct musicexpr_iter *iter)
+{
+	struct musicexpr *current;
+
+	current = iter->curr;
+
+	switch (iter->me->me_type) {
+	case ME_TYPE_JOINEXPR:
+		/* Join expressions have two subexpressions. */
+		if (iter->curr == iter->me->u.joinexpr.a) {
+			iter->curr = iter->me->u.joinexpr.b;
+		} else {
+			iter->curr = NULL;
+		}
+		break;
+	case ME_TYPE_SEQUENCE:
+	case ME_TYPE_SIMULTENCE:
+		/* Sequences and simultences have multiple subexpressions. */
+		if (iter->curr != NULL)
+			iter->curr = TAILQ_NEXT(iter->curr, tq);
+		break;
+	default:
+		/* Other types have zero or one subexpressions. */
+		iter->curr = NULL;
+	}
+
+	return current;
+}
+

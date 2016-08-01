@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.78 2016/08/01 19:52:30 je Exp $ */
+/* $Id: musicexpr.h,v 1.79 2016/08/01 20:34:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -45,8 +45,8 @@ enum musicexpr_type {
 	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
+	ME_TYPE_COUNT,		/* not a type */
 };
-#define ME_TYPE_COUNT (ME_TYPE_SIMULTENCE + 1)
 
 enum notesym {
 	NOTE_C,
@@ -276,6 +276,11 @@ struct musicexpr {
 	TAILQ_ENTRY(musicexpr) tq;
 };
 
+struct musicexpr_iter {
+	struct musicexpr	*me;
+	struct musicexpr	*curr;
+};
+
 __BEGIN_DECLS
 struct musicexpr       *_mdl_chord_to_noteoffsetexpr(struct chord, int);
 void			_mdl_free_melist(struct musicexpr *);
@@ -283,6 +288,8 @@ struct musicexpr       *_mdl_musicexpr_clone(struct musicexpr *, int);
 void			_mdl_musicexpr_free(struct musicexpr *, int);
 void			_mdl_musicexpr_free_melist(struct melist, int);
 char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
+struct musicexpr_iter	_mdl_musicexpr_iter_new(struct musicexpr *);
+struct musicexpr       *_mdl_musicexpr_iter_next(struct musicexpr_iter *);
 void			_mdl_musicexpr_log(const struct musicexpr *,
     enum logtype, int, char *);
 struct musicexpr       *_mdl_musicexpr_new(enum musicexpr_type,
