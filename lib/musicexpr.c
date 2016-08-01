@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.112 2016/08/01 20:43:34 je Exp $ */
+/* $Id: musicexpr.c,v 1.113 2016/08/01 20:50:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -472,76 +472,24 @@ static void
 _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 {
 	struct musicexpr *p;
+	struct musicexpr_iter iter;
 
-	/*
-	 * XXX There is probably a common pattern here: do some operation
-	 * XXX to all subexpressions... but the knowledge "what are the
-	 * XXX subexpressions" is not anywhere.
-	 */
-
+	/* These types should have been handled in previous phases. */
+	assert(me->me_type != ME_TYPE_FUNCTION);
+	assert(me->me_type != ME_TYPE_RELDRUM);
 	assert(me->me_type != ME_TYPE_RELNOTE);
+	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
 	level += 1;
 
 	switch (me->me_type) {
-	case ME_TYPE_ABSDRUM:
-		/* Nothing to do. */
-		break;
 	case ME_TYPE_ABSNOTE:
 		me->u.absnote.note += offset;
 		break;
-	case ME_TYPE_CHORD:
-		_mdl_musicexpr_apply_noteoffset(me->u.chord.me, offset, level);
-		break;
-	case ME_TYPE_EMPTY:
-		/* Nothing to do. */
-		break;
-	case ME_TYPE_FLATSIMULTENCE:
-		_mdl_musicexpr_apply_noteoffset(me->u.flatsimultence.me,
-		    offset, level);
-		break;
-	case ME_TYPE_FUNCTION:
-		/* Functions should have been handled in previous phases. */
-		assert(0);
-		break;
-	case ME_TYPE_JOINEXPR:
-		_mdl_musicexpr_apply_noteoffset(me->u.joinexpr.a, offset,
-		    level);
-		_mdl_musicexpr_apply_noteoffset(me->u.joinexpr.b, offset,
-		    level);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		_mdl_musicexpr_apply_noteoffset(me->u.noteoffsetexpr.me,
-		    offset, level);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		_mdl_musicexpr_apply_noteoffset(me->u.offsetexpr.me, offset,
-		    level);
-		break;
-	case ME_TYPE_ONTRACK:
-		_mdl_musicexpr_apply_noteoffset(me->u.ontrack.me, offset,
-		    level);
-		break;
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_RELSIMULTENCE:
-		/* These should have been handled in previous phases. */
-		assert(0);
-		break;
-	case ME_TYPE_REST:
-		/* Nothing to do. */
-		break;
-	case ME_TYPE_SCALEDEXPR:
-		_mdl_musicexpr_apply_noteoffset(me->u.scaledexpr.me, offset,
-		    level);
-		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq)
-			_mdl_musicexpr_apply_noteoffset(p, offset, level);
-		break;
 	default:
-		assert(0);
+		iter = _mdl_musicexpr_iter_new(me);
+		while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
+			_mdl_musicexpr_apply_noteoffset(p, offset, level);
 	}
 }
 
