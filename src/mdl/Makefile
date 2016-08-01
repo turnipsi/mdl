@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.5 2016/05/21 19:38:23 je Exp $
+# $Id: Makefile,v 1.6 2016/08/01 20:35:09 je Exp $
 
 SRCS=	mdl.c
 
@@ -8,7 +8,7 @@ COMPATDIR?=	../../compat
 
 LIBMDL_PATH?=	../../lib
 
-CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
+CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith
 DEBUG?=		-g
 CFLAGS?=	-O2 -pipe ${DEBUG}
 CFLAGS+=	${CDIAGFLAGS} -I${LIBMDL_PATH} -I${COMPATDIR} \

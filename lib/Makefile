@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.60 2016/07/29 11:22:40 je Exp $
+# $Id: Makefile,v 1.61 2016/08/01 20:35:08 je Exp $
 
 SRCS=	functions.c interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c \
 	midistream.c musicexpr.c parse.c relative.c sequencer.c song.c \
@@ -8,7 +8,7 @@ PREFIX?=	/usr/local
 MANPREFIX?=	${PREFIX}/man
 COMPATDIR?=	../compat
 
-CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith -Wswitch-enum
+CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith
 DEBUG?=		-g
 CFLAGS?=	-O2 -pipe ${DEBUG}
 CFLAGS+=	${CDIAGFLAGS} -I. -I${COMPATDIR} -include ../config.h
