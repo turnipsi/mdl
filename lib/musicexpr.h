@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.77 2016/08/01 19:49:34 je Exp $ */
+/* $Id: musicexpr.h,v 1.78 2016/08/01 19:52:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -277,25 +277,24 @@ struct musicexpr {
 };
 
 __BEGIN_DECLS
-void	_mdl_musicexpr_free(struct musicexpr *, int);
-void	_mdl_musicexpr_log(const struct musicexpr *, enum logtype, int,
-    char *);
-
+struct musicexpr       *_mdl_chord_to_noteoffsetexpr(struct chord, int);
+void			_mdl_free_melist(struct musicexpr *);
+struct musicexpr       *_mdl_musicexpr_clone(struct musicexpr *, int);
+void			_mdl_musicexpr_free(struct musicexpr *, int);
+void			_mdl_musicexpr_free_melist(struct melist, int);
+char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
+void			_mdl_musicexpr_log(const struct musicexpr *,
+    enum logtype, int, char *);
 struct musicexpr       *_mdl_musicexpr_new(enum musicexpr_type,
     struct textloc, int);
-struct musicexpr       *_mdl_musicexpr_clone(struct musicexpr *, int);
-struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
-struct musicexpr       *_mdl_chord_to_noteoffsetexpr(struct chord, int);
-struct musicexpr       *_mdl_musicexpr_to_flat_simultence(struct musicexpr *,
-    int);
 struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *,
     int);
-char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
-void			_mdl_musicexpr_free_melist(struct melist, int);
-void			_mdl_free_melist(struct musicexpr *);
-struct textloc _mdl_textloc_zero(void);
-struct textloc _mdl_join_textlocs(struct textloc,
-    struct textloc);
+struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
+struct musicexpr       *_mdl_musicexpr_to_flat_simultence(struct musicexpr *,
+    int);
+
+struct textloc	_mdl_join_textlocs(struct textloc, struct textloc);
+struct textloc	_mdl_textloc_zero(void);
 __END_DECLS
 
 #endif /* !MDL_MUSICEXPR_H */
