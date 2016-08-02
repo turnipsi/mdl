@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.59 2016/07/31 17:18:40 je Exp $ */
+/* $Id: joinexpr.c,v 1.60 2016/08/02 20:38:19 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,89 +53,57 @@ int
 _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 {
 	struct musicexpr *joined_me, *p;
+	struct musicexpr_iter iter;
 	int ret;
+
+	assert(me->me_type != ME_TYPE_FUNCTION);
+	assert(me->me_type != ME_TYPE_RELDRUM);
+	assert(me->me_type != ME_TYPE_RELNOTE);
+	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
 	ret = 0;
 
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_ABSDRUM:
-	case ME_TYPE_EMPTY:
-	case ME_TYPE_REST:
-		/* No subexpressions, nothing to do. */
-		break;
-	case ME_TYPE_CHORD:
+	if (me->me_type == ME_TYPE_CHORD) {
 		/*
 		 * The possible subexpressions of chords are such that
 		 * calling _mdl_joinexpr_musicexpr() is a no-op.
 		 * (ME_TYPE_RELNOTE should not be valid here).
 		 */
 		assert(me->u.chord.me->me_type == ME_TYPE_ABSNOTE);
-		break;
-	case ME_TYPE_FLATSIMULTENCE:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.flatsimultence.me,
-		    level+1);
-		break;
-	case ME_TYPE_FUNCTION:
-		/* Functions should have been handled before joining. */
-		assert(0);
-		break;
-	case ME_TYPE_JOINEXPR:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.joinexpr.a, level+1);
-		if (ret != 0)
-			break;
-		ret = _mdl_joinexpr_musicexpr(me->u.joinexpr.b, level+1);
-		if (ret != 0)
-			break;
+		return ret;
+	}
 
+	/* Traverse the subexpressions. */
+
+	iter = _mdl_musicexpr_iter_new(me);
+	p = _mdl_musicexpr_iter_next(&iter);
+	if (p != NULL)
+		log_possible_join(me, level);
+
+	level += 1;
+
+	while (p != NULL) {
+		ret = _mdl_joinexpr_musicexpr(p, level);
+		if (ret != 0)
+			return ret;
+		p = _mdl_musicexpr_iter_next(&iter);
+	}
+
+	/*
+	 * Handle the join expression and replace
+	 * the current expression with the joined one.
+	 */
+
+	if (me->me_type == ME_TYPE_JOINEXPR) {
 		joined_me = join_two_musicexprs(me->u.joinexpr.a,
-		    me->u.joinexpr.b, level+1);
-		if (joined_me == NULL) {
-			ret = 1;
-			break;
-		}
+		    me->u.joinexpr.b, level);
+		if (joined_me == NULL)
+			return 1;
 
 		/* XXX is this okay? log event? */
 		me->id      = joined_me->id;
 		me->me_type = joined_me->me_type;
 		me->u       = joined_me->u;
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.noteoffsetexpr.me,
-		    level+1);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.offsetexpr.me, level+1);
-		break;
-	case ME_TYPE_ONTRACK:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.ontrack.me, level+1);
-		break;
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_RELSIMULTENCE:
-		/* These must have been handled in previous phases. */
-		assert(0);
-		break;
-	case ME_TYPE_SCALEDEXPR:
-		log_possible_join(me, level);
-		ret = _mdl_joinexpr_musicexpr(me->u.scaledexpr.me, level+1);
-		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
-		log_possible_join(me, level);
-		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			ret = _mdl_joinexpr_musicexpr(p, level+1);
-			if (ret != 0)
-				break;
-		}
-		break;
-	default:
-		assert(0);
 	}
 
 	return ret;

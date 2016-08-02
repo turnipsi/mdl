@@ -1,4 +1,4 @@
-/* $Id: functions.c,v 1.3 2016/08/01 20:43:52 je Exp $ */
+/* $Id: functions.c,v 1.4 2016/08/02 20:38:19 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,7 +25,7 @@ _mdl_functions_apply(struct musicexpr *me, int level)
 	struct musicexpr_iter iter;
 
 	level += 1;
-	
+
 	switch (me->me_type) {
 	case ME_TYPE_FUNCTION:
 		/* XXX For now, just replace with an empty
