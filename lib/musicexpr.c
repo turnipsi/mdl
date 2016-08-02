@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.115 2016/08/02 19:36:28 je Exp $ */
+/* $Id: musicexpr.c,v 1.116 2016/08/02 20:12:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -580,68 +580,51 @@ static float
 musicexpr_calc_length(struct musicexpr *me)
 {
 	struct musicexpr *p;
-	float length;
+	struct musicexpr_iter iter;
+	float length, tmp_length;
 
+	/* These should have been handled in previous phases. */
+	assert(me->me_type != ME_TYPE_FUNCTION);
+	assert(me->me_type != ME_TYPE_RELDRUM);
 	assert(me->me_type != ME_TYPE_RELNOTE);
-
-	length = 0.0;
+	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
 	switch (me->me_type) {
         case ME_TYPE_ABSDRUM:
-		length = me->u.absdrum.length;
-		break;
+		return me->u.absdrum.length;
         case ME_TYPE_ABSNOTE:
-		length = me->u.absnote.length;
-		break;
-        case ME_TYPE_CHORD:
-		length = musicexpr_calc_length(me->u.chord.me);
-		break;
+		return me->u.absnote.length;
         case ME_TYPE_EMPTY:
-		break;
+		return 0.0;
         case ME_TYPE_FLATSIMULTENCE:
-		length = me->u.flatsimultence.length;
-		break;
-        case ME_TYPE_FUNCTION:
-		/* Functions should have been handled in previous phases. */
-		assert(0);
-		break;
-        case ME_TYPE_JOINEXPR:
-		length = musicexpr_calc_length(me->u.joinexpr.a) +
-		    musicexpr_calc_length(me->u.joinexpr.b);
-		break;
-        case ME_TYPE_NOTEOFFSETEXPR:
-		length = musicexpr_calc_length(me->u.noteoffsetexpr.me);
-		break;
-        case ME_TYPE_OFFSETEXPR:
-		length = me->u.offsetexpr.offset +
-		    musicexpr_calc_length(me->u.offsetexpr.me);
-		break;
-        case ME_TYPE_ONTRACK:
-		length = musicexpr_calc_length(me->u.ontrack.me);
-		break;
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_RELSIMULTENCE:
-		/* These should have been handled in previous phases. */
-		assert(0);
-		break;
+		return me->u.flatsimultence.length;
         case ME_TYPE_REST:
-		length = me->u.rest.length;
-		break;
+		return me->u.rest.length;
         case ME_TYPE_SCALEDEXPR:
-		length = me->u.scaledexpr.length;
-		break;
-        case ME_TYPE_SEQUENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq)
-			length += musicexpr_calc_length(p);
-		break;
-        case ME_TYPE_SIMULTENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq)
-			length = MAX(length, musicexpr_calc_length(p));
-		break;
+		return me->u.scaledexpr.length;
 	default:
-		assert(0);
+		;
 	}
+
+	length = 0.0;
+
+	if (me->me_type == ME_TYPE_OFFSETEXPR)
+		length += me->u.offsetexpr.offset;
+
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL) {
+		tmp_length = musicexpr_calc_length(p);
+		switch (me->me_type) {
+		case ME_TYPE_SIMULTENCE:
+			length = MAX(length, tmp_length);
+			break;
+		default:
+			length += tmp_length;
+		}
+	}
+
+	assert(length >= 0.0);
 
 	return length;
 }
