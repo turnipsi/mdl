@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.114 2016/08/01 20:51:49 je Exp $ */
+/* $Id: musicexpr.c,v 1.115 2016/08/02 19:36:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -482,15 +482,15 @@ _mdl_musicexpr_apply_noteoffset(struct musicexpr *me, int offset, int level)
 
 	level += 1;
 
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
+	if (me->me_type == ME_TYPE_ABSNOTE) {
 		me->u.absnote.note += offset;
-		break;
-	default:
-		iter = _mdl_musicexpr_iter_new(me);
-		while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
-			_mdl_musicexpr_apply_noteoffset(p, offset, level);
+		return;
 	}
+
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
+		_mdl_musicexpr_apply_noteoffset(p, offset, level);
 }
 
 struct musicexpr *
@@ -532,8 +532,13 @@ static void
 _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 {
 	struct musicexpr *p;
+	struct musicexpr_iter iter;
 
+	/* These types should have been handled in previous phases. */
+	assert(me->me_type != ME_TYPE_FUNCTION);
+	assert(me->me_type != ME_TYPE_RELDRUM);
 	assert(me->me_type != ME_TYPE_RELNOTE);
+	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
@@ -542,39 +547,11 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 	case ME_TYPE_ABSDRUM:
 		me->u.absdrum.length *= factor;
 		break;
-	case ME_TYPE_CHORD:
-		_mdl_musicexpr_stretch_length(me->u.chord.me,
-		    factor);
-		break;
-	case ME_TYPE_EMPTY:
-		break;
 	case ME_TYPE_FLATSIMULTENCE:
-		_mdl_musicexpr_stretch_length(me->u.flatsimultence.me, factor);
 		me->u.flatsimultence.length *= factor;
 		break;
-	case ME_TYPE_FUNCTION:
-		/* Functions should have been handled in previous phases. */
-		assert(0);
-		break;
-	case ME_TYPE_JOINEXPR:
-		_mdl_musicexpr_stretch_length(me->u.joinexpr.a, factor);
-		_mdl_musicexpr_stretch_length(me->u.joinexpr.b, factor);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		_mdl_musicexpr_stretch_length(me->u.noteoffsetexpr.me, factor);
-		break;
 	case ME_TYPE_OFFSETEXPR:
-		_mdl_musicexpr_stretch_length(me->u.offsetexpr.me, factor);
 		me->u.offsetexpr.offset *= factor;
-		break;
-	case ME_TYPE_ONTRACK:
-		_mdl_musicexpr_stretch_length(me->u.ontrack.me, factor);
-		break;
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_RELSIMULTENCE:
-		/* These should have been handled in previous phases. */
-		assert(0);
 		break;
 	case ME_TYPE_REST:
 		me->u.rest.length *= factor;
@@ -582,14 +559,21 @@ _mdl_musicexpr_stretch_length(struct musicexpr *me, float factor)
 	case ME_TYPE_SCALEDEXPR:
 		me->u.scaledexpr.length *= factor;
 		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq)
-			_mdl_musicexpr_stretch_length(p, factor);
-		break;
 	default:
-		assert(0);
+		;
 	}
+
+	/*
+	 * Do not iterate subexpressions with scaled expression,
+	 * scaling is already done by adjusting length.
+	 */
+	if (me->me_type == ME_TYPE_SCALEDEXPR)
+		return;
+
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
+		_mdl_musicexpr_stretch_length(p, factor);
 }
 
 static float
