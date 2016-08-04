@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.15 2016/07/31 17:18:40 je Exp $ */
+/* $Id: song.c,v 1.16 2016/08/04 20:30:08 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -75,80 +75,35 @@ static int
 connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 {
 	struct musicexpr *p;
+	struct musicexpr_iter iter;
 	struct track *tmp_track, *track;
 	int ret;
 
-	/*
-	 * XXX Use some higher-order subroutine to simplify functions like
-	 * XXX this one?
-	 */
+	assert(me->me_type != ME_TYPE_FUNCTION);
 
 	ret = 0;
-
 	level += 1;
 
-	switch (me->me_type) {
-	case ME_TYPE_ABSDRUM:
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_EMPTY:
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_REST:
-		break;
-	case ME_TYPE_CHORD:
-		ret = connect_tracks_to_song(song, me->u.chord.me, level);
-		break;
-	case ME_TYPE_FLATSIMULTENCE:
-		ret = connect_tracks_to_song(song, me->u.flatsimultence.me,
-		    level);
-		break;
-	case ME_TYPE_FUNCTION:
-		/* Functions should not occur here. */
-		assert(0);
-		break;
-	case ME_TYPE_JOINEXPR:
-		ret = connect_tracks_to_song(song, me->u.joinexpr.a, level);
-		if (ret != 0)
-			break;
-		ret = connect_tracks_to_song(song, me->u.joinexpr.b, level);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		ret = connect_tracks_to_song(song, me->u.noteoffsetexpr.me,
-		    level);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		ret = connect_tracks_to_song(song, me->u.offsetexpr.me, level);
-		break;
-	case ME_TYPE_ONTRACK:
+	if (me->me_type == ME_TYPE_ONTRACK) {
 		tmp_track = me->u.ontrack.track;
 		track = _mdl_song_find_track_or_new(song, tmp_track->name,
 		    level);
-		if (track == NULL) {
-			ret = 1;
-			break;
-		}
+		if (track == NULL)
+			return 1;
 		me->u.ontrack.track = track;
 		free(tmp_track->name);
 		free(tmp_track);
-		ret = connect_tracks_to_song(song, me->u.ontrack.me, level);
-		break;
-	case ME_TYPE_RELSIMULTENCE:
-	case ME_TYPE_SCALEDEXPR:
-		ret = connect_tracks_to_song(song, me->u.scaledexpr.me, level);
-		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
-		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			ret = connect_tracks_to_song(song, p, level);
-			if (ret != 0)
-				break;
-		}
-		break;
-	default:
-		assert(0);
+		return connect_tracks_to_song(song, me->u.ontrack.me, level);
 	}
 
-	return ret;
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL) {
+		if ((ret = connect_tracks_to_song(song, p, level)) != 0)
+			return ret;
+	}
+
+	return 0;
 }
 
 void
