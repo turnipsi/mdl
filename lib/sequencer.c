@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.127 2016/07/15 18:56:11 je Exp $ */
+/* $Id: sequencer.c,v 1.128 2016/08/05 20:36:03 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -585,7 +585,7 @@ sequencer_calculate_timeout(const struct sequencer *seq, struct songstate *ss,
 
 	sequencer_time_for_next_note(ss, &notetime);
 
-	ret = clock_gettime(CLOCK_MONOTONIC, &current_time);
+	ret = clock_gettime(CLOCK_UPTIME, &current_time);
 	assert(ret == 0);
 
 	timeout->tv_sec  = notetime.tv_sec  - current_time.tv_sec;
@@ -1143,7 +1143,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 		       new_ss->channelstates[c].instrument);
 	}
 
-	ret = clock_gettime(CLOCK_MONOTONIC,
+	ret = clock_gettime(CLOCK_UPTIME,
 	    &new_ss->latest_tempo_change_as_time);
 	assert(ret == 0);
 
