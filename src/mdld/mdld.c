@@ -1,4 +1,4 @@
-/* $Id: mdld.c,v 1.34 2016/07/14 20:41:45 je Exp $ */
+/* $Id: mdld.c,v 1.35 2016/08/05 20:20:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -63,15 +63,16 @@ static void	drop_client(struct client_connection *, struct clientlist *,
     struct interpreter_handler *);
 static int	handle_client_events(struct client_connection *,
     struct interpreter_handler *, struct clientlist *);
-static int	handle_interpreter_process(struct interpreter_handler *,
-    struct sequencer_connection *);
-static int	handle_sequencer_events(struct sequencer_connection *);
 static int	handle_musicfd_event(struct client_connection *,
     struct interpreter_handler *, int);
-static void	handle_signal(int);
 static int	handle_connections(struct sequencer_connection *, int);
+static int	mdld_handle_interpreter_process(struct interpreter_handler *,
+    struct sequencer_connection *);
+static int	mdld_handle_sequencer_events(struct sequencer_connection *);
+static void	mdld_handle_signal(int);
 static int	setup_server_socket(const char *);
-static void __dead usage(void);
+
+static void __dead mdld_usage(void);
 
 /* If set in signal handler, we should shut down. */
 volatile sig_atomic_t mdld_shutdown_server = 0;
@@ -81,7 +82,7 @@ extern int loglevel;
 char *_mdl_process_type;
 
 static void __dead
-usage(void)
+mdld_usage(void)
 {
 	(void) fprintf(stderr, "usage: mdld [-v] [-d debuglevel] [-f device]"
 	    " [-m MIDI-interface]\n");
@@ -89,7 +90,7 @@ usage(void)
 }
 
 static void
-handle_signal(int signo)
+mdld_handle_signal(int signo)
 {
 	assert(signo == SIGINT || signo == SIGTERM);
 
@@ -147,7 +148,7 @@ main(int argc, char *argv[])
 			exit(0);
 			break;
 		default:
-			usage();
+			mdld_usage();
 			/* NOTREACHED */
 		}
 	}
@@ -290,9 +291,9 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		return 1;
 	}
 
-	signal(SIGINT,  handle_signal);
+	signal(SIGINT,  mdld_handle_signal);
 	signal(SIGPIPE, SIG_IGN);
-	signal(SIGTERM, handle_signal);
+	signal(SIGTERM, mdld_handle_signal);
 
 	if (sigemptyset(&loop_sigmask) == -1 ||
 	    sigaddset(&loop_sigmask, SIGCHLD) == -1 ||
@@ -308,7 +309,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		if (mdld_shutdown_server)
 			break;
 
-		if (handle_interpreter_process(&interp, seq_conn) != 0) {
+		if (mdld_handle_interpreter_process(&interp, seq_conn) != 0) {
 			warnx("error handling interpreter process");
 			retvalue = 1;
 			break;
@@ -342,7 +343,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 		/* Handle sequencer connection. */
 
 		if (FD_ISSET(seq_conn->socket, &readfds)) {
-			ret = handle_sequencer_events(seq_conn);
+			ret = mdld_handle_sequencer_events(seq_conn);
 			if (ret != 0) {
 				warnx("error handling sequencer events");
 				retvalue = 1;
@@ -430,7 +431,7 @@ handle_connections(struct sequencer_connection *seq_conn, int server_socket)
 }
 
 static int
-handle_interpreter_process(struct interpreter_handler *interp,
+mdld_handle_interpreter_process(struct interpreter_handler *interp,
     struct sequencer_connection *seq_conn)
 {
 	int ret, status;
@@ -502,7 +503,7 @@ handle_interpreter_process(struct interpreter_handler *interp,
 }
 
 static int
-handle_sequencer_events(struct sequencer_connection *seq_conn)
+mdld_handle_sequencer_events(struct sequencer_connection *seq_conn)
 {
 	ssize_t nr;
 

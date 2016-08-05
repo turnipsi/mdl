@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2016/08/05 20:12:24 je Exp $
+# $Id: Makefile,v 1.7 2016/08/05 20:20:54 je Exp $
 
 SUBDIRS = lib src
 
@@ -11,4 +11,4 @@ all install clean:
 tags:
 	find . '(' -name '*.c' -o -name '*.l' -o -name '*.y' ')' \
 	    -a ! -name lex.c -a ! -name parse.c \
-	    | xargs ctags -dw
+	    | xargs ctags -d

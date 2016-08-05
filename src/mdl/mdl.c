@@ -1,4 +1,4 @@
-/* $Id: mdl.c,v 1.50 2016/07/22 19:15:09 je Exp $ */
+/* $Id: mdl.c,v 1.51 2016/08/05 20:20:55 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -72,27 +72,28 @@ extern int loglevel;
 
 char *_mdl_process_type;
 
-static void	handle_signal(int);
 static int	establish_sequencer_connection(struct server_connection *,
     struct sequencer_connection *);
 static int	establish_server_connection(struct server_connection *, int);
 static int	enqueue_song(struct server_connection *,
     struct musicfiles *, struct interpreter_handler *, int);
 static int	open_musicfiles(struct musicfiles *, char **, size_t);
-static int	handle_interpreter_process(struct interpreter_handler *,
-    struct sequencer_connection *, struct musicfiles *);
 static int	handle_musicfiles(struct server_connection *,
     struct sequencer_connection *, struct musicfiles *);
-static int	handle_sequencer_events(struct server_connection *,
-    struct sequencer_connection *, struct musicfiles *,
-    struct interpreter_handler *);
 static int	handle_server_events(struct server_connection *,
     struct sequencer_connection *);
+static int	mdl_handle_interpreter_process(struct interpreter_handler *,
+    struct sequencer_connection *, struct musicfiles *);
+static int	mdl_handle_sequencer_events(struct server_connection *,
+    struct sequencer_connection *, struct musicfiles *,
+    struct interpreter_handler *);
+static void	mdl_handle_signal(int);
 static int	replace_server_with_client_conn(struct sequencer_connection *);
-static void __dead usage(void);
+
+static void __dead mdl_usage(void);
 
 static void __dead
-usage(void)
+mdl_usage(void)
 {
 	(void) fprintf(stderr, "usage: mdl [-nv] [-d debuglevel] [-f device]"
 	    " [-m MIDI-interface] [file ...]\n");
@@ -100,7 +101,7 @@ usage(void)
 }
 
 static void
-handle_signal(int signo)
+mdl_handle_signal(int signo)
 {
 	assert(signo == SIGINT || signo == SIGTERM);
 
@@ -179,7 +180,7 @@ main(int argc, char *argv[])
 			exit(0);
 			break;
 		default:
-			usage();
+			mdl_usage();
 			/* NOTREACHED */
 		}
 	}
@@ -442,9 +443,9 @@ handle_musicfiles(struct server_connection *server_conn,
 		}
 	}
 
-	signal(SIGINT,  handle_signal);
+	signal(SIGINT,  mdl_handle_signal);
 	signal(SIGPIPE, SIG_IGN);
-	signal(SIGTERM, handle_signal);
+	signal(SIGTERM, mdl_handle_signal);
 
 	if (sigemptyset(&loop_sigmask) == -1 ||
 	    sigaddset(&loop_sigmask, SIGCHLD) == -1 ||
@@ -467,7 +468,7 @@ handle_musicfiles(struct server_connection *server_conn,
 			break;
 
 		if (server_conn == NULL) {
-			ret = handle_interpreter_process(&interp, seq_conn,
+			ret = mdl_handle_interpreter_process(&interp, seq_conn,
 			    musicfiles);
 			if (ret != 0) {
 				warnx("error handling interpreter process");
@@ -502,8 +503,8 @@ handle_musicfiles(struct server_connection *server_conn,
 		/* Handle sequencer connection. */
 
 		if (FD_ISSET(seq_conn->socket, &readfds)) {
-			ret = handle_sequencer_events(server_conn, seq_conn,
-			    musicfiles, &interp);
+			ret = mdl_handle_sequencer_events(server_conn,
+			    seq_conn, musicfiles, &interp);
 			if (ret != 0) {
 				warnx("error handling sequencer events");
 				retvalue = 1;
@@ -580,7 +581,7 @@ handle_musicfiles(struct server_connection *server_conn,
 }
 
 static int
-handle_interpreter_process(struct interpreter_handler *interp,
+mdl_handle_interpreter_process(struct interpreter_handler *interp,
     struct sequencer_connection *seq_conn, struct musicfiles *musicfiles)
 {
 	int ret, status;
@@ -641,7 +642,7 @@ handle_interpreter_process(struct interpreter_handler *interp,
 }
 
 static int
-handle_sequencer_events(struct server_connection *server_conn,
+mdl_handle_sequencer_events(struct server_connection *server_conn,
     struct sequencer_connection *seq_conn, struct musicfiles *musicfiles,
     struct interpreter_handler *interp)
 {
@@ -667,7 +668,7 @@ handle_sequencer_events(struct server_connection *server_conn,
 	for (;;) {
 		nr = imsg_get(&seq_conn->ibuf, &imsg);
 		if (nr == -1) {
-			warnx("error in handle_sequencer_events/imsg_get");
+			warnx("error in mdl_handle_sequencer_events/imsg_get");
 			return 1;
 		}
 		if (nr == 0)
