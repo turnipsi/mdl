@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.18 2016/07/20 19:38:22 je Exp $
+# $Id: configure,v 1.19 2016/08/07 20:20:12 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -154,6 +154,34 @@ do_check() {
   return 0
 }
 
+usage() {
+  cat <<'EOF'
+Available options:
+  --enable-debug
+  --disable-debug
+  --enable-pledge
+  --disable-pledge
+EOF
+}
+
+enable_debug=true
+enable_pledge=true
+
+while [ $# -gt 0 ]; do
+  case $1 in
+    --enable-debug)   enable_debug=true   ;;
+    --disable-debug)  enable_debug=false  ;;
+    --enable-pledge)  enable_pledge=true  ;;
+    --disable-pledge) enable_pledge=false ;;
+    *)
+      echo "Unknown configure option '$1'.\n" >&2
+      usage >&2
+      exit 1
+      ;;
+  esac
+  shift
+done
+
 init_config
 
 if do_check asprintf check_asprintf; then
@@ -167,7 +195,7 @@ if do_check attribute__dead check_dead; then
   append_to_config_h '#define HAVE_ATTRIBUTE__DEAD 1'
 fi
 
-if do_check malloc_options check_malloc_options; then
+if $enable_debug && do_check malloc_options check_malloc_options; then
   append_to_config_h '#define HAVE_MALLOC_OPTIONS 1'
 fi
 
@@ -179,7 +207,7 @@ else
   include_compat_h=true
 fi
 
-if do_check 'pledge()' check_pledge; then
+if $enable_pledge && do_check 'pledge()' check_pledge; then
   append_to_config_h '#define HAVE_PLEDGE 1'
 else
   append_to_config_mk 'SRCS += ${COMPATDIR}/pledge.c'
@@ -221,6 +249,11 @@ fi
 
 if do_check va_copy check_va_copy; then
   append_to_config_h '#define HAVE_VA_COPY 1'
+fi
+
+if ! $enable_debug; then
+  # if NDEBUG is defined, assert() macros are removed at compile time.
+  append_to_config_h '#define NDEBUG 1'
 fi
 
 if $include_compat_h; then
