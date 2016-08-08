@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.117 2016/08/08 08:47:33 je Exp $ */
+/* $Id: musicexpr.c,v 1.118 2016/08/08 20:03:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -832,47 +832,26 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 void
 _mdl_musicexpr_free_subexprs(struct musicexpr *me, int level)
 {
-	switch (me->me_type) {
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_ABSDRUM:
-	case ME_TYPE_EMPTY:
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_REST:
-		break;
-	case ME_TYPE_CHORD:
-		_mdl_musicexpr_free(me->u.chord.me, level);
-		break;
-	case ME_TYPE_FLATSIMULTENCE:
-		_mdl_musicexpr_free(me->u.flatsimultence.me, level);
-		break;
-	case ME_TYPE_FUNCTION:
-		_mdl_functions_free(me);
-		break;
-	case ME_TYPE_JOINEXPR:
-		_mdl_musicexpr_free(me->u.joinexpr.a, level);
-		_mdl_musicexpr_free(me->u.joinexpr.b, level);
-		break;
-	case ME_TYPE_NOTEOFFSETEXPR:
-		_mdl_musicexpr_free(me->u.noteoffsetexpr.me, level);
-		free(me->u.noteoffsetexpr.offsets);
-		break;
-	case ME_TYPE_OFFSETEXPR:
-		_mdl_musicexpr_free(me->u.offsetexpr.me, level);
-		break;
-	case ME_TYPE_ONTRACK:
-		_mdl_musicexpr_free(me->u.ontrack.me, level);
-		break;
-	case ME_TYPE_RELSIMULTENCE:
-	case ME_TYPE_SCALEDEXPR:
-		_mdl_musicexpr_free(me->u.scaledexpr.me, level);
-		break;
-	case ME_TYPE_SEQUENCE:
-	case ME_TYPE_SIMULTENCE:
+	struct musicexpr *p;
+	struct musicexpr_iter iter;
+
+	if (me->me_type == ME_TYPE_SEQUENCE ||
+	    me->me_type == ME_TYPE_SIMULTENCE) {
 		_mdl_musicexpr_free_melist(me->u.melist, level);
-		break;
-	default:
-		assert(0);
+		return;
+	}
+
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL) {
+		switch (p->me_type) {
+		case ME_TYPE_NOTEOFFSETEXPR:
+			_mdl_musicexpr_free(p, level);
+			free(p->u.noteoffsetexpr.offsets);
+			break;
+		default:
+			_mdl_musicexpr_free(p, level);
+		}
 	}
 }
 
