@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.60 2016/08/02 20:38:19 je Exp $ */
+/* $Id: joinexpr.c,v 1.61 2016/08/08 20:19:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -100,10 +100,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 		if (joined_me == NULL)
 			return 1;
 
-		/* XXX is this okay? log event? */
-		me->id      = joined_me->id;
-		me->me_type = joined_me->me_type;
-		me->u       = joined_me->u;
+		_mdl_musicexpr_replace(me, joined_me, MDLLOG_JOINS, level);
 	}
 
 	return ret;

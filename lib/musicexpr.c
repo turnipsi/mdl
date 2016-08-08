@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.118 2016/08/08 20:03:40 je Exp $ */
+/* $Id: musicexpr.c,v 1.119 2016/08/08 20:19:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1147,4 +1147,24 @@ _mdl_musicexpr_iter_next(struct musicexpr_iter *iter)
 	}
 
 	return current;
+}
+
+void
+_mdl_musicexpr_replace(struct musicexpr *dst, struct musicexpr *src,
+    enum logtype logtype, int level)
+{
+	char *dst_id, *src_id;
+
+	if ((dst_id = _mdl_musicexpr_id_string(dst)) != NULL) {
+		if ((src_id = _mdl_musicexpr_id_string(src)) != NULL) {
+			_mdl_log(logtype, level, "replacing %s with %s\n",
+			    dst_id, src_id);
+			free(src_id);
+		}
+		free(dst_id);
+	}
+
+	dst->id      = src->id;
+	dst->me_type = src->me_type;
+	dst->u       = src->u;
 }

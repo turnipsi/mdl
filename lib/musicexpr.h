@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.80 2016/08/08 08:47:33 je Exp $ */
+/* $Id: musicexpr.h,v 1.81 2016/08/08 20:19:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -284,6 +284,8 @@ void			_mdl_musicexpr_log(const struct musicexpr *,
     enum logtype, int, char *);
 struct musicexpr       *_mdl_musicexpr_new(enum musicexpr_type,
     struct textloc, int);
+void			_mdl_musicexpr_replace(struct musicexpr *,
+    struct musicexpr *, enum logtype, int);
 struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *,
     int);
 struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
