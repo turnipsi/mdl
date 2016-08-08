@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.79 2016/08/01 20:34:28 je Exp $ */
+/* $Id: musicexpr.h,v 1.80 2016/08/08 08:47:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 
 #include <sys/queue.h>
 
+#include "functions.h"
 #include "instrument.h"
 #include "track.h"
 #include "util.h"
@@ -197,18 +198,6 @@ struct chord {
 	struct musicexpr       *me;
 };
 
-struct funcarg {
-	char		       *arg;
-	TAILQ_ENTRY(funcarg)	tq;
-};
-
-TAILQ_HEAD(funcarglist, funcarg);
-
-struct function {
-	char		       *name;
-	struct funcarglist	args;
-};
-
 struct noteoffsetexpr {
 	struct musicexpr       *me;
 	int		       *offsets;
@@ -287,6 +276,7 @@ void			_mdl_free_melist(struct musicexpr *);
 struct musicexpr       *_mdl_musicexpr_clone(struct musicexpr *, int);
 void			_mdl_musicexpr_free(struct musicexpr *, int);
 void			_mdl_musicexpr_free_melist(struct melist, int);
+void			_mdl_musicexpr_free_subexprs(struct musicexpr *, int);
 char		       *_mdl_musicexpr_id_string(const struct musicexpr *);
 struct musicexpr_iter	_mdl_musicexpr_iter_new(struct musicexpr *);
 struct musicexpr       *_mdl_musicexpr_iter_next(struct musicexpr_iter *);

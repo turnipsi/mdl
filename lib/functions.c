@@ -1,4 +1,4 @@
-/* $Id: functions.c,v 1.4 2016/08/02 20:38:19 je Exp $ */
+/* $Id: functions.c,v 1.5 2016/08/08 08:47:33 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -16,25 +16,88 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <sys/queue.h>
+
+#include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "musicexpr.h"
 
-void
+static int	apply_function(struct musicexpr *, int);
+static int	apply_tempo(struct musicexpr *, int);
+static int	apply_volume(struct musicexpr *, int);
+
+int
 _mdl_functions_apply(struct musicexpr *me, int level)
 {
 	struct musicexpr *p;
 	struct musicexpr_iter iter;
+	int ret;
 
 	level += 1;
 
-	switch (me->me_type) {
-	case ME_TYPE_FUNCTION:
-		/* XXX For now, just replace with an empty
-		 * XXX expression.  This is not only wrong, but we leak
-		 * XXX memory later. */
-		 me->me_type = ME_TYPE_EMPTY;
-	default:
-		iter = _mdl_musicexpr_iter_new(me);
-		while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
-			_mdl_functions_apply(p, level);
+	if (me->me_type == ME_TYPE_FUNCTION)
+		return apply_function(me, level);
+
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL) {
+		if ((ret = _mdl_functions_apply(p, level)) != 0)
+			return ret;
 	}
+
+	return 0;
+}
+
+void
+_mdl_functions_free(struct musicexpr *me)
+{
+	struct function *func;
+	struct funcarg *p, *q;
+
+	assert(me->me_type == ME_TYPE_FUNCTION);
+
+	func = &me->u.function;
+
+	TAILQ_FOREACH_SAFE(p, &func->args, tq, q) {
+		TAILQ_REMOVE(&func->args, p, tq);
+		free(p);
+	}
+	free(func->name);
+}
+
+static int
+apply_function(struct musicexpr *me, int level)
+{
+	assert(me->me_type == ME_TYPE_FUNCTION);
+
+	if (strcmp(me->u.function.name, "tempo") == 0) {
+		return apply_tempo(me, level);
+	} else if (strcmp(me->u.function.name, "volume") == 0) {
+		return apply_volume(me, level);
+	} else {
+		return 1;
+	}
+}
+
+static int
+apply_tempo(struct musicexpr *me, int level)
+{
+	_mdl_musicexpr_free_subexprs(me, level);
+
+	/* XXX For now, just replace with an empty expression. */
+	me->me_type = ME_TYPE_EMPTY;
+
+	return 0;
+}
+
+static int
+apply_volume(struct musicexpr *me, int level)
+{
+	_mdl_musicexpr_free_subexprs(me, level);
+
+	/* XXX For now, just replace with an empty expression. */
+	me->me_type = ME_TYPE_EMPTY;
+
+	return 0;
 }

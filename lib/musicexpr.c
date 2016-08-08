@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.116 2016/08/02 20:12:43 je Exp $ */
+/* $Id: musicexpr.c,v 1.117 2016/08/08 08:47:33 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -41,7 +41,6 @@ static struct musicexpr	*musicexpr_scale_in_time(struct musicexpr *, float,
 
 static int	_mdl_musicexpr_clone_melist(struct melist *, struct melist,
     int);
-static void	_mdl_musicexpr_free_function(struct function *);
 static void	_mdl_musicexpr_log_chordtype(enum chordtype, enum logtype, int,
     char *);
 static void	_mdl_musicexpr_log_melist(struct melist, enum logtype, int,
@@ -825,6 +824,14 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 
 	level += 1;
 
+	_mdl_musicexpr_free_subexprs(me, level);
+
+	free(me);
+}
+
+void
+_mdl_musicexpr_free_subexprs(struct musicexpr *me, int level)
+{
 	switch (me->me_type) {
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_ABSDRUM:
@@ -840,7 +847,7 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 		_mdl_musicexpr_free(me->u.flatsimultence.me, level);
 		break;
 	case ME_TYPE_FUNCTION:
-		_mdl_musicexpr_free_function(&me->u.function);
+		_mdl_functions_free(me);
 		break;
 	case ME_TYPE_JOINEXPR:
 		_mdl_musicexpr_free(me->u.joinexpr.a, level);
@@ -867,20 +874,6 @@ _mdl_musicexpr_free(struct musicexpr *me, int level)
 	default:
 		assert(0);
 	}
-
-	free(me);
-}
-
-static void
-_mdl_musicexpr_free_function(struct function *func)
-{
-	struct funcarg *p, *q;
-
-	TAILQ_FOREACH_SAFE(p, &func->args, tq, q) {
-		TAILQ_REMOVE(&func->args, p, tq);
-		free(p);
-	}
-	free(func->name);
 }
 
 void

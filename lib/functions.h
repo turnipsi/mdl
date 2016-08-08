@@ -1,4 +1,4 @@
-/* $Id: functions.h,v 1.2 2016/07/31 17:18:40 je Exp $ */
+/* $Id: functions.h,v 1.3 2016/08/08 08:47:33 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,10 +19,25 @@
 #ifndef MDL_FUNCTIONS_H
 #define MDL_FUNCTIONS_H
 
-#include "musicexpr.h"
+#include <sys/queue.h>
+
+struct funcarg {
+	char		       *arg;
+	TAILQ_ENTRY(funcarg)	tq;
+};
+
+TAILQ_HEAD(funcarglist, funcarg);
+
+struct function {
+	char		       *name;
+	struct funcarglist	args;
+};
+
+struct musicexpr;
 
 __BEGIN_DECLS
-void	_mdl_functions_apply(struct musicexpr *, int level);
+int	_mdl_functions_apply(struct musicexpr *, int);
+void	_mdl_functions_free(struct musicexpr *);
 __END_DECLS
 
 #endif /* !MDL_FUNCTIONS_H */

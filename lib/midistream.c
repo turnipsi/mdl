@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.47 2016/07/31 17:18:40 je Exp $ */
+/* $Id: midistream.c,v 1.48 2016/08/08 08:47:33 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -76,7 +76,11 @@ _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	_mdl_functions_apply(me, level+1);
+	if (_mdl_functions_apply(me, level+1) != 0) {
+		warnx("problem applying functions");
+		_mdl_stream_free(offset_es);
+		return NULL;
+	}
 
 	if ((song = _mdl_song_new()) == NULL) {
 		warnx("could not create a new song");
