@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.61 2016/07/31 17:18:40 je Exp $ */
+/* $Id: parse.y,v 1.62 2016/08/09 19:44:13 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -175,7 +175,7 @@ grammar:
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-	}
+	  }
 	;
 
 musicexpr:
@@ -253,7 +253,7 @@ chord:
 		}
 		$$.expr.me->u.relnote = $1.expr;
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
-	}
+	  }
 	;
 
 function:
@@ -261,13 +261,15 @@ function:
 		$$.expr.name = $1.expr;
 		$$.expr.args = $2.expr;
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
-	};
+	  }
+	;
 
 funcarg:
 	FUNCARG_TOKEN {
 		$$.expr.arg = $1.expr;
 		$$.textloc  = $1.textloc;
-	}
+	  }
+	;
 
 funcarglist:
 	funcarg {
@@ -279,7 +281,8 @@ funcarglist:
 		$$.expr = $1.expr;
 		TAILQ_INSERT_TAIL(&$$.expr, &$2.expr, tq);
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
-	};
+	  }
+	;
 
 reldrum:
 	DRUMTOKEN notelength {
@@ -287,7 +290,7 @@ reldrum:
 		$$.expr.length  = $2.expr;
 
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
-	};
+	  };
 
 joinexpr:
 	musicexpr JOINEXPR musicexpr {
@@ -295,7 +298,7 @@ joinexpr:
 		$$.expr.b = $3;
 		$$.textloc = _mdl_join_textlocs($1->id.textloc,
 		    $3->id.textloc);
-	}
+	  }
 	;
 
 relnote:
@@ -329,7 +332,7 @@ relnote:
 		tl = _mdl_join_textlocs(tl, $4.textloc);
 
 		$$.textloc = tl;
-	}
+	  }
 	;
 
 relsimultence_expr:
@@ -357,7 +360,8 @@ rest:
 	RESTTOKEN notelength {
 		$$.expr.length = $2.expr;
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
-	};
+	  }
+	;
 
 sequence_expr:
 	expression_list {
@@ -369,7 +373,7 @@ sequence_expr:
 			YYERROR;
 		}
 		$$->u.melist = $1.expr;
-	}
+	  }
 	;
 
 simultence_expr:
