@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.119 2016/08/08 20:19:43 je Exp $ */
+/* $Id: musicexpr.c,v 1.120 2016/08/10 18:58:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -967,6 +967,7 @@ _mdl_musicexpr_id_string(const struct musicexpr *me)
 		"scaledexpr",		/* ME_TYPE_SCALEDEXPR */
 		"sequence",		/* ME_TYPE_SEQUENCE */
 		"simultence",		/* ME_TYPE_SIMULTENCE */
+		"tempo",		/* ME_TYPE_TEMPOCHANGE */
 	};
 	char *id_string;
 	int ret;
@@ -1015,56 +1016,6 @@ _mdl_musicexpr_new(enum musicexpr_type me_type, struct textloc textloc,
 	return me;
 }
 
-struct textloc
-_mdl_textloc_zero(void)
-{
-	struct textloc x;
-
-	x.first_line   = 0;
-	x.first_column = 0;
-	x.last_line    = 0;
-	x.last_column  = 0;
-
-	return x;
-}
-
-/* XXX this should probably take variable length arguments */
-struct textloc
-_mdl_join_textlocs(struct textloc a, struct textloc b)
-{
-	struct textloc x;
-
-	if (a.first_line == 0)
-		return b;
-
-	if (b.first_line == 0)
-		return a;
-
-	if (a.first_line < b.first_line) {
-		x.first_line   = a.first_line;
-		x.first_column = a.first_column;
-	} else if (a.first_line > b.first_line) {
-		x.first_line   = b.first_line;
-		x.first_column = b.first_column;
-	} else {
-		x.first_line = a.first_line;
-		x.first_column = MIN(a.first_column, b.first_column);
-	}
-
-	if (a.last_line < b.last_line) {
-		x.last_line   = b.last_line;
-		x.last_column = b.last_column;
-	} else if (a.last_line > b.last_line) {
-		x.last_line   = a.last_line;
-		x.last_column = a.last_column;
-	} else {
-		x.last_line = a.last_line;
-		x.last_column = MAX(a.last_column, b.last_column);
-	}
-
-	return x;
-}
-
 struct musicexpr_iter
 _mdl_musicexpr_iter_new(struct musicexpr *me)
 {
@@ -1081,6 +1032,7 @@ _mdl_musicexpr_iter_new(struct musicexpr *me)
 	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
+	case ME_TYPE_TEMPOCHANGE:
 		/* No subexpressions to iterate. */
 		break;
 	case ME_TYPE_CHORD:

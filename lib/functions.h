@@ -1,4 +1,4 @@
-/* $Id: functions.h,v 1.3 2016/08/08 08:47:33 je Exp $ */
+/* $Id: functions.h,v 1.4 2016/08/10 18:58:00 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,9 +21,12 @@
 
 #include <sys/queue.h>
 
+#include "textloc.h"
+
 struct funcarg {
 	char		       *arg;
 	TAILQ_ENTRY(funcarg)	tq;
+	struct textloc		textloc;
 };
 
 TAILQ_HEAD(funcarglist, funcarg);
@@ -31,9 +34,10 @@ TAILQ_HEAD(funcarglist, funcarg);
 struct function {
 	char		       *name;
 	struct funcarglist	args;
+	struct textloc		textloc;
 };
 
-struct musicexpr;
+struct musicexpr;	/* XXX ugly or just necessary? */
 
 __BEGIN_DECLS
 int	_mdl_functions_apply(struct musicexpr *, int);

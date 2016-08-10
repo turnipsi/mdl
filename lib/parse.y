@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.62 2016/08/09 19:44:13 je Exp $ */
+/* $Id: parse.y,v 1.63 2016/08/10 18:58:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,7 +20,9 @@
 #include <err.h>
 #include <limits.h>
 #include <stdarg.h>
+#include <stdio.h>	/* XXX remove */
 
+#include "functions.h"
 #include "musicexpr.h"
 #include "parse.h"
 
@@ -53,20 +55,9 @@ static float countlength(int, int);
 		struct textloc	textloc;
 	} f;
 
-	struct {
-		struct funcarg	expr;
-		struct textloc	textloc;
-	} funcarg;
-
-	struct {
-		struct funcarglist	expr;
-		struct textloc		textloc;
-	} funcarglist;
-
-	struct {
-		struct function	expr;
-		struct textloc	textloc;
-	} function;
+	struct funcarg	       *funcarg;
+	struct funcarglist	funcarglist;
+	struct function		function;
 
 	struct {
 		int		expr;
@@ -197,7 +188,7 @@ musicexpr:
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->u.function = $1.expr;
+		$$->u.function = $1;
 	}
 	| joinexpr {
 		$$ = _mdl_musicexpr_new(ME_TYPE_JOINEXPR, $1.textloc, 0);
@@ -258,29 +249,33 @@ chord:
 
 function:
 	FUNCNAME_TOKEN funcarglist {
-		$$.expr.name = $1.expr;
-		$$.expr.args = $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.name = $1.expr;
+		$$.args = $2;
+		$$.textloc = $1.textloc;
 	  }
 	;
 
 funcarg:
 	FUNCARG_TOKEN {
-		$$.expr.arg = $1.expr;
-		$$.textloc  = $1.textloc;
+		$$ = malloc(sizeof(struct funcarg));
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		$$->arg = $1.expr;
+		$$->textloc  = $1.textloc;
 	  }
 	;
 
 funcarglist:
 	funcarg {
-		TAILQ_INIT(&$$.expr);
-		TAILQ_INSERT_TAIL(&$$.expr, &$1.expr, tq);
-		$$.textloc = $1.textloc;
+		TAILQ_INIT(&$$);
+		TAILQ_INSERT_TAIL(&$$, $1, tq);
 	  }
 	| funcarglist funcarg {
-		$$.expr = $1.expr;
-		TAILQ_INSERT_TAIL(&$$.expr, &$2.expr, tq);
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$ = $1;
+		TAILQ_INSERT_TAIL(&$$, $2, tq);
 	  }
 	;
 

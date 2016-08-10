@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.81 2016/08/08 20:19:43 je Exp $ */
+/* $Id: musicexpr.h,v 1.82 2016/08/10 18:58:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 
 #include "functions.h"
 #include "instrument.h"
+#include "textloc.h"
 #include "track.h"
 #include "util.h"
 
@@ -46,6 +47,7 @@ enum musicexpr_type {
 	ME_TYPE_SCALEDEXPR,
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
+	ME_TYPE_TEMPOCHANGE,
 	ME_TYPE_COUNT,		/* not a type */
 };
 
@@ -231,11 +233,8 @@ struct flatsimultence {
 	float			length;
 };
 
-struct textloc {
-	int first_line;
-	int last_line;
-	int first_column;
-	int last_column;
+struct tempochange {
+	float	bpm;
 };
 
 struct musicexpr_id {
@@ -261,6 +260,7 @@ struct musicexpr {
 		struct relnote		relnote;
 		struct rest		rest;
 		struct scaledexpr	scaledexpr;
+		struct tempochange	tempochange;
 	} u;
 	TAILQ_ENTRY(musicexpr) tq;
 };
@@ -291,9 +291,6 @@ struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *,
 struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
 struct musicexpr       *_mdl_musicexpr_to_flat_simultence(struct musicexpr *,
     int);
-
-struct textloc	_mdl_join_textlocs(struct textloc, struct textloc);
-struct textloc	_mdl_textloc_zero(void);
 __END_DECLS
 
 #endif /* !MDL_MUSICEXPR_H */
