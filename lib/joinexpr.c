@@ -1,4 +1,4 @@
-/* $Id: joinexpr.c,v 1.61 2016/08/08 20:19:43 je Exp $ */
+/* $Id: joinexpr.c,v 1.62 2016/08/11 18:40:52 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,8 +61,6 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 	assert(me->me_type != ME_TYPE_RELNOTE);
 	assert(me->me_type != ME_TYPE_RELSIMULTENCE);
 
-	ret = 0;
-
 	if (me->me_type == ME_TYPE_CHORD) {
 		/*
 		 * The possible subexpressions of chords are such that
@@ -70,7 +68,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 		 * (ME_TYPE_RELNOTE should not be valid here).
 		 */
 		assert(me->u.chord.me->me_type == ME_TYPE_ABSNOTE);
-		return ret;
+		return 0;
 	}
 
 	/* Traverse the subexpressions. */
@@ -103,7 +101,7 @@ _mdl_joinexpr_musicexpr(struct musicexpr *me, int level)
 		_mdl_musicexpr_replace(me, joined_me, MDLLOG_JOINS, level);
 	}
 
-	return ret;
+	return 0;
 }
 
 /*
