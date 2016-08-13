@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.120 2016/08/10 18:58:00 je Exp $ */
+/* $Id: musicexpr.c,v 1.121 2016/08/13 20:43:25 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -49,6 +49,8 @@ static void	_mdl_musicexpr_apply_noteoffset(struct musicexpr *, int, int);
 static void	_mdl_musicexpr_stretch_length(struct musicexpr *,
     float);
 
+static int	add_as_offsetexpr_to_flat_simultence(struct musicexpr *,
+    struct musicexpr *, float *, int);
 static int	add_musicexpr_to_flat_simultence(struct musicexpr *,
     struct musicexpr *, float *, int);
 static float	musicexpr_calc_length(struct musicexpr *);
@@ -68,14 +70,8 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 
 	cloned->u = me->u;
 
+	/* XXX could use subexpression iterators? */
 	switch (me->me_type) {
-	case ME_TYPE_ABSDRUM:
-	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_EMPTY:
-	case ME_TYPE_RELDRUM:
-	case ME_TYPE_RELNOTE:
-	case ME_TYPE_REST:
-		break;
 	case ME_TYPE_CHORD:
 		cloned->u.chord.me = _mdl_musicexpr_clone(me->u.chord.me,
 		    level);
@@ -169,7 +165,7 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 		}
 		break;
 	default:
-		assert(0);
+		;
 	}
 
 	if ((me_id1 = _mdl_musicexpr_id_string(me)) != NULL) {
@@ -259,7 +255,7 @@ static int
 add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
     struct musicexpr *me, float *next_offset, int level)
 {
-	struct musicexpr *cloned, *noteoffsetexpr, *offsetexpr, *p;
+	struct musicexpr *noteoffsetexpr, *p;
 	struct musicexpr *scaled_me, *subexpr;
 	float new_next_offset, old_offset;
 	size_t i;
@@ -285,38 +281,11 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	switch (me->me_type) {
 	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
-		if ((cloned = _mdl_musicexpr_clone(me, level)) == NULL)
-			return 1;
-		offsetexpr = _mdl_musicexpr_new(ME_TYPE_OFFSETEXPR,
-		    _mdl_textloc_zero(), level);
-		if (offsetexpr == NULL) {
-			_mdl_musicexpr_free(cloned, level+1);
-			return 1;
-		}
-		offsetexpr->u.offsetexpr.me = cloned;
-		offsetexpr->u.offsetexpr.offset = *next_offset;
-
-		if ((me_id1 = _mdl_musicexpr_id_string(offsetexpr)) != NULL) {
-			me_id2 = _mdl_musicexpr_id_string(flatme);
-			if (me_id2 != NULL) {
-				_mdl_log(MDLLOG_EXPRCONV, level,
-				    "adding %s to %s\n", me_id1, me_id2);
-				free(me_id2);
-			}
-			free(me_id1);
-		}
-
-		_mdl_musicexpr_log(offsetexpr, MDLLOG_EXPRCONV, level, NULL);
-		TAILQ_INSERT_TAIL(&flatme->u.flatsimultence.me->u.melist,
-		    offsetexpr, tq);
-
-		if (me->me_type == ME_TYPE_ABSNOTE) {
-			*next_offset += cloned->u.absnote.length;
-		} else if (me->me_type == ME_TYPE_ABSDRUM) {
-			*next_offset += cloned->u.absdrum.length;
-		} else {
-			assert(0);
-		}
+	case ME_TYPE_TEMPOCHANGE:
+		ret = add_as_offsetexpr_to_flat_simultence(flatme, me,
+		    next_offset, level);
+		if (ret != 0)
+			return ret;
 		break;
 	case ME_TYPE_CHORD:
 		noteoffsetexpr = _mdl_chord_to_noteoffsetexpr(me->u.chord,
@@ -424,6 +393,51 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 
 	_mdl_log(MDLLOG_EXPRCONV, level, "offset changed from %f to %f\n",
 	    old_offset, *next_offset);
+
+	return 0;
+}
+
+static int
+add_as_offsetexpr_to_flat_simultence(struct musicexpr *flatme,
+    struct musicexpr *me, float *next_offset, int level)
+{
+	struct musicexpr *cloned, *offsetexpr;
+	char *me_id1, *me_id2;
+
+	if ((cloned = _mdl_musicexpr_clone(me, level)) == NULL)
+		return 1;
+	offsetexpr = _mdl_musicexpr_new(ME_TYPE_OFFSETEXPR,
+	    _mdl_textloc_zero(), level);
+	if (offsetexpr == NULL) {
+		_mdl_musicexpr_free(cloned, level+1);
+		return 1;
+	}
+	offsetexpr->u.offsetexpr.me = cloned;
+	offsetexpr->u.offsetexpr.offset = *next_offset;
+
+	if ((me_id1 = _mdl_musicexpr_id_string(offsetexpr)) != NULL) {
+		me_id2 = _mdl_musicexpr_id_string(flatme);
+		if (me_id2 != NULL) {
+			_mdl_log(MDLLOG_EXPRCONV, level,
+			    "adding %s to %s\n", me_id1, me_id2);
+			free(me_id2);
+		}
+		free(me_id1);
+	}
+
+	_mdl_musicexpr_log(offsetexpr, MDLLOG_EXPRCONV, level, NULL);
+	TAILQ_INSERT_TAIL(&flatme->u.flatsimultence.me->u.melist,
+	    offsetexpr, tq);
+
+	if (me->me_type == ME_TYPE_ABSNOTE) {
+		*next_offset += cloned->u.absnote.length;
+	} else if (me->me_type == ME_TYPE_ABSDRUM) {
+		*next_offset += cloned->u.absdrum.length;
+	} else if (me->me_type == ME_TYPE_TEMPOCHANGE) {
+		/* No change to *next_offset. */
+	} else {
+		assert(0);
+	}
 
 	return 0;
 }
@@ -593,8 +607,6 @@ musicexpr_calc_length(struct musicexpr *me)
 		return me->u.absdrum.length;
         case ME_TYPE_ABSNOTE:
 		return me->u.absnote.length;
-        case ME_TYPE_EMPTY:
-		return 0.0;
         case ME_TYPE_FLATSIMULTENCE:
 		return me->u.flatsimultence.length;
         case ME_TYPE_REST:
@@ -753,6 +765,10 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
 		_mdl_musicexpr_log_melist(me->u.melist, logtype, level+1,
 		    prefix);
+		break;
+	case ME_TYPE_TEMPOCHANGE:
+		_mdl_log(logtype, level, "%s%s bpm=%.3f\n", prefix, me_id,
+		    me->u.tempochange.bpm);
 		break;
 	default:
 		assert(0);

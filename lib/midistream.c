@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.49 2016/08/13 18:20:59 je Exp $ */
+/* $Id: midistream.c,v 1.50 2016/08/13 20:43:25 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -55,7 +55,7 @@ static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
 static int	add_note_to_midistream(struct mdl_stream *,
     const struct musicexpr *, float, int);
 static int	add_tempochange_to_midistream(struct mdl_stream *,
-    const struct tempochange *, int);
+    const struct tempochange *, float);
 
 static int	add_noteoff_to_midievents(struct mdl_stream *,
     struct trackmidinote *, struct miditracks *, float, int);
@@ -423,8 +423,15 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 				goto error;
 			break;
 		case MIDISTREV_TEMPOCHANGE:
-			/* XXX unimplemented */
-			assert(0);
+			midievent = &midi_es->u.midievents[ midi_es->count ];
+			memset(midievent, 0, sizeof(struct midievent));
+			midievent->evtype = MIDIEV_TEMPOCHANGE;
+			midievent->time_as_measures = mse->time_as_measures;
+			midievent->u.tempochange_bpm = mse->u.tempochange_bpm;
+			_mdl_midievent_log(MDLLOG_MIDISTREAM,
+			    "sending to sequencer", midievent, level);
+			if ((ret = _mdl_stream_increment(midi_es)) != 0)
+				goto error;
 			break;
 		default:
 			assert(0);
@@ -446,8 +453,7 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
 	    midievent, level);
 
-	ret = _mdl_stream_increment(midi_es);
-	if (ret != 0)
+	if ((ret = _mdl_stream_increment(midi_es)) != 0)
 		goto error;
 
 	return midi_es;
@@ -474,20 +480,26 @@ add_musicexpr_to_midistream(struct mdl_stream *midistream_es,
 
 	if (me->me_type == ME_TYPE_TEMPOCHANGE)
 		return add_tempochange_to_midistream(midistream_es,
-		    &me->u.tempochange, level);
+		    &me->u.tempochange, timeoffset);
 
 	return add_note_to_midistream(midistream_es, me, timeoffset, level);
 }
 
 static int
 add_tempochange_to_midistream(struct mdl_stream *midistream_es,
-    const struct tempochange *tempochg, int level)
+    const struct tempochange *tempochg, float timeoffset)
 {
-	/* XXX */
+	struct midistreamevent *mse;
 
 	assert(midistream_es->s_type == MIDISTREAMEVENTS);
 
-	return 0;
+	mse = &midistream_es->u.midistreamevents[ midistream_es->count ];
+	memset(mse, 0, sizeof(struct midistreamevent));
+	mse->evtype = MIDISTREV_TEMPOCHANGE;
+	mse->time_as_measures = timeoffset;
+	mse->u.tempochange_bpm = tempochg->bpm;
+
+	return _mdl_stream_increment(midistream_es);
 }
 
 static int
