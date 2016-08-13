@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.23 2016/07/24 20:30:57 je Exp $ */
+/* $Id: midi.h,v 1.24 2016/08/13 18:20:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,19 +25,14 @@
 #define MIDI_CHANNEL_COUNT	16
 #define MIDI_NOTE_COUNT		128
 
-enum eventtype {
-	/*
-	 * Order matters here, because that is used in
-	 * compare_trackmidievents() to put events in proper order.
-	 * Particularly, NOTEOFF must come before NOTEON, and SONG_END
-	 * must be last.
-	 */
-	NOTEOFF,
-	INSTRUMENT_CHANGE,
-	NOTEON,
-	SONG_END,
+enum midievent_type {
+	MIDIEV_NOTEOFF,
+	MIDIEV_INSTRUMENT_CHANGE,
+	MIDIEV_NOTEON,
+	MIDIEV_SONG_END,
+	MIDIEV_TEMPOCHANGE,
+	MIDIEV_TYPECOUNT,	/* not a type */
 };
-#define EVENTTYPE_COUNT (SONG_END + 1)
 
 struct instrument_change {
 	u_int8_t	channel, code;
@@ -47,21 +42,13 @@ struct midinote {
 	u_int8_t	channel, note, velocity;
 };
 
-struct trackmidinote {
-	enum eventtype		eventtype;
-	struct instrument      *instrument;
-	struct midinote		note;
-	struct track	       *track;
-	float			time_as_measures;
-	int			autoallocate_channel;
-};
-
 struct midievent {
-	enum eventtype	eventtype;
-	float		time_as_measures;
+	enum midievent_type	evtype;
+	float			time_as_measures;
 	union {
 		struct midinote			note;
 		struct instrument_change	instr_change;
+		float				tempochange_bpm;
 	} u;
 };
 

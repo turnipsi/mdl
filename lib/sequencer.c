@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.128 2016/08/05 20:36:03 je Exp $ */
+/* $Id: sequencer.c,v 1.129 2016/08/13 18:20:59 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -786,7 +786,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 		while (ce->index < EVENTBLOCKCOUNT) {
 			me = &ce->block->events[ ce->index ];
 
-			if (me->eventtype == SONG_END) {
+			if (me->evtype == MIDIEV_SONG_END) {
 				ss->playback_state = IDLE;
 
 				if (seq->client_socket >= 0) {
@@ -814,16 +814,20 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			    time_to_play.tv_nsec > 0))
 				return 0;
 
-			switch(me->eventtype) {
-			case INSTRUMENT_CHANGE:
-			case NOTEOFF:
-			case NOTEON:
+			switch(me->evtype) {
+			case MIDIEV_INSTRUMENT_CHANGE:
+			case MIDIEV_NOTEOFF:
+			case MIDIEV_NOTEON:
 				ret = sequencer_noteevent(seq, ss, me);
 				if (ret != 0)
 					return ret;
 				break;
-			case SONG_END:
+			case MIDIEV_SONG_END:
 				/* This has been handled above. */
+				assert(0);
+				break;
+			case MIDIEV_TEMPOCHANGE:
+				/* XXX */
 				assert(0);
 				break;
 			default:
@@ -848,25 +852,26 @@ sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
 
 	ret = _mdl_midi_send_midievent(me, seq->dry_run);
 	if (ret == 0) {
-		switch (me->eventtype) {
-		case INSTRUMENT_CHANGE:
+		switch (me->evtype) {
+		case MIDIEV_INSTRUMENT_CHANGE:
 			ss->channelstates[me->u.instr_change.channel]
 			    .instrument = me->u.instr_change.code;
 			break;
-		case NOTEOFF:
+		case MIDIEV_NOTEOFF:
 			nstate = &ss->channelstates[me->u.note.channel]
 			    .notestates[me->u.note.note];
 			nstate->state = 0;
 			nstate->velocity = 0;
 			break;
-		case NOTEON:
+		case MIDIEV_NOTEON:
 			nstate = &ss->channelstates[me->u.note.channel]
 			    .notestates[me->u.note.note];
 			nstate->state = 1;
 			nstate->velocity = me->u.note.velocity;
 			break;
-		case SONG_END:
-			/* This event should not have come this far. */
+		case MIDIEV_SONG_END:
+		case MIDIEV_TEMPOCHANGE:
+			/* These events should not have come this far. */
 			assert(0);
 			break;
 		default:
@@ -930,7 +935,7 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 			goto finish;
 		}
 
-		if (new_b->events[i].eventtype == SONG_END)
+		if (new_b->events[i].evtype == MIDIEV_SONG_END)
 			ss->got_song_end = 1;
 
 		_mdl_midievent_log(MDLLOG_MIDI, "received", &new_b->events[i],
@@ -1024,32 +1029,36 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	SIMPLEQ_FOREACH(ce.block, &new_ss->es, entries) {
 		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
 			me = &ce.block->events[ ce.index ];
-			if (me->eventtype == SONG_END)
+			if (me->evtype == MIDIEV_SONG_END)
 				break;
 			if (me->time_as_measures >= new_ss->time_as_measures)
 				break;
 
-			switch (me->eventtype) {
-			case INSTRUMENT_CHANGE:
+			switch (me->evtype) {
+			case MIDIEV_INSTRUMENT_CHANGE:
 				new_ss->channelstates
 				    [me->u.instr_change.channel]
 				    .instrument = me->u.instr_change.code;
 				break;
-			case NOTEON:
+			case MIDIEV_NOTEON:
 				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].state = 1;
 				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].velocity =
 				    me->u.note.velocity;
 				break;
-			case NOTEOFF:
+			case MIDIEV_NOTEOFF:
 				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].state = 0;
 				new_ss->channelstates[me->u.note.channel]
 				    .notestates[me->u.note.note].velocity = 0;
 				break;
-			case SONG_END:
+			case MIDIEV_SONG_END:
 				/* This has been handled above. */
+				assert(0);
+				break;
+			case MIDIEV_TEMPOCHANGE:
+				/* XXX */
 				assert(0);
 				break;
 			default:
@@ -1069,7 +1078,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 		    new_ss->channelstates[c].instrument);
 
 		if (instr_changed) {
-			change_instrument.eventtype = INSTRUMENT_CHANGE;
+			change_instrument.evtype = MIDIEV_INSTRUMENT_CHANGE;
 			change_instrument.u.instr_change.channel = c;
 			change_instrument.u.instr_change.code =
 			    new_ss->channelstates[c].instrument;
@@ -1084,12 +1093,12 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 			old = old_ss->channelstates[c].notestates[n];
 			new = new_ss->channelstates[c].notestates[n];
 
-			note_off.eventtype = NOTEOFF;
+			note_off.evtype = MIDIEV_NOTEOFF;
 			note_off.u.note.channel = c;
 			note_off.u.note.note = n;
 			note_off.u.note.velocity = 0;
 
-			note_on.eventtype = NOTEON;
+			note_on.evtype = MIDIEV_NOTEON;
 			note_on.u.note.channel = c;
 			note_on.u.note.note = n;
 			note_on.u.note.velocity = new.velocity;
@@ -1271,7 +1280,7 @@ sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++)
 		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
 			if (ss->channelstates[c].notestates[n].state) {
-				note_off.eventtype = NOTEOFF;
+				note_off.evtype = MIDIEV_NOTEOFF;
 				note_off.u.note.channel = c;
 				note_off.u.note.note = n;
 				note_off.u.note.velocity = 0;

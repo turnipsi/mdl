@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.6 2016/05/11 20:30:01 je Exp $ */
+/* $Id: midistream.h,v 1.7 2016/08/13 18:20:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,7 +21,36 @@
 
 #include <sys/types.h>
 
+#include "midi.h"
 #include "musicexpr.h"
+
+enum midistreamevent_type {
+	/*
+	 * Order matters here, because that is used in
+	 * compare_midistreamevents() to put events in proper order.
+	 * Particularly, MIDISTREV_NOTEOFF must come before MIDISTREV_NOTEON.
+	 */
+	MIDISTREV_NOTEOFF,
+	MIDISTREV_TEMPOCHANGE,
+	MIDISTREV_NOTEON,
+	MIDISTREV_TYPECOUNT,	/* not a type */
+};
+
+struct trackmidinote {
+	struct instrument      *instrument;
+	struct midinote		note;
+	struct track	       *track;
+	int			autoallocate_channel;
+};
+
+struct midistreamevent {
+	enum midistreamevent_type	evtype;
+	float				time_as_measures;
+	union {
+		struct trackmidinote	tmn;
+		float			tempochange_bpm;
+	} u;
+};
 
 __BEGIN_DECLS
 struct mdl_stream      *_mdl_musicexpr_to_midievents(struct musicexpr *, int);

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.48 2016/08/08 08:47:33 je Exp $ */
+/* $Id: midistream.c,v 1.49 2016/08/13 18:20:59 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,20 +43,30 @@ struct miditracks {
 	int			total_notecount;
 };
 
-static struct mdl_stream *midi_eventstream_new(void);
-static struct mdl_stream *offsetexprstream_new(void);
-static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
-    float, int);
-static struct mdl_stream *trackmidievents_to_midievents(struct mdl_stream *,
+static struct mdl_stream *midi_mdlstream_new(void);
+static struct mdl_stream *midistream_mdlstream_new(void);
+static struct mdl_stream *midistream_to_midievents(struct mdl_stream *,
     float, int);
 
-static int	add_noteoff_to_midievents(struct mdl_stream *,
-    struct trackmidinote *, struct miditracks *, int);
-static int	add_noteon_to_midievents(struct mdl_stream *,
-    struct trackmidinote *, struct miditracks *, int);
-static int	add_musicexpr_to_trackmidievents(struct mdl_stream *,
+static struct mdl_stream *offsetexpr_mdlstream_new(void);
+static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
+    float, int);
+
+static int	add_note_to_midistream(struct mdl_stream *,
     const struct musicexpr *, float, int);
-static int	compare_trackmidievents(const void *, const void *);
+static int	add_tempochange_to_midistream(struct mdl_stream *,
+    const struct tempochange *, int);
+
+static int	add_noteoff_to_midievents(struct mdl_stream *,
+    struct trackmidinote *, struct miditracks *, float, int);
+static int	add_noteon_to_midievents(struct mdl_stream *,
+    struct trackmidinote *, struct miditracks *, float, int);
+
+static int	add_musicexpr_to_midistream(struct mdl_stream *,
+    const struct musicexpr *, float, int);
+static int	compare_midistreamevents(const void *, const void *);
+static int	compare_trackmidinotes(const struct trackmidinote *,
+    const struct trackmidinote *);
 
 struct mdl_stream *
 _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
@@ -71,7 +81,7 @@ _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
 	midi_es = NULL;
 	flatme = NULL;
 
-	if ((offset_es = offsetexprstream_new()) == NULL) {
+	if ((offset_es = offsetexpr_mdlstream_new()) == NULL) {
 		warnx("could not setup new offsetexprstream");
 		return NULL;
 	}
@@ -176,41 +186,43 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
 }
 
 static struct mdl_stream *
-midi_eventstream_new(void)
+midi_mdlstream_new(void)
 {
-	return _mdl_stream_new(MIDIEVENTSTREAM);
+	return _mdl_stream_new(MIDIEVENTS);
 }
 
 static struct mdl_stream *
-offsetexprstream_new(void)
+midistream_mdlstream_new(void)
 {
-	return _mdl_stream_new(OFFSETEXPRSTREAM);
+	return _mdl_stream_new(MIDISTREAMEVENTS);
 }
 
 static struct mdl_stream *
-trackmidi_eventstream_new(void)
+offsetexpr_mdlstream_new(void)
 {
-	return _mdl_stream_new(TRACKMIDIEVENTSTREAM);
+	return _mdl_stream_new(OFFSETEXPRS);
 }
 
 static struct mdl_stream *
 offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
     int level)
 {
-	struct mdl_stream *midi_es, *trackmidi_es;
+	struct mdl_stream *midi_es, *midistream_es;
 	struct musicexpr *me;
 	struct offsetexpr offsetexpr;
 	float timeoffset;
 	size_t i;
 	int ret;
 
+	assert(offset_es->s_type == OFFSETEXPRS);
+
 	_mdl_log(MDLLOG_MIDISTREAM, level+1,
 	    "offset expression stream to midi events\n");
 
 	midi_es = NULL;
-	trackmidi_es = NULL;
+	midistream_es = NULL;
 
-	if ((trackmidi_es = trackmidi_eventstream_new()) == NULL)
+	if ((midistream_es = midistream_mdlstream_new()) == NULL)
 		goto error;
 
 	for (i = 0; i < offset_es->count; i++) {
@@ -218,28 +230,28 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 		me = offsetexpr.me;
 		timeoffset = offsetexpr.offset;
 
-		ret = add_musicexpr_to_trackmidievents(trackmidi_es, me,
+		ret = add_musicexpr_to_midistream(midistream_es, me,
 		    timeoffset, level+2);
 		if (ret != 0)
 			goto error;
 	}
 
-	qsort(trackmidi_es->u.midievents, trackmidi_es->count,
-	    sizeof(struct trackmidinote), compare_trackmidievents);
+	qsort(midistream_es->u.midievents, midistream_es->count,
+	    sizeof(struct midistreamevent), compare_midistreamevents);
 
-	midi_es = trackmidievents_to_midievents(trackmidi_es, song_length,
+	midi_es = midistream_to_midievents(midistream_es, song_length,
 	    level);
 	if (midi_es == NULL)
 		goto error;
 
-	_mdl_stream_free(trackmidi_es);
+	_mdl_stream_free(midistream_es);
 
 	return midi_es;
 
 error:
 	warnx("could not convert offset-expression-stream to midi stream");
-	if (trackmidi_es)
-		_mdl_stream_free(trackmidi_es);
+	if (midistream_es)
+		_mdl_stream_free(midistream_es);
 	if (midi_es)
 		_mdl_stream_free(midi_es);
 
@@ -248,10 +260,13 @@ error:
 
 static int
 add_noteoff_to_midievents(struct mdl_stream *midi_es,
-    struct trackmidinote *tmn, struct miditracks *tracks, int level)
+    struct trackmidinote *tmn, struct miditracks *tracks,
+    float time_as_measures, int level)
 {
 	struct midievent *midievent;
 	unsigned int ch;
+
+	assert(midi_es->s_type == MIDIEVENTS);
 
 	for (ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
 		if (tmn->track == tracks[ch].track) {
@@ -274,8 +289,8 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 
 	midievent = &midi_es->u.midievents[ midi_es->count ];
 	memset(midievent, 0, sizeof(struct midievent));
-	midievent->eventtype = NOTEOFF;
-	midievent->time_as_measures = tmn->time_as_measures;
+	midievent->evtype = MIDIEV_NOTEOFF;
+	midievent->time_as_measures = time_as_measures;
 	midievent->u.note = tmn->note;
 
 	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
@@ -285,12 +300,15 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 }
 
 static int
-add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote *tmn,
-	struct miditracks *tracks, int level)
+add_noteon_to_midievents(struct mdl_stream *midi_es,
+    struct trackmidinote *tmn, struct miditracks *tracks,
+    float time_as_measures, int level)
 {
 	struct midievent *midievent;
 	unsigned int ch;
 	int ret;
+
+	assert(midi_es->s_type == MIDIEVENTS);
 
 	if (tmn->autoallocate_channel) {
 		for (ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
@@ -324,8 +342,8 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote *tmn,
 		assert(tmn->instrument != NULL);
 		midievent = &midi_es->u.midievents[ midi_es->count ];
 		memset(midievent, 0, sizeof(struct midievent));
-		midievent->eventtype = INSTRUMENT_CHANGE;
-		midievent->time_as_measures = tmn->time_as_measures;
+		midievent->evtype = MIDIEV_INSTRUMENT_CHANGE;
+		midievent->time_as_measures = time_as_measures;
 		midievent->u.instr_change.channel = ch;
 		midievent->u.instr_change.code = tmn->instrument->code;
 
@@ -341,8 +359,8 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote *tmn,
 
 	midievent = &midi_es->u.midievents[ midi_es->count ];
 	memset(midievent, 0, sizeof(struct midievent));
-	midievent->eventtype = NOTEON;
-	midievent->time_as_measures = tmn->time_as_measures;
+	midievent->evtype = MIDIEV_NOTEON;
+	midievent->time_as_measures = time_as_measures;
 	midievent->u.note = tmn->note;
 
 	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
@@ -356,19 +374,21 @@ add_noteon_to_midievents(struct mdl_stream *midi_es, struct trackmidinote *tmn,
 }
 
 static struct mdl_stream *
-trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
-    float song_length, int level)
+midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
+    int level)
 {
 	struct mdl_stream *midi_es;
 	struct midievent *midievent;
-	struct trackmidinote *tmn;
+	struct midistreamevent *mse;
 	int ret;
 	struct miditracks tracks[MIDI_CHANNEL_COUNT];
 	size_t i, j;
 
-	tmn = NULL;
+	assert(midistream_es->s_type == MIDISTREAMEVENTS);
 
-	if ((midi_es = midi_eventstream_new()) == NULL) {
+	mse = NULL;
+
+	if ((midi_es = midi_mdlstream_new()) == NULL) {
 		warn("could not create new midievent stream");
 		return NULL;
 	}
@@ -386,26 +406,25 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 
 	level += 1;
 
-	for (i = 0; i < trackmidi_es->count; i++) {
-		tmn = &trackmidi_es->u.trackmidinotes[i];
+	for (i = 0; i < midistream_es->count; i++) {
+		mse = &midistream_es->u.midistreamevents[i];
 
-		switch (tmn->eventtype) {
-		case INSTRUMENT_CHANGE:
-		case SONG_END:
-			/* These events should not occur here. */
+		switch (mse->evtype) {
+		case MIDISTREV_NOTEOFF:
+			ret = add_noteoff_to_midievents(midi_es, &mse->u.tmn,
+			    tracks, mse->time_as_measures, level);
+			if (ret != 0)
+				goto error;
+			break;
+		case MIDISTREV_NOTEON:
+			ret = add_noteon_to_midievents(midi_es, &mse->u.tmn,
+			    tracks, mse->time_as_measures, level);
+			if (ret != 0)
+				goto error;
+			break;
+		case MIDISTREV_TEMPOCHANGE:
+			/* XXX unimplemented */
 			assert(0);
-			break;
-		case NOTEOFF:
-			ret = add_noteoff_to_midievents(midi_es, tmn, tracks,
-			    level);
-			if (ret != 0)
-				goto error;
-			break;
-		case NOTEON:
-			ret = add_noteon_to_midievents(midi_es, tmn, tracks,
-			    level);
-			if (ret != 0)
-				goto error;
 			break;
 		default:
 			assert(0);
@@ -416,12 +435,12 @@ trackmidievents_to_midievents(struct mdl_stream *trackmidi_es,
 		assert(tracks[i].total_notecount == 0);
 
 	assert(song_length >= 0.0);
-	assert(tmn == NULL || song_length >= tmn->time_as_measures);
+	assert(mse == NULL || song_length >= mse->time_as_measures);
 
 	/* Add SONG_END midievent. */
 	midievent = &midi_es->u.midievents[ midi_es->count ];
 	memset(midievent, 0, sizeof(struct midievent));
-	midievent->eventtype = SONG_END;
+	midievent->evtype = MIDIEV_SONG_END;
 	midievent->time_as_measures = song_length;
 
 	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
@@ -439,13 +458,9 @@ error:
 }
 
 static int
-add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
+add_musicexpr_to_midistream(struct mdl_stream *midistream_es,
     const struct musicexpr *me, float timeoffset, int level)
 {
-	struct trackmidinote *tmnote;
-	float length;
-	int new_note, ret;
-
 	_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "adding expression with offset %.3f to trackmidievents\n",
 	    timeoffset);
@@ -454,15 +469,48 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 	level += 1;
 
 	assert(me->me_type == ME_TYPE_ABSDRUM ||
-	    me->me_type == ME_TYPE_ABSNOTE);
+	    me->me_type == ME_TYPE_ABSNOTE ||
+	    me->me_type == ME_TYPE_TEMPOCHANGE);
 
-	if (me->me_type == ME_TYPE_ABSDRUM) {
+	if (me->me_type == ME_TYPE_TEMPOCHANGE)
+		return add_tempochange_to_midistream(midistream_es,
+		    &me->u.tempochange, level);
+
+	return add_note_to_midistream(midistream_es, me, timeoffset, level);
+}
+
+static int
+add_tempochange_to_midistream(struct mdl_stream *midistream_es,
+    const struct tempochange *tempochg, int level)
+{
+	/* XXX */
+
+	assert(midistream_es->s_type == MIDISTREAMEVENTS);
+
+	return 0;
+}
+
+static int
+add_note_to_midistream(struct mdl_stream *midistream_es,
+    const struct musicexpr *me, float timeoffset, int level)
+{
+	struct midistreamevent *mse;
+	struct trackmidinote *tmn;
+	int new_note, ret;
+	float length;
+
+	assert(midistream_es->s_type == MIDISTREAMEVENTS);
+
+	switch (me->me_type) {
+	case ME_TYPE_ABSDRUM:
 		new_note = me->u.absdrum.note;
 		length = me->u.absdrum.length;
-	} else if (me->me_type == ME_TYPE_ABSNOTE) {
+		break;
+	case ME_TYPE_ABSNOTE:
 		new_note = me->u.absnote.note;
 		length = me->u.absnote.length;
-	} else {
+		break;
+	default:
 		assert(0);
 	}
 
@@ -472,7 +520,7 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		    "skipping note with value %d\n", new_note);
 		return 0;
 	}
-	assert(length > 0);
+	assert(length > 0.0);
 
 	/*
 	 * Ignore notes that are less than MINIMUM_MUSICEXPR_LENGTH.
@@ -485,75 +533,102 @@ add_musicexpr_to_trackmidievents(struct mdl_stream *trackmidi_es,
 		return 0;
 	}
 
-	tmnote = &trackmidi_es->u.trackmidinotes[ trackmidi_es->count ];
-	memset(tmnote, 0, sizeof(struct trackmidinote));
-	tmnote->eventtype = NOTEON;
-	tmnote->note.note = new_note;
-	tmnote->note.velocity = DEFAULT_VELOCITY;
-	tmnote->time_as_measures = timeoffset;
+	mse = &midistream_es->u.midistreamevents[ midistream_es->count ];
+	memset(mse, 0, sizeof(struct midistreamevent));
+	mse->evtype = MIDISTREV_NOTEON;
+	mse->time_as_measures = timeoffset;
+	tmn = &mse->u.tmn;
+	tmn->note.note = new_note;
+	tmn->note.velocity = DEFAULT_VELOCITY;
 
 	if (me->me_type == ME_TYPE_ABSDRUM) {
-		tmnote->autoallocate_channel = 0;
-		tmnote->note.channel = DRUM_MIDICHANNEL;
-		tmnote->instrument = me->u.absdrum.instrument;
-		tmnote->track = me->u.absdrum.track;
+		tmn->autoallocate_channel = 0;
+		tmn->note.channel = DRUM_MIDICHANNEL;
+		tmn->instrument = me->u.absdrum.instrument;
+		tmn->track = me->u.absdrum.track;
 	} else if (me->me_type == ME_TYPE_ABSNOTE) {
-		tmnote->autoallocate_channel = 1;
-		tmnote->note.channel = DEFAULT_MIDICHANNEL;
-		tmnote->instrument = me->u.absnote.instrument;
-		tmnote->track = me->u.absnote.track;
+		tmn->autoallocate_channel = 1;
+		tmn->note.channel = DEFAULT_MIDICHANNEL;
+		tmn->instrument = me->u.absnote.instrument;
+		tmn->track = me->u.absnote.track;
 	} else {
 		assert(0);
 	}
 
-	ret = _mdl_stream_increment(trackmidi_es);
+	ret = _mdl_stream_increment(midistream_es);
 	if (ret != 0)
 		return ret;
 
-	tmnote = &trackmidi_es->u.trackmidinotes[ trackmidi_es->count ];
-	memset(tmnote, 0, sizeof(struct trackmidinote));
-	tmnote->eventtype = NOTEOFF;
-	tmnote->autoallocate_channel = 1;
-	tmnote->note.note = new_note;
-	tmnote->note.velocity = 0;
-	tmnote->time_as_measures = timeoffset + me->u.absnote.length;
+	mse = &midistream_es->u.midistreamevents[ midistream_es->count ];
+	memset(mse, 0, sizeof(struct midistreamevent));
+	mse->evtype = MIDISTREV_NOTEOFF;
+	mse->time_as_measures = timeoffset + me->u.absnote.length;
+	tmn = &mse->u.tmn;
+	tmn->autoallocate_channel = 1;
+	tmn->note.note = new_note;
+	tmn->note.velocity = 0;
 
 	if (me->me_type == ME_TYPE_ABSDRUM) {
-		tmnote->autoallocate_channel = 0;
-		tmnote->note.channel = DRUM_MIDICHANNEL;
-		tmnote->instrument = me->u.absdrum.instrument;
-		tmnote->track = me->u.absdrum.track;
+		tmn->autoallocate_channel = 0;
+		tmn->note.channel = DRUM_MIDICHANNEL;
+		tmn->instrument = me->u.absdrum.instrument;
+		tmn->track = me->u.absdrum.track;
 	} else if (me->me_type == ME_TYPE_ABSNOTE) {
-		tmnote->autoallocate_channel = 1;
-		tmnote->note.channel = DEFAULT_MIDICHANNEL;
-		tmnote->instrument = me->u.absnote.instrument;
-		tmnote->track = me->u.absnote.track;
+		tmn->autoallocate_channel = 1;
+		tmn->note.channel = DEFAULT_MIDICHANNEL;
+		tmn->instrument = me->u.absnote.instrument;
+		tmn->track = me->u.absnote.track;
 	} else {
 		assert(0);
 	}
 
-	return _mdl_stream_increment(trackmidi_es);
+	return _mdl_stream_increment(midistream_es);
 }
 
 static int
-compare_trackmidievents(const void *a, const void *b)
+compare_midistreamevents(const void *va, const void *vb)
 {
-	const struct trackmidinote *ta, *tb;
+	const struct midistreamevent *a, *b;
+	int ret;
 
-	ta = a;
-	tb = b;
+	a = va;
+	b = vb;
 
-	assert(ta->eventtype == NOTEOFF || ta->eventtype == NOTEON);
-	assert(tb->eventtype == NOTEOFF || tb->eventtype == NOTEON);
+	assert(a->evtype < MIDISTREV_TYPECOUNT);
+	assert(b->evtype < MIDISTREV_TYPECOUNT);
 
-	return (ta->time_as_measures < tb->time_as_measures) ? -1 :
-	    (ta->time_as_measures > tb->time_as_measures)    ?  1 :
-	    (ta->eventtype < tb->eventtype)                  ? -1 :
-	    (ta->eventtype > tb->eventtype)                  ?  1 :
-	    (ta->note.channel < tb->note.channel)            ? -1 :
-	    (ta->note.channel > tb->note.channel)            ?  1 :
-	    (ta->note.note < tb->note.note)                  ? -1 :
-	    (ta->note.note > tb->note.note)                  ?  1 :
-	    (ta->note.velocity < tb->note.velocity)          ? -1 :
-	    (ta->note.velocity > tb->note.velocity)          ?  1 : 0;
+	ret = (a->time_as_measures < b->time_as_measures) ? -1 :
+	      (a->time_as_measures > b->time_as_measures) ?  1 :
+	      (a->evtype           < b->evtype)           ? -1 :
+	      (a->evtype           > b->evtype)           ?  1 : 0;
+
+	if (ret != 0)
+		return ret;
+
+	assert(a->evtype == b->evtype);
+	switch (a->evtype) {
+	case MIDISTREV_NOTEOFF:
+	case MIDISTREV_NOTEON:
+		return compare_trackmidinotes(&a->u.tmn, &b->u.tmn);
+	case MIDISTREV_TEMPOCHANGE:
+		return (a->u.tempochange_bpm < b->u.tempochange_bpm) ? -1 :
+		       (a->u.tempochange_bpm > b->u.tempochange_bpm) ?  1 : 0;
+	default:
+		assert(0);
+	}
+
+	return 0;
+}
+
+static int
+compare_trackmidinotes(const struct trackmidinote *a,
+    const struct trackmidinote *b)
+{
+	return
+	    (a->note.channel  < b->note.channel)  ? -1 :
+	    (a->note.channel  > b->note.channel)  ?  1 :
+	    (a->note.note     < b->note.note)     ? -1 :
+	    (a->note.note     > b->note.note)     ?  1 :
+	    (a->note.velocity < b->note.velocity) ? -1 :
+	    (a->note.velocity > b->note.velocity) ?  1 : 0;
 }
