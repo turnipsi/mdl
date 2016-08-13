@@ -12,15 +12,18 @@ mdl.interp.joins       :             joining two scaled expressions
 mdl.interp.joins       :             converting expressions to flat simultence
 mdl.interp.joins       :               joining two flat simultences
 mdl.interp.joins       :                 joining absnote expressions in simultence
+mdl.interp.joins       :           replacing joinexpr:8:1,1:1,15 with flatsimultence:20:0,0:0,0
 mdl.interp.joins       :         joining subexpressions in scaledexpr:12:1,19:1,24
 mdl.interp.joins       :           joining subexpressions in simultence:11:1,20:1,22
 mdl.interp.joins       :         joining expressions flatsimultence:20:0,0:0,0 and scaledexpr:12:1,19:1,24
 mdl.interp.joins       :           converting expressions to flat simultence
 mdl.interp.joins       :             joining two flat simultences
 mdl.interp.joins       :               joining absnote expressions in simultence
+mdl.interp.joins       :         replacing joinexpr:13:1,1:1,24 with flatsimultence:20:0,0:0,0
 mdl.interp.joins       :       joining subexpressions in scaledexpr:17:1,28:1,33
 mdl.interp.joins       :         joining subexpressions in simultence:16:1,29:1,32
 mdl.interp.joins       :       joining expressions flatsimultence:20:0,0:0,0 and scaledexpr:17:1,28:1,33
 mdl.interp.joins       :         converting expressions to flat simultence
 mdl.interp.joins       :           joining two flat simultences
 mdl.interp.joins       :             joining absnote expressions in simultence
+mdl.interp.joins       :       replacing joinexpr:18:1,1:1,33 with flatsimultence:20:0,0:0,0

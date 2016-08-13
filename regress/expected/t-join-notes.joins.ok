@@ -3,6 +3,8 @@ mdl.interp.joins       :   joining subexpressions in sequence:8:1,1:1,23
 mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,5:1,12
 mdl.interp.joins       :       joining expressions absnote:1:1,5:1,6 and absnote:2:1,12:1,12
 mdl.interp.joins       :         matched absnotes
+mdl.interp.joins       :       replacing joinexpr:3:1,5:1,12 with absnote:1:1,5:1,6
 mdl.interp.joins       :     joining subexpressions in joinexpr:6:1,14:1,21
 mdl.interp.joins       :       joining expressions absnote:4:1,14:1,15 and absnote:5:1,19:1,21
 mdl.interp.joins       :         matched absnotes
+mdl.interp.joins       :       replacing joinexpr:6:1,14:1,21 with absnote:4:1,14:1,15
