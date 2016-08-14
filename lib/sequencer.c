@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.130 2016/08/13 20:43:25 je Exp $ */
+/* $Id: sequencer.c,v 1.131 2016/08/14 20:06:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -97,7 +97,7 @@ static int	sequencer_loop(struct sequencer *);
 static int	sequencer_accept_client_socket(struct sequencer *, int);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
-    struct songstate *, struct timespec *);
+    const struct timespec *, struct timespec *);
 static void	sequencer_close(struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
@@ -119,9 +119,13 @@ static int	sequencer_reset_songstate(struct sequencer *,
 static int	sequencer_start_playing(const struct sequencer *,
     struct songstate *, struct songstate *);
 static int	sequencer_switch_songs(struct sequencer *);
-static void	sequencer_time_for_next_note(struct songstate *ss,
-    struct timespec *notetime);
+static void	sequencer_time_for_next_event(struct songstate *ss,
+    struct timespec *);
 static const char *ss_label(const struct sequencer *, struct songstate *);
+
+static struct timespec
+sequencer_calc_time_since_latest_tempo_change(const struct songstate *,
+    float);
 
 static int
 sequencer_init(struct sequencer *seq, int dry_run, int server_socket,
@@ -319,7 +323,7 @@ sequencer_loop(struct sequencer *seq)
 {
 	fd_set readfds;
 	int retvalue, ret, nr;
-	struct timespec timeout, *timeout_p;
+	struct timespec eventtime, timeout, *timeout_p;
 	sigset_t select_sigmask;
 
 	retvalue = 0;
@@ -357,8 +361,9 @@ sequencer_loop(struct sequencer *seq)
 			FD_SET(seq->interp_fd, &readfds);
 
 		if (seq->playback_song->playback_state == PLAYING) {
-			sequencer_calculate_timeout(seq, seq->playback_song,
-			    &timeout);
+			sequencer_time_for_next_event(seq->playback_song,
+			    &eventtime);
+			sequencer_calculate_timeout(seq, &eventtime, &timeout);
 			timeout_p = &timeout;
 		} else {
 			timeout_p = NULL;
@@ -571,10 +576,10 @@ sequencer_accept_interp_fd(struct sequencer *seq, int new_fd)
 }
 
 static void
-sequencer_calculate_timeout(const struct sequencer *seq, struct songstate *ss,
-    struct timespec *timeout)
+sequencer_calculate_timeout(const struct sequencer *seq,
+    const struct timespec *eventtime, struct timespec *timeout)
 {
-	struct timespec current_time, notetime;
+	struct timespec current_time;
 	int ret;
 
 	if (seq->dry_run) {
@@ -583,13 +588,11 @@ sequencer_calculate_timeout(const struct sequencer *seq, struct songstate *ss,
 		return;
 	}
 
-	sequencer_time_for_next_note(ss, &notetime);
-
 	ret = clock_gettime(CLOCK_UPTIME, &current_time);
 	assert(ret == 0);
 
-	timeout->tv_sec  = notetime.tv_sec  - current_time.tv_sec;
-	timeout->tv_nsec = notetime.tv_nsec - current_time.tv_nsec;
+	timeout->tv_sec  = eventtime->tv_sec  - current_time.tv_sec;
+	timeout->tv_nsec = eventtime->tv_nsec - current_time.tv_nsec;
 
 	if (timeout->tv_nsec < 0) {
 		timeout->tv_nsec += 1000000000;
@@ -777,7 +780,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 {
 	struct eventpointer *ce;
 	struct midievent *me;
-	struct timespec time_to_play;
+	struct timespec eventtime, time_to_play;
 	int ret;
 
 	ce = &ss->current_event;
@@ -803,7 +806,9 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 				return 0;
 			}
 
-			sequencer_calculate_timeout(seq, ss, &time_to_play);
+			sequencer_time_for_next_event(ss, &eventtime);
+			sequencer_calculate_timeout(seq, &eventtime,
+			    &time_to_play);
 
 			/*
 			 * If timeout has not been gone to zero,
@@ -827,6 +832,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 				assert(0);
 				break;
 			case MIDIEV_TEMPOCHANGE:
+				ss->latest_tempo_change_as_time = eventtime;
 				ss->latest_tempo_change_as_measures =
 				    me->time_as_measures;
 				ss->tempo = me->u.tempochange_bpm;
@@ -1019,6 +1025,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct notestate old, new;
 	struct eventpointer ce;
 	struct midievent change_instrument, note_off, note_on, *me;
+	struct timespec latest_tempo_change_as_time,
+	    time_since_latest_tempo_change;
 	int instr_changed, retrigger_note, c, n, ret;
 
 	/*
@@ -1062,8 +1070,6 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				new_ss->latest_tempo_change_as_measures =
 				    me->time_as_measures;
 				new_ss->tempo = me->u.tempochange_bpm;
-				/* XXX new_ss->latest_tempo_change_as_time
-				 * XXX should be updated as well. */
 				break;
 			default:
 				assert(0);
@@ -1156,14 +1162,71 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 		       new_ss->channelstates[c].instrument);
 	}
 
-	ret = clock_gettime(CLOCK_UPTIME,
-	    &new_ss->latest_tempo_change_as_time);
+	/*
+	 * Update new_ss->latest_tempo_change_in_time to match what it might
+	 * have been.
+	 */
+
+	assert(new_ss->time_as_measures >=
+	    new_ss->latest_tempo_change_as_measures);
+
+	time_since_latest_tempo_change =
+	    sequencer_calc_time_since_latest_tempo_change(new_ss,
+	    new_ss->time_as_measures);
+
+	ret = clock_gettime(CLOCK_UPTIME, &latest_tempo_change_as_time);
 	assert(ret == 0);
+
+	latest_tempo_change_as_time.tv_sec -=
+	    time_since_latest_tempo_change.tv_sec;
+	latest_tempo_change_as_time.tv_nsec -=
+	    time_since_latest_tempo_change.tv_nsec;
+	if (latest_tempo_change_as_time.tv_nsec < 0) {
+		latest_tempo_change_as_time.tv_sec -= 1;
+		latest_tempo_change_as_time.tv_nsec += 1000000000;
+	}
+	new_ss->latest_tempo_change_as_time = latest_tempo_change_as_time;
 
 	new_ss->playback_state = PLAYING;
 	old_ss->playback_state = FREEING_EVENTSTREAM;
 
 	return 0;
+}
+
+static struct timespec
+sequencer_calc_time_since_latest_tempo_change(const struct songstate *ss,
+    float time_as_measures)
+{
+	struct timespec time_since_latest_tempo_change;
+	float time_since_latest_tempo_change_in_ns;
+	float measures_since_latest_tempo_change;
+
+	assert(ss != NULL);
+	assert(ss->tempo > 0);
+
+	measures_since_latest_tempo_change = time_as_measures -
+	    ss->latest_tempo_change_as_measures;
+
+	time_since_latest_tempo_change_in_ns =
+	    (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo)) *
+	    measures_since_latest_tempo_change;
+
+	time_since_latest_tempo_change.tv_nsec =
+	    fmodf(time_since_latest_tempo_change_in_ns, 1000000000.0);
+
+	/*
+	 * This is tricky to get right... naively dividing
+	 * time_since_latest_tempo_change_in_ns / 1000000000.0
+	 * does not always work, because of floating point rounding errors.
+	 * XXX Should floating point be used for timing information at all?
+	 * XXX (There may be issues in timing accuracy with very long music
+	 * XXX playback... should calculate how much that could be.)
+	 */
+	time_since_latest_tempo_change.tv_sec =
+	    rintf((time_since_latest_tempo_change_in_ns -
+	    time_since_latest_tempo_change.tv_nsec) / 1000000000.0);
+
+	return time_since_latest_tempo_change;
 }
 
 static int
@@ -1193,12 +1256,10 @@ sequencer_switch_songs(struct sequencer *seq)
 }
 
 static void
-sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
+sequencer_time_for_next_event(struct songstate *ss, struct timespec *eventtime)
 {
 	struct midievent next_midievent;
-	struct timespec time_for_note_since_latest_tempo_change;
-	float measures_for_note_since_latest_tempo_change;
-	float time_for_note_since_latest_tempo_change_in_ns;
+	struct timespec time_since_latest_tempo_change;
 
 	assert(ss != NULL);
 	assert(ss->current_event.block != NULL);
@@ -1207,42 +1268,22 @@ sequencer_time_for_next_note(struct songstate *ss, struct timespec *notetime)
 	assert(ss->latest_tempo_change_as_time.tv_sec > 0 ||
 	    ss->latest_tempo_change_as_time.tv_nsec > 0);
 	assert(ss->playback_state == PLAYING);
-	assert(ss->tempo > 0);
 
 	next_midievent =
 	    ss->current_event.block->events[ ss->current_event.index ];
 
-	measures_for_note_since_latest_tempo_change =
-	    next_midievent.time_as_measures -
-	    ss->latest_tempo_change_as_measures;
+	time_since_latest_tempo_change =
+	    sequencer_calc_time_since_latest_tempo_change(ss,
+	    next_midievent.time_as_measures);
 
-	time_for_note_since_latest_tempo_change_in_ns =
-	    (1000000000.0 * ss->measure_length * (60.0 * 4 / ss->tempo)) *
-	    measures_for_note_since_latest_tempo_change;
-
-	time_for_note_since_latest_tempo_change.tv_nsec =
-	    fmodf(time_for_note_since_latest_tempo_change_in_ns, 1000000000.0);
-
-	/*
-	 * This is tricky to get right... naively dividing
-	 * time_for_note_since_latest_tempo_change_in_ns / 1000000000.0
-	 * does not always work, because of floating point rounding errors.
-	 * XXX Should floating point be used for timing information at all?
-	 * XXX (There may be issues in timing accuracy with very long music
-	 * XXX playback... should calculate how much that could be.)
-	 */
-	time_for_note_since_latest_tempo_change.tv_sec =
-	    rintf((time_for_note_since_latest_tempo_change_in_ns -
-	    time_for_note_since_latest_tempo_change.tv_nsec) / 1000000000.0);
-
-	notetime->tv_sec = time_for_note_since_latest_tempo_change.tv_sec +
+	eventtime->tv_sec = time_since_latest_tempo_change.tv_sec +
 	    ss->latest_tempo_change_as_time.tv_sec;
-	notetime->tv_nsec = time_for_note_since_latest_tempo_change.tv_nsec +
+	eventtime->tv_nsec = time_since_latest_tempo_change.tv_nsec +
 	    ss->latest_tempo_change_as_time.tv_nsec;
 
-	if (notetime->tv_nsec >= 1000000000) {
-		notetime->tv_nsec -= 1000000000;
-		notetime->tv_sec += 1;
+	if (eventtime->tv_nsec >= 1000000000) {
+		eventtime->tv_nsec -= 1000000000;
+		eventtime->tv_sec += 1;
 	}
 }
 
