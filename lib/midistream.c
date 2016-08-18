@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.50 2016/08/13 20:43:25 je Exp $ */
+/* $Id: midistream.c,v 1.51 2016/08/18 20:03:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -427,7 +427,7 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 			memset(midievent, 0, sizeof(struct midievent));
 			midievent->evtype = MIDIEV_TEMPOCHANGE;
 			midievent->time_as_measures = mse->time_as_measures;
-			midievent->u.tempochange_bpm = mse->u.tempochange_bpm;
+			midievent->u.bpm = mse->u.bpm;
 			_mdl_midievent_log(MDLLOG_MIDISTREAM,
 			    "sending to sequencer", midievent, level);
 			if ((ret = _mdl_stream_increment(midi_es)) != 0)
@@ -497,7 +497,7 @@ add_tempochange_to_midistream(struct mdl_stream *midistream_es,
 	memset(mse, 0, sizeof(struct midistreamevent));
 	mse->evtype = MIDISTREV_TEMPOCHANGE;
 	mse->time_as_measures = timeoffset;
-	mse->u.tempochange_bpm = tempochg->bpm;
+	mse->u.bpm = tempochg->bpm;
 
 	return _mdl_stream_increment(midistream_es);
 }
@@ -623,8 +623,8 @@ compare_midistreamevents(const void *va, const void *vb)
 	case MIDISTREV_NOTEON:
 		return compare_trackmidinotes(&a->u.tmn, &b->u.tmn);
 	case MIDISTREV_TEMPOCHANGE:
-		return (a->u.tempochange_bpm < b->u.tempochange_bpm) ? -1 :
-		       (a->u.tempochange_bpm > b->u.tempochange_bpm) ?  1 : 0;
+		return (a->u.bpm < b->u.bpm) ? -1 :
+		       (a->u.bpm > b->u.bpm) ?  1 : 0;
 	default:
 		assert(0);
 	}

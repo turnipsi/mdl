@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.7 2016/08/13 18:20:59 je Exp $ */
+/* $Id: midistream.h,v 1.8 2016/08/18 20:03:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,7 +48,7 @@ struct midistreamevent {
 	float				time_as_measures;
 	union {
 		struct trackmidinote	tmn;
-		float			tempochange_bpm;
+		float			bpm;
 	} u;
 };
 

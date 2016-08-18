@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.25 2016/08/18 20:01:29 je Exp $ */
+/* $Id: midi.h,v 1.26 2016/08/18 20:03:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -51,7 +51,7 @@ struct midievent {
 	union {
 		struct midinote			note;
 		struct instrument_change	instr_change;
-		float				tempochange_bpm;
+		float				bpm;
 	} u;
 };
 

@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.131 2016/08/14 20:06:43 je Exp $ */
+/* $Id: sequencer.c,v 1.132 2016/08/18 20:03:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -835,7 +835,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 				ss->latest_tempo_change_as_time = eventtime;
 				ss->latest_tempo_change_as_measures =
 				    me->time_as_measures;
-				ss->tempo = me->u.tempochange_bpm;
+				ss->tempo = me->u.bpm;
 				break;
 			default:
 				assert(0);
@@ -1069,7 +1069,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 			case MIDIEV_TEMPOCHANGE:
 				new_ss->latest_tempo_change_as_measures =
 				    me->time_as_measures;
-				new_ss->tempo = me->u.tempochange_bpm;
+				new_ss->tempo = me->u.bpm;
 				break;
 			default:
 				assert(0);

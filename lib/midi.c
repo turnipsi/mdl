@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.33 2016/08/13 20:43:25 je Exp $ */
+/* $Id: midi.c,v 1.34 2016/08/18 20:03:56 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -262,11 +262,11 @@ _mdl_midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 	case MIDIEV_SONG_END:
 		return 1;
 	case MIDIEV_TEMPOCHANGE:
-		if (me.u.tempochange_bpm < 0) {
+		if (me.u.bpm < 0) {
 			warnx("tempochange bpm is negative");
 			return 0;
 		}
-		if (!isfinite(me.u.tempochange_bpm)) {
+		if (!isfinite(me.u.bpm)) {
 			warnx("tempochange bpm is not finite");
 			return 0;
 		}
@@ -379,8 +379,7 @@ _mdl_midievent_log(enum logtype logtype, const char *prefix,
 	case MIDIEV_TEMPOCHANGE:
 		_mdl_log(logtype, level,
 		    "%s tempochange time=%.3f bpm=%.3f\n", prefix,
-		    midievent->time_as_measures,
-		    midievent->u.tempochange_bpm);
+		    midievent->time_as_measures, midievent->u.bpm);
 		break;
 	default:
 		assert(0);
