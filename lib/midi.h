@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.24 2016/08/13 18:20:59 je Exp $ */
+/* $Id: midi.h,v 1.25 2016/08/18 20:01:29 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -35,11 +35,14 @@ enum midievent_type {
 };
 
 struct instrument_change {
-	u_int8_t	channel, code;
+	u_int8_t	channel;
+	u_int8_t	code;
 };
 
 struct midinote {
-	u_int8_t	channel, note, velocity;
+	u_int8_t	channel;
+	u_int8_t	note;
+	u_int8_t	velocity;
 };
 
 struct midievent {
