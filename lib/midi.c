@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.34 2016/08/18 20:03:56 je Exp $ */
+/* $Id: midi.c,v 1.35 2016/08/19 19:19:15 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -194,67 +194,72 @@ sndio_close_device(void)
 #endif /* HAVE_SNDIO */
 
 int
-_mdl_midi_check_midievent(struct midievent me, float minimum_time_as_measures)
+_mdl_midi_check_timed_midievent(struct timed_midievent tme,
+    float minimum_time_as_measures)
 {
+	struct midievent *me;
 	int ret;
 
-	ret = midi_check_range(me.evtype, 0, MIDIEV_TYPECOUNT-1);
+	me = &tme.me;
+
+	ret = midi_check_range(me->evtype, 0, MIDIEV_TYPECOUNT-1);
 	if (!ret) {
-		warnx("midievent eventtype is invalid: %d", me.evtype);
+		warnx("midievent eventtype is invalid: %d", me->evtype);
 		return 0;
 	}
 
-	if (me.time_as_measures < minimum_time_as_measures) {
+	if (tme.time_as_measures < minimum_time_as_measures) {
 		warnx("time is decreasing in eventstream (%f < %f)",
-		    me.time_as_measures, minimum_time_as_measures);
+		    tme.time_as_measures, minimum_time_as_measures);
 		return 0;
 	}
 
-	switch (me.evtype) {
+	if (!isfinite(tme.time_as_measures)) {
+		warnx("time_as_measures is not finite");
+		return 0;
+	}
+
+	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
-		ret = midi_check_range(me.u.instr_change.code, 0,
+		ret = midi_check_range(me->u.instr_change.code, 0,
 		    MIDI_INSTRUMENT_MAX);
 		if (!ret) {
 			warnx("instrument code is invalid: %d",
-			    me.u.instr_change.code);
+			    me->u.instr_change.code);
 			return 0;
 		}
 
-		ret = midi_check_range(me.u.instr_change.channel, 0,
+		ret = midi_check_range(me->u.instr_change.channel, 0,
 		    MIDI_CHANNEL_COUNT-1);
 		if (!ret) {
 			warnx("midievent channel is invalid: %d",
-			    me.u.instr_change.channel);
+			    me->u.instr_change.channel);
 			return 0;
 		}
 
 		return 1;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
-		ret = midi_check_range(me.u.note.channel, 0,
+		ret = midi_check_range(me->u.note.channel, 0,
 		    MIDI_CHANNEL_COUNT-1);
 		if (!ret) {
 			warnx("midievent channel is invalid: %d",
-			    me.u.note.channel);
+			    me->u.note.channel);
 			return 0;
 		}
 
-		ret = midi_check_range(me.u.note.note, 0, MIDI_NOTE_COUNT-1);
+		ret = midi_check_range(me->u.note.note, 0, MIDI_NOTE_COUNT-1);
 		if (!ret) {
-			warnx("midievent note is invalid: %d", me.u.note.note);
+			warnx("midievent note is invalid: %d",
+			    me->u.note.note);
 			return 0;
 		}
 
-		ret = midi_check_range(me.u.note.velocity, 0,
+		ret = midi_check_range(me->u.note.velocity, 0,
 		    MIDI_VELOCITY_MAX);
 		if (!ret) {
 			warnx("midievent velocity is invalid: %d",
-			    me.u.note.velocity);
-			return 0;
-		}
-
-		if (!isfinite(me.time_as_measures)) {
-			warnx("time_as_measures is not finite");
+			    me->u.note.velocity);
 			return 0;
 		}
 
@@ -262,11 +267,11 @@ _mdl_midi_check_midievent(struct midievent me, float minimum_time_as_measures)
 	case MIDIEV_SONG_END:
 		return 1;
 	case MIDIEV_TEMPOCHANGE:
-		if (me.u.bpm < 0) {
+		if (me->u.bpm < 0) {
 			warnx("tempochange bpm is negative");
 			return 0;
 		}
-		if (!isfinite(me.u.bpm)) {
+		if (!isfinite(me->u.bpm)) {
 			warnx("tempochange bpm is not finite");
 			return 0;
 		}
@@ -351,35 +356,38 @@ midi_check_range(u_int8_t value, u_int8_t min, u_int8_t max)
 }
 
 void
-_mdl_midievent_log(enum logtype logtype, const char *prefix,
-    struct midievent *midievent, int level)
+_mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
+    struct timed_midievent *tme, int level)
 {
-	switch (midievent->evtype) {
+	struct midievent *me;
+
+	me = &tme->me;
+
+	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
 		_mdl_log(logtype, level,
 		    "%s instrument change time=%.3f channel=%d"
-		    " instrument=%d\n", prefix, midievent->time_as_measures,
-		    midievent->u.instr_change.channel,
-		    midievent->u.instr_change.code);
+		    " instrument=%d\n", prefix, tme->time_as_measures,
+		    me->u.instr_change.channel,
+		    me->u.instr_change.code);
 		break;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
 		_mdl_log(logtype, level,
 		    "%s %s time=%.3f channel=%d note=%d velocity=%d\n",
 		    prefix,
-		    (midievent->evtype == MIDIEV_NOTEOFF
-		        ? "noteoff" : "noteon"),
-		    midievent->time_as_measures, midievent->u.note.channel,
-		    midievent->u.note.note, midievent->u.note.velocity);
+		    (me->evtype == MIDIEV_NOTEOFF ? "noteoff" : "noteon"),
+		    tme->time_as_measures, me->u.note.channel,
+		    me->u.note.note, me->u.note.velocity);
 		break;
 	case MIDIEV_SONG_END:
 		_mdl_log(logtype, level, "%s song end time=%.3f\n", prefix,
-		    midievent->time_as_measures);
+		    tme->time_as_measures);
 		break;
 	case MIDIEV_TEMPOCHANGE:
 		_mdl_log(logtype, level,
 		    "%s tempochange time=%.3f bpm=%.3f\n", prefix,
-		    midievent->time_as_measures, midievent->u.bpm);
+		    tme->time_as_measures, me->u.bpm);
 		break;
 	default:
 		assert(0);

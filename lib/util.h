@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.36 2016/08/13 18:20:59 je Exp $ */
+/* $Id: util.h,v 1.37 2016/08/19 19:19:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,9 +59,9 @@ struct mdl_stream {
 		OFFSETEXPRS,
 	} s_type;
 	union {
-		struct midievent	*midievents;
 		struct midistreamevent	*midistreamevents;
 		struct offsetexpr	*mexprs;
+		struct timed_midievent	*timed_midievents;
 	} u;
 };
 

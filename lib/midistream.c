@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.51 2016/08/18 20:03:56 je Exp $ */
+/* $Id: midistream.c,v 1.52 2016/08/19 19:19:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -158,18 +158,18 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
 
 	level += 1;
 
-	if ((SSIZE_MAX / sizeof(struct midievent)) < s->count) {
+	if ((SSIZE_MAX / sizeof(struct timed_midievent)) < s->count) {
 		warnx("midistream size overflow, not writing anything");
 		return -1;
 	}
 
 	total_wcount = 0;
 
-	wsize = s->count * sizeof(struct midievent);
+	wsize = s->count * sizeof(struct timed_midievent);
 
 	while (total_wcount < wsize) {
 		nw = write(sequencer_read_pipe,
-		    ((char *) s->u.midievents + total_wcount),
+		    ((char *) s->u.timed_midievents + total_wcount),
 		    (wsize - total_wcount));
 		if (nw == -1) {
 			if (errno == EINTR)
@@ -236,7 +236,7 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 			goto error;
 	}
 
-	qsort(midistream_es->u.midievents, midistream_es->count,
+	qsort(midistream_es->u.timed_midievents, midistream_es->count,
 	    sizeof(struct midistreamevent), compare_midistreamevents);
 
 	midi_es = midistream_to_midievents(midistream_es, song_length,
@@ -263,7 +263,7 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
     struct trackmidinote *tmn, struct miditracks *tracks,
     float time_as_measures, int level)
 {
-	struct midievent *midievent;
+	struct timed_midievent *tme;
 	unsigned int ch;
 
 	assert(midi_es->s_type == MIDIEVENTS);
@@ -287,14 +287,14 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 
 	tmn->note.channel = ch;
 
-	midievent = &midi_es->u.midievents[ midi_es->count ];
-	memset(midievent, 0, sizeof(struct midievent));
-	midievent->evtype = MIDIEV_NOTEOFF;
-	midievent->time_as_measures = time_as_measures;
-	midievent->u.note = tmn->note;
+	tme = &midi_es->u.timed_midievents[ midi_es->count ];
+	memset(tme, 0, sizeof(struct timed_midievent));
+	tme->time_as_measures = time_as_measures;
+	tme->me.evtype = MIDIEV_NOTEOFF;
+	tme->me.u.note = tmn->note;
 
-	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    midievent, level);
+	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
+	    tme, level);
 
 	return _mdl_stream_increment(midi_es);
 }
@@ -304,7 +304,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
     struct trackmidinote *tmn, struct miditracks *tracks,
     float time_as_measures, int level)
 {
-	struct midievent *midievent;
+	struct timed_midievent *tme;
 	unsigned int ch;
 	int ret;
 
@@ -340,15 +340,15 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	if (tracks[ch].instrument != tmn->instrument) {
 		assert(tmn->instrument != NULL);
-		midievent = &midi_es->u.midievents[ midi_es->count ];
-		memset(midievent, 0, sizeof(struct midievent));
-		midievent->evtype = MIDIEV_INSTRUMENT_CHANGE;
-		midievent->time_as_measures = time_as_measures;
-		midievent->u.instr_change.channel = ch;
-		midievent->u.instr_change.code = tmn->instrument->code;
+		tme = &midi_es->u.timed_midievents[ midi_es->count ];
+		memset(tme, 0, sizeof(struct timed_midievent));
+		tme->time_as_measures = time_as_measures;
+		tme->me.evtype = MIDIEV_INSTRUMENT_CHANGE;
+		tme->me.u.instr_change.channel = ch;
+		tme->me.u.instr_change.code = tmn->instrument->code;
 
-		_mdl_midievent_log(MDLLOG_MIDISTREAM,
-		    "sending to sequencer", midievent, level);
+		_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
+		    "sending to sequencer", tme, level);
 
 		ret = _mdl_stream_increment(midi_es);
 		if (ret != 0)
@@ -357,14 +357,14 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	tracks[ch].instrument = tmn->instrument;
 
-	midievent = &midi_es->u.midievents[ midi_es->count ];
-	memset(midievent, 0, sizeof(struct midievent));
-	midievent->evtype = MIDIEV_NOTEON;
-	midievent->time_as_measures = time_as_measures;
-	midievent->u.note = tmn->note;
+	tme = &midi_es->u.timed_midievents[ midi_es->count ];
+	memset(tme, 0, sizeof(struct timed_midievent));
+	tme->time_as_measures = time_as_measures;
+	tme->me.evtype = MIDIEV_NOTEON;
+	tme->me.u.note = tmn->note;
 
-	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    midievent, level);
+	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
+	    tme, level);
 
 	ret = _mdl_stream_increment(midi_es);
 	if (ret != 0)
@@ -378,7 +378,7 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
     int level)
 {
 	struct mdl_stream *midi_es;
-	struct midievent *midievent;
+	struct timed_midievent *tme;
 	struct midistreamevent *mse;
 	int ret;
 	struct miditracks tracks[MIDI_CHANNEL_COUNT];
@@ -423,13 +423,13 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 				goto error;
 			break;
 		case MIDISTREV_TEMPOCHANGE:
-			midievent = &midi_es->u.midievents[ midi_es->count ];
-			memset(midievent, 0, sizeof(struct midievent));
-			midievent->evtype = MIDIEV_TEMPOCHANGE;
-			midievent->time_as_measures = mse->time_as_measures;
-			midievent->u.bpm = mse->u.bpm;
-			_mdl_midievent_log(MDLLOG_MIDISTREAM,
-			    "sending to sequencer", midievent, level);
+			tme = &midi_es->u.timed_midievents[ midi_es->count ];
+			memset(tme, 0, sizeof(struct timed_midievent));
+			tme->time_as_measures = mse->time_as_measures;
+			tme->me.evtype = MIDIEV_TEMPOCHANGE;
+			tme->me.u.bpm = mse->u.bpm;
+			_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
+			    "sending to sequencer", tme, level);
 			if ((ret = _mdl_stream_increment(midi_es)) != 0)
 				goto error;
 			break;
@@ -445,13 +445,13 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 	assert(mse == NULL || song_length >= mse->time_as_measures);
 
 	/* Add SONG_END midievent. */
-	midievent = &midi_es->u.midievents[ midi_es->count ];
-	memset(midievent, 0, sizeof(struct midievent));
-	midievent->evtype = MIDIEV_SONG_END;
-	midievent->time_as_measures = song_length;
+	tme = &midi_es->u.timed_midievents[ midi_es->count ];
+	memset(tme, 0, sizeof(struct timed_midievent));
+	tme->time_as_measures = song_length;
+	tme->me.evtype = MIDIEV_SONG_END;
 
-	_mdl_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    midievent, level);
+	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
+	    tme, level);
 
 	if ((ret = _mdl_stream_increment(midi_es)) != 0)
 		goto error;

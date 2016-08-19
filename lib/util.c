@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.43 2016/08/13 18:20:59 je Exp $ */
+/* $Id: util.c,v 1.44 2016/08/19 19:19:15 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -254,9 +254,9 @@ _mdl_stream_new(enum streamtype s_type)
 
 	switch (s->s_type) {
 	case MIDIEVENTS:
-		s->u.midievents = calloc(s->slotcount,
-		    sizeof(struct midievent));
-		if (s->u.midievents == NULL) {
+		s->u.timed_midievents = calloc(s->slotcount,
+		    sizeof(struct timed_midievent));
+		if (s->u.timed_midievents == NULL) {
 			warn("calloc in _mdl_stream_new");
 			free(s);
 			return NULL;
@@ -298,13 +298,13 @@ _mdl_stream_increment(struct mdl_stream *s)
 		s->slotcount *= 2;
 		switch (s->s_type) {
 		case MIDIEVENTS:
-			new_items = reallocarray(s->u.midievents, s->slotcount,
-			    sizeof(struct midievent));
+			new_items = reallocarray(s->u.timed_midievents,
+			    s->slotcount, sizeof(struct timed_midievent));
 			if (new_items == NULL) {
 				warn("reallocarray in _mdl_stream_increment");
 				return 1;
 			}
-			s->u.midievents = new_items;
+			s->u.timed_midievents = new_items;
 			break;
 		case MIDISTREAMEVENTS:
 			new_items = reallocarray(s->u.midistreamevents,
@@ -337,7 +337,7 @@ _mdl_stream_free(struct mdl_stream *s)
 {
 	switch (s->s_type) {
 	case MIDIEVENTS:
-		free(s->u.midievents);
+		free(s->u.timed_midievents);
 		break;
 	case MIDISTREAMEVENTS:
 		free(s->u.midistreamevents);

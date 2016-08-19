@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.132 2016/08/18 20:03:56 je Exp $ */
+/* $Id: sequencer.c,v 1.133 2016/08/19 19:19:15 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -43,7 +43,7 @@
 
 struct eventblock {
 	SIMPLEQ_ENTRY(eventblock) entries;
-	struct midievent events[EVENTBLOCKCOUNT];
+	struct timed_midievent events[EVENTBLOCKCOUNT];
 	size_t readcount;
 };
 SIMPLEQ_HEAD(eventstream, eventblock);
@@ -779,6 +779,7 @@ static int
 sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 {
 	struct eventpointer *ce;
+	struct timed_midievent *tme;
 	struct midievent *me;
 	struct timespec eventtime, time_to_play;
 	int ret;
@@ -787,7 +788,8 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 
 	while (ce->block) {
 		while (ce->index < EVENTBLOCKCOUNT) {
-			me = &ce->block->events[ ce->index ];
+			tme = &ce->block->events[ ce->index ];
+			me = &tme->me;
 
 			if (me->evtype == MIDIEV_SONG_END) {
 				ss->playback_state = IDLE;
@@ -819,7 +821,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			    time_to_play.tv_nsec > 0))
 				return 0;
 
-			switch(me->evtype) {
+			switch (me->evtype) {
 			case MIDIEV_INSTRUMENT_CHANGE:
 			case MIDIEV_NOTEOFF:
 			case MIDIEV_NOTEON:
@@ -834,7 +836,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			case MIDIEV_TEMPOCHANGE:
 				ss->latest_tempo_change_as_time = eventtime;
 				ss->latest_tempo_change_as_measures =
-				    me->time_as_measures;
+				    tme->time_as_measures;
 				ss->tempo = me->u.bpm;
 				break;
 			default:
@@ -932,8 +934,8 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 		goto finish;
 	}
 
-	for (i = new_b->readcount / sizeof(struct midievent);
-	    i < (new_b->readcount + nr) / sizeof(struct midievent);
+	for (i = new_b->readcount / sizeof(struct timed_midievent);
+	    i < (new_b->readcount + nr) / sizeof(struct timed_midievent);
 	    i++) {
 		/* The song end must not come again. */
 		if (ss->got_song_end) {
@@ -942,13 +944,13 @@ sequencer_read_to_eventstream(struct songstate *ss, int fd)
 			goto finish;
 		}
 
-		if (new_b->events[i].evtype == MIDIEV_SONG_END)
+		if (new_b->events[i].me.evtype == MIDIEV_SONG_END)
 			ss->got_song_end = 1;
 
-		_mdl_midievent_log(MDLLOG_MIDI, "received", &new_b->events[i],
-		    0);
+		_mdl_timed_midievent_log(MDLLOG_MIDI, "received",
+		    &new_b->events[i], 0);
 
-		if (!_mdl_midi_check_midievent(new_b->events[i],
+		if (!_mdl_midi_check_timed_midievent(new_b->events[i],
 		    ss->time_as_measures)) {
 			nr = -1;
 			goto finish;
@@ -1024,6 +1026,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 {
 	struct notestate old, new;
 	struct eventpointer ce;
+	struct timed_midievent *tme;
 	struct midievent change_instrument, note_off, note_on, *me;
 	struct timespec latest_tempo_change_as_time,
 	    time_since_latest_tempo_change;
@@ -1037,10 +1040,12 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	ce = new_ss->current_event;
 	SIMPLEQ_FOREACH(ce.block, &new_ss->es, entries) {
 		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
-			me = &ce.block->events[ ce.index ];
-			if (me->evtype == MIDIEV_SONG_END)
+			tme = &ce.block->events[ ce.index ];
+			me = &tme->me;
+
+			if (tme->time_as_measures >= new_ss->time_as_measures)
 				break;
-			if (me->time_as_measures >= new_ss->time_as_measures)
+			if (me->evtype == MIDIEV_SONG_END)
 				break;
 
 			switch (me->evtype) {
@@ -1068,7 +1073,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				break;
 			case MIDIEV_TEMPOCHANGE:
 				new_ss->latest_tempo_change_as_measures =
-				    me->time_as_measures;
+				    tme->time_as_measures;
 				new_ss->tempo = me->u.bpm;
 				break;
 			default:
@@ -1258,7 +1263,7 @@ sequencer_switch_songs(struct sequencer *seq)
 static void
 sequencer_time_for_next_event(struct songstate *ss, struct timespec *eventtime)
 {
-	struct midievent next_midievent;
+	struct timed_midievent next_midievent;
 	struct timespec time_since_latest_tempo_change;
 
 	assert(ss != NULL);
