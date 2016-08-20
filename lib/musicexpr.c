@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.121 2016/08/13 20:43:25 je Exp $ */
+/* $Id: musicexpr.c,v 1.122 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -282,6 +282,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_TEMPOCHANGE:
+	case ME_TYPE_VOLUMECHANGE:
 		ret = add_as_offsetexpr_to_flat_simultence(flatme, me,
 		    next_offset, level);
 		if (ret != 0)
@@ -433,7 +434,8 @@ add_as_offsetexpr_to_flat_simultence(struct musicexpr *flatme,
 		*next_offset += cloned->u.absnote.length;
 	} else if (me->me_type == ME_TYPE_ABSDRUM) {
 		*next_offset += cloned->u.absdrum.length;
-	} else if (me->me_type == ME_TYPE_TEMPOCHANGE) {
+	} else if (me->me_type == ME_TYPE_TEMPOCHANGE ||
+	    me->me_type == ME_TYPE_VOLUMECHANGE) {
 		/* No change to *next_offset. */
 	} else {
 		assert(0);
@@ -770,6 +772,10 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_log(logtype, level, "%s%s bpm=%.3f\n", prefix, me_id,
 		    me->u.tempochange.bpm);
 		break;
+	case ME_TYPE_VOLUMECHANGE:
+		_mdl_log(logtype, level, "%s%s volume=%d\n", prefix, me_id,
+		    me->u.volumechange.volume);
+		break;
 	default:
 		assert(0);
 	}
@@ -983,7 +989,8 @@ _mdl_musicexpr_id_string(const struct musicexpr *me)
 		"scaledexpr",		/* ME_TYPE_SCALEDEXPR */
 		"sequence",		/* ME_TYPE_SEQUENCE */
 		"simultence",		/* ME_TYPE_SIMULTENCE */
-		"tempo",		/* ME_TYPE_TEMPOCHANGE */
+		"tempochange",		/* ME_TYPE_TEMPOCHANGE */
+		"volumechange",		/* ME_TYPE_VOLUMECHANGE */
 	};
 	char *id_string;
 	int ret;
@@ -1049,6 +1056,7 @@ _mdl_musicexpr_iter_new(struct musicexpr *me)
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
 	case ME_TYPE_TEMPOCHANGE:
+	case ME_TYPE_VOLUMECHANGE:
 		/* No subexpressions to iterate. */
 		break;
 	case ME_TYPE_CHORD:

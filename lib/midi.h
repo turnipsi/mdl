@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.28 2016/08/20 19:54:43 je Exp $ */
+/* $Id: midi.h,v 1.29 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,12 +31,20 @@ enum midievent_type {
 	MIDIEV_NOTEON,
 	MIDIEV_SONG_END,
 	MIDIEV_TEMPOCHANGE,
+	MIDIEV_VOLUMECHANGE,
 	MIDIEV_TYPECOUNT,	/* not a type */
 };
 
+/* XXX Introduce a control_change structure instead of this? */
 struct instrument_change {
 	u_int8_t	channel;
 	u_int8_t	code;
+};
+
+/* XXX Introduce a control_change structure instead of this? */
+struct midi_volumechange {
+	u_int8_t	channel;
+	u_int8_t	volume;
 };
 
 struct midinote {
@@ -50,6 +58,7 @@ struct midievent {
 	union {
 		struct instrument_change	instr_change;
 		struct midinote			midinote;
+		struct midi_volumechange	volumechange;
 		float				bpm;
 	} u;
 };

@@ -1,4 +1,4 @@
-/* $Id: util.h,v 1.37 2016/08/19 19:19:15 je Exp $ */
+/* $Id: util.h,v 1.38 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,6 +32,8 @@
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
 #define MDL_VERSION	"0.0-current"
+
+#define UNUSED(x)	(void)(x)
 
 /* There should not be more than 32 different MDLLOG_* types. */
 enum logtype {

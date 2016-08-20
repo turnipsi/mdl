@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.134 2016/08/20 19:54:43 je Exp $ */
+/* $Id: sequencer.c,v 1.135 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -61,6 +61,7 @@ struct notestate {
 struct channel_state {
 	struct notestate notestates[MIDI_NOTE_COUNT];
 	u_int8_t instrument;
+	u_int8_t volume;
 };
 
 enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
@@ -825,6 +826,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			case MIDIEV_INSTRUMENT_CHANGE:
 			case MIDIEV_NOTEOFF:
 			case MIDIEV_NOTEON:
+			case MIDIEV_VOLUMECHANGE:
 				ret = sequencer_noteevent(seq, ss, midiev);
 				if (ret != 0)
 					return ret;
@@ -882,6 +884,10 @@ sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
 		case MIDIEV_TEMPOCHANGE:
 			/* These events should not have come this far. */
 			assert(0);
+			break;
+		case MIDIEV_VOLUMECHANGE:
+			ss->channelstates[me->u.volumechange.channel]
+			    .volume = me->u.volumechange.volume;
 			break;
 		default:
 			assert(0);
@@ -1031,7 +1037,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct midievent *midiev;
 	struct timespec latest_tempo_change_as_time,
 	    time_since_latest_tempo_change;
-	int instr_changed, retrigger_note, c, n, ret;
+	int instr_changed, retrigger_note, volume_changed, c, n, ret;
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -1096,6 +1102,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
 		instr_changed = (old_ss->channelstates[c].instrument !=
 		    new_ss->channelstates[c].instrument);
+		volume_changed = (old_ss->channelstates[c].volume !=
+		    new_ss->channelstates[c].volume);
 
 		if (instr_changed) {
 			change_instrument.evtype = MIDIEV_INSTRUMENT_CHANGE;
@@ -1107,6 +1115,10 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 			    &change_instrument);
 			if (ret != 0)
 				return ret;
+		}
+
+		if (volume_changed) {
+			/* XXX ? */
 		}
 
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {

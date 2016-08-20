@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.36 2016/08/20 19:54:43 je Exp $ */
+/* $Id: midi.c,v 1.37 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -32,11 +32,15 @@
 #include "util.h"
 
 #define MIDI_EVENT_MAXSIZE		3
+#define MIDI_CONTROLCHANGE_BASE		0xb0
 #define MIDI_INSTRUMENT_CHANGE_BASE	0xc0
 #define MIDI_INSTRUMENT_MAX		127
 #define MIDI_NOTEOFF_BASE		0x80
 #define MIDI_NOTEON_BASE		0x90
 #define MIDI_VELOCITY_MAX		127
+#define MIDI_VOLUME_MAX			127
+
+#define MIDICC_CHANNEL_VOLUME		7
 
 struct mididevice {
 	enum mididev_type mididev_type;
@@ -61,6 +65,8 @@ static int	sndio_open_device(const char *);
 static size_t	sndio_write_to_device(u_int8_t *, size_t);
 static void	sndio_close_device(void);
 #endif
+
+static void	maybe_log_the_clock(void);
 
 int
 _mdl_midi_open_device(enum mididev_type mididev_type, const char *device)
@@ -277,6 +283,23 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 			return 0;
 		}
 		return 1;
+	case MIDIEV_VOLUMECHANGE:
+		ret = midi_check_range(me->u.volumechange.channel, 0,
+		    MIDI_CHANNEL_COUNT-1);
+		if (!ret) {
+			warnx("midievent channel is invalid: %d",
+			    me->u.volumechange.channel);
+			return 0;
+		}
+		ret = midi_check_range(me->u.volumechange.volume, 0,
+		    MIDI_VOLUME_MAX);
+		if (!ret) {
+			warnx("midievent volume is invalid: %d",
+			    me->u.volumechange.volume);
+			return 0;
+		}
+
+		return 1;
 	default:
 		assert(0);
 	}
@@ -287,7 +310,6 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 int
 _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 {
-	struct timespec time;
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
 	size_t midievent_size, wsize;
 	u_int8_t eventbase, velocity;
@@ -296,6 +318,11 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 
 	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
+		_mdl_log(MDLLOG_MIDI, 0,
+		    "sending instrumentchange: channel=%d code=%d\n",
+		    me->u.instr_change.channel, me->u.instr_change.code);
+		maybe_log_the_clock();
+
 		midievent_size = 2;
 		midievent[0] = (u_int8_t) (MIDI_INSTRUMENT_CHANGE_BASE +
 		    me->u.instr_change.channel);
@@ -314,23 +341,23 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 		    "sending %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->evtype == MIDIEV_NOTEON ? "noteon" : "noteoff"),
 		    me->u.midinote.note, me->u.midinote.channel, velocity);
-
-		if (_mdl_log_checkopt(MDLLOG_CLOCK)) {
-			if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
-				warn("could not get real time");
-			} else {
-				_mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
-				    time.tv_sec, (time.tv_nsec / 1000000.0));
-			}
-		}
+		maybe_log_the_clock();
 
 		midievent[0] = (u_int8_t) (eventbase + me->u.midinote.channel);
 		midievent[1] = me->u.midinote.note;
 		midievent[2] = velocity;
 		break;
-	case MIDIEV_SONG_END:
-		/* This event should not have come this far. */
-		assert(0);
+	case MIDIEV_VOLUMECHANGE:
+		_mdl_log(MDLLOG_MIDI, 0,
+		    "sending volumechange: channel=%d volume=%d\n",
+		    me->u.volumechange.channel, me->u.volumechange.volume);
+		maybe_log_the_clock();
+
+		midievent_size = 3;
+		midievent[0] = (u_int8_t) (MIDI_CONTROLCHANGE_BASE +
+		    me->u.volumechange.channel);
+		midievent[1] = MIDICC_CHANNEL_VOLUME;
+		midievent[2] = me->u.volumechange.volume;
 		break;
 	default:
 		assert(0);
@@ -348,6 +375,21 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 	}
 
 	return 0;
+}
+
+static void
+maybe_log_the_clock(void)
+{
+	struct timespec time;
+
+	if (_mdl_log_checkopt(MDLLOG_CLOCK)) {
+		if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
+			warn("could not get real time");
+		} else {
+			_mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
+			    time.tv_sec, (time.tv_nsec / 1000000.0));
+		}
+	}
 }
 
 static int
@@ -389,6 +431,11 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 		_mdl_log(logtype, level,
 		    "%s tempochange time=%.3f bpm=%.3f\n", prefix,
 		    tme->time_as_measures, me->u.bpm);
+		break;
+	case MIDIEV_VOLUMECHANGE:
+		_mdl_log(logtype, level,
+		    "%s volumehange time=%.3f volume=%d\n", prefix,
+		    tme->time_as_measures, me->u.volumechange.volume);
 		break;
 	default:
 		assert(0);

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.82 2016/08/10 18:58:00 je Exp $ */
+/* $Id: musicexpr.h,v 1.83 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,6 +48,7 @@ enum musicexpr_type {
 	ME_TYPE_SEQUENCE,
 	ME_TYPE_SIMULTENCE,
 	ME_TYPE_TEMPOCHANGE,
+	ME_TYPE_VOLUMECHANGE,
 	ME_TYPE_COUNT,		/* not a type */
 };
 
@@ -237,6 +238,11 @@ struct tempochange {
 	float	bpm;
 };
 
+struct volumechange {
+	struct track	       *track;
+	u_int8_t		volume;
+};
+
 struct musicexpr_id {
 	int id;
 	struct textloc textloc;
@@ -261,6 +267,7 @@ struct musicexpr {
 		struct rest		rest;
 		struct scaledexpr	scaledexpr;
 		struct tempochange	tempochange;
+		struct volumechange	volumechange;
 	} u;
 	TAILQ_ENTRY(musicexpr) tq;
 };

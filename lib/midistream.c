@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.53 2016/08/20 19:54:43 je Exp $ */
+/* $Id: midistream.c,v 1.54 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -56,6 +56,8 @@ static int	add_note_to_midistream(struct mdl_stream *,
     const struct musicexpr *, float, int);
 static int	add_tempochange_to_midistream(struct mdl_stream *,
     const struct tempochange *, float);
+static int	add_volumechange_to_midistream(struct mdl_stream *,
+    const struct volumechange *, float);
 
 static int	add_noteoff_to_midievents(struct mdl_stream *,
     struct trackmidievent *, struct miditracks *, float, int);
@@ -384,7 +386,7 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 	struct timed_midievent *tmidiev;
 	struct miditracks tracks[MIDI_CHANNEL_COUNT];
 	size_t i, j;
-	int ret;
+	int ch, ret;
 
 	assert(midistream_es->s_type == MIDISTREAMEVENTS);
 
@@ -436,6 +438,25 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 			if ((ret = _mdl_stream_increment(midi_es)) != 0)
 				goto error;
 			break;
+		case MIDISTREV_VOLUMECHANGE:
+			assert(mse->u.tme.midiev.evtype
+			    == MIDIEV_VOLUMECHANGE);
+
+			/* XXX should try to find the correct midi channel
+			 * XXX based on track information */
+			ch = 0;
+
+			tmidiev = &midi_es->u.timed_midievents[
+			    midi_es->count ];
+			memset(tmidiev, 0, sizeof(struct timed_midievent));
+			tmidiev->time_as_measures = mse->time_as_measures;
+			tmidiev->midiev = mse->u.tme.midiev;
+			tmidiev->midiev.u.volumechange.channel = ch;
+			_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
+			    "sending to sequencer", tmidiev, level);
+			if ((ret = _mdl_stream_increment(midi_es)) != 0)
+				goto error;
+			break;
 		default:
 			assert(0);
 		}
@@ -479,11 +500,16 @@ add_musicexpr_to_midistream(struct mdl_stream *midistream_es,
 
 	assert(me->me_type == ME_TYPE_ABSDRUM ||
 	    me->me_type == ME_TYPE_ABSNOTE ||
-	    me->me_type == ME_TYPE_TEMPOCHANGE);
+	    me->me_type == ME_TYPE_TEMPOCHANGE ||
+	    me->me_type == ME_TYPE_VOLUMECHANGE);
 
 	if (me->me_type == ME_TYPE_TEMPOCHANGE)
 		return add_tempochange_to_midistream(midistream_es,
 		    &me->u.tempochange, timeoffset);
+
+	if (me->me_type == ME_TYPE_VOLUMECHANGE)
+		return add_volumechange_to_midistream(midistream_es,
+		    &me->u.volumechange, timeoffset);
 
 	return add_note_to_midistream(midistream_es, me, timeoffset, level);
 }
@@ -501,6 +527,30 @@ add_tempochange_to_midistream(struct mdl_stream *midistream_es,
 	mse->evtype = MIDISTREV_TEMPOCHANGE;
 	mse->time_as_measures = timeoffset;
 	mse->u.bpm = tempochg->bpm;
+
+	return _mdl_stream_increment(midistream_es);
+}
+
+static int
+add_volumechange_to_midistream(struct mdl_stream *midistream_es,
+    const struct volumechange *volumechg, float timeoffset)
+{
+	struct midistreamevent *mse;
+	struct trackmidievent *tme;
+
+	assert(midistream_es->s_type == MIDISTREAMEVENTS);
+
+	mse = &midistream_es->u.midistreamevents[ midistream_es->count ];
+	memset(mse, 0, sizeof(struct midistreamevent));
+	mse->evtype = MIDISTREV_VOLUMECHANGE;
+	mse->time_as_measures = timeoffset;
+	tme = &mse->u.tme;
+	tme->autoallocate_channel = 1;
+	tme->instrument = NULL;
+	tme->midiev.evtype = MIDIEV_VOLUMECHANGE;
+	tme->midiev.u.volumechange.channel = DEFAULT_MIDICHANNEL;
+	tme->midiev.u.volumechange.volume = volumechg->volume;
+	tme->track = volumechg->track;
 
 	return _mdl_stream_increment(midistream_es);
 }
@@ -626,6 +676,7 @@ compare_midistreamevents(const void *va, const void *vb)
 	switch (a->evtype) {
 	case MIDISTREV_NOTEOFF:
 	case MIDISTREV_NOTEON:
+	case MIDISTREV_VOLUMECHANGE:
 		return compare_midievents(&a->u.tme.midiev, &b->u.tme.midiev);
 	case MIDISTREV_TEMPOCHANGE:
 		return (a->u.bpm < b->u.bpm) ? -1 :
@@ -640,10 +691,22 @@ compare_midistreamevents(const void *va, const void *vb)
 static int
 compare_midievents(const struct midievent *a, const struct midievent *b)
 {
+	const struct midi_volumechange *vg_a, *vg_b;
+
 	/* Provides order only for a subset of midievents. */
 
-	assert(a->evtype == MIDIEV_NOTEOFF || a->evtype == MIDIEV_NOTEON);
+	assert(a->evtype == MIDIEV_NOTEOFF || a->evtype == MIDIEV_NOTEON ||
+	    a->evtype == MIDIEV_VOLUMECHANGE);
 	assert(a->evtype == b->evtype);
+
+	if (a->evtype == MIDIEV_VOLUMECHANGE) {
+		vg_a = &a->u.volumechange;
+		vg_b = &b->u.volumechange;
+		return (vg_a->channel < vg_b->channel) ? -1 :
+		       (vg_a->channel > vg_b->channel) ?  1 :
+		       (vg_a->volume  < vg_a->volume)  ? -1 :
+		       (vg_a->volume  > vg_a->volume)  ?  1 : 0;
+	}
 
 	return
 	    (a->u.midinote.channel  < b->u.midinote.channel)  ? -1 :

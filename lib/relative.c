@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.29 2016/08/10 18:58:00 je Exp $ */
+/* $Id: relative.c,v 1.30 2016/08/20 21:42:36 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -308,6 +308,11 @@ relative_to_absolute(struct musicexpr *me,
 		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_TEMPOCHANGE:
+		break;
+	case ME_TYPE_VOLUMECHANGE:
+		/* XXX What about adjusting drum volumes? (now we choose
+		 * XXX to change volume on the toned instrument track) */
+		me->u.volumechange.track = prev_exprs->absnote.track;
 		break;
 	default:
 		assert(0);
