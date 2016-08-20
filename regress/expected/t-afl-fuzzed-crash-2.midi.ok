@@ -4,6 +4,7 @@ mdl.seq.midi           : received noteoff time=0.375 channel=0 note=60 velocity=
 mdl.seq.midi           : received noteon time=0.518 channel=0 note=64 velocity=80
 mdl.seq.midi           : received noteoff time=1.063 channel=0 note=64 velocity=0
 mdl.seq.midi           : received song end time=1.063
+mdl.seq.midi           : sending instrumentchange: channel=0 code=0
 mdl.seq.midi           : sending noteon: notevalue=60 channel=0 velocity=80
 mdl.seq.midi           : sending noteoff: notevalue=60 channel=0 velocity=0
 mdl.seq.midi           : sending noteon: notevalue=64 channel=0 velocity=80
