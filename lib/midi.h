@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.27 2016/08/19 19:19:15 je Exp $ */
+/* $Id: midi.h,v 1.28 2016/08/20 19:54:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -48,14 +48,14 @@ struct midinote {
 struct midievent {
 	enum midievent_type	evtype;
 	union {
-		struct midinote			note;
 		struct instrument_change	instr_change;
+		struct midinote			midinote;
 		float				bpm;
 	} u;
 };
 
 struct timed_midievent {
-	struct midievent	me;
+	struct midievent	midiev;
 	float			time_as_measures;
 };
 

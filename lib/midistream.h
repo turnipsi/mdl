@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.8 2016/08/18 20:03:56 je Exp $ */
+/* $Id: midistream.h,v 1.9 2016/08/20 19:54:43 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -36,9 +36,9 @@ enum midistreamevent_type {
 	MIDISTREV_TYPECOUNT,	/* not a type */
 };
 
-struct trackmidinote {
+struct trackmidievent {
 	struct instrument      *instrument;
-	struct midinote		note;
+	struct midievent	midiev;
 	struct track	       *track;
 	int			autoallocate_channel;
 };
@@ -47,7 +47,7 @@ struct midistreamevent {
 	enum midistreamevent_type	evtype;
 	float				time_as_measures;
 	union {
-		struct trackmidinote	tmn;
+		struct trackmidievent	tme;
 		float			bpm;
 	} u;
 };

@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.35 2016/08/19 19:19:15 je Exp $ */
+/* $Id: midi.c,v 1.36 2016/08/20 19:54:43 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -200,7 +200,7 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 	struct midievent *me;
 	int ret;
 
-	me = &tme.me;
+	me = &tme.midiev;
 
 	ret = midi_check_range(me->evtype, 0, MIDIEV_TYPECOUNT-1);
 	if (!ret) {
@@ -240,26 +240,27 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 		return 1;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
-		ret = midi_check_range(me->u.note.channel, 0,
+		ret = midi_check_range(me->u.midinote.channel, 0,
 		    MIDI_CHANNEL_COUNT-1);
 		if (!ret) {
 			warnx("midievent channel is invalid: %d",
-			    me->u.note.channel);
+			    me->u.midinote.channel);
 			return 0;
 		}
 
-		ret = midi_check_range(me->u.note.note, 0, MIDI_NOTE_COUNT-1);
+		ret = midi_check_range(me->u.midinote.note, 0,
+		    MIDI_NOTE_COUNT-1);
 		if (!ret) {
 			warnx("midievent note is invalid: %d",
-			    me->u.note.note);
+			    me->u.midinote.note);
 			return 0;
 		}
 
-		ret = midi_check_range(me->u.note.velocity, 0,
+		ret = midi_check_range(me->u.midinote.velocity, 0,
 		    MIDI_VELOCITY_MAX);
 		if (!ret) {
 			warnx("midievent velocity is invalid: %d",
-			    me->u.note.velocity);
+			    me->u.midinote.velocity);
 			return 0;
 		}
 
@@ -307,12 +308,12 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 			        ? MIDI_NOTEON_BASE
 				: MIDI_NOTEOFF_BASE;
 		velocity = (me->evtype == MIDIEV_NOTEON)
-		    ? me->u.note.velocity : 0;
+		    ? me->u.midinote.velocity : 0;
 
 		_mdl_log(MDLLOG_MIDI, 0,
 		    "sending %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->evtype == MIDIEV_NOTEON ? "noteon" : "noteoff"),
-		    me->u.note.note, me->u.note.channel, velocity);
+		    me->u.midinote.note, me->u.midinote.channel, velocity);
 
 		if (_mdl_log_checkopt(MDLLOG_CLOCK)) {
 			if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
@@ -323,8 +324,8 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 			}
 		}
 
-		midievent[0] = (u_int8_t) (eventbase + me->u.note.channel);
-		midievent[1] = me->u.note.note;
+		midievent[0] = (u_int8_t) (eventbase + me->u.midinote.channel);
+		midievent[1] = me->u.midinote.note;
 		midievent[2] = velocity;
 		break;
 	case MIDIEV_SONG_END:
@@ -361,7 +362,7 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 {
 	struct midievent *me;
 
-	me = &tme->me;
+	me = &tme->midiev;
 
 	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
@@ -377,8 +378,8 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 		    "%s %s time=%.3f channel=%d note=%d velocity=%d\n",
 		    prefix,
 		    (me->evtype == MIDIEV_NOTEOFF ? "noteoff" : "noteon"),
-		    tme->time_as_measures, me->u.note.channel,
-		    me->u.note.note, me->u.note.velocity);
+		    tme->time_as_measures, me->u.midinote.channel,
+		    me->u.midinote.note, me->u.midinote.velocity);
 		break;
 	case MIDIEV_SONG_END:
 		_mdl_log(logtype, level, "%s song end time=%.3f\n", prefix,
