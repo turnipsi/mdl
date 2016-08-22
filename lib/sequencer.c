@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.135 2016/08/20 21:42:36 je Exp $ */
+/* $Id: sequencer.c,v 1.136 2016/08/22 19:40:08 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1033,7 +1033,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct notestate old, new;
 	struct eventpointer ce;
 	struct timed_midievent *tmidiev;
-	struct midievent change_instrument, note_off, note_on;
+	struct midievent change_instrument, change_volume, note_off, note_on;
 	struct midievent *midiev;
 	struct timespec latest_tempo_change_as_time,
 	    time_since_latest_tempo_change;
@@ -1110,7 +1110,6 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 			change_instrument.u.instr_change.channel = c;
 			change_instrument.u.instr_change.code =
 			    new_ss->channelstates[c].instrument;
-
 			ret = sequencer_noteevent(seq, old_ss,
 			    &change_instrument);
 			if (ret != 0)
@@ -1118,7 +1117,13 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 		}
 
 		if (volume_changed) {
-			/* XXX ? */
+			change_volume.evtype = MIDIEV_VOLUMECHANGE;
+			change_volume.u.volumechange.channel = c;
+			change_volume.u.volumechange.volume =
+			    new_ss->channelstates[c].volume;
+			ret = sequencer_noteevent(seq, old_ss, &change_volume);
+			if (ret != 0)
+				return ret;
 		}
 
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
@@ -1182,6 +1187,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 
 		assert(old_ss->channelstates[c].instrument ==
 		       new_ss->channelstates[c].instrument);
+		assert(old_ss->channelstates[c].volume ==
+		       new_ss->channelstates[c].volume);
 	}
 
 	/*
