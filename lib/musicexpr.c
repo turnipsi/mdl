@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.122 2016/08/20 21:42:36 je Exp $ */
+/* $Id: musicexpr.c,v 1.123 2016/08/22 20:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -773,8 +773,11 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		    me->u.tempochange.bpm);
 		break;
 	case ME_TYPE_VOLUMECHANGE:
-		_mdl_log(logtype, level, "%s%s volume=%d\n", prefix, me_id,
-		    me->u.volumechange.volume);
+		tmpstring = (me->u.volumechange.track != NULL)
+			      ? me->u.volumechange.track->name
+			      : "(notrack)";
+		_mdl_log(logtype, level, "%s%s track=%s volume=%d\n", prefix,
+		    me_id, tmpstring, me->u.volumechange.volume);
 		break;
 	default:
 		assert(0);

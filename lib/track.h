@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.7 2016/07/22 20:17:26 je Exp $ */
+/* $Id: track.h,v 1.8 2016/08/22 20:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,17 +20,23 @@
 #define MDL_TRACK_H
 
 #include <sys/queue.h>
+#include <sys/types.h>
 
 #include "instrument.h"
 
+#define TRACK_DEFAULT_VOLUME 0.5
+
 struct track {
-	char *name;
-	SLIST_ENTRY(track) sl;
+	char		       *name;
+	float			volume;
+	int			prev_midich;
+	SLIST_ENTRY(track)	sl;
 };
 
 __BEGIN_DECLS
-struct instrument *
-_mdl_track_get_default_instrument(enum instrument_type, struct track *);
+struct instrument	*_mdl_track_get_default_instrument(
+    enum instrument_type, struct track *);
+struct track		*_mdl_track_new(const char *);
 __END_DECLS
 
 #endif /* !MDL_TRACK_H */

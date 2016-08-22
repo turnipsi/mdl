@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.54 2016/08/20 21:42:36 je Exp $ */
+/* $Id: midistream.c,v 1.55 2016/08/22 20:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -31,6 +31,7 @@
 #include "midi.h"
 #include "midistream.h"
 #include "relative.h"
+#include "util.h"
 
 #define DEFAULT_MIDICHANNEL		0
 #define DEFAULT_VELOCITY		80
@@ -549,7 +550,7 @@ add_volumechange_to_midistream(struct mdl_stream *midistream_es,
 	tme->instrument = NULL;
 	tme->midiev.evtype = MIDIEV_VOLUMECHANGE;
 	tme->midiev.u.volumechange.channel = DEFAULT_MIDICHANNEL;
-	tme->midiev.u.volumechange.volume = volumechg->volume;
+	tme->midiev.u.volumechange.volume = MIN(127, 127 * volumechg->volume);
 	tme->track = volumechg->track;
 
 	return _mdl_stream_increment(midistream_es);

@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.5 2016/07/22 20:17:26 je Exp $ */
+/* $Id: track.c,v 1.6 2016/08/22 20:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -17,6 +17,9 @@
  */
 
 #include <assert.h>
+#include <err.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "instrument.h"
 #include "track.h"
@@ -26,4 +29,26 @@ _mdl_track_get_default_instrument(enum instrument_type type,
     struct track *track)
 {
 	return _mdl_get_instrument(type, track->name);
+}
+
+struct track *
+_mdl_track_new(const char *trackname)
+{
+	struct track *track;
+
+	if ((track = malloc(sizeof(struct track))) == NULL) {
+		warn("malloc failure in _mdl_track_new");
+		return NULL;
+	}
+
+	if ((track->name = strdup(trackname)) == NULL) {
+		warn("strdup in _mdl_track_new");
+		free(track);
+		return NULL;
+	}
+
+	track->prev_midich = -1;
+	track->volume = TRACK_DEFAULT_VOLUME;
+
+	return track;
 }

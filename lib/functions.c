@@ -1,4 +1,4 @@
-/* $Id: functions.c,v 1.7 2016/08/20 21:42:36 je Exp $ */
+/* $Id: functions.c,v 1.8 2016/08/22 20:18:47 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -141,9 +141,9 @@ apply_volume(struct musicexpr *me, int level)
 		return 1;
 	}
 
-	volume = strtonum(funcarg->arg, 0, 127, &errstr);
+	volume = strtonum(funcarg->arg, 0, 100, &errstr);
 	if (errstr != NULL) {
-		warnx("invalid argument for volume: %s (should be 0-127)",
+		warnx("invalid argument for volume: %s (should be 0-100)",
 		    errstr);
 		return 1;
 	}
@@ -155,7 +155,7 @@ apply_volume(struct musicexpr *me, int level)
 	}
 
 	new->u.volumechange.track = NULL;
-	new->u.volumechange.volume = volume;
+	new->u.volumechange.volume = volume / 100.0;
 
 	_mdl_musicexpr_free_subexprs(me, level);
 	_mdl_musicexpr_replace(me, new, MDLLOG_FUNC, level);

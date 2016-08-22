@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.16 2016/08/04 20:30:08 je Exp $ */
+/* $Id: song.c,v 1.17 2016/08/22 20:18:48 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -131,14 +131,9 @@ _mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
 		if (strcmp(track->name, trackname) == 0)
 			return track;
 
-	if ((track = malloc(sizeof(struct track))) == NULL) {
-		warn("malloc failure in _mdl_song_find_track_or_new");
-		return NULL;
-	}
-
-	if ((track->name = strdup(trackname)) == NULL) {
-		warn("strdup in _mdl_song_find_track_or_new");
-		free(track);
+	track = _mdl_track_new(trackname);
+	if (track == NULL) {
+		warnx("error in creating a new track");
 		return NULL;
 	}
 
