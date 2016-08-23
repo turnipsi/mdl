@@ -1,4 +1,4 @@
-/* $Id: instrument.c,v 1.6 2016/05/10 20:39:43 je Exp $ */
+/* $Id: instrument.c,v 1.7 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,7 +28,7 @@
 static int	compare_instruments(const void *, const void *);
 
 struct instrument *
-_mdl_get_instrument(enum instrument_type type, char *instrument_name)
+_mdl_get_instrument(enum instrument_type type, const char *instrument_name)
 {
 	static const struct instrument drumkits[] = {
 		{ INSTR_DRUMKIT, "brush drums",       40 },

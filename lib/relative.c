@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.30 2016/08/20 21:42:36 je Exp $ */
+/* $Id: relative.c,v 1.31 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -46,7 +46,6 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
     int level)
 {
 	struct previous_relative_exprs prev_relative_exprs;
-	struct instrument *instrument;
 
 	_mdl_log(MDLLOG_RELATIVE, level,
 	    "converting relative expressions to absolute\n");
@@ -54,14 +53,8 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	level += 1;
 
 	/* Set default values for the first absolute note (toned). */
-	instrument = _mdl_track_get_default_instrument(INSTR_TONED,
-	    song->default_tonedtrack);
-	if (instrument != NULL) {
-		prev_relative_exprs.absnote.instrument = instrument;
-	} else {
-		prev_relative_exprs.absnote.instrument =
-		    _mdl_get_instrument(INSTR_TONED, "acoustic grand");
-	}
+	prev_relative_exprs.absnote.instrument =
+	    song->default_tonedtrack->instrument;
 	assert(prev_relative_exprs.absnote.instrument != NULL);
 
 	prev_relative_exprs.length = 0.25;
@@ -70,15 +63,9 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	prev_relative_exprs.absnote.note = 60;
 	prev_relative_exprs.absnote.track = song->default_tonedtrack;
 
-	/* Set default values for the first absolute note. */
-	instrument = _mdl_track_get_default_instrument(INSTR_DRUMKIT,
-	    song->default_drumtrack);
-	if (instrument != NULL) {
-		prev_relative_exprs.absdrum.instrument = instrument;
-	} else {
-		prev_relative_exprs.absdrum.instrument =
-		    _mdl_get_instrument(INSTR_DRUMKIT, "drums");
-	}
+	/* Set default values for the first absolute note (drum). */
+	prev_relative_exprs.absdrum.instrument =
+	    song->default_drumtrack->instrument;
 	assert(prev_relative_exprs.absdrum.instrument != NULL);
 
 	prev_relative_exprs.absdrum.drumsym = DRUM_BD;
@@ -99,7 +86,6 @@ relative_to_absolute(struct musicexpr *me,
 	struct absnote absnote;
 	struct reldrum reldrum;
 	struct relnote relnote;
-	struct instrument *instrument;
 	struct previous_relative_exprs prev_exprs_copy;
 	int notevalues[] = {
 		/* For NOTE_C, NOTE_D, ... */
@@ -159,15 +145,14 @@ relative_to_absolute(struct musicexpr *me,
 		prev_exprs->absdrum.track = me->u.ontrack.track;
 		prev_exprs->absnote.track = me->u.ontrack.track;
 
-		instrument = _mdl_track_get_default_instrument(INSTR_TONED,
-		    me->u.ontrack.track);
-		if (instrument != NULL)
-			prev_exprs->absnote.instrument = instrument;
+		prev_exprs->absnote.instrument =
+		    me->u.ontrack.track->instrument;
+		assert(prev_exprs->absnote.instrument != NULL);
 
-		instrument = _mdl_track_get_default_instrument(INSTR_DRUMKIT,
-		    me->u.ontrack.track);
-		if (instrument != NULL)
-			prev_exprs->absdrum.instrument = instrument;
+		/* XXX how to handle drums? really? */
+		prev_exprs->absdrum.instrument =
+		    me->u.ontrack.track->instrument;
+		assert(prev_exprs->absdrum.instrument != NULL);
 
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);
 		*prev_exprs = prev_exprs_copy;

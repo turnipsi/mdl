@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.8 2016/08/22 20:18:48 je Exp $ */
+/* $Id: track.h,v 1.9 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,16 +27,16 @@
 #define TRACK_DEFAULT_VOLUME 0.5
 
 struct track {
+	struct instrument      *instrument;
 	char		       *name;
 	float			volume;
-	int			prev_midich;
+	int			autoallocate_channel;
+	int			midichannel;
 	SLIST_ENTRY(track)	sl;
 };
 
 __BEGIN_DECLS
-struct instrument	*_mdl_track_get_default_instrument(
-    enum instrument_type, struct track *);
-struct track		*_mdl_track_new(const char *);
+struct track	*_mdl_track_new(enum instrument_type, const char *);
 __END_DECLS
 
 #endif /* !MDL_TRACK_H */

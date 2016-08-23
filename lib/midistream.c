@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.55 2016/08/22 20:18:48 je Exp $ */
+/* $Id: midistream.c,v 1.56 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,9 +33,7 @@
 #include "relative.h"
 #include "util.h"
 
-#define DEFAULT_MIDICHANNEL		0
-#define DEFAULT_VELOCITY		80
-#define DRUM_MIDICHANNEL		9
+#define DEFAULT_VELOCITY	80
 
 struct miditracks {
 	struct instrument      *instrument;
@@ -315,10 +313,10 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 	assert(midi_es->s_type == MIDIEVENTS);
 	assert(tme->midiev.evtype == MIDIEV_NOTEON);
 
-	if (tme->autoallocate_channel) {
+	if (tme->track->autoallocate_channel) {
 		for (ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
 			/* Midi channel 10 (index 9) is reserved for drums. */
-			if (ch == DRUM_MIDICHANNEL)
+			if (ch == MIDI_DRUMCHANNEL)
 				continue;
 			if (tracks[ch].track == NULL)
 				tracks[ch].track = tme->track;
@@ -344,14 +342,14 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 		return 0;
 	}
 
-	if (tracks[ch].instrument != tme->instrument) {
-		assert(tme->instrument != NULL);
+	if (tracks[ch].instrument != tme->track->instrument) {
 		tmidiev = &midi_es->u.timed_midievents[ midi_es->count ];
 		memset(tmidiev, 0, sizeof(struct timed_midievent));
 		tmidiev->time_as_measures = time_as_measures;
 		tmidiev->midiev.evtype = MIDIEV_INSTRUMENT_CHANGE;
 		tmidiev->midiev.u.instr_change.channel = ch;
-		tmidiev->midiev.u.instr_change.code = tme->instrument->code;
+		tmidiev->midiev.u.instr_change.code =
+		    tme->track->instrument->code;
 
 		_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
 		    "sending to sequencer", tmidiev, level);
@@ -361,7 +359,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 			return ret;
 	}
 
-	tracks[ch].instrument = tme->instrument;
+	tracks[ch].instrument = tme->track->instrument;
 
 	tmidiev = &midi_es->u.timed_midievents[ midi_es->count ];
 	memset(tmidiev, 0, sizeof(struct timed_midievent));
@@ -546,10 +544,8 @@ add_volumechange_to_midistream(struct mdl_stream *midistream_es,
 	mse->evtype = MIDISTREV_VOLUMECHANGE;
 	mse->time_as_measures = timeoffset;
 	tme = &mse->u.tme;
-	tme->autoallocate_channel = 1;
-	tme->instrument = NULL;
 	tme->midiev.evtype = MIDIEV_VOLUMECHANGE;
-	tme->midiev.u.volumechange.channel = DEFAULT_MIDICHANNEL;
+	tme->midiev.u.volumechange.channel = volumechg->track->midichannel;
 	tme->midiev.u.volumechange.volume = MIN(127, 127 * volumechg->volume);
 	tme->track = volumechg->track;
 
@@ -609,15 +605,13 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	tme->midiev.u.midinote.velocity = DEFAULT_VELOCITY;
 
 	if (me->me_type == ME_TYPE_ABSDRUM) {
-		tme->autoallocate_channel = 0;
-		tme->instrument = me->u.absdrum.instrument;
 		tme->track = me->u.absdrum.track;
-		tme->midiev.u.midinote.channel = DRUM_MIDICHANNEL;
+		/* XXX ? tme->instrument = me->u.absdrum.instrument; */
+		tme->midiev.u.midinote.channel = tme->track->midichannel;
 	} else if (me->me_type == ME_TYPE_ABSNOTE) {
-		tme->autoallocate_channel = 1;
-		tme->instrument = me->u.absnote.instrument;
 		tme->track = me->u.absnote.track;
-		tme->midiev.u.midinote.channel = DEFAULT_MIDICHANNEL;
+		/* XXX ? tme->instrument = me->u.absnote.instrument; */
+		tme->midiev.u.midinote.channel = tme->track->midichannel;
 	} else {
 		assert(0);
 	}
@@ -631,21 +625,18 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	mse->evtype = MIDISTREV_NOTEOFF;
 	mse->time_as_measures = timeoffset + me->u.absnote.length;
 	tme = &mse->u.tme;
-	tme->autoallocate_channel = 1;
 	tme->midiev.evtype = MIDIEV_NOTEOFF;
 	tme->midiev.u.midinote.note = new_note;
 	tme->midiev.u.midinote.velocity = 0;
 
 	if (me->me_type == ME_TYPE_ABSDRUM) {
-		tme->autoallocate_channel = 0;
-		tme->instrument = me->u.absdrum.instrument;
 		tme->track = me->u.absdrum.track;
-		tme->midiev.u.midinote.channel = DRUM_MIDICHANNEL;
+		/* XXX ? tme->instrument = me->u.absdrum.instrument; */
+		tme->midiev.u.midinote.channel = tme->track->midichannel;
 	} else if (me->me_type == ME_TYPE_ABSNOTE) {
-		tme->autoallocate_channel = 1;
-		tme->instrument = me->u.absnote.instrument;
 		tme->track = me->u.absnote.track;
-		tme->midiev.u.midinote.channel = DEFAULT_MIDICHANNEL;
+		/* XXX ? tme->instrument = me->u.absnote.instrument; */
+		tme->midiev.u.midinote.channel = tme->track->midichannel;
 	} else {
 		assert(0);
 	}

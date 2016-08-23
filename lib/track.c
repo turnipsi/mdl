@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.6 2016/08/22 20:18:48 je Exp $ */
+/* $Id: track.c,v 1.7 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -22,19 +22,16 @@
 #include <string.h>
 
 #include "instrument.h"
+#include "midi.h"
 #include "track.h"
 
-struct instrument *
-_mdl_track_get_default_instrument(enum instrument_type type,
-    struct track *track)
-{
-	return _mdl_get_instrument(type, track->name);
-}
-
 struct track *
-_mdl_track_new(const char *trackname)
+_mdl_track_new(enum instrument_type type, const char *trackname)
 {
 	struct track *track;
+	char *default_instrument;
+
+	assert(type == INSTR_DRUMKIT || type == INSTR_TONED);
 
 	if ((track = malloc(sizeof(struct track))) == NULL) {
 		warn("malloc failure in _mdl_track_new");
@@ -47,7 +44,26 @@ _mdl_track_new(const char *trackname)
 		return NULL;
 	}
 
-	track->prev_midich = -1;
+	if (type == INSTR_TONED) {
+		track->autoallocate_channel = 1;
+		track->midichannel = MIDI_DEFAULTCHANNEL;
+	} else {
+		track->autoallocate_channel = 0;
+		track->midichannel = MIDI_DRUMCHANNEL;
+	}
+
+	track->instrument = _mdl_get_instrument(type, trackname);
+	if (track->instrument == NULL) {
+		if (type == INSTR_TONED) {
+			default_instrument = DEFAULT_TONED_INSTRUMENT;
+		} else {
+			default_instrument = DEFAULT_DRUMKIT;
+		}
+		track->instrument = _mdl_get_instrument(type,
+		    default_instrument);
+	}
+	assert(track->instrument != NULL);
+
 	track->volume = TRACK_DEFAULT_VOLUME;
 
 	return track;

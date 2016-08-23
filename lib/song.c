@@ -1,4 +1,4 @@
-/* $Id: song.c,v 1.17 2016/08/22 20:18:48 je Exp $ */
+/* $Id: song.c,v 1.18 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -21,6 +21,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "instrument.h"
 #include "midi.h"
 #include "musicexpr.h"
 #include "song.h"
@@ -54,14 +55,16 @@ _mdl_song_setup_tracks(struct song *song, struct musicexpr *me, int level)
 		return 1;
 	}
 
-	track = _mdl_song_find_track_or_new(song, "acoustic grand", level);
+	track = _mdl_song_find_track_or_new(song, INSTR_TONED,
+	    DEFAULT_TONED_INSTRUMENT, level);
 	if (track == NULL) {
 		warnx("could not create the default toned instrument track");
 		return 1;
 	}
 	song->default_tonedtrack = track;
 
-	track = _mdl_song_find_track_or_new(song, "drums", level);
+	track = _mdl_song_find_track_or_new(song, INSTR_DRUMKIT,
+	    DEFAULT_DRUMKIT, level);
 	if (track == NULL) {
 		warnx("could not create the default drumkit track");
 		return 1;
@@ -86,8 +89,8 @@ connect_tracks_to_song(struct song *song, struct musicexpr *me, int level)
 
 	if (me->me_type == ME_TYPE_ONTRACK) {
 		tmp_track = me->u.ontrack.track;
-		track = _mdl_song_find_track_or_new(song, tmp_track->name,
-		    level);
+		track = _mdl_song_find_track_or_new(song,
+		    tmp_track->instrument->type, tmp_track->name, level);
 		if (track == NULL)
 			return 1;
 		me->u.ontrack.track = track;
@@ -121,17 +124,17 @@ _mdl_song_free(struct song *song)
 }
 
 struct track *
-_mdl_song_find_track_or_new(struct song *song, char *trackname, int level)
+_mdl_song_find_track_or_new(struct song *song, enum instrument_type instr_type,
+    char *trackname, int level)
 {
 	struct track *track;
 
-	/* XXX Drum track should be treated in a special way. */
-
 	SLIST_FOREACH(track, &song->tracklist, sl)
-		if (strcmp(track->name, trackname) == 0)
+		if (strcmp(track->name, trackname) == 0 &&
+		    track->instrument->type == instr_type)
 			return track;
 
-	track = _mdl_track_new(trackname);
+	track = _mdl_track_new(instr_type, trackname);
 	if (track == NULL) {
 		warnx("error in creating a new track");
 		return NULL;

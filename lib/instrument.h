@@ -1,4 +1,4 @@
-/* $Id: instrument.h,v 1.5 2016/05/10 20:39:43 je Exp $ */
+/* $Id: instrument.h,v 1.6 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,9 @@
 
 enum instrument_type { INSTR_DRUMKIT, INSTR_TONED };
 
+#define DEFAULT_DRUMKIT			"drums"
+#define DEFAULT_TONED_INSTRUMENT	"acoustic grand"
+
 #define LONGEST_DRUMKIT_SIZE    sizeof("electronic drums")
 #define LONGEST_TONED_SIZE      sizeof("acoustic guitar (nylon)")
 #define LONGEST_INSTRUMENT_SIZE MAX(LONGEST_DRUMKIT_SIZE, LONGEST_TONED_SIZE)
@@ -34,8 +37,7 @@ struct instrument {
 };
 
 __BEGIN_DECLS
-struct instrument *
-_mdl_get_instrument(enum instrument_type, char *);
+struct instrument *_mdl_get_instrument(enum instrument_type, const char *);
 __END_DECLS
 
 #endif /* !MDL_INSTRUMENT_H */

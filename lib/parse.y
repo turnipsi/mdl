@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.63 2016/08/10 18:58:00 je Exp $ */
+/* $Id: parse.y,v 1.64 2016/08/23 20:22:58 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -25,6 +25,7 @@
 #include "functions.h"
 #include "musicexpr.h"
 #include "parse.h"
+#include "track.h"
 
 struct musicexpr *parsed_expr = NULL;
 unsigned int	parse_errors = 0;
@@ -401,7 +402,9 @@ track_expr:
 			YYERROR;
 		}
 		$$->u.ontrack.me = $3;
-		$$->u.ontrack.track = malloc(sizeof(struct track));
+
+		/* XXX what about drumtracks? */
+		$$->u.ontrack.track = _mdl_track_new(INSTR_TONED, $1.expr);
 		if ($$->u.ontrack.track == NULL) {
 			free($$);
 			free($1.expr);
@@ -410,7 +413,6 @@ track_expr:
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
-		$$->u.ontrack.track->name = $1.expr;
 	  }
 	;
 
