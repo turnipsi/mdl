@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.12 2016/08/23 20:22:58 je Exp $ */
+/* $Id: midistream.h,v 1.13 2016/08/26 20:50:56 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -38,6 +38,7 @@ enum midistreamevent_type {
 };
 
 struct trackmidievent {
+	struct instrument      *instrument;
 	struct midievent	midiev;
 	struct track	       *track;
 };
