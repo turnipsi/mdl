@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.59 2016/08/27 18:53:31 je Exp $ */
+/* $Id: midistream.c,v 1.60 2016/08/27 19:10:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -543,6 +543,7 @@ handle_midistreamevent(struct midistreamevent *mse, struct mdl_stream *midi_es,
 		tmidiev->midiev.u.bpm = mse->u.bpm;
 		_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
 		    "sending to sequencer", tmidiev, level);
+		ret = _mdl_stream_increment(midi_es);
 		break;
 	case MIDISTREV_VOLUMECHANGE:
 		assert(mse->u.tme.midiev.evtype == MIDIEV_VOLUMECHANGE);

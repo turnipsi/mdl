@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.136 2016/08/22 19:40:08 je Exp $ */
+/* $Id: sequencer.c,v 1.137 2016/08/27 19:10:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -840,6 +840,8 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 				ss->latest_tempo_change_as_measures =
 				    tmidiev->time_as_measures;
 				ss->tempo = midiev->u.bpm;
+				_mdl_log(MDLLOG_MIDI, 0,
+				    "changing tempo to %.0fbpm\n", ss->tempo);
 				break;
 			default:
 				assert(0);
