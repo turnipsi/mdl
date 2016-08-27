@@ -1,0 +1,205 @@
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:36:2,4:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:35:2,4:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :         inspecting ontrack:20:2,4:9,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :           inspecting sequence:19:3,5:9,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :             inspecting absnote:0:3,5:3,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:47:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:47:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                 absnote:46:3,5:3,6 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.000000 to 0.125000
+mdl.interp.exprconv    :             inspecting absnote:1:3,8:3,8 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:49:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:49:0,0:0,0 offset=0.125
+mdl.interp.exprconv    :                 absnote:48:3,8:3,8 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.125000 to 0.250000
+mdl.interp.exprconv    :             inspecting absnote:2:3,10:3,10 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:51:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:51:0,0:0,0 offset=0.250
+mdl.interp.exprconv    :                 absnote:50:3,10:3,10 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.250000 to 0.375000
+mdl.interp.exprconv    :             inspecting absnote:3:3,12:3,12 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:53:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:53:0,0:0,0 offset=0.375
+mdl.interp.exprconv    :                 absnote:52:3,12:3,12 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.375000 to 0.500000
+mdl.interp.exprconv    :             inspecting volumechange:37:4,6:4,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:55:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:55:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                 volumechange:54:4,6:4,11 track=violin volume=32
+mdl.interp.exprconv    :               offset changed from 0.500000 to 0.500000
+mdl.interp.exprconv    :             inspecting absnote:5:5,5:5,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:57:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:57:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                 absnote:56:5,5:5,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.500000 to 0.625000
+mdl.interp.exprconv    :             inspecting absnote:6:5,9:5,9 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:59:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:59:0,0:0,0 offset=0.625
+mdl.interp.exprconv    :                 absnote:58:5,9:5,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.625000 to 0.750000
+mdl.interp.exprconv    :             inspecting absnote:7:5,11:5,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:61:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:61:0,0:0,0 offset=0.750
+mdl.interp.exprconv    :                 absnote:60:5,11:5,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.750000 to 0.875000
+mdl.interp.exprconv    :             inspecting absnote:8:5,13:5,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:63:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:63:0,0:0,0 offset=0.875
+mdl.interp.exprconv    :                 absnote:62:5,13:5,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 0.875000 to 1.000000
+mdl.interp.exprconv    :             inspecting volumechange:38:6,6:6,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:65:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:65:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                 volumechange:64:6,6:6,11 track=violin volume=127
+mdl.interp.exprconv    :               offset changed from 1.000000 to 1.000000
+mdl.interp.exprconv    :             inspecting absnote:10:7,5:7,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:67:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:67:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                 absnote:66:7,5:7,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.000000 to 1.125000
+mdl.interp.exprconv    :             inspecting absnote:11:7,9:7,9 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:69:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:69:0,0:0,0 offset=1.125
+mdl.interp.exprconv    :                 absnote:68:7,9:7,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.125000 to 1.250000
+mdl.interp.exprconv    :             inspecting absnote:12:7,11:7,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:71:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:71:0,0:0,0 offset=1.250
+mdl.interp.exprconv    :                 absnote:70:7,11:7,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.250000 to 1.375000
+mdl.interp.exprconv    :             inspecting absnote:13:7,13:7,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:73:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:73:0,0:0,0 offset=1.375
+mdl.interp.exprconv    :                 absnote:72:7,13:7,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.375000 to 1.500000
+mdl.interp.exprconv    :             inspecting volumechange:39:8,6:8,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:75:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:75:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                 volumechange:74:8,6:8,11 track=violin volume=64
+mdl.interp.exprconv    :               offset changed from 1.500000 to 1.500000
+mdl.interp.exprconv    :             inspecting absnote:15:9,5:9,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:77:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:77:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                 absnote:76:9,5:9,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.500000 to 1.625000
+mdl.interp.exprconv    :             inspecting absnote:16:9,9:9,9 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:79:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:79:0,0:0,0 offset=1.625
+mdl.interp.exprconv    :                 absnote:78:9,9:9,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.625000 to 1.750000
+mdl.interp.exprconv    :             inspecting absnote:17:9,11:9,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:81:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:81:0,0:0,0 offset=1.750
+mdl.interp.exprconv    :                 absnote:80:9,11:9,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.750000 to 1.875000
+mdl.interp.exprconv    :             inspecting absnote:18:9,13:9,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:83:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:83:0,0:0,0 offset=1.875
+mdl.interp.exprconv    :                 absnote:82:9,13:9,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.exprconv    :               offset changed from 1.875000 to 2.000000
+mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :         inspecting ontrack:34:12,4:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :           inspecting sequence:33:13,6:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :             inspecting volumechange:40:13,6:13,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:85:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:85:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                 volumechange:84:13,6:13,11 track=string ensemble 1 volume=24
+mdl.interp.exprconv    :               offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :             inspecting chord:23:14,5:14,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               inspecting noteoffsetexpr:86:0,0:0,0 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                 inspecting absnote:88:14,5:14,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:90:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:90:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                     absnote:89:14,5:14,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :                 inspecting absnote:91:14,5:14,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:93:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:93:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                     absnote:92:14,5:14,6 notesym=0 note=64 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :                 inspecting absnote:94:14,5:14,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:96:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:96:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                     absnote:95:14,5:14,6 notesym=0 note=67 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :                 offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :               offset changed from 0.000000 to 0.500000
+mdl.interp.exprconv    :             inspecting volumechange:41:15,6:15,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:98:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:98:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                 volumechange:97:15,6:15,11 track=string ensemble 1 volume=48
+mdl.interp.exprconv    :               offset changed from 0.500000 to 0.500000
+mdl.interp.exprconv    :             inspecting chord:26:16,5:16,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               inspecting noteoffsetexpr:99:0,0:0,0 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                 inspecting absnote:101:16,5:16,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:103:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:103:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                     absnote:102:16,5:16,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :                 inspecting absnote:104:16,5:16,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:106:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:106:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                     absnote:105:16,5:16,6 notesym=0 note=64 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :                 inspecting absnote:107:16,5:16,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:109:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:109:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :                     absnote:108:16,5:16,6 notesym=0 note=67 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :                 offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :               offset changed from 0.500000 to 1.000000
+mdl.interp.exprconv    :             inspecting volumechange:42:17,6:17,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:111:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:111:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                 volumechange:110:17,6:17,11 track=string ensemble 1 volume=72
+mdl.interp.exprconv    :               offset changed from 1.000000 to 1.000000
+mdl.interp.exprconv    :             inspecting chord:29:18,5:18,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               inspecting noteoffsetexpr:112:0,0:0,0 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                 inspecting absnote:114:18,5:18,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:116:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:116:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                     absnote:115:18,5:18,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.000000 to 1.500000
+mdl.interp.exprconv    :                 inspecting absnote:117:18,5:18,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:119:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:119:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                     absnote:118:18,5:18,6 notesym=0 note=64 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.000000 to 1.500000
+mdl.interp.exprconv    :                 inspecting absnote:120:18,5:18,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:122:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:122:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                     absnote:121:18,5:18,6 notesym=0 note=67 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.000000 to 1.500000
+mdl.interp.exprconv    :                 offset changed from 1.000000 to 1.500000
+mdl.interp.exprconv    :               offset changed from 1.000000 to 1.500000
+mdl.interp.exprconv    :             inspecting volumechange:43:19,6:19,11 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:124:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:124:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                 volumechange:123:19,6:19,11 track=string ensemble 1 volume=96
+mdl.interp.exprconv    :               offset changed from 1.500000 to 1.500000
+mdl.interp.exprconv    :             inspecting chord:32:20,5:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :               inspecting noteoffsetexpr:125:0,0:0,0 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                 inspecting absnote:127:20,5:20,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:129:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:129:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                     absnote:128:20,5:20,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.500000 to 2.000000
+mdl.interp.exprconv    :                 inspecting absnote:130:20,5:20,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:132:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:132:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                     absnote:131:20,5:20,6 notesym=0 note=64 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.500000 to 2.000000
+mdl.interp.exprconv    :                 inspecting absnote:133:20,5:20,6 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   adding offsetexpr:135:0,0:0,0 to flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :                   offsetexpr:135:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :                     absnote:134:20,5:20,6 notesym=0 note=67 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.exprconv    :                   offset changed from 1.500000 to 2.000000
+mdl.interp.exprconv    :                 offset changed from 1.500000 to 2.000000
+mdl.interp.exprconv    :               offset changed from 1.500000 to 2.000000
+mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :       offset changed from 0.000000 to 2.000000

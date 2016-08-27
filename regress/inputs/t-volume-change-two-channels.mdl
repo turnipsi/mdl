@@ -1,0 +1,22 @@
+<<
+  "violin" :: {
+    c8 e f g
+    \volume 32
+    c,8 e f g
+    \volume 127
+    c,8 e f g
+    \volume 64
+    c,8 e f g
+  }
+  
+  "string ensemble 1" :: {
+    \volume 24
+    c2:
+    \volume 48
+    c2:
+    \volume 72
+    c2:
+    \volume 96
+    c2:
+  }
+>>
