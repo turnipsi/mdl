@@ -1,4 +1,4 @@
-/* $Id: track.c,v 1.8 2016/08/26 20:50:56 je Exp $ */
+/* $Id: track.c,v 1.9 2016/08/27 18:53:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -44,7 +44,13 @@ _mdl_track_new(enum instrument_type type, const char *trackname)
 		return NULL;
 	}
 
-	track->midichannel = (type == INSTR_DRUMKIT) ? MIDI_DRUMCHANNEL: -1;
+	if (type == INSTR_DRUMKIT) {
+		track->autoallocate_channel = 0;
+		track->midichannel = MIDI_DRUMCHANNEL;
+	} else {
+		track->autoallocate_channel = 1;
+		track->midichannel = MIDI_DEFAULTCHANNEL;
+	}
 
 	track->instrument = _mdl_get_instrument(type, trackname);
 	if (track->instrument == NULL) {

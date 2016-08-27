@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.58 2016/08/27 18:23:07 je Exp $ */
+/* $Id: midistream.c,v 1.59 2016/08/27 18:53:31 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -307,7 +307,7 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
 	    tmidiev, level);
 
-	return 0;
+	return _mdl_stream_increment(midi_es);
 }
 
 static int
@@ -317,45 +317,38 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 {
 	struct timed_midievent *tmidiev;
 	struct miditrack *miditrack;
+	struct track *track;
 	int ch, ret;
 
 	assert(tme->midiev.evtype == MIDIEV_NOTEON);
 
-	if (tme->midiev.u.midinote.channel >= 0) {
-		ch = tme->midiev.u.midinote.channel;
-	} else {
-		if ((ch = lookup_midichannel(tme, miditracks)) == -1)
-			return 1;
-	}
+	if ((ch = lookup_midichannel(tme, miditracks)) == -1)
+		return 1;
 
+	track = tme->track;
 	miditrack = &miditracks[ch];
-	miditrack->track = tme->track;
+	miditrack->track = track;
 
-	tme->midiev.u.midinote.channel = ch;
-	tme->track->midichannel = ch;
-
-	if (miditrack->track->midichannel != ch) {
+	if (track->midichannel != ch) {
 		_mdl_log(MDLLOG_MIDISTREAM, level,
-		    "changing track %s to midichannel %d\n",
-		    miditrack->track->name, ch);
-		miditrack->track->midichannel = ch;
+		    "changing track %s to midichannel %d\n", track->name, ch);
+		track->midichannel = ch;
 	}
 
-	if (miditrack->prev_values.instrument != tme->track->instrument) {
+	if (miditrack->prev_values.instrument != track->instrument) {
 		ret = add_instrument_change_to_midievents(midi_es,
-		    tme->track->instrument, ch, time_as_measures, level+1);
+		    track->instrument, ch, time_as_measures, level);
 		if (ret != 0)
 			return ret;
-		miditrack->prev_values.instrument = tme->track->instrument;
+		miditrack->prev_values.instrument = track->instrument;
 	}
 
-	if (miditrack->prev_values.volume != tme->track->volume) {
+	if (miditrack->prev_values.volume != track->volume) {
 		ret = add_volumechange_to_midievents(midi_es,
-		    tme->track->volume, ch, time_as_measures,
-		    level+1);
+		    track->volume, ch, time_as_measures, level+1);
 		if (ret != 0)
 			return ret;
-		miditrack->prev_values.volume = tme->track->volume;
+		miditrack->prev_values.volume = track->volume;
 	}
 
 	miditracks[ch].notecount[ tme->midiev.u.midinote.note ] += 1;
@@ -366,6 +359,8 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 		/* XXX Actually retriggering note would be better. */
 		return 0;
 	}
+
+	tme->midiev.u.midinote.channel = ch;
 
 	tmidiev = &midi_es->u.timed_midievents[ midi_es->count ];
 	memset(tmidiev, 0, sizeof(struct timed_midievent));
@@ -421,15 +416,20 @@ lookup_midichannel(struct trackmidievent *tme, struct miditrack *miditracks)
 {
 	unsigned int ch;
 
-	/* If midievent has no channel, find an available channel. */
+	ch = tme->track->midichannel;
+
+	/*
+ 	 * If autoallocation is not on, just provide the channel of the
+	 * track.
+	 */
+
+	if (!tme->track->autoallocate_channel)
+		return ch;
 
 	/* First test the possibly previously used midichannel. */
-	if (tme->track->midichannel >= 0) {
-		ch = tme->track->midichannel;
-		if (miditracks[ch].track == NULL ||
-		    miditracks[ch].track == tme->track)
-			return ch;
-	}
+	if (miditracks[ch].track == NULL ||
+	    miditracks[ch].track == tme->track)
+		return ch;
 
 	/* Then lookup an available channel if there is one. */
 	for (ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
@@ -637,8 +637,7 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	mse->time_as_measures = timeoffset;
 	tme = &mse->u.tme;
 	tme->midiev.evtype = MIDIEV_NOTEON;
-	/* XXX tme->track->midichannel may be negative. */
-	tme->midiev.u.midinote.channel = tme->track->midichannel;
+	tme->midiev.u.midinote.channel = MIDI_DEFAULTCHANNEL;
 	tme->midiev.u.midinote.note = new_note;
 	tme->midiev.u.midinote.velocity = DEFAULT_VELOCITY;
 
@@ -662,7 +661,7 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	mse->time_as_measures = timeoffset + me->u.absnote.length;
 	tme = &mse->u.tme;
 	tme->midiev.evtype = MIDIEV_NOTEOFF;
-	tme->midiev.u.midinote.channel = tme->track->midichannel;
+	tme->midiev.u.midinote.channel = MIDI_DEFAULTCHANNEL;
 	tme->midiev.u.midinote.note = new_note;
 	tme->midiev.u.midinote.velocity = 0;
 

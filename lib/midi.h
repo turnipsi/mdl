@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.31 2016/08/26 20:50:56 je Exp $ */
+/* $Id: midi.h,v 1.32 2016/08/27 18:53:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -23,6 +23,7 @@
 #include "util.h"
 
 #define MIDI_CHANNEL_COUNT	16
+#define MIDI_DEFAULTCHANNEL	0
 #define MIDI_DRUMCHANNEL	9
 #define MIDI_NOTE_COUNT		128
 

@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.11 2016/08/27 18:23:07 je Exp $ */
+/* $Id: track.h,v 1.12 2016/08/27 18:53:31 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,7 +29,8 @@
 struct track {
 	struct instrument      *instrument;
 	char		       *name;
-	int			midichannel;
+	int			autoallocate_channel;
+	u_int8_t		midichannel;
 	u_int8_t		volume;
 	SLIST_ENTRY(track)	sl;
 };
