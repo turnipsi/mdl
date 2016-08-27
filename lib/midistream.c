@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.60 2016/08/27 19:10:01 je Exp $ */
+/* $Id: midistream.c,v 1.61 2016/08/27 20:41:31 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,7 +68,7 @@ static int	add_volumechange_to_midievents(struct mdl_stream *,
     u_int8_t, int, float, int);
 
 static int	lookup_midichannel(struct trackmidievent *,
-    struct miditrack *);
+    struct miditrack *, int);
 
 static int	handle_midistreamevent(struct midistreamevent *,
     struct mdl_stream *, struct miditrack *, int);
@@ -279,7 +279,7 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 
 	assert(tme->midiev.evtype == MIDIEV_NOTEOFF);
 
-	ch = lookup_midichannel(tme, miditracks);
+	ch = lookup_midichannel(tme, miditracks, level);
 	assert(ch >= 0);
 	assert(miditracks[ch].track != NULL);
 	assert(miditracks[ch].track == tme->track);
@@ -322,18 +322,12 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	assert(tme->midiev.evtype == MIDIEV_NOTEON);
 
-	if ((ch = lookup_midichannel(tme, miditracks)) == -1)
+	if ((ch = lookup_midichannel(tme, miditracks, level)) == -1)
 		return 1;
 
 	track = tme->track;
 	miditrack = &miditracks[ch];
 	miditrack->track = track;
-
-	if (track->midichannel != ch) {
-		_mdl_log(MDLLOG_MIDISTREAM, level,
-		    "changing track %s to midichannel %d\n", track->name, ch);
-		track->midichannel = ch;
-	}
 
 	if (miditrack->prev_values.instrument != track->instrument) {
 		ret = add_instrument_change_to_midievents(midi_es,
@@ -412,38 +406,71 @@ add_volumechange_to_midievents(struct mdl_stream *midi_es,
 }
 
 static int
-lookup_midichannel(struct trackmidievent *tme, struct miditrack *miditracks)
+lookup_midichannel(struct trackmidievent *tme, struct miditrack *miditracks,
+    int level)
 {
-	unsigned int ch;
+	int ch, old_ch;
 
-	ch = tme->track->midichannel;
+	old_ch = ch = tme->track->midichannel;
 
 	/*
- 	 * If autoallocation is not on, just provide the channel of the
-	 * track.
+ 	 * If autoallocation is not on, just provide the preferred channel of
+	 * the track.
 	 */
-
 	if (!tme->track->autoallocate_channel)
 		return ch;
 
-	/* First test the possibly previously used midichannel. */
-	if (miditracks[ch].track == NULL ||
-	    miditracks[ch].track == tme->track)
-		return ch;
+	/*
+	 * Test if the midichannel this track previously used is still
+	 * reserved by this track, and use that if it is so.
+	 */
+	if (miditracks[ch].track == tme->track)
+		goto found;
 
-	/* Then lookup an available channel if there is one. */
+	/*
+	 * Next look if the preferred channel is currently unused,
+	 * and reserve it for this track if that is so.
+	 */
+	if (miditracks[ch].track == NULL) {
+		miditracks[ch].track = tme->track;
+		goto found;
+	}
+
+	/* Lookup an available channel if there is any available. */
 	for (ch = 0; ch < MIDI_CHANNEL_COUNT; ch++) {
-		assert(miditracks[ch].track != tme->track);
 		/* Midi channel 10 (index 9) is reserved for drums. */
 		if (ch == MIDI_DRUMCHANNEL)
 			continue;
-		if (miditracks[ch].track == NULL)
-			return ch;
+		if (miditracks[ch].track == NULL) {
+			/*
+			 * Found an available track.  Reserve this track for
+			 * us and mark it as our preferred midichannel.
+			 */
+			miditracks[ch].track = tme->track;
+			tme->track->midichannel = ch;
+			goto found;
+		}
 	}
 
 	warnx("out of available midi tracks");
 
 	return -1;
+
+found:
+	if (old_ch != ch) {
+		if (old_ch == -1) {
+			_mdl_log(MDLLOG_MIDISTREAM, level,
+			    "putting track \"%s\" to midichannel %d\n",
+			    tme->track->name, ch);
+		} else {
+			_mdl_log(MDLLOG_MIDISTREAM, level,
+			    "changing track \"%s\" from midichannel %d to"
+			    " %d\n", tme->track->name, old_ch, ch);
+		}
+	}
+
+	assert(ch >= 0);
+	return ch;
 }
 
 static struct mdl_stream *
@@ -547,7 +574,8 @@ handle_midistreamevent(struct midistreamevent *mse, struct mdl_stream *midi_es,
 		break;
 	case MIDISTREV_VOLUMECHANGE:
 		assert(mse->u.tme.midiev.evtype == MIDIEV_VOLUMECHANGE);
-		if ((ch = lookup_midichannel(&mse->u.tme, miditracks)) == -1) {
+		ch = lookup_midichannel(&mse->u.tme, miditracks, level);
+		if (ch == -1) {
 			ret = 1;
 			break;
 		}
