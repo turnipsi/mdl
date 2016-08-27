@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.84 2016/08/22 20:18:48 je Exp $ */
+/* $Id: musicexpr.h,v 1.85 2016/08/27 18:23:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -240,7 +240,7 @@ struct tempochange {
 
 struct volumechange {
 	struct track	       *track;
-	float			volume;
+	u_int8_t		volume;
 };
 
 struct musicexpr_id {

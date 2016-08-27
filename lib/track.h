@@ -1,4 +1,4 @@
-/* $Id: track.h,v 1.10 2016/08/26 20:50:56 je Exp $ */
+/* $Id: track.h,v 1.11 2016/08/27 18:23:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -24,13 +24,13 @@
 
 #include "instrument.h"
 
-#define TRACK_DEFAULT_VOLUME 0.5
+#define TRACK_DEFAULT_VOLUME 64
 
 struct track {
 	struct instrument      *instrument;
 	char		       *name;
-	float			volume;
 	int			midichannel;
+	u_int8_t		volume;
 	SLIST_ENTRY(track)	sl;
 };
 

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.57 2016/08/26 20:50:56 je Exp $ */
+/* $Id: midistream.c,v 1.58 2016/08/27 18:23:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -351,7 +351,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	if (miditrack->prev_values.volume != tme->track->volume) {
 		ret = add_volumechange_to_midievents(midi_es,
-		    MIN(127, tme->track->volume * 127), ch, time_as_measures,
+		    tme->track->volume, ch, time_as_measures,
 		    level+1);
 		if (ret != 0)
 			return ret;
@@ -712,7 +712,7 @@ add_volumechange_to_midistream(struct mdl_stream *midistream_es,
 	tme = &mse->u.tme;
 	tme->midiev.evtype = MIDIEV_VOLUMECHANGE;
 	tme->midiev.u.volumechange.channel = volumechg->track->midichannel;
-	tme->midiev.u.volumechange.volume = MIN(127, 127 * volumechg->volume);
+	tme->midiev.u.volumechange.volume = volumechg->volume;
 	tme->track = volumechg->track;
 
 	return _mdl_stream_increment(midistream_es);
