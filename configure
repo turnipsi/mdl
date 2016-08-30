@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.19 2016/08/07 20:20:12 je Exp $
+# $Id: configure,v 1.20 2016/08/30 20:33:48 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -54,6 +54,20 @@ check_asprintf() {
 int main(void) { asprintf(NULL, NULL); }
 EOF
 
+}
+
+check_clock_gettime_monotonic() {
+  check_cc <<'EOF'
+#include <time.h>
+int main(void) { clock_gettime(CLOCK_MONOTONIC, NULL); }
+EOF
+}
+
+check_clock_gettime_uptime() {
+  check_cc <<'EOF'
+#include <time.h>
+int main(void) { clock_gettime(CLOCK_UPTIME, NULL); }
+EOF
 }
 
 check_dead() {
@@ -143,7 +157,7 @@ do_check() {
   checkname=$1
   checkfunc=$2
 
-  printf 'Checking for %s... ' $checkname
+  printf 'Checking for %s ... ' "$checkname"
   if $checkfunc; then
     echo ok.
   else
@@ -189,6 +203,15 @@ if do_check asprintf check_asprintf; then
 else
   append_to_config_mk 'SRCS += ${COMPATDIR}/asprintf.c'
   include_compat_h=true
+fi
+
+if do_check 'clock_gettime(CLOCK_UPTIME, tp)' \
+  check_clock_gettime_uptime; then
+    append_to_config_h '#define HAVE_CLOCK_UPTIME 1'
+elif ! do_check 'clock_gettime(CLOCK_MONOTONIC, tp)' \
+  check_clock_gettime_monotonic; then
+    echo 'Could not find support for CLOCK_UPTIME or CLOCK_MONOTONIC' >&2
+    exit 1
 fi
 
 if do_check attribute__dead check_dead; then

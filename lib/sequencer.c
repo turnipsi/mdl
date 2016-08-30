@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.137 2016/08/27 19:10:01 je Exp $ */
+/* $Id: sequencer.c,v 1.138 2016/08/30 20:33:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -99,6 +99,7 @@ static int	sequencer_accept_client_socket(struct sequencer *, int);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     const struct timespec *, struct timespec *);
+static int	sequencer_clock_gettime(struct timespec *);
 static void	sequencer_close(struct sequencer *);
 static void	sequencer_close_songstate(const struct sequencer *,
     struct songstate *);
@@ -589,7 +590,7 @@ sequencer_calculate_timeout(const struct sequencer *seq,
 		return;
 	}
 
-	ret = clock_gettime(CLOCK_UPTIME, &current_time);
+	ret = sequencer_clock_gettime(&current_time);
 	assert(ret == 0);
 
 	timeout->tv_sec  = eventtime->tv_sec  - current_time.tv_sec;
@@ -608,6 +609,16 @@ sequencer_calculate_timeout(const struct sequencer *seq,
 		    "next sequencer timeout: %ld.%ld\n", timeout->tv_sec,
 		    timeout->tv_nsec);
 	}
+}
+
+static int
+sequencer_clock_gettime(struct timespec *tp)
+{
+#ifdef HAVE_CLOCK_UPTIME
+	return clock_gettime(CLOCK_UPTIME, tp);
+#else
+	return clock_gettime(CLOCK_MONOTONIC, tp);
+#endif
 }
 
 static void
@@ -1205,7 +1216,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	    sequencer_calc_time_since_latest_tempo_change(new_ss,
 	    new_ss->time_as_measures);
 
-	ret = clock_gettime(CLOCK_UPTIME, &latest_tempo_change_as_time);
+	ret = sequencer_clock_gettime(&latest_tempo_change_as_time);
 	assert(ret == 0);
 
 	latest_tempo_change_as_time.tv_sec -=
