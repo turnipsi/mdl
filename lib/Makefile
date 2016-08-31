@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.62 2016/08/10 18:58:00 je Exp $
+# $Id: Makefile,v 1.63 2016/08/31 18:54:53 je Exp $
 
 SRCS=	functions.c interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c \
 	midistream.c musicexpr.c parse.c relative.c sequencer.c song.c \
@@ -18,8 +18,7 @@ AFLCC?=	afl-gcc
 
 include ../config.mk
 
-# XXX -lutil is only for imsg, might not be necessary
-LDADD+=	-lm -lutil ${LIBMDL_LDADD}
+LDADD+=	-lm ${LIBMDL_LDADD}
 
 .PHONY: all
 all: libmdl.so

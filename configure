@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.20 2016/08/30 20:33:48 je Exp $
+# $Id: configure,v 1.21 2016/08/31 18:54:52 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -224,6 +224,7 @@ fi
 
 if do_check imsg check_imsg; then
   append_to_config_h '#define HAVE_IMSG 1'
+  append_to_config_mk 'LIBMDL_LDADD += -lutil'
 else
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg-buffer.c'
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg.c'
