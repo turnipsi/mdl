@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.61 2016/08/27 20:41:31 je Exp $ */
+/* $Id: midistream.c,v 1.62 2016/08/31 16:02:48 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -417,23 +417,27 @@ lookup_midichannel(struct trackmidievent *tme, struct miditrack *miditracks,
  	 * If autoallocation is not on, just provide the preferred channel of
 	 * the track.
 	 */
-	if (!tme->track->autoallocate_channel)
+	if (!tme->track->autoallocate_channel) {
+		assert(ch >= 0);
 		return ch;
+	}
 
-	/*
-	 * Test if the midichannel this track previously used is still
-	 * reserved by this track, and use that if it is so.
-	 */
-	if (miditracks[ch].track == tme->track)
-		goto found;
+	if (ch >= 0) {
+		/*
+		 * Test if the midichannel this track previously used is still
+		 * reserved by this track, and use that if it is so.
+		 */
+		if (miditracks[ch].track == tme->track)
+			goto found;
 
-	/*
-	 * Next look if the preferred channel is currently unused,
-	 * and reserve it for this track if that is so.
-	 */
-	if (miditracks[ch].track == NULL) {
-		miditracks[ch].track = tme->track;
-		goto found;
+		/*
+		 * Next look if the preferred channel is currently unused,
+		 * and reserve it for this track if that is so.
+		 */
+		if (miditracks[ch].track == NULL) {
+			miditracks[ch].track = tme->track;
+			goto found;
+		}
 	}
 
 	/* Lookup an available channel if there is any available. */
