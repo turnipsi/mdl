@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.29 2016/07/31 17:18:40 je Exp $ */
+/* $Id: lex.l,v 1.30 2016/08/31 16:58:23 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@ static void	update_textloc(struct textloc *);
 
 %}
 
+%option nounput
 %option noyywrap
 
 %x funcargs
