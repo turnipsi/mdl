@@ -1,4 +1,4 @@
-/* $Id: compat.h,v 1.5 2016/05/02 20:33:08 je Exp $ */
+/* $Id: compat.h,v 1.6 2016/09/01 19:52:03 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -40,6 +40,10 @@ int	pledge(const char *, const char *[]);
 void	*reallocarray(void *, size_t, size_t);
 #endif /* !HAVE_REALLOCARRAY */
 
+#ifndef HAVE_STRLCAT
+size_t	strlcat(char *, const char *, size_t);
+#endif /* !HAVE_STRLCAT */
+
 #ifndef HAVE_STRLCPY
 size_t	strlcpy(char *, const char *, size_t);
 #endif /* !HAVE_STRLCPY */
@@ -51,5 +55,9 @@ char	*strsep(char **, const char *);
 #ifndef HAVE_STRTONUM
 long long	strtonum(const char *, long long, long long, const char **);
 #endif /* !HAVE_STRTONUM */
+
+#ifndef HAVE_SETPROCTITLE
+void	setproctitle(const char *, ...);
+#endif /* !HAVE_SETPROCTITLE */
 
 #endif /* !MDL_COMPAT_H */
