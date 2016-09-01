@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.62 2016/08/31 16:02:48 je Exp $ */
+/* $Id: midistream.c,v 1.63 2016/09/01 18:56:45 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -631,6 +631,9 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	float length;
 
 	assert(midistream_es->s_type == MIDISTREAMEVENTS);
+
+	length = 0.0;
+	new_note = -1;
 
 	switch (me->me_type) {
 	case ME_TYPE_ABSDRUM:
