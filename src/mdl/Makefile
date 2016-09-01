@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.6 2016/08/01 20:35:09 je Exp $
+# $Id: Makefile,v 1.7 2016/09/01 18:40:42 je Exp $
 
 SRCS=	mdl.c
 
@@ -8,11 +8,13 @@ COMPATDIR?=	../../compat
 
 LIBMDL_PATH?=	../../lib
 
-CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith
+CDIAGFLAGS?=	-W -Wall -Wbad-function-cast -Wpointer-arith
+CFLAGS?=	-O2 -pipe
 DEBUG?=		-g
-CFLAGS?=	-O2 -pipe ${DEBUG}
-CFLAGS+=	${CDIAGFLAGS} -I${LIBMDL_PATH} -I${COMPATDIR} \
-		    -include ../../config.h
+PICFLAG?=	-fPIC
+
+CC_ARGS=	${CFLAGS} ${DEBUG} ${CDIAGFLAGS} ${PICFLAG} -I${LIBMDL_PATH} \
+		-I${COMPATDIR} -include ../config.h
 
 AFLCC?=	afl-gcc
 
@@ -23,11 +25,11 @@ all: mdl
 
 mdl: ${SRCS}
 	(cd ${LIBMDL_PATH} && ${MAKE} all)
-	${CC} ${CFLAGS} -L${LIBMDL_PATH} -o $@ ${SRCS} ${LDADD} -lmdl
+	${CC} ${CC_ARGS} -L${LIBMDL_PATH} -o $@ ${SRCS} ${LDADD} -lmdl
 
 afl-mdl: ${SRCS}
 	(cd ${LIBMDL_PATH} && ${MAKE} libmdlafl.so)
-	${AFLCC} ${CFLAGS} -L${LIBMDL_PATH} -o $@ ${SRCS} ${LDADD} -lmdlafl
+	${AFLCC} ${CC_ARGS} -L${LIBMDL_PATH} -o $@ ${SRCS} ${LDADD} -lmdlafl
 
 .PHONY: install
 install: mdl

@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.63 2016/08/31 18:54:53 je Exp $
+# $Id: Makefile,v 1.64 2016/09/01 18:40:41 je Exp $
 
 SRCS=	functions.c interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c \
 	midistream.c musicexpr.c parse.c relative.c sequencer.c song.c \
@@ -8,11 +8,13 @@ PREFIX?=	/usr/local
 MANPREFIX?=	${PREFIX}/man
 COMPATDIR?=	../compat
 
-CDIAGFLAGS+=	-W -Wall -Wbad-function-cast -Wpointer-arith
+CDIAGFLAGS?=	-W -Wall -Wbad-function-cast -Wpointer-arith
+CFLAGS?=	-O2 -pipe
 DEBUG?=		-g
-CFLAGS?=	-O2 -pipe ${DEBUG}
-CFLAGS+=	${CDIAGFLAGS} -I. -I${COMPATDIR} -include ../config.h
 PICFLAG?=	-fPIC
+
+CC_ARGS=	${CFLAGS} ${DEBUG} ${CDIAGFLAGS} ${PICFLAG} -I. \
+		-I${COMPATDIR} -include ../config.h
 
 AFLCC?=	afl-gcc
 
@@ -24,11 +26,10 @@ LDADD+=	-lm ${LIBMDL_LDADD}
 all: libmdl.so
 
 libmdl.so: ${SRCS}
-	${CC} ${CFLAGS} ${PICFLAG} -shared -o $@ ${SRCS} ${LDADD}
+	${CC} ${CC_ARGS} -shared -o $@ ${SRCS} ${LDADD}
 
 libmdlafl.so: ${SRCS}
-	${AFLCC} ${CFLAGS} ${PICFLAG} -DMDL_USE_AFL -shared -o $@ ${SRCS} \
-	    ${LDADD}
+	${AFLCC} ${CC_ARGS} -DMDL_USE_AFL -shared -o $@ ${SRCS} ${LDADD}
 
 # XXX What about the *.a files?  Library version numbering?
 install:
