@@ -1,0 +1,7 @@
+<<
+  { c2 c c c }
+  {
+    \tempo  240; g4    \tempo 140; g4    \tempo  80; g4    \tempo  40; g4
+    \tempo   40; g4    \tempo  80; g4    \tempo 140; g4    \tempo 240; g4
+  }
+>>
