@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.138 2016/08/30 20:33:49 je Exp $ */
+/* $Id: sequencer.c,v 1.139 2016/09/02 20:53:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -874,7 +874,7 @@ sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
 	int ret;
 	struct notestate *nstate;
 
-	ret = _mdl_midi_send_midievent(me, seq->dry_run);
+	ret = _mdl_midi_play_midievent(me, seq->dry_run);
 	if (ret == 0) {
 		switch (me->evtype) {
 		case MIDIEV_INSTRUMENT_CHANGE:

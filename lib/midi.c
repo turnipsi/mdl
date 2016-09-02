@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.39 2016/09/02 20:35:13 je Exp $ */
+/* $Id: midi.c,v 1.40 2016/09/02 20:53:53 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -308,7 +308,7 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 }
 
 int
-_mdl_midi_send_midievent(struct midievent *me, int dry_run)
+_mdl_midi_play_midievent(struct midievent *me, int dry_run)
 {
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
 	size_t midievent_size, wsize;
@@ -319,7 +319,7 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
 		_mdl_log(MDLLOG_MIDI, 0,
-		    "sending instrumentchange: channel=%d code=%d\n",
+		    "playing instrumentchange: channel=%d code=%d\n",
 		    me->u.instr_change.channel, me->u.instr_change.code);
 		maybe_log_the_clock();
 
@@ -338,7 +338,7 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 		    ? me->u.midinote.velocity : 0;
 
 		_mdl_log(MDLLOG_MIDI, 0,
-		    "sending %s: notevalue=%d channel=%d velocity=%d\n",
+		    "playing %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->evtype == MIDIEV_NOTEON ? "noteon" : "noteoff"),
 		    me->u.midinote.note, me->u.midinote.channel, velocity);
 		maybe_log_the_clock();
@@ -349,7 +349,7 @@ _mdl_midi_send_midievent(struct midievent *me, int dry_run)
 		break;
 	case MIDIEV_VOLUMECHANGE:
 		_mdl_log(MDLLOG_MIDI, 0,
-		    "sending volumechange: channel=%d volume=%d\n",
+		    "playing volumechange: channel=%d volume=%d\n",
 		    me->u.volumechange.channel, me->u.volumechange.volume);
 		maybe_log_the_clock();
 
