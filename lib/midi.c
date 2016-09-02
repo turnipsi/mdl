@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.38 2016/08/27 20:18:28 je Exp $ */
+/* $Id: midi.c,v 1.39 2016/09/02 20:35:13 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -434,7 +434,7 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 		break;
 	case MIDIEV_VOLUMECHANGE:
 		_mdl_log(logtype, level,
-		    "%s volumehange time=%.3f channel=%d volume=%d\n", prefix,
+		    "%s volumechange time=%.3f channel=%d volume=%d\n", prefix,
 		    tme->time_as_measures, me->u.volumechange.channel,
 		    me->u.volumechange.volume);
 		break;
