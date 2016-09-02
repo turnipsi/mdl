@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.7 2016/08/27 20:45:15 je Exp $
+# $Id: run-tests,v 1.8 2016/09/02 20:35:35 je Exp $
 
 set -eu
 
@@ -71,6 +71,7 @@ test_inputs='
   t-track-with-expression
   t-unjoinable-chords-joining
   t-unjoinable-notes-joining
+  t-volume-change-midnote
   t-volume-change-simple
   t-volume-change-two-channels
 '

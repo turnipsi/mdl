@@ -1,0 +1,7 @@
+<<
+  { c1 ~ c1 }
+  {
+    \volume 127; r4    \volume 96; r4    \volume 64; r4    \volume  32; r4
+    \volume  32; r4    \volume 64; r4    \volume 96; r4    \volume 127; r4
+  }
+>>

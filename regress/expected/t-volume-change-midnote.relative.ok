@@ -1,0 +1,45 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.relative    :   converting relative expressions to absolute
+mdl.interp.relative    :     rel->abs for expression sequence:22:2,5:5,74
+mdl.interp.relative    :       rel->abs for expression simultence:21:2,5:5,74
+mdl.interp.relative    :         rel->abs for expression sequence:3:2,5:2,11
+mdl.interp.relative    :           rel->abs for expression joinexpr:2:2,5:2,11
+mdl.interp.relative    :             rel->abs for expression relnote:0:2,5:2,6
+mdl.interp.relative    :               relnote:0:2,5:2,6 notesym=0 notemods=0 length=1.000 octavemods=0
+mdl.interp.relative    :                 --> absnote:0:2,5:2,6 notesym=0 note=60 length=1.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :             rel->abs for expression relnote:1:2,10:2,11
+mdl.interp.relative    :               relnote:1:2,10:2,11 notesym=0 notemods=0 length=1.000 octavemods=0
+mdl.interp.relative    :                 --> absnote:1:2,10:2,11 notesym=0 note=60 length=1.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :         rel->abs for expression sequence:20:4,6:5,74
+mdl.interp.relative    :           rel->abs for expression volumechange:23:4,6:4,11
+mdl.interp.relative    :           rel->abs for expression rest:5:4,18:4,19
+mdl.interp.relative    :             rest:5:4,18:4,19 length=0.250
+mdl.interp.relative    :               --> rest:5:4,18:4,19 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:24:4,25:4,30
+mdl.interp.relative    :           rel->abs for expression rest:7:4,36:4,37
+mdl.interp.relative    :             rest:7:4,36:4,37 length=0.250
+mdl.interp.relative    :               --> rest:7:4,36:4,37 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:25:4,43:4,48
+mdl.interp.relative    :           rel->abs for expression rest:9:4,54:4,55
+mdl.interp.relative    :             rest:9:4,54:4,55 length=0.250
+mdl.interp.relative    :               --> rest:9:4,54:4,55 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:26:4,61:4,66
+mdl.interp.relative    :           rel->abs for expression rest:11:4,73:4,74
+mdl.interp.relative    :             rest:11:4,73:4,74 length=0.250
+mdl.interp.relative    :               --> rest:11:4,73:4,74 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:27:5,6:5,11
+mdl.interp.relative    :           rel->abs for expression rest:13:5,18:5,19
+mdl.interp.relative    :             rest:13:5,18:5,19 length=0.250
+mdl.interp.relative    :               --> rest:13:5,18:5,19 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:28:5,25:5,30
+mdl.interp.relative    :           rel->abs for expression rest:15:5,36:5,37
+mdl.interp.relative    :             rest:15:5,36:5,37 length=0.250
+mdl.interp.relative    :               --> rest:15:5,36:5,37 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:29:5,43:5,48
+mdl.interp.relative    :           rel->abs for expression rest:17:5,54:5,55
+mdl.interp.relative    :             rest:17:5,54:5,55 length=0.250
+mdl.interp.relative    :               --> rest:17:5,54:5,55 length=0.250
+mdl.interp.relative    :           rel->abs for expression volumechange:30:5,61:5,66
+mdl.interp.relative    :           rel->abs for expression rest:19:5,73:5,74
+mdl.interp.relative    :             rest:19:5,73:5,74 length=0.250
+mdl.interp.relative    :               --> rest:19:5,73:5,74 length=0.250
