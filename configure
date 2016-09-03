@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.23 2016/09/03 10:29:48 je Exp $
+# $Id: configure,v 1.24 2016/09/03 20:28:00 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -88,6 +88,13 @@ int main(void) {}
 EOF
 }
 
+check_iov_max() {
+  check_cc <<'EOF'
+#include <limits.h>
+int main(void) { int i; i = IOV_MAX; return 0; }
+EOF
+}
+
 check_malloc_options() {
   check_cc <<'EOF'
 #include <stdlib.h>
@@ -159,6 +166,13 @@ check_sys_midiio() {
 #include <sys/types.h>
 #include <sys/midiio.h>
 int main(void) {}
+EOF
+}
+
+check_uio_maxiov() {
+  check_cc <<'EOF'
+#include <sys/uio.h>
+int main(void) { int i; i = UIO_MAXIOV; return 0; }
 EOF
 }
 
@@ -245,6 +259,16 @@ else
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg-buffer.c'
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg.c'
   include_compat_h=true
+fi
+
+# POSIX says IOV_MAX should be defined by limits.h, but Linux does not care.
+if do_check IOV_MAX check_iov_max; then
+  :
+elif do_check UIO_MAXIOV check_uio_maxiov; then
+  append_to_config_h '#define IOV_MAX UIO_MAXIOV'
+else
+  echo 'IOV_MAX or UIO_MAXIOV not defined by sys/uio.h' >&2
+  exit 1
 fi
 
 if $enable_pledge && do_check 'pledge()' check_pledge; then
