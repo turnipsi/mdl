@@ -93,8 +93,8 @@ mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 not
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=64 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=1 note=67 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=67 velocity=0
-mdl.interp.midistream  :   sending to sequencer volumechange time=0.500 channel=0 volume=48
 mdl.interp.midistream  :   sending to sequencer volumechange time=0.500 channel=1 volume=32
+mdl.interp.midistream  :   sending to sequencer volumechange time=0.500 channel=0 volume=48
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=1 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=64 velocity=80

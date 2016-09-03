@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.63 2016/09/01 18:56:45 je Exp $ */
+/* $Id: midistream.c,v 1.64 2016/09/03 20:52:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -805,8 +805,8 @@ compare_midievents(const struct midievent *a, const struct midievent *b)
 		vg_b = &b->u.volumechange;
 		return (vg_a->channel < vg_b->channel) ? -1 :
 		       (vg_a->channel > vg_b->channel) ?  1 :
-		       (vg_a->volume  < vg_a->volume)  ? -1 :
-		       (vg_a->volume  > vg_a->volume)  ?  1 : 0;
+		       (vg_a->volume  < vg_b->volume)  ? -1 :
+		       (vg_a->volume  > vg_b->volume)  ?  1 : 0;
 	}
 
 	return
