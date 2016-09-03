@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.24 2016/09/03 20:28:00 je Exp $
+# $Id: configure,v 1.25 2016/09/03 20:30:02 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -267,7 +267,7 @@ if do_check IOV_MAX check_iov_max; then
 elif do_check UIO_MAXIOV check_uio_maxiov; then
   append_to_config_h '#define IOV_MAX UIO_MAXIOV'
 else
-  echo 'IOV_MAX or UIO_MAXIOV not defined by sys/uio.h' >&2
+  echo 'IOV_MAX or UIO_MAXIOV not defined by limits.h or sys/uio.h' >&2
   exit 1
 fi
 
