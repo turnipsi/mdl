@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.22 2016/09/01 19:52:01 je Exp $
+# $Id: configure,v 1.23 2016/09/03 10:29:48 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -112,7 +112,9 @@ EOF
 
 check_setproctitle() {
   check_cc <<'EOF'
+#include <sys/types.h>
 #include <stdlib.h>
+#include <unistd.h>
 int main(void) { setproctitle("a"); }
 EOF
 }
