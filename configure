@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: configure,v 1.25 2016/09/03 20:30:02 je Exp $
+# $Id: configure,v 1.26 2016/09/05 20:07:52 je Exp $
 
 # Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 #
@@ -78,6 +78,13 @@ int main(void) {}
 EOF
 }
 
+check_getdtablecount() {
+  check_cc <<'EOF'
+#include <unistd.h>
+int main(void) { getdtablecount(); }
+EOF
+}
+
 check_imsg() {
   check_cc <<'EOF'
 #include <sys/types.h>
@@ -91,7 +98,7 @@ EOF
 check_iov_max() {
   check_cc <<'EOF'
 #include <limits.h>
-int main(void) { int i; i = IOV_MAX; return 0; }
+int main(void) { int i; i = IOV_MAX; }
 EOF
 }
 
@@ -259,6 +266,11 @@ else
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg-buffer.c'
   append_to_config_mk 'SRCS += ${COMPATDIR}/imsg.c'
   include_compat_h=true
+fi
+
+# suggested by compat/imsg.c
+if do_check getdtablecount check_getdtablecount; then
+  append_to_config_h '#define HAVE_GETDTABLECOUNT 1'
 fi
 
 # POSIX says IOV_MAX should be defined by limits.h, but Linux does not care.
