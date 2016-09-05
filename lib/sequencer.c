@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.139 2016/09/02 20:53:53 je Exp $ */
+/* $Id: sequencer.c,v 1.140 2016/09/05 19:38:02 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -649,6 +649,10 @@ sequencer_handle_client_events(struct sequencer *seq)
 
 	if (nr == 0) {
 		/* Client process has shutdown/closed the client_socket. */
+		/* XXX FreeBSD 10.3 sometimes gets here (maybe on 1 of 1000
+		 * XXX runs), even though client socket has *not* been
+		 * XXX shutdown or should not have been.  I do not know
+		 * XXX what is going on. */
 		_mdl_log(MDLLOG_SEQ, 0,
 		    "client socket has been shutdown by the client process\n");
 		if (close(seq->client_socket) == -1)
