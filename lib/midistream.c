@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.64 2016/09/03 20:52:18 je Exp $ */
+/* $Id: midistream.c,v 1.65 2016/09/06 20:33:40 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -78,6 +78,7 @@ static int	add_musicexpr_to_midistream(struct mdl_stream *,
 static int	compare_midievents(const struct midievent *,
     const struct midievent *);
 static int	compare_midistreamevents(const void *, const void *);
+static int	compare_timed_midievents(const void *, const void *);
 
 struct mdl_stream *
 _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
@@ -247,13 +248,25 @@ offsetexprstream_to_midievents(struct mdl_stream *offset_es, float song_length,
 			goto error;
 	}
 
-	qsort(midistream_es->u.timed_midievents, midistream_es->count,
+	/*
+	 * Sort midistream so that we get midistreamevents ordered by event
+	 * type and timing, most specifically.
+	 */
+	qsort(midistream_es->u.midistreamevents, midistream_es->count,
 	    sizeof(struct midistreamevent), compare_midistreamevents);
 
 	midi_es = midistream_to_midievents(midistream_es, song_length,
 	    level);
 	if (midi_es == NULL)
 		goto error;
+
+	/*
+	 * Sort again, because midi channels for notes have likely been
+	 * changed (by allocating them dynamically) and we want the midi
+	 * event order to be fully deterministic.
+	 */
+	qsort(midi_es->u.timed_midievents, midi_es->count,
+	    sizeof(struct timed_midievent), compare_timed_midievents);
 
 	_mdl_stream_free(midistream_es);
 
@@ -790,30 +803,68 @@ compare_midistreamevents(const void *va, const void *vb)
 }
 
 static int
-compare_midievents(const struct midievent *a, const struct midievent *b)
+compare_timed_midievents(const void *va, const void *vb)
 {
-	const struct midi_volumechange *vg_a, *vg_b;
+	const struct timed_midievent *a, *b;
 
-	/* Provides order only for a subset of midievents. */
-
-	assert(a->evtype == MIDIEV_NOTEOFF || a->evtype == MIDIEV_NOTEON ||
-	    a->evtype == MIDIEV_VOLUMECHANGE);
-	assert(a->evtype == b->evtype);
-
-	if (a->evtype == MIDIEV_VOLUMECHANGE) {
-		vg_a = &a->u.volumechange;
-		vg_b = &b->u.volumechange;
-		return (vg_a->channel < vg_b->channel) ? -1 :
-		       (vg_a->channel > vg_b->channel) ?  1 :
-		       (vg_a->volume  < vg_b->volume)  ? -1 :
-		       (vg_a->volume  > vg_b->volume)  ?  1 : 0;
-	}
+	a = va;
+	b = vb;
 
 	return
-	    (a->u.midinote.channel  < b->u.midinote.channel)  ? -1 :
-	    (a->u.midinote.channel  > b->u.midinote.channel)  ?  1 :
-	    (a->u.midinote.note     < b->u.midinote.note)     ? -1 :
-	    (a->u.midinote.note     > b->u.midinote.note)     ?  1 :
-	    (a->u.midinote.velocity < b->u.midinote.velocity) ? -1 :
-	    (a->u.midinote.velocity > b->u.midinote.velocity) ?  1 : 0;
+	    (a->time_as_measures < b->time_as_measures) ? -1 :
+	    (a->time_as_measures > b->time_as_measures) ?  1 :
+	    compare_midievents(&a->midiev, &b->midiev);
+}
+
+static int
+compare_midievents(const struct midievent *a, const struct midievent *b)
+{
+	const struct instrument_change *ic_a, *ic_b;
+	const struct midi_volumechange *vc_a, *vc_b;
+
+	assert(a->evtype < MIDIEV_TYPECOUNT);
+
+	if (a->evtype < b->evtype)
+		return -1;
+	if (a->evtype > b->evtype)
+		return 1;
+
+	assert(a->evtype == b->evtype);
+
+	switch (a->evtype) {
+	case MIDIEV_INSTRUMENT_CHANGE:
+		ic_a = &a->u.instr_change;
+		ic_b = &b->u.instr_change;
+		return
+		    (ic_a->channel < ic_b->channel) ? -1 :
+		    (ic_a->channel > ic_b->channel) ?  1 :
+		    (ic_a->code    < ic_b->code)    ? -1 :
+		    (ic_a->code    > ic_b->code)    ?  1 : 0;
+	case MIDIEV_NOTEOFF:
+	case MIDIEV_NOTEON:
+		return
+		    (a->u.midinote.channel  < b->u.midinote.channel)  ? -1 :
+		    (a->u.midinote.channel  > b->u.midinote.channel)  ?  1 :
+		    (a->u.midinote.note     < b->u.midinote.note)     ? -1 :
+		    (a->u.midinote.note     > b->u.midinote.note)     ?  1 :
+		    (a->u.midinote.velocity < b->u.midinote.velocity) ? -1 :
+		    (a->u.midinote.velocity > b->u.midinote.velocity) ?  1 : 0;
+	case MIDIEV_SONG_END:
+		return 0;
+	case MIDIEV_TEMPOCHANGE:
+		return (a->u.bpm < b->u.bpm) ? -1 :
+		       (a->u.bpm > b->u.bpm) ?  1 : 0;
+	case MIDIEV_VOLUMECHANGE:
+		vc_a = &a->u.volumechange;
+		vc_b = &b->u.volumechange;
+		return (vc_a->channel < vc_b->channel) ? -1 :
+		       (vc_a->channel > vc_b->channel) ?  1 :
+		       (vc_a->volume  < vc_b->volume)  ? -1 :
+		       (vc_a->volume  > vc_b->volume)  ?  1 : 0;
+		return 0;
+	default:
+		assert(0);
+	}
+
+	return 0;
 }

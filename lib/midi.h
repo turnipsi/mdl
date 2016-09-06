@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.33 2016/09/02 20:53:53 je Exp $ */
+/* $Id: midi.h,v 1.34 2016/09/06 20:33:40 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -28,12 +28,17 @@
 #define MIDI_NOTE_COUNT		128
 
 enum midievent_type {
+	/*
+	 * Order matters here, because that is used in
+	 * compare_midievents() to put events in proper order.
+	 * Particularly, MIDIEV_NOTEOFF must come before MIDIEV_NOTEON.
+	 */
 	MIDIEV_NOTEOFF,
+	MIDIEV_TEMPOCHANGE,
 	MIDIEV_INSTRUMENT_CHANGE,
+	MIDIEV_VOLUMECHANGE,
 	MIDIEV_NOTEON,
 	MIDIEV_SONG_END,
-	MIDIEV_TEMPOCHANGE,
-	MIDIEV_VOLUMECHANGE,
 	MIDIEV_TYPECOUNT,	/* not a type */
 };
 
