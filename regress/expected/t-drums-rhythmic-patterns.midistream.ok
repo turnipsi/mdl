@@ -22,6 +22,7 @@ mdl.interp.midistream  :       absdrum:26:1,30:1,31 drumsym=1 note=37 length=0.0
 mdl.interp.midistream  :     adding expression with offset 0.938 to trackmidievents
 mdl.interp.midistream  :       absdrum:28:1,33:1,34 drumsym=1 note=37 length=0.062 instrument="drums" track="drums"
 mdl.interp.midistream  : adding midievents to send queue:
+mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=9 instrument=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=9 note=36 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=9 note=36 velocity=0
@@ -42,5 +43,4 @@ mdl.interp.midistream  :   sending to sequencer noteoff time=0.938 channel=9 not
 mdl.interp.midistream  :   sending to sequencer noteon time=0.938 channel=9 note=37 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=9 note=37 velocity=0
 mdl.interp.midistream  :   sending to sequencer song end time=1.000
-mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   wrote 240 bytes to sequencer

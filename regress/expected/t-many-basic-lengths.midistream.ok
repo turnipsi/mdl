@@ -23,6 +23,7 @@ mdl.interp.midistream  :     adding expression with offset 1.992 to trackmidieve
 mdl.interp.midistream  :       absnote:28:1,30:1,33 notesym=0 note=60 length=0.008 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  : adding midievents to send queue:
 mdl.interp.midistream  :   putting track "acoustic grand" to midichannel 0
+mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0
@@ -43,5 +44,4 @@ mdl.interp.midistream  :   sending to sequencer noteoff time=1.992 channel=0 not
 mdl.interp.midistream  :   sending to sequencer noteon time=1.992 channel=0 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0
 mdl.interp.midistream  :   sending to sequencer song end time=2.000
-mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   wrote 240 bytes to sequencer

@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.66 2016/09/07 18:47:26 je Exp $ */
+/* $Id: midistream.c,v 1.67 2016/09/07 19:05:04 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -59,13 +59,13 @@ static int	add_volumechange_to_midistream(struct mdl_stream *,
     const struct volumechange *, float);
 
 static int	add_instrument_change_to_midievents(struct mdl_stream *,
-    struct instrument *, int, float, int);
+    struct instrument *, int, float);
 static int	add_noteoff_to_midievents(struct mdl_stream *,
     struct trackmidievent *, struct miditrack *, float, int);
 static int	add_noteon_to_midievents(struct mdl_stream *,
     struct trackmidievent *, struct miditrack *, float, int);
 static int	add_volumechange_to_midievents(struct mdl_stream *,
-    u_int8_t, int, float, int);
+    u_int8_t, int, float);
 
 static int	lookup_midichannel(struct trackmidievent *,
     struct miditrack *, int);
@@ -164,6 +164,7 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
     int level)
 {
 	ssize_t nw, total_wcount, wsize;
+	size_t i;
 
 	_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "writing midi stream to sequencer\n");
@@ -177,6 +178,11 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
 
 	total_wcount = 0;
 
+	for (i = 0; i < s->count; i++) {
+		_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
+		    "sending to sequencer", &s->u.timed_midievents[i], level);
+	}
+
 	wsize = s->count * sizeof(struct timed_midievent);
 
 	while (total_wcount < wsize) {
@@ -189,10 +195,11 @@ _mdl_midi_write_midistream(int sequencer_read_pipe, struct mdl_stream *s,
 			warn("error writing to sequencer");
 			return -1;
 		}
-		_mdl_log(MDLLOG_MIDISTREAM, level,
-		    "wrote %ld bytes to sequencer\n", nw);
 		total_wcount += nw;
 	}
+
+	_mdl_log(MDLLOG_MIDISTREAM, level, "wrote %ld bytes to sequencer\n",
+	    total_wcount);
 
 	return total_wcount;
 }
@@ -317,9 +324,6 @@ add_noteoff_to_midievents(struct mdl_stream *midi_es,
 	tmidiev->time_as_measures = time_as_measures;
 	tmidiev->midiev = tme->midiev;
 
-	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    tmidiev, level);
-
 	return _mdl_stream_increment(midi_es);
 }
 
@@ -344,7 +348,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	if (miditrack->prev_values.instrument != track->instrument) {
 		ret = add_instrument_change_to_midievents(midi_es,
-		    track->instrument, ch, time_as_measures, level);
+		    track->instrument, ch, time_as_measures);
 		if (ret != 0)
 			return ret;
 		miditrack->prev_values.instrument = track->instrument;
@@ -352,7 +356,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	if (miditrack->prev_values.volume != track->volume) {
 		ret = add_volumechange_to_midievents(midi_es,
-		    track->volume, ch, time_as_measures, level+1);
+		    track->volume, ch, time_as_measures);
 		if (ret != 0)
 			return ret;
 		miditrack->prev_values.volume = track->volume;
@@ -374,15 +378,12 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 	tmidiev->time_as_measures = time_as_measures;
 	tmidiev->midiev = tme->midiev;
 
-	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    tmidiev, level);
-
 	return _mdl_stream_increment(midi_es);
 }
 
 static int
 add_instrument_change_to_midievents(struct mdl_stream *midi_es,
-    struct instrument *instrument, int ch, float time_as_measures, int level)
+    struct instrument *instrument, int ch, float time_as_measures)
 {
 	struct timed_midievent *tmidiev;
 
@@ -393,15 +394,12 @@ add_instrument_change_to_midievents(struct mdl_stream *midi_es,
 	tmidiev->midiev.u.instr_change.channel = ch;
 	tmidiev->midiev.u.instr_change.code = instrument->code;
 
-	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    tmidiev, level);
-
 	return _mdl_stream_increment(midi_es);
 }
 
 static int
 add_volumechange_to_midievents(struct mdl_stream *midi_es,
-    u_int8_t volume, int ch, float time_as_measures, int level)
+    u_int8_t volume, int ch, float time_as_measures)
 {
 	struct timed_midievent *tmidiev;
 
@@ -411,9 +409,6 @@ add_volumechange_to_midievents(struct mdl_stream *midi_es,
 	tmidiev->midiev.evtype = MIDIEV_VOLUMECHANGE;
 	tmidiev->midiev.u.volumechange.channel = ch;
 	tmidiev->midiev.u.volumechange.volume = volume;
-
-	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    tmidiev, level);
 
 	return _mdl_stream_increment(midi_es);
 }
@@ -546,9 +541,6 @@ midistream_to_midievents(struct mdl_stream *midistream_es, float song_length,
 	tmidiev->time_as_measures = song_length;
 	tmidiev->midiev.evtype = MIDIEV_SONG_END;
 
-	_mdl_timed_midievent_log(MDLLOG_MIDISTREAM, "sending to sequencer",
-	    tmidiev, level);
-
 	if ((ret = _mdl_stream_increment(midi_es)) != 0)
 		goto error;
 
@@ -585,8 +577,6 @@ handle_midistreamevent(struct midistreamevent *mse, struct mdl_stream *midi_es,
 		tmidiev->time_as_measures = mse->time_as_measures;
 		tmidiev->midiev.evtype = MIDIEV_TEMPOCHANGE;
 		tmidiev->midiev.u.bpm = mse->u.bpm;
-		_mdl_timed_midievent_log(MDLLOG_MIDISTREAM,
-		    "sending to sequencer", tmidiev, level);
 		ret = _mdl_stream_increment(midi_es);
 		break;
 	case MIDISTREV_VOLUMECHANGE:
@@ -598,7 +588,7 @@ handle_midistreamevent(struct midistreamevent *mse, struct mdl_stream *midi_es,
 		}
 		ret = add_volumechange_to_midievents(midi_es,
 		    mse->u.tme.midiev.u.volumechange.volume, ch,
-		    mse->time_as_measures, level);
+		    mse->time_as_measures);
 		break;
 	default:
 		assert(0);

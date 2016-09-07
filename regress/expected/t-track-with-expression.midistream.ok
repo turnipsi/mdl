@@ -9,11 +9,11 @@ mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidieve
 mdl.interp.midistream  :       absnote:9:1,18:1,18 notesym=2 note=64 length=0.500 instrument="violin" track="violin"
 mdl.interp.midistream  : adding midievents to send queue:
 mdl.interp.midistream  :   putting track "violin" to midichannel 0
+mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=40
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=64 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=64 velocity=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=64 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=64 velocity=0
 mdl.interp.midistream  :   sending to sequencer song end time=1.000
-mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   wrote 72 bytes to sequencer
