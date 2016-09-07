@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.65 2016/09/06 20:33:40 je Exp $ */
+/* $Id: midistream.c,v 1.66 2016/09/07 18:47:26 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -861,7 +861,6 @@ compare_midievents(const struct midievent *a, const struct midievent *b)
 		       (vc_a->channel > vc_b->channel) ?  1 :
 		       (vc_a->volume  < vc_b->volume)  ? -1 :
 		       (vc_a->volume  > vc_b->volume)  ?  1 : 0;
-		return 0;
 	default:
 		assert(0);
 	}
