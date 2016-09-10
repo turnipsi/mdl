@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.142 2016/09/10 20:09:27 je Exp $ */
+/* $Id: sequencer.c,v 1.143 2016/09/10 20:14:41 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -866,6 +866,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 		}
 
 		ce->block = SIMPLEQ_NEXT(ce->block, entries);
+		ce->index = 0;
 	}
 
 	return 0;
