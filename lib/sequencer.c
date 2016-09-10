@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.140 2016/09/05 19:38:02 je Exp $ */
+/* $Id: sequencer.c,v 1.141 2016/09/10 19:52:29 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1061,7 +1061,6 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	 * and do a "shadow playback" to determine what our midi state
 	 * should be.
 	 */
-	ce = new_ss->current_event;
 	SIMPLEQ_FOREACH(ce.block, &new_ss->es, entries) {
 		for (ce.index = 0; ce.index < EVENTBLOCKCOUNT; ce.index++) {
 			tmidiev = &ce.block->events[ ce.index ];
