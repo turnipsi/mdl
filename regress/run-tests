@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.9 2016/09/02 21:03:41 je Exp $
+# $Id: run-tests,v 1.10 2016/09/11 20:04:15 je Exp $
 
 set -eu
 
@@ -54,6 +54,7 @@ test_inputs='
   t-join-notes-chords-relsimultences
   t-join-relsimultences
   t-length-changes
+  t-lots-of-notes
   t-many-basic-lengths
   t-mix-notes-and-chords
   t-mix-notes-and-chords-with-jumps
