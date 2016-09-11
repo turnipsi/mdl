@@ -1,7 +1,7 @@
 # J. S. Bach (1685-1750)
 # Air (From orchestral suite number 3)
 
-\tempo 40
+\tempo 42
 
 <<
   "violin" :: {
@@ -47,7 +47,7 @@
     a,4 ~  a16 cis e g  g e fis8 ~  fis ~ fis16 g32 a
     d,4 ~  d16 fis a c  b4.               d,8
 
-    cis16 e g4 d8  a e' fis32 g ~  g16 fis8 e16
+    cis16 e g4 d8  a e'16 fis32 g ~  g16 fis8 e16
 
     d32 cis b8 cis16  d8 cis16 d  d2
 
@@ -69,7 +69,7 @@
     a,4 ~  a16 cis e g  g e fis8 ~  fis ~ fis16 g32 a
     d,4 ~  d16 fis a c  b4.               d,8
 
-    cis16 e g4 d8  a e' fis32 g ~  g16 fis8 e16
+    cis16 e g4 d8  a e'16 fis32 g ~  g16 fis8 e16
 
     d32 cis b8 cis16  d8 cis16 d  d2
   }
@@ -83,8 +83,8 @@
     a8 c16 b  c8 a'16 c,  b8 r   r4
     b8 e16 d  e fis g e   a,8 r  r4
 
-    a2 ~           a8 gis16 a  b8 g
-    a8 a ~ a gis8  e2
+    a2 ~          a8 gis16 a  b8 g
+    a8 a ~ a gis  e2
 
     #
     # A2
@@ -94,8 +94,8 @@
     a8 c16 b  c8 a'16 c,  b8 r   r4
     b8 e16 d  e fis g e   a,8 r  r4
 
-    a2 ~           a8 gis16 a  b8 g
-    a8 a ~ a gis8  e2
+    a2 ~          a8 gis16 a  b8 g
+    a8 a ~ a gis  e2
 
     #
     # B1
@@ -105,15 +105,15 @@
     e2 ~         e16 d cis b  ais b cis8
     b8 b b ais   fis2
 
-    e4 fis                     b,8 e16 fis  gis16 a b8 ~
+    e4 fis                     b,8 e16 fis    gis16 a b8 ~
     b8 a4 gis8                 a2 ~
-    a8 b16 c b cis d8 ~        d cis16 b cis dis e8 ~
-    e8 dis16 cis dis e fis8 ~  fis16 dis e b e,4 ~
+    a8 b16 c b cis d8 ~        d cis16 b      cis dis e8 ~
+    e8 dis16 cis dis e fis8 ~  fis16 dis e b  e,4 ~
 
-    e16 cis e a cis8 a ~  a cis16 d d,4 ~
-    d8 e fis4 g2 ~
-    g8 b e4 ~             e16 d cis b a8 b
-    a4 g16 fis g8         fis2
+    e16 cis e a  cis8 a ~    a cis16 d    d,4 ~
+    d8 e         fis4        g2 ~
+    g8 b         e4 ~        e16 d cis b  a8 b
+    a4           g16 fis g8  fis2
 
     #
     # B2
@@ -123,39 +123,69 @@
     e2 ~         e16 d cis b  ais b cis8
     b8 b b ais   fis2
 
-    e4 fis                     b,8 e16 fis  gis16 a b8 ~
+    e4 fis                     b,8 e16 fis    gis16 a b8 ~
     b8 a4 gis8                 a2 ~
-    a8 b16 c b cis d8 ~        d cis16 b cis dis e8 ~
-    e8 dis16 cis dis e fis8 ~  fis16 dis e b e,4 ~
+    a8 b16 c b cis d8 ~        d cis16 b      cis dis e8 ~
+    e8 dis16 cis dis e fis8 ~  fis16 dis e b  e,4 ~
 
-    e16 cis e a cis8 a ~  a cis16 d d,4 ~
-    d8 e fis4 g2 ~
-    g8 b e4 ~             e16 d cis b a8 b
-    a4 g16 fis g8         fis2
+    e16 cis e a  cis8 a ~    a cis16 d    d,4 ~
+    d8 e         fis4        g2 ~
+    g8 b         e4 ~        e16 d cis b  a8 b
+    a4           g16 fis g8  fis2
   }
 
   "viola" :: {
     #
     # A1
     #
-    a'2  b  b,4 e  e2 ~  e8 dis ~ dis e   fis r  r4
+    a'2  b  b,4 e  e2 ~  e8 dis ~ dis e  fis r r4
 
     e8 b ~ b e  e r r4  d4. e8  fis d b e ~  e fis b, e  c2
 
     #
     # A2
     #
-    a'2  b  b,4 e  e2 ~  e8 dis ~ dis e   fis r  r4
+    a'2  b  b,4 e  e2 ~  e8 dis ~ dis e  fis r r4
 
     e8 b ~ b e  e r r4  d4. e8  fis d b e ~  e fis b, e  c2
 
     #
     # B1
     #
+    e2 ~  e8 dis16 e  fis4 ~
+
+    fis16 g a fis  dis8 b'    b4 b,
+    cis16 d e fis  g fis g e  fis8 e16 d  cis8 fis
+
     fis8 e16 d  g8 fis16 e  d2
 
-    b8 b' a16 gis a8  gis8. fis16 e4 ~
-    e8 e fis e        e8. d16 cis d fis cis
+    b8 b'  a16 gis a8  gis8. fis16  e4 ~
+
+    e8 e fis e  e8. d16 cis d fis cis
+
+    a8 d4 b8 ~      b e4 cis8 ~
+    cis8 fis4 dis8  b4 ~ b16 b' g e
+
+    a8 g fis e  d4 a' ~
+    a8 g a4     d,2
+
+    e16 b e g  b a g fis  e8 a ~  a g
+
+    fis4 e8 a,  a2
+
+    #
+    # B2
+    #
+    e'2 ~  e8 dis16 e  fis4 ~
+
+    fis16 g a fis  dis8 b'    b4 b,
+    cis16 d e fis  g fis g e  fis8 e16 d  cis8 fis
+
+    fis8 e16 d  g8 fis16 e  d2
+
+    b8 b'  a16 gis a8  gis8. fis16  e4 ~
+
+    e8 e fis e  e8. d16 cis d fis cis
 
     a8 d4 b8 ~      b e4 cis8 ~
     cis8 fis4 dis8  b4 ~ b16 b' g e
@@ -188,8 +218,18 @@
     #
     # B1
     #
-    a8 a' g g,        fis fis' e e,  dis dis' fis b,  e e'd d,
-    cis cis' b b,     ais b cis a    b g' e fis       b, b' a a,
+    a8 a' g g,        fis fis' e e,  dis dis' fis b,  e e' d d,
+    cis cis' b b,     ais b cis ais  b g' e fis       b, b' a a,
+    gis gis' fis fis  e e' d d,      cis cis' d e     a, a' g g,
+    fis fis' g g,     gis gis' a a,  ais ais' b b,    e e' d d,
+    cis cis' a cis    d d, c c'      b b, a a'        g g, fis fis'
+    e e, d d'         cis a d g      a g a a,         d,2
+
+    #
+    # B2
+    #
+    a'8 a' g g,        fis fis' e e,  dis dis' fis b,  e e' d d,
+    cis cis' b b,     ais b cis ais  b g' e fis       b, b' a a,
     gis gis' fis fis  e e' d d,      cis cis' d e     a, a' g g,
     fis fis' g g,     gis gis' a a,  ais ais' b b,    e e' d d,
     cis cis' a cis    d d, c c'      b b, a a'        g g, fis fis'
