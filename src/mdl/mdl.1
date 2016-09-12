@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.5 2016/08/10 18:58:02 je Exp $
+.\"	$Id: mdl.1,v 1.6 2016/09/12 19:36:57 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: August 10 2016 $
+.Dd $Mdocdate: September 12 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -142,4 +142,20 @@ utility exits 0 on success, and >0 if an error occurs.
 .Sh AUTHORS
 .An Juha Erkkilä Aq Mt je@turnipsi.no-ip.org
 .\" .Sh CAVEATS
-.\" .Sh BUGS
+.Sh BUGS
+On
+.Fx ,
+.Nm
+sometimes exits with an error for some unknown reason.
+.Pp
+Parser does not suggest where parsing fails or why.
+.Pp
+Drum handling is strange and lacking, for example drum volumes
+can not be adjusted.
+.Pp
+Many others probably, but the most serious one is that
+.Nm
+is lacking features that a programming language should have,
+such as variables, functions and such.
+The current plan is to integrate with Tcl
+that should provide some of that functionality.
