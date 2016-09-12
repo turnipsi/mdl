@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.40 2016/09/02 20:53:53 je Exp $ */
+/* $Id: midi.c,v 1.41 2016/09/12 18:46:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -66,7 +66,7 @@ static size_t	sndio_write_to_device(u_int8_t *, size_t);
 static void	sndio_close_device(void);
 #endif
 
-static void	maybe_log_the_clock(void);
+static void	maybe_log_the_clock(int);
 
 int
 _mdl_midi_open_device(enum mididev_type mididev_type, const char *device)
@@ -308,7 +308,7 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 }
 
 int
-_mdl_midi_play_midievent(struct midievent *me, int dry_run)
+_mdl_midi_play_midievent(struct midievent *me, int level, int dry_run)
 {
 	u_int8_t midievent[MIDI_EVENT_MAXSIZE];
 	size_t midievent_size, wsize;
@@ -318,10 +318,10 @@ _mdl_midi_play_midievent(struct midievent *me, int dry_run)
 
 	switch (me->evtype) {
 	case MIDIEV_INSTRUMENT_CHANGE:
-		_mdl_log(MDLLOG_MIDI, 0,
+		_mdl_log(MDLLOG_MIDI, level,
 		    "playing instrumentchange: channel=%d code=%d\n",
 		    me->u.instr_change.channel, me->u.instr_change.code);
-		maybe_log_the_clock();
+		maybe_log_the_clock(level+1);
 
 		midievent_size = 2;
 		midievent[0] = (u_int8_t) (MIDI_INSTRUMENT_CHANGE_BASE +
@@ -337,21 +337,21 @@ _mdl_midi_play_midievent(struct midievent *me, int dry_run)
 		velocity = (me->evtype == MIDIEV_NOTEON)
 		    ? me->u.midinote.velocity : 0;
 
-		_mdl_log(MDLLOG_MIDI, 0,
+		_mdl_log(MDLLOG_MIDI, level,
 		    "playing %s: notevalue=%d channel=%d velocity=%d\n",
 		    (me->evtype == MIDIEV_NOTEON ? "noteon" : "noteoff"),
 		    me->u.midinote.note, me->u.midinote.channel, velocity);
-		maybe_log_the_clock();
+		maybe_log_the_clock(level+1);
 
 		midievent[0] = (u_int8_t) (eventbase + me->u.midinote.channel);
 		midievent[1] = me->u.midinote.note;
 		midievent[2] = velocity;
 		break;
 	case MIDIEV_VOLUMECHANGE:
-		_mdl_log(MDLLOG_MIDI, 0,
+		_mdl_log(MDLLOG_MIDI, level,
 		    "playing volumechange: channel=%d volume=%d\n",
 		    me->u.volumechange.channel, me->u.volumechange.volume);
-		maybe_log_the_clock();
+		maybe_log_the_clock(level+1);
 
 		midievent_size = 3;
 		midievent[0] = (u_int8_t) (MIDI_CONTROLCHANGE_BASE +
@@ -378,7 +378,7 @@ _mdl_midi_play_midievent(struct midievent *me, int dry_run)
 }
 
 static void
-maybe_log_the_clock(void)
+maybe_log_the_clock(int level)
 {
 	struct timespec time;
 
@@ -386,7 +386,7 @@ maybe_log_the_clock(void)
 		if (clock_gettime(CLOCK_REALTIME, &time) == -1) {
 			warn("could not get real time");
 		} else {
-			_mdl_log(MDLLOG_CLOCK, 1, "clock=%d.%.0f\n",
+			_mdl_log(MDLLOG_CLOCK, level, "clock=%d.%.0f\n",
 			    time.tv_sec, (time.tv_nsec / 1000000.0));
 		}
 	}

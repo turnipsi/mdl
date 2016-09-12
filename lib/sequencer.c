@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.143 2016/09/10 20:14:41 je Exp $ */
+/* $Id: sequencer.c,v 1.144 2016/09/12 18:46:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -112,7 +112,7 @@ static int	sequencer_init(struct sequencer *, int, int, enum mididev_type,
 static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
 static int	sequencer_noteevent(const struct sequencer *,
-    struct songstate *, struct midievent *);
+    struct songstate *, struct midievent *, int);
 static int	sequencer_play_music(struct sequencer *,
     struct songstate *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
@@ -842,7 +842,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			case MIDIEV_NOTEOFF:
 			case MIDIEV_NOTEON:
 			case MIDIEV_VOLUMECHANGE:
-				ret = sequencer_noteevent(seq, ss, midiev);
+				ret = sequencer_noteevent(seq, ss, midiev, 0);
 				if (ret != 0)
 					return ret;
 				break;
@@ -874,12 +874,12 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 
 static int
 sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
-    struct midievent *me)
+    struct midievent *me, int level)
 {
 	int ret;
 	struct notestate *nstate;
 
-	ret = _mdl_midi_play_midievent(me, seq->dry_run);
+	ret = _mdl_midi_play_midievent(me, level, seq->dry_run);
 	if (ret == 0) {
 		switch (me->evtype) {
 		case MIDIEV_INSTRUMENT_CHANGE:
@@ -1131,7 +1131,7 @@ current_event_found:
 			change_instrument.u.instr_change.code =
 			    new_ss->channelstates[c].instrument;
 			ret = sequencer_noteevent(seq, old_ss,
-			    &change_instrument);
+			    &change_instrument, 0);
 			if (ret != 0)
 				return ret;
 		}
@@ -1141,7 +1141,8 @@ current_event_found:
 			change_volume.u.volumechange.channel = c;
 			change_volume.u.volumechange.volume =
 			    new_ss->channelstates[c].volume;
-			ret = sequencer_noteevent(seq, old_ss, &change_volume);
+			ret = sequencer_noteevent(seq, old_ss, &change_volume,
+			    0);
 			if (ret != 0)
 				return ret;
 		}
@@ -1173,23 +1174,23 @@ current_event_found:
 
 			if (retrigger_note) {
 				ret = sequencer_noteevent(seq, old_ss,
-				    &note_off);
+				    &note_off, 0);
 				if (ret != 0)
 					return ret;
 				ret = sequencer_noteevent(seq, old_ss,
-				    &note_on);
+				    &note_on, 0);
 				if (ret != 0)
 					return ret;
 			} else if (old.state && !new.state) {
 				/* Note is playing, but should no longer be. */
 				ret = sequencer_noteevent(seq, old_ss,
-				    &note_off);
+				    &note_off, 0);
 				if (ret != 0)
 					return ret;
 			} else if (!old.state && new.state) {
 				/* Note is not playing, but should be. */
 				ret = sequencer_noteevent(seq, old_ss,
-				    &note_on);
+				    &note_on, 0);
 				if (ret != 0)
 					return ret;
 			}
@@ -1372,14 +1373,21 @@ sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 	struct midievent note_off;
 	int c, n, ret;
 
+	_mdl_log(MDLLOG_SEQ, 0,
+	    "turning off notes that are currently playing\n");
+
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++)
-		for (n = 0; n < MIDI_CHANNEL_COUNT; n++)
+		for (n = 0; n < MIDI_NOTE_COUNT; n++)
 			if (ss->channelstates[c].notestates[n].state) {
+				_mdl_log(MDLLOG_SEQ, 1,
+				    "channel=%d has note=%d playing,"
+				    " turning it off\n", c, n);
 				note_off.evtype = MIDIEV_NOTEOFF;
 				note_off.u.midinote.channel = c;
 				note_off.u.midinote.note = n;
 				note_off.u.midinote.velocity = 0;
-				ret = sequencer_noteevent(seq, ss, &note_off);
+				ret = sequencer_noteevent(seq, ss, &note_off,
+				    2);
 				if (ret != 0)
 					warnx("error in turning off note"
 					    " %d on channel %d", n, c);
