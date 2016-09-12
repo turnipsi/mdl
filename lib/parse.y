@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.64 2016/08/23 20:22:58 je Exp $ */
+/* $Id: parse.y,v 1.65 2016/09/12 19:33:28 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -20,7 +20,6 @@
 #include <err.h>
 #include <limits.h>
 #include <stdarg.h>
-#include <stdio.h>	/* XXX remove */
 
 #include "functions.h"
 #include "musicexpr.h"
