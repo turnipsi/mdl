@@ -1,0 +1,31 @@
+mdl.interp.midistream  : converting music expression to midi stream
+mdl.interp.midistream  : joining music expressions
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.midistream  : making offset expression stream
+mdl.interp.midistream  :   offset expression stream to midi events
+mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
+mdl.interp.midistream  :       absnote:9:1,1:1,2 notesym=1 note=62 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
+mdl.interp.midistream  :       absnote:11:1,7:1,7 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
+mdl.interp.midistream  :       absnote:13:1,9:1,9 notesym=5 note=57 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
+mdl.interp.midistream  :       absnote:15:1,11:1,11 notesym=6 note=59 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
+mdl.interp.midistream  :       absnote:17:1,16:1,16 notesym=5 note=57 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  : adding midievents to send queue:
+mdl.interp.midistream  :   putting track "acoustic grand" to midichannel 0
+mdl.interp.midistream  : writing midi stream to sequencer
+mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=62 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.125 channel=0 note=62 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=0 note=55 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=0 note=57 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=0 note=59 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=0 note=57 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=0 note=59 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteon time=0.375 channel=0 note=57 velocity=80
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=57 velocity=0
+mdl.interp.midistream  :   sending to sequencer song end time=0.500
+mdl.interp.midistream  :   wrote 144 bytes to sequencer
