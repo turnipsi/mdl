@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.32 2016/09/13 20:03:50 je Exp $ */
+/* $Id: relative.c,v 1.33 2016/09/13 20:07:26 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -244,12 +244,11 @@ relative_to_absolute(struct musicexpr *me,
 		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.scaledexpr.me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level);
+			relative_to_absolute(p, &prev_exprs_copy, level);
 			if (!first_note_seen)
-				prev_exprs_copy = *prev_exprs;
+				*prev_exprs = prev_exprs_copy;
 			first_note_seen = 1;
 		}
-		*prev_exprs = prev_exprs_copy;
 
 		/* We also set default length for subsequent expressions. */
 		prev_exprs->length = me->u.scaledexpr.length;
