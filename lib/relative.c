@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.34 2016/09/13 20:10:38 je Exp $ */
+/* $Id: relative.c,v 1.35 2016/09/13 20:22:47 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -36,6 +36,7 @@ struct previous_relative_exprs {
 	enum chordtype	chordtype;
 };
 
+static void	reset_prev_expr_notes(struct previous_relative_exprs *);
 static void	relative_to_absolute(struct musicexpr *,
     struct previous_relative_exprs *, int);
 static u_int8_t	get_notevalue_for_drumsym(enum drumsym);
@@ -57,10 +58,6 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	    song->default_tonedtrack->instrument;
 	assert(prev_relative_exprs.absnote.instrument != NULL);
 
-	prev_relative_exprs.length = 0.25;
-
-	prev_relative_exprs.absnote.notesym = NOTE_C;
-	prev_relative_exprs.absnote.note = 60;
 	prev_relative_exprs.absnote.track = song->default_tonedtrack;
 
 	/* Set default values for the first absolute note (drum). */
@@ -68,13 +65,22 @@ _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
 	    song->default_drumtrack->instrument;
 	assert(prev_relative_exprs.absdrum.instrument != NULL);
 
-	prev_relative_exprs.absdrum.drumsym = DRUM_BD;
 	prev_relative_exprs.absdrum.track = song->default_drumtrack;
 
-	/* Set default value for the first chordtype. */
-	prev_relative_exprs.chordtype = CHORDTYPE_MAJ;
+	/* Reset notes for both absolute notes and absolute drums. */
+	reset_prev_expr_notes(&prev_relative_exprs);
 
 	relative_to_absolute(me, &prev_relative_exprs, level);
+}
+
+static void
+reset_prev_expr_notes(struct previous_relative_exprs *prev_exprs)
+{
+	prev_exprs->absdrum.drumsym = DRUM_BD;
+	prev_exprs->absnote.note = 60;
+	prev_exprs->absnote.notesym = NOTE_C;
+	prev_exprs->chordtype = CHORDTYPE_MAJ;
+	prev_exprs->length = 0.25;
 }
 
 static void
@@ -265,22 +271,23 @@ relative_to_absolute(struct musicexpr *me,
 		break;
 	case ME_TYPE_SEQUENCE:
 		/*
-		 * For sequences, make previous expression affect the
-		 * expressions in sequence, but do not let expressions
-		 * in sequence affect subsequent expressions.
+		 * Reset previous expression notes for each sequence,
+		 * but sequence items do affect subsequent sequence items.
 		 */
 		prev_exprs_copy = *prev_exprs;
+		reset_prev_expr_notes(&prev_exprs_copy);
 		TAILQ_FOREACH(p, &me->u.melist, tq)
 			relative_to_absolute(p, &prev_exprs_copy, level);
 		break;
 	case ME_TYPE_SIMULTENCE:
 		/*
-		 * For simultences, make previous expression affect all
-		 * expressions in simultence, but do not let expressions
-		 * in simultence affect subsequent expressions.
+		 * Reset previous expression notes for each simultence item,
+		 * but simultence items do *not* affect subsequent simultence
+		 * items.
 		 */
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
+			reset_prev_expr_notes(&prev_exprs_copy);
 			relative_to_absolute(p, &prev_exprs_copy, level);
 		}
 		break;
