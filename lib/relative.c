@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.31 2016/08/23 20:22:58 je Exp $ */
+/* $Id: relative.c,v 1.32 2016/09/13 20:03:50 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -285,12 +285,10 @@ relative_to_absolute(struct musicexpr *me,
 		 * expressions in simultence, but do not let expressions
 		 * in simultence affect subsequent expressions.
 		 */
-		prev_exprs_copy = *prev_exprs;
 		TAILQ_FOREACH(p, &me->u.melist, tq) {
 			prev_exprs_copy = *prev_exprs;
 			relative_to_absolute(p, &prev_exprs_copy, level);
 		}
-		*prev_exprs = prev_exprs_copy;
 		break;
 	case ME_TYPE_TEMPOCHANGE:
 		break;

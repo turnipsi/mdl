@@ -13,4 +13,4 @@ mdl.interp.relative    :           relnote:2:1,10:1,10 notesym=2 notemods=0 leng
 mdl.interp.relative    :             --> absnote:2:1,10:1,10 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.relative    :       rel->abs for expression relnote:4:1,15:1,15
 mdl.interp.relative    :         relnote:4:1,15:1,15 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :           --> absnote:4:1,15:1,15 notesym=4 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :           --> absnote:4:1,15:1,15 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
