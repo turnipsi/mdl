@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.33 2016/09/13 20:07:26 je Exp $ */
+/* $Id: relative.c,v 1.34 2016/09/13 20:10:38 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -265,18 +265,13 @@ relative_to_absolute(struct musicexpr *me,
 		break;
 	case ME_TYPE_SEQUENCE:
 		/*
-		 * Make the first note in a sequence affect notes/lengths
-		 * of subsequent expressions that follow the sequence.
+		 * For sequences, make previous expression affect the
+		 * expressions in sequence, but do not let expressions
+		 * in sequence affect subsequent expressions.
 		 */
-		first_note_seen = 0;
 		prev_exprs_copy = *prev_exprs;
-		TAILQ_FOREACH(p, &me->u.melist, tq) {
-			relative_to_absolute(p, prev_exprs, level);
-			if (!first_note_seen)
-				prev_exprs_copy = *prev_exprs;
-			first_note_seen = 1;
-		}
-		*prev_exprs = prev_exprs_copy;
+		TAILQ_FOREACH(p, &me->u.melist, tq)
+			relative_to_absolute(p, &prev_exprs_copy, level);
 		break;
 	case ME_TYPE_SIMULTENCE:
 		/*
