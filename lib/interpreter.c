@@ -1,4 +1,4 @@
-/* $Id: interpreter.c,v 1.62 2016/07/14 20:41:43 je Exp $ */
+/* $Id: interpreter.c,v 1.63 2016/09/14 20:04:46 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -144,13 +144,13 @@ _mdl_interpreter_do_musicfile(int mdlfile_fd, int sequencer_read_pipe)
 	}
 
 	if (yyparse() != 0 || parse_errors > 0) {
-		warnx("_mdl_parse returned error");
+		warnx("parsing failed with %d errors", parse_errors);
 		return 1;
 	}
 
 	/*
-	 * If _mdl_parse() returned ok, we should have parsed_expr != NULL
-	 * and available for us now.
+	 * If yyparse() returned ok with no parse_errors, we should have
+	 * parsed_expr != NULL and available for us now.
 	 */
 
 	_mdl_log(MDLLOG_PARSING, level, "parse ok, result:\n");
