@@ -1,11 +1,10 @@
-# $Id: Makefile,v 1.64 2016/09/01 18:40:41 je Exp $
+# $Id: Makefile,v 1.65 2016/09/14 20:09:47 je Exp $
 
 SRCS=	functions.c interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c \
 	midistream.c musicexpr.c parse.c relative.c sequencer.c song.c \
 	textloc.c track.c util.c
 
 PREFIX?=	/usr/local
-MANPREFIX?=	${PREFIX}/man
 COMPATDIR?=	../compat
 
 CDIAGFLAGS?=	-W -Wall -Wbad-function-cast -Wpointer-arith
@@ -35,7 +34,6 @@ libmdlafl.so: ${SRCS}
 install:
 	mkdir -p ${DESTDIR}${PREFIX}/lib ${DESTDIR}${MANPREFIX}/man5
 	install -s libmdl.so ${DESTDIR}${PREFIX}/lib/libmdl.so
-	install mdl.5 ${DESTDIR}${MANPREFIX}/man5/mdl.5
 
 lex.c: lex.l
 	lex -o lex.c $<
