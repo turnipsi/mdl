@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.31 2016/08/31 18:44:47 je Exp $ */
+/* $Id: lex.l,v 1.32 2016/09/15 20:23:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -97,6 +97,9 @@ static void	update_textloc(struct textloc *);
 #.*\n		{ update_textloc(NULL); }
 
 [ \t\n]+es	{
+			/* XXX Remove this crutch and allow only "ees"?
+			 * XXX Or fix this?  ("{es}" is not a valid expression
+			 * XXX even with this hack) */
 			update_textloc(&yylval.notesym.textloc);
 			yylval.notesym.expr = NOTE_E;
 			return NOTETOKEN_ES;
