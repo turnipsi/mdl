@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.8 2016/09/15 20:23:19 je Exp $
+.\"	$Id: mdl.1,v 1.9 2016/09/16 20:42:00 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: September 15 2016 $
+.Dd $Mdocdate: September 16 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -127,7 +127,7 @@ was compiled with.
 interprets files or standard input written in the
 .Nm
 language.
-The language describes notes (and drum hits)
+The language describes notes (including drum hits)
 that trigger midi events played by a sequencer.
 Syntax and semantics are very similar to those used in the
 .Xr lilypond 1
@@ -159,15 +159,19 @@ and
 .Ql aes
 means flat
 .Ql a .
-These can be applied many times,
+These can be applied many times
 meaning that the following equivalences are true:
 .Bl -column "X" -offset indent
 .It Li "cisis   = d"
 .It Li "fes     = e"
 .It Li "fisisis = gis"
-.It Li "aesis   = a"
 .El
 .Pp
+Mixing both
+.Ql es
+and
+.Ql is
+is not allowed on the same note (XXX should this be relaxed?).
 To get a flat
 .Ql e
 use
