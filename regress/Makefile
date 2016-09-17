@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.30 2016/05/12 19:54:02 je Exp $
+# $Id: Makefile,v 1.31 2016/09/17 15:51:25 je Exp $
 
 LIBDIR?=	../lib
 SRCDIR?=	../src
@@ -20,7 +20,7 @@ accept-regressions:
 .PHONY: afl-fuzz
 afl-fuzz:
 	${MAKE} -C ${SRCDIR}/mdl clean afl-mdl
-	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i inputs \
+	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i inputs -t 5000 \
 	    -o afl-fuzz-results ${AFLMDL} -n @@
 
 .PHONY: clean
