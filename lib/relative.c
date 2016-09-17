@@ -1,7 +1,7 @@
-/* $Id: relative.c,v 1.36 2016/09/17 21:00:57 je Exp $ */
+/* $Id: relative.c,v 1.37 2016/09/17 21:08:35 je Exp $ */
 
 /*
- * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
+ * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -29,6 +29,8 @@
 #include "track.h"
 #include "util.h"
 
+/* XXX maybe this structure is all wrong
+ * XXX (both absdrum and absnote are only partially used) */
 struct previous_relative_exprs {
 	struct absdrum	absdrum;
 	struct absnote	absnote;
@@ -389,21 +391,21 @@ get_notevalue_for_drumsym(enum drumsym drumsym)
 
 /*
  * If equal                                 -->  0.
- * If higher b is closer to a than lower  b -->  1.
- * if lower  b is closer to a than higher b --> -1.
+ * If higher y is closer to x than lower  y -->  1.
+ * if lower  y is closer to x than higher y --> -1.
  */
 static int
-compare_notesyms(enum notesym a, enum notesym b)
+compare_notesyms(enum notesym x, enum notesym y)
 {
 	int diff;
 
-	assert(a < NOTE_MAX);
-	assert(b < NOTE_MAX);
+	assert(x < NOTE_MAX);
+	assert(y < NOTE_MAX);
 
-	if (a == b)
+	if (x == y)
 		return 0;
 
-	diff = a - b;
+	diff = x - y;
 	if (diff < 0)
 		diff += NOTE_MAX;
 
