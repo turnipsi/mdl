@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.35 2016/09/13 20:22:47 je Exp $ */
+/* $Id: relative.c,v 1.36 2016/09/17 21:00:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@ struct previous_relative_exprs {
 	struct absdrum	absdrum;
 	struct absnote	absnote;
 	float		length;
+	int		note_no_notemods;
 	enum chordtype	chordtype;
 };
 
@@ -77,10 +78,10 @@ static void
 reset_prev_expr_notes(struct previous_relative_exprs *prev_exprs)
 {
 	prev_exprs->absdrum.drumsym = DRUM_BD;
-	prev_exprs->absnote.note = 60;
 	prev_exprs->absnote.notesym = NOTE_C;
 	prev_exprs->chordtype = CHORDTYPE_MAJ;
 	prev_exprs->length = 0.25;
+	prev_exprs->note_no_notemods = 60;
 }
 
 static void
@@ -97,7 +98,7 @@ relative_to_absolute(struct musicexpr *me,
 		/* For NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
 	};
-	int first_note_seen, note, c;
+	int first_note_seen, note, note_no_notemods, c;
 	char *me_id;
 
 	if ((me_id = _mdl_musicexpr_id_string(me)) != NULL) {
@@ -195,18 +196,21 @@ relative_to_absolute(struct musicexpr *me,
 		assert(relnote.notesym < NOTE_MAX);
 		assert(relnote.length >= 0);
 
-		note = 12 * (prev_exprs->absnote.note / 12) +
-		    notevalues[relnote.notesym] + relnote.notemods;
+		note_no_notemods = 12 * (prev_exprs->note_no_notemods / 12) +
+		    notevalues[relnote.notesym];
 
 		c = compare_notesyms(prev_exprs->absnote.notesym,
 		    relnote.notesym);
-		if (c > 0 && prev_exprs->absnote.note > note) {
-			note += 12;
-		} else if (c < 0 && prev_exprs->absnote.note < note) {
-			note -= 12;
+		if (c > 0 && prev_exprs->note_no_notemods > note_no_notemods) {
+			note_no_notemods += 12;
+		} else if (c < 0
+		    && prev_exprs->note_no_notemods < note_no_notemods) {
+			note_no_notemods -= 12;
 		}
 
-		note += 12 * relnote.octavemods;
+		note_no_notemods += 12 * relnote.octavemods;
+
+		note = note_no_notemods + relnote.notemods;
 
 		absnote = prev_exprs->absnote;
 		absnote.length = relnote.length;
@@ -218,8 +222,9 @@ relative_to_absolute(struct musicexpr *me,
 		me->me_type = ME_TYPE_ABSNOTE;
 		me->u.absnote = absnote;
 
-		prev_exprs->absnote = absnote;
-		prev_exprs->length  = absnote.length;
+		prev_exprs->absnote          = absnote;
+		prev_exprs->length           = absnote.length;
+		prev_exprs->note_no_notemods = note_no_notemods;
 
 		break;
 	case ME_TYPE_REST:
