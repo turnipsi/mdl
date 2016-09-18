@@ -10,9 +10,9 @@ mdl.interp.midistream  :       absnote:14:1,5:1,6 notesym=0 note=60 length=0.125
 mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
 mdl.interp.midistream  :       absnote:16:1,8:1,9 notesym=4 note=67 length=0.125 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absdrum:18:1,14:1,16 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:18:1,14:1,16 drumsym=6 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.625 to trackmidievents
-mdl.interp.midistream  :       absdrum:20:1,18:1,19 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:20:1,18:1,19 drumsym=6 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
 mdl.interp.midistream  :       absnote:22:1,21:1,23 notesym=0 note=72 length=0.062 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.812 to trackmidievents

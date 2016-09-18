@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.37 2016/09/17 21:08:35 je Exp $ */
+/* $Id: relative.c,v 1.38 2016/09/18 20:36:11 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,19 +29,20 @@
 #include "track.h"
 #include "util.h"
 
-/* XXX maybe this structure is all wrong
- * XXX (both absdrum and absnote are only partially used) */
-struct previous_relative_exprs {
-	struct absdrum	absdrum;
-	struct absnote	absnote;
-	float		length;
-	int		note_no_notemods;
-	enum chordtype	chordtype;
+struct previous_exprs {
+	struct instrument	*drum_instrument;
+	struct track		*drum_track;
+	struct instrument	*toned_instrument;
+	struct track		*toned_track;
+	float			 length;
+	int			 note_no_notemods;
+	enum chordtype		 chordtype;
+	enum notesym		 notesym;
 };
 
-static void	reset_prev_expr_notes(struct previous_relative_exprs *);
+static void	reset_prev_expr_notes(struct previous_exprs *);
 static void	relative_to_absolute(struct musicexpr *,
-    struct previous_relative_exprs *, int);
+    struct previous_exprs *, int);
 static u_int8_t	get_notevalue_for_drumsym(enum drumsym);
 static int	compare_notesyms(enum notesym, enum notesym);
 
@@ -49,53 +50,45 @@ void
 _mdl_musicexpr_relative_to_absolute(struct song *song, struct musicexpr *me,
     int level)
 {
-	struct previous_relative_exprs prev_relative_exprs;
+	struct previous_exprs prev_exprs;
 
 	_mdl_log(MDLLOG_RELATIVE, level,
 	    "converting relative expressions to absolute\n");
 
 	level += 1;
 
-	/* Set default values for the first absolute note (toned). */
-	prev_relative_exprs.absnote.instrument =
-	    song->default_tonedtrack->instrument;
-	assert(prev_relative_exprs.absnote.instrument != NULL);
+	prev_exprs.drum_instrument = song->default_drumtrack->instrument;
+	assert(prev_exprs.drum_instrument != NULL);
+	prev_exprs.drum_track = song->default_drumtrack;
 
-	prev_relative_exprs.absnote.track = song->default_tonedtrack;
+	prev_exprs.toned_instrument = song->default_tonedtrack->instrument;
+	assert(prev_exprs.toned_instrument != NULL);
+	prev_exprs.toned_track = song->default_tonedtrack;
 
-	/* Set default values for the first absolute note (drum). */
-	prev_relative_exprs.absdrum.instrument =
-	    song->default_drumtrack->instrument;
-	assert(prev_relative_exprs.absdrum.instrument != NULL);
+	reset_prev_expr_notes(&prev_exprs);
 
-	prev_relative_exprs.absdrum.track = song->default_drumtrack;
-
-	/* Reset notes for both absolute notes and absolute drums. */
-	reset_prev_expr_notes(&prev_relative_exprs);
-
-	relative_to_absolute(me, &prev_relative_exprs, level);
+	relative_to_absolute(me, &prev_exprs, level);
 }
 
 static void
-reset_prev_expr_notes(struct previous_relative_exprs *prev_exprs)
+reset_prev_expr_notes(struct previous_exprs *prev_exprs)
 {
-	prev_exprs->absdrum.drumsym = DRUM_BD;
-	prev_exprs->absnote.notesym = NOTE_C;
 	prev_exprs->chordtype = CHORDTYPE_MAJ;
 	prev_exprs->length = 0.25;
 	prev_exprs->note_no_notemods = 60;
+	prev_exprs->notesym = NOTE_C;
 }
 
 static void
-relative_to_absolute(struct musicexpr *me,
-    struct previous_relative_exprs *prev_exprs, int level)
+relative_to_absolute(struct musicexpr *me, struct previous_exprs *prev_exprs,
+    int level)
 {
 	struct musicexpr *p;
 	struct absdrum absdrum;
 	struct absnote absnote;
 	struct reldrum reldrum;
 	struct relnote relnote;
-	struct previous_relative_exprs prev_exprs_copy;
+	struct previous_exprs prev_exprs_copy;
 	int notevalues[] = {
 		/* For NOTE_C, NOTE_D, ... */
 		0, 2, 4, 5, 7, 9, 11,
@@ -150,18 +143,17 @@ relative_to_absolute(struct musicexpr *me,
 		relative_to_absolute(me->u.offsetexpr.me, prev_exprs, level);
 		break;
 	case ME_TYPE_ONTRACK:
-		prev_exprs_copy = *prev_exprs;
-		prev_exprs->absdrum.track = me->u.ontrack.track;
-		prev_exprs->absnote.track = me->u.ontrack.track;
-
-		prev_exprs->absnote.instrument =
-		    me->u.ontrack.track->instrument;
-		assert(prev_exprs->absnote.instrument != NULL);
-
 		/* XXX how to handle drums? really? */
-		prev_exprs->absdrum.instrument =
-		    me->u.ontrack.track->instrument;
-		assert(prev_exprs->absdrum.instrument != NULL);
+
+		prev_exprs_copy = *prev_exprs;
+		prev_exprs->drum_track = me->u.ontrack.track;
+		prev_exprs->toned_track = me->u.ontrack.track;
+
+		prev_exprs->toned_instrument = me->u.ontrack.track->instrument;
+		assert(prev_exprs->toned_instrument != NULL);
+
+		prev_exprs->drum_instrument = me->u.ontrack.track->instrument;
+		assert(prev_exprs->drum_instrument != NULL);
 
 		relative_to_absolute(me->u.ontrack.me, prev_exprs, level);
 		*prev_exprs = prev_exprs_copy;
@@ -176,18 +168,18 @@ relative_to_absolute(struct musicexpr *me,
 
 		note = get_notevalue_for_drumsym(reldrum.drumsym);
 
-		absdrum = prev_exprs->absdrum;
+		absdrum.instrument = prev_exprs->drum_instrument;
+		absdrum.track = prev_exprs->drum_track;
+		absdrum.drumsym = reldrum.drumsym;
 		absdrum.length = reldrum.length;
 		if (absdrum.length == 0)
 			absdrum.length = prev_exprs->length;
 		absdrum.note = note;
-		absdrum.drumsym = absdrum.drumsym;
 
 		me->me_type = ME_TYPE_ABSDRUM;
 		me->u.absdrum = absdrum;
 
-		prev_exprs->absdrum = absdrum;
-		prev_exprs->length  = absdrum.length;
+		prev_exprs->length = absdrum.length;
 
 		break;
 	case ME_TYPE_RELNOTE:
@@ -201,8 +193,7 @@ relative_to_absolute(struct musicexpr *me,
 		note_no_notemods = 12 * (prev_exprs->note_no_notemods / 12) +
 		    notevalues[relnote.notesym];
 
-		c = compare_notesyms(prev_exprs->absnote.notesym,
-		    relnote.notesym);
+		c = compare_notesyms(prev_exprs->notesym, relnote.notesym);
 		if (c > 0 && prev_exprs->note_no_notemods > note_no_notemods) {
 			note_no_notemods += 12;
 		} else if (c < 0
@@ -214,19 +205,20 @@ relative_to_absolute(struct musicexpr *me,
 
 		note = note_no_notemods + relnote.notemods;
 
-		absnote = prev_exprs->absnote;
+		absnote.instrument = prev_exprs->toned_instrument;
+		absnote.track = prev_exprs->toned_track;
+		absnote.notesym = relnote.notesym;
 		absnote.length = relnote.length;
 		if (absnote.length == 0)
 			absnote.length = prev_exprs->length;
 		absnote.note = note;
-		absnote.notesym = relnote.notesym;
 
 		me->me_type = ME_TYPE_ABSNOTE;
 		me->u.absnote = absnote;
 
-		prev_exprs->absnote          = absnote;
 		prev_exprs->length           = absnote.length;
 		prev_exprs->note_no_notemods = note_no_notemods;
+		prev_exprs->notesym          = absnote.notesym;
 
 		break;
 	case ME_TYPE_REST:
@@ -303,7 +295,7 @@ relative_to_absolute(struct musicexpr *me,
 	case ME_TYPE_VOLUMECHANGE:
 		/* XXX What about adjusting drum volumes? (now we choose
 		 * XXX to change volume on the toned instrument track) */
-		me->u.volumechange.track = prev_exprs->absnote.track;
+		me->u.volumechange.track = prev_exprs->toned_track;
 		break;
 	default:
 		assert(0);

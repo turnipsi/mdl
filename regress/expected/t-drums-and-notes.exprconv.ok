@@ -19,12 +19,12 @@ mdl.interp.exprconv    :         offset changed from 0.375000 to 0.500000
 mdl.interp.exprconv    :       inspecting absdrum:3:1,14:1,16 for flatsimultence:10:0,0:0,0
 mdl.interp.exprconv    :         adding offsetexpr:19:0,0:0,0 to flatsimultence:10:0,0:0,0
 mdl.interp.exprconv    :         offsetexpr:19:0,0:0,0 offset=0.500
-mdl.interp.exprconv    :           absdrum:18:1,14:1,16 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
+mdl.interp.exprconv    :           absdrum:18:1,14:1,16 drumsym=6 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.exprconv    :         offset changed from 0.500000 to 0.625000
 mdl.interp.exprconv    :       inspecting absdrum:4:1,18:1,19 for flatsimultence:10:0,0:0,0
 mdl.interp.exprconv    :         adding offsetexpr:21:0,0:0,0 to flatsimultence:10:0,0:0,0
 mdl.interp.exprconv    :         offsetexpr:21:0,0:0,0 offset=0.625
-mdl.interp.exprconv    :           absdrum:20:1,18:1,19 drumsym=1 note=38 length=0.125 instrument="drums" track="drums"
+mdl.interp.exprconv    :           absdrum:20:1,18:1,19 drumsym=6 note=38 length=0.125 instrument="drums" track="drums"
 mdl.interp.exprconv    :         offset changed from 0.625000 to 0.750000
 mdl.interp.exprconv    :       inspecting absnote:5:1,21:1,23 for flatsimultence:10:0,0:0,0
 mdl.interp.exprconv    :         adding offsetexpr:23:0,0:0,0 to flatsimultence:10:0,0:0,0
