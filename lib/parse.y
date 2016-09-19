@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.65 2016/09/12 19:33:28 je Exp $ */
+/* $Id: parse.y,v 1.66 2016/09/19 20:11:27 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -429,14 +429,26 @@ expression_list:
 	;
 
 notemods:
-	NOTEMODTOKEN_IS   { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
-	| NOTEMODTOKEN_ES { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
-	| /* empty */     { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
+	notemods NOTEMODTOKEN_IS {
+		$$.expr = $1.expr + $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	}
+	| notemods NOTEMODTOKEN_ES {
+		$$.expr = $1.expr - $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	}
+	| /* empty */ { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
 
 octavemods:
-	OCTAVEUP      { $$.expr = + $1.expr; $$.textloc = $1.textloc; }
-	| OCTAVEDOWN  { $$.expr = - $1.expr; $$.textloc = $1.textloc; }
+	octavemods OCTAVEUP {
+		$$.expr = $1.expr + $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	}
+	| octavemods OCTAVEDOWN {
+		$$.expr = $1.expr - $2.expr;
+		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	}
 	| /* empty */ { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
 
