@@ -1,0 +1,7 @@
+mdl.interp.parsing     : parse ok, result:
+mdl.interp.parsing     :   sequence:5:1,1:1,21
+mdl.interp.parsing     :     relnote:0:1,1:1,1 notesym=0 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :     relnote:1:1,3:1,5 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :     relnote:2:1,7:1,11 notesym=0 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :     relnote:3:1,13:1,18 notesym=3 notemods=0 length=0.000 octavemods=1
+mdl.interp.parsing     :     relnote:4:1,20:1,21 notesym=0 notemods=0 length=0.000 octavemods=-1

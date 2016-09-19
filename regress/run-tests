@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.12 2016/09/16 20:41:58 je Exp $
+# $Id: run-tests,v 1.13 2016/09/19 20:14:21 je Exp $
 
 set -eu
 
@@ -31,6 +31,7 @@ test_inputs='
   t-afl-fuzzed-crash-2
   t-afl-fuzzed-crash-3
   t-big-jumps
+  t-big-opposing-jumps
   t-chord-joining
   t-chordmodifiers
   t-chords-with-big-jumps
