@@ -1,5 +1,5 @@
 %{
-/* $Id: lex.l,v 1.32 2016/09/15 20:23:18 je Exp $ */
+/* $Id: lex.l,v 1.33 2016/09/20 20:29:13 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -30,6 +30,8 @@ static int	new_drumsym(enum drumsym);
 static int	new_notesym(enum notesym);
 static int	new_texttoken(int);
 static void	update_textloc(struct textloc *);
+
+int	expecting_notemodifiers = 0;
 
 %}
 
@@ -96,23 +98,27 @@ static void	update_textloc(struct textloc *);
 
 #.*\n		{ update_textloc(NULL); }
 
-[ \t\n]+es	{
-			/* XXX Remove this crutch and allow only "ees"?
-			 * XXX Or fix this?  ("{es}" is not a valid expression
-			 * XXX even with this hack) */
+es	{
+		if (!expecting_notemodifiers) {
 			update_textloc(&yylval.notesym.textloc);
 			yylval.notesym.expr = NOTE_E;
+			expecting_notemodifiers = 1;
 			return NOTETOKEN_ES;
 		}
 
-(es)+	{
+		/* Resets expecting_notemodifiers. */
 		update_textloc(&yylval.i.textloc);
-		yylval.i.expr = strlen(yytext) / 2;
+
+		yylval.i.expr = 1;
+		expecting_notemodifiers = 1;
 		return NOTEMODTOKEN_ES;
 	}
-(is)+	{
+is	{
+		/* Resets expecting_notemodifiers. */
 		update_textloc(&yylval.i.textloc);
-		yylval.i.expr = strlen(yytext) / 2;
+
+		yylval.i.expr = 1;
+		expecting_notemodifiers = 1;
 		return NOTEMODTOKEN_IS;
 	}
 
@@ -294,6 +300,10 @@ new_notesym(enum notesym notesym)
 {
 	update_textloc(&yylval.notesym.textloc);
 	yylval.notesym.expr = notesym;
+
+	/* Set this *after* update_textloc(), because it resets this. */
+	expecting_notemodifiers = 1;
+
 	return NOTETOKEN;
 }
 
@@ -310,6 +320,9 @@ update_textloc(struct textloc *tl)
 	static int current_line = 1;
 	static int current_column = 1;
 	char *s;
+
+	/* Reset this always when this function is invoked. */
+	expecting_notemodifiers = 0;
 
 	if (tl != NULL) {
 		tl->first_line = current_line;
