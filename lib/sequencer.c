@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.144 2016/09/12 18:46:28 je Exp $ */
+/* $id: sequencer.c,v 1.144 2016/09/12 18:46:28 je exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -39,7 +39,7 @@
 #include "midi.h"
 #include "sequencer.h"
 
-#define EVENTBLOCKCOUNT		1024
+#define EVENTBLOCKCOUNT		256
 
 struct eventblock {
 	SIMPLEQ_ENTRY(eventblock) entries;
