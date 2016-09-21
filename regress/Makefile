@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.31 2016/09/17 15:51:25 je Exp $
+# $Id: Makefile,v 1.32 2016/09/21 20:08:55 je Exp $
 
 LIBDIR?=	../lib
 SRCDIR?=	../src
@@ -7,7 +7,7 @@ AFLMDL=		${SRCDIR}/mdl/afl-mdl
 
 .PHONY: all
 all:
-	${MAKE} -C ${SRCDIR}/mdl clean mdl
+	${MAKE} -C ${SRCDIR}/mdl mdl
 	@./run-tests
 
 .PHONY: accept-regressions
@@ -18,11 +18,18 @@ accept-regressions:
 	done
 
 .PHONY: afl-fuzz
-afl-fuzz:
-	${MAKE} -C ${SRCDIR}/mdl clean afl-mdl
-	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i inputs -t 5000 \
+afl-fuzz: afl-fuzz-inputs ${AFLMDL}
+	env LD_LIBRARY_PATH=${LIBDIR} afl-fuzz -i afl-fuzz-inputs \
 	    -o afl-fuzz-results ${AFLMDL} -n @@
+
+afl-fuzz-inputs: ${AFLMDL} inputs
+	env LD_LIBRARY_PATH=${LIBDIR} afl-cmin -i inputs \
+	    -o afl-fuzz-inputs.tmp -- ${AFLMDL}
+	mv afl-fuzz-inputs.tmp afl-fuzz-inputs
+
+${AFLMDL}:
+	${MAKE} -C ${SRCDIR}/mdl afl-mdl
 
 .PHONY: clean
 clean:
-	rm -rf afl-fuzz-results outputs
+	rm -rf afl-fuzz-inputs afl-fuzz-inputs.tmp afl-fuzz-results outputs
