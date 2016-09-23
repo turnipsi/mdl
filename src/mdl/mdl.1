@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.21 2016/09/23 15:54:05 je Exp $
+.\"	$Id: mdl.1,v 1.22 2016/09/23 19:24:42 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -135,7 +135,7 @@ music typesetting program,
 but they are not compatible.
 .Pp
 The currently implemented language interpreter supports
-notes with various lengths,
+notes and rest with various lengths,
 drum hits,
 chord expressions,
 joining expressions,
@@ -495,7 +495,23 @@ and
 .Ql a
 are half-notes (length 1/2).
 .Pp
-.\" XXX rests
+.Em Rests
+are also supported.
+Instead of a letter depicting a note,
+a letter
+.Ql r
+is used.
+Length specifications can be applied to rests
+just as with notes and chords,
+and these affect the lengths of subsequent
+music expressions unless they explicitly
+specify their length,
+just like is the case with notes.
+The following example contains rests of length 1/4 and 1/8:
+.Bd -literal -offset indent
+c4 e    r g   r8 f e d   r e d c
+.Ed
+.Pp
 Notes can be grouped as
 .Em sequences
 with
