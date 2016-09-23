@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.12 2016/09/23 09:11:31 je Exp $
+.\"	$Id: mdl.1,v 1.13 2016/09/23 09:36:47 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -279,6 +279,43 @@ are at a distance of 6 semitones from
 This does not matter
 as the above method is unambiguous
 in resolving the played note.
+.Pp
+In cases where the above method
+chooses the wrong note,
+this can be affected by syntax
+that forces the note to be an octave higher or lower.
+Appending
+.Ql '
+(an apostrophe) to note letter raises the note by one octave,
+and appending
+.Ql ","
+(a comma) to note letter lowers the note by one octave.
+Multiple apostrophes and commas can be appended to note letters,
+forcing jumps of multiple octaves.
+For example, the following snippet plays the midi notes 60,
+67, 65, 72 and 48:
+.Bd -literal -offset indent
+c g' f c' c,,
+.Ed
+.Pp
+Considering those notes one by one:
+.Bl -column "X" -offset indent
+.It Li c Ta Start with middle
+.Ql c
+(midi note 60).
+.It Li g' Ta The lower
+.Ql g
+(55) is closer, but move up an octave to 67.
+.It Li f Ta The lower
+.Ql f
+is closer (midi note 65).
+.It Li c' Ta The lower
+.Ql c
+(60) is closer, but move up an octave to 72.
+.It Li c,, Ta Play
+.Ql c
+again, except move down by two octaves (48).
+.El
 .Pp
 Notes can be modified to be
 .Dq sharp
