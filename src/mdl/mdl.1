@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.19 2016/09/23 13:15:04 je Exp $
+.\"	$Id: mdl.1,v 1.20 2016/09/23 14:45:30 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -147,7 +147,8 @@ and track-specific instrument volume is also possible.
 Whitespace is generally ignored,
 but may be meaningful in some details.
 .Pp
-Notes are expressed as
+.Em Notes
+are expressed as
 .Em letters ,
 which are:
 .Ql c ,
@@ -437,7 +438,9 @@ thus the following equivalences are true:
 .It Li "aises   = a"
 .El
 .Pp
-Note lengths are expressed with
+Note
+.Em lengths
+are expressed with
 .Em numbers
 that follow notes, where number
 .Ql n
@@ -455,7 +458,8 @@ it interprets that to mean note
 should be played for 1/12 measures.
 .Pp
 Note lengths may be extended with zero or more
-.Em dots .
+.Em dots
+.Ql ( \&. ) .
 Each new dot extends the length by
 .Ql 1/(2^n) ,
 where
@@ -498,7 +502,7 @@ with
 and
 .Ql } .
 Thus the following two expressions are equivalent:
-.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
+.Bl -column "XXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
 .It Li "c4 g'8 f" Ta "{ c4 g'8 f }"
 .El
 .Pp
@@ -507,10 +511,59 @@ but each sequence is an independent expression,
 which is not affected by previous notes or their lengths,
 and do not affect subsequent expressions.
 Thus, the following two expressions are equivalent:
-.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
+.Bl -column "XXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
 .It Li "c8 e g {c} g e c" Ta "c8 e g c,4 g'8 e c"
 .El
 .Pp
+Sequences can also contain other sequences
+and music expressions.
+Music expressions (such as notes and sequences)
+can also be grouped as
+.Em simultences ,
+which are another kind of a music expression.
+Simultence is like a sequence except that
+all subexpressions of it are played simultaneously,
+not sequentially as is the case with sequences.
+.Dq ( Simultence
+is not common terminology,
+but it is handy to have a word for such a thing,
+and it seems like a fitting word).
+Simultences are expressed with
+.Ql <<
+and
+.Ql >> ,
+for example:
+.Bd -literal -offset indent
+<< c e g c' >>
+.Ed
+.Pp
+This plays a major
+.Ql c
+chord, with middle
+.Ql c ,
+.Ql e ,
+.Ql g
+and the higher
+.Ql c .
+Subexpressions of a simultence are not affected
+by any previous expressions or each other,
+and they do not affect subsequent music expressions.
+Thus, the
+.Dq default note
+for each of them is the quarter-note middle
+.Ql c ,
+as is the case with sequences.
+.Pp
+One common way to play music
+is to combine sequences with simultences
+in the following way.
+To play two sequences simultaneously one can write:
+.Bd -literal -offset indent
+<<
+  { c    d     f   g     a   c     g   c,  }
+  { c8 c c c   e e e e   g g g g   c c c c }
+>>
+.Ed
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
