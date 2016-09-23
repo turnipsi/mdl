@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.18 2016/09/23 12:53:13 je Exp $
+.\"	$Id: mdl.1,v 1.19 2016/09/23 13:15:04 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -490,6 +490,27 @@ and
 and
 .Ql a
 are half-notes (length 1/2).
+.Pp
+Notes can be grouped as
+.Em sequences
+with
+.Ql {
+and
+.Ql } .
+Thus the following two expressions are equivalent:
+.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
+.It Li "c4 g'8 f" Ta "{ c4 g'8 f }"
+.El
+.Pp
+This in itself accomplishes nothing,
+but each sequence is an independent expression,
+which is not affected by previous notes or their lengths,
+and do not affect subsequent expressions.
+Thus, the following two expressions are equivalent:
+.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXX" "X" -offset indent
+.It Li "c8 e g {c} g e c" Ta "c8 e g c,4 g'8 e c"
+.El
+.Pp
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
@@ -529,6 +550,9 @@ On
 sometimes exits with an error for some unknown reason.
 .Pp
 Parser does not suggest where parsing fails or why.
+.Pp
+Empty sequences and simultences are syntax errors,
+this should not be.
 .Pp
 Drum handling is strange and lacking, for example drum volumes
 can not be adjusted.
