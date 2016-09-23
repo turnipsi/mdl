@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.11 2016/09/20 20:29:19 je Exp $
+.\"	$Id: mdl.1,v 1.12 2016/09/23 09:11:31 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: September 20 2016 $
+.Dd $Mdocdate: September 23 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -143,6 +143,143 @@ Notes are expressed as letters, which are:
 .Ql a
 and
 .Ql b .
+To play the major
+.Ql c
+scale upwards from middle
+.Ql c
+(midi note 60) to higher
+.Ql c
+(midi note 72) one can write:
+.Bd -literal -offset indent
+c d e f g a b c
+.Ed
+.Pp
+To play scale downwards from middle
+.Ql c
+(midi note 60) to lower
+.Ql c
+(midi note 48) one can write:
+.Bd -literal -offset indent
+c b a g f e d c
+.Ed
+.Pp
+Note that in these examples
+the same letter can mean different notes,
+for example
+.Ql c
+can mean middle
+.Ql c
+(midi note 60),
+higher
+.Ql c
+(midi note 72),
+or lower
+.Ql c
+(midi note 48),
+depending on note position in relation to other notes.
+This is because the actual note chosen
+\(em regarding on which octave to play \(em
+depends on previous notes.
+If the note letter is the same as previous,
+the same note is played,
+otherwise a choice must be made
+between higher and lower note.
+.Nm
+chooses to play the note
+that is closer to the previous note,
+when considering distances between note letters.
+Note letters are considered like a circular list,
+thus
+.Ql b
+is closer to
+.Ql c
+than
+.Ql e .
+For example:
+.Bl -column "XXXX" -offset indent
+.It Li c d Ta The chosen
+.Ql d
+is the higher one,
+because the distance from
+.Ql c
+to higher
+.Ql d
+is 1 (c-d),
+which is less than the distance to lower
+.Ql d ,
+which is 6 (c-b-a-g-f-e-d).
+In case
+.Ql c
+was interpreted as midi note 60,
+the
+.Ql d
+that corresponds to midi note 62 is played.
+.It
+.It Li e b Ta The chosen
+.Ql b
+is the lower one,
+because the distance from
+.Ql e
+to lower
+.Ql b
+is 3 (e-d-c-b),
+which is less than the distance to higher
+.Ql b ,
+which is 4 (e-f-g-a-b).
+In case
+.Ql e
+was interpreted as midi note 76,
+the
+.Ql b
+that corresponds to midi note 71 is played.
+.It
+.It Li e a Ta The chosen
+.Ql a
+is the higher one,
+because the distance from
+.Ql e
+to higher
+.Ql a
+is 3 (e-f-g-a),
+which is less than the distance to lower
+.Ql a ,
+which is 4 (e-d-c-b-a).
+In case
+.Ql e
+was interpreted as midi note 64,
+the
+.Ql a
+that corresponds to midi note 69 is played.
+.It
+.It Li f b Ta The chosen
+.Ql b
+is the higher one,
+because the distance from
+.Ql f
+to higher
+.Ql b
+is 3 (f-g-a-b),
+which is less than the distance to lower
+.Ql b ,
+which is 4 (f-e-d-c-b).
+In case
+.Ql f
+was interpreted as midi note 53,
+the
+.Ql b
+that corresponds to midi note 47 is played.
+.El
+.Pp
+Note that in the last example both the higher
+.Ql b
+and the lower
+.Ql b
+are at a distance of 6 semitones from
+.Ql f .
+This does not matter
+as the above method is unambiguous
+in resolving the played note.
+.Pp
 Notes can be modified to be
 .Dq sharp
 by appending
@@ -193,7 +330,7 @@ it interprets that to mean note
 should be played for 1/12 measures.
 .Pp
 Note lengths may be extended with zero or more dots.
-Each dot extends the length by
+Each new dot extends the length by
 .Ql 1/(2^n) ,
 where
 .Ql n
@@ -223,7 +360,7 @@ utility exits 0 on success, and >0 if an error occurs.
 .Sh EXAMPLES
 Play a major scale from middle
 .Ql c
-to upper
+to higher
 .Ql c
 using quarter notes:
 .Bd -literal -offset indent
