@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.14 2016/09/23 09:49:36 je Exp $
+.\"	$Id: mdl.1,v 1.15 2016/09/23 10:08:41 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -237,24 +237,24 @@ the
 .Ql b
 that corresponds to midi note 71 is played.
 .It
-.It Li e g Ta The chosen
+.It Li c g Ta The chosen
 .Ql g
 is the
-.Em higher
+.Em lower
 one, because the distance from
-.Ql e
-to higher
+.Ql c
+to lower
 .Ql g
-is 2 (e-f-g),
-which is less than the distance to lower
+is 3 (c-b-a-g),
+which is less than the distance to higher
 .Ql g ,
-which is 5 (e-d-c-b-a-g).
+which is 4 (c-d-e-f-g).
 In case
-.Ql e
-was interpreted as midi note 64,
+.Ql c
+was interpreted as midi note 60,
 the
 .Ql g
-that corresponds to midi note 67 is played.
+that corresponds to midi note 55 is played.
 .It
 .It Li f b Ta The chosen
 .Ql b
@@ -339,18 +339,58 @@ but before octave modifiers.
 That is,
 .Ql fis
 means sharp
-.Ql f ,
-and
+.Ql f
+(raising
+.Ql f
+by one semitone), and
 .Ql aes
 means flat
-.Ql a .
+.Ql a
+(lowering
+.Ql a
+by one semitone).
 To get a flat
-.Ql e
+.Ql e ,
 both
 .Ql es
 and
 .Ql ees
 can be used.
+.Pp
+Note modifiers do not affect
+the note octave resolution method at all.
+Consider the following case:
+.Bd -literal -offset indent
+cis ges
+.Ed
+.Pp
+Here, if
+.Ql cis
+means midi note 61,
+then even though the higher
+.Ql ges
+(midi note 66) is closer to
+.Ql cis
+than the lower
+.Ql ges
+(midi note 54),
+the lower
+.Ql ges
+is chosen, because the lower
+.Ql g
+is closer to
+.Ql c
+than the higher
+.Ql g ,
+as outlined above.
+Here, if the higher
+.Ql ges
+was intended,
+the example can be written as:
+.Bd -literal -offset indent
+cis ges'
+.Ed
+.Pp
 Modifiers can be applied many times,
 thus the following equivalences are true:
 .Bl -column "X" -offset indent
