@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.13 2016/09/23 09:36:47 je Exp $
+.\"	$Id: mdl.1,v 1.14 2016/09/23 09:49:36 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -134,7 +134,9 @@ Syntax and semantics are very similar to those used in the
 music typesetting program,
 but they are not compatible.
 .Pp
-Notes are expressed as letters, which are:
+Notes are expressed as
+.Em letters ,
+which are:
 .Ql c ,
 .Ql d ,
 .Ql e ,
@@ -199,8 +201,9 @@ For example:
 .Bl -column "XXXX" -offset indent
 .It Li c d Ta The chosen
 .Ql d
-is the higher one,
-because the distance from
+is the
+.Em higher
+one, because the distance from
 .Ql c
 to higher
 .Ql d
@@ -217,8 +220,9 @@ that corresponds to midi note 62 is played.
 .It
 .It Li e b Ta The chosen
 .Ql b
-is the lower one,
-because the distance from
+is the
+.Em lower
+one, because the distance from
 .Ql e
 to lower
 .Ql b
@@ -233,28 +237,30 @@ the
 .Ql b
 that corresponds to midi note 71 is played.
 .It
-.It Li e a Ta The chosen
-.Ql a
-is the higher one,
-because the distance from
+.It Li e g Ta The chosen
+.Ql g
+is the
+.Em higher
+one, because the distance from
 .Ql e
 to higher
-.Ql a
-is 3 (e-f-g-a),
+.Ql g
+is 2 (e-f-g),
 which is less than the distance to lower
-.Ql a ,
-which is 4 (e-d-c-b-a).
+.Ql g ,
+which is 5 (e-d-c-b-a-g).
 In case
 .Ql e
 was interpreted as midi note 64,
 the
-.Ql a
-that corresponds to midi note 69 is played.
+.Ql g
+that corresponds to midi note 67 is played.
 .It
 .It Li f b Ta The chosen
 .Ql b
-is the higher one,
-because the distance from
+is the
+.Em higher
+one, because the distance from
 .Ql f
 to higher
 .Ql b
@@ -282,8 +288,9 @@ in resolving the played note.
 .Pp
 In cases where the above method
 chooses the wrong note,
-this can be affected by syntax
-that forces the note to be an octave higher or lower.
+this can be affected by
+.Em octave modifiers
+that force the note to be an octave higher or lower.
 Appending
 .Ql '
 (an apostrophe) to note letter raises the note by one octave,
@@ -317,14 +324,18 @@ is closer (midi note 65).
 again, except move down by two octaves (48).
 .El
 .Pp
-Notes can be modified to be
+Notes can be modified with
+.Em note modifiers .
+They can be made
 .Dq sharp
 by appending
 .Ql is ,
-and also they can modified to be
+and they can also be made
 .Dq flat
 by appending
-.Ql es .
+.Ql es
+after the note letter,
+but before octave modifiers.
 That is,
 .Ql fis
 means sharp
