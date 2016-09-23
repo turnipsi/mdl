@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.15 2016/09/23 10:08:41 je Exp $
+.\"	$Id: mdl.1,v 1.16 2016/09/23 11:28:23 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -133,6 +133,9 @@ Syntax and semantics are very similar to those used in the
 .Xr lilypond 1
 music typesetting program,
 but they are not compatible.
+.Pp
+Whitespace is generally ignored,
+but may be meaningful in some details.
 .Pp
 Notes are expressed as
 .Em letters ,
@@ -356,6 +359,21 @@ both
 and
 .Ql ees
 can be used.
+.Pp
+It is possible, but not recommended,
+to put whitespace between note,
+note modifiers and octave modifiers,
+but note that
+.Ql es
+may be parsed as a note or a note modifier.
+For example,
+.Dq "c is ,"
+is a syntactically correct, single-note expression,
+but
+.Dq "c es"
+and
+.Dq "ces"
+mean different things and here whitespace matters.
 .Pp
 Note modifiers do not affect
 the note octave resolution method at all.
