@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.16 2016/09/23 11:28:23 je Exp $
+.\"	$Id: mdl.1,v 1.17 2016/09/23 11:57:42 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -127,12 +127,22 @@ was compiled with.
 interprets files or standard input written in the
 .Nm
 language.
-The language describes notes (including drum hits)
+The language describes notes
 that trigger midi events played by a sequencer.
 Syntax and semantics are very similar to those used in the
 .Xr lilypond 1
 music typesetting program,
 but they are not compatible.
+.Pp
+The currently implemented language interpreter supports
+notes with various lengths,
+drum hits,
+chord expressions,
+joining expressions,
+simultaneous playing of different music expressions
+and different instruments on different midi channels.
+Changing global tempo
+and track-specific instrument volume is also possible.
 .Pp
 Whitespace is generally ignored,
 but may be meaningful in some details.
@@ -192,7 +202,7 @@ between higher and lower note.
 .Nm
 chooses to play the note
 that is closer to the previous note,
-when considering distances between note letters.
+when comparing distances between note letters.
 Note letters are considered like a circular list,
 thus
 .Ql b
@@ -289,6 +299,14 @@ This does not matter
 as the above method is unambiguous
 in resolving the played note.
 .Pp
+The first note in a sequence
+is compared with the middle
+.Ql c
+(midi note 60),
+that is kind-of a
+.Dq default note
+in a sequence.
+.Pp
 In cases where the above method
 chooses the wrong note,
 this can be affected by
@@ -302,29 +320,31 @@ and appending
 (a comma) to note letter lowers the note by one octave.
 Multiple apostrophes and commas can be appended to note letters,
 forcing jumps of multiple octaves.
-For example, the following snippet plays the midi notes 60,
-67, 65, 72 and 48:
+For example, the following snippet plays the midi notes 62,
+69, 67, 60 and 86:
 .Bd -literal -offset indent
-c g' f c' c,,
+d a' g c, d''
 .Ed
 .Pp
 Considering those notes one by one:
-.Bl -column "X" -offset indent
-.It Li c Ta Start with middle
+.Bl -column "XX" -offset indent
+.It Li d Ta The higher
+.Ql d
+(62) is closer to
 .Ql c
-(midi note 60).
-.It Li g' Ta The lower
+than the lower (50).
+.It Li a' Ta The lower
+.Ql a
+(57) is closer, but move up an octave to 69.
+.It Li g Ta The lower
 .Ql g
-(55) is closer, but move up an octave to 67.
-.It Li f Ta The lower
-.Ql f
-is closer (midi note 65).
-.It Li c' Ta The lower
+is closer (midi note 67).
+.It Li c, Ta The higher
 .Ql c
-(60) is closer, but move up an octave to 72.
-.It Li c,, Ta Play
-.Ql c
-again, except move down by two octaves (48).
+(72) is closer, but move down an octave to 60.
+.It Li d'' Ta Play
+.Ql d
+again, except move up by two octaves (86).
 .El
 .Pp
 Notes can be modified with
@@ -419,8 +439,9 @@ thus the following equivalences are true:
 .It Li "es      = ees"
 .El
 .Pp
-Note lengths are expressed with numbers that follow notes,
-where number
+Note lengths are expressed with
+.Em numbers
+that follow notes, where number
 .Ql n
 means to play a note for 1/n measures.
 This means that to play note
@@ -435,7 +456,8 @@ it interprets that to mean note
 .Ql e
 should be played for 1/12 measures.
 .Pp
-Note lengths may be extended with zero or more dots.
+Note lengths may be extended with zero or more
+.Em dots .
 Each new dot extends the length by
 .Ql 1/(2^n) ,
 where
