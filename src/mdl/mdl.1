@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.17 2016/09/23 11:57:42 je Exp $
+.\"	$Id: mdl.1,v 1.18 2016/09/23 12:53:13 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -433,10 +433,8 @@ Modifiers can be applied many times,
 thus the following equivalences are true:
 .Bl -column "X" -offset indent
 .It Li "cisis   = d"
-.It Li "fes     = e"
 .It Li "fisisis = gis"
 .It Li "aises   = a"
-.It Li "es      = ees"
 .El
 .Pp
 Note lengths are expressed with
@@ -472,13 +470,26 @@ For example:
 .It Li "c4...." Ta "1/4 + 1/8 + 1/16 + 1/32 + 1/64 = 31/64 measures"
 .El
 .Pp
-Previous notes affect subsequent notes
-regarding their octave and length.
-If there are no previous notes
-or a new subexpression is defined,
-the default note is used instead as reference point.
-The default note is a quarter note middle
-.Ql c .
+In case a length specification (some number with dots) is missing,
+the length of the previous note is used.
+In case the first note of a sequence has no length specification,
+quarter-note is the note length.  For example:
+.Bd -literal -offset indent
+c d e2  f4 g a2
+.Ed
+.Pp
+Here
+.Ql c ,
+.Ql d ,
+.Ql f
+and
+.Ql g
+are quarter-notes (length 1/4),
+and
+.Ql e
+and
+.Ql a
+are half-notes (length 1/2).
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
