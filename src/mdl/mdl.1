@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.22 2016/09/23 19:24:42 je Exp $
+.\"	$Id: mdl.1,v 1.23 2016/09/23 21:38:25 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -582,8 +582,43 @@ To play two sequences simultaneously one can write:
 >>
 .Ed
 .Pp
+Another expression type is a relative simultence,
+or
+.Em relsimultence
+for short.
+.\" XXX Should it have a better name?  Does it need a name?
+It is like a simultence in that it has subexpressions
+which are played simultaneously.
+However, these subexpressions are parsed like sequences,
+meaning that the notes may affect each others'
+lengths and chosen octaves.
+The subexpressions for relsimultences are enclosed with
+.Ql <
+and
+.Ql > ,
+with an optional length specifier appended.
+.\" XXX Should appending a length specifier be possible case
+.\" XXX with sequences and simultences as well?
+The syntax is handy for expressing multiple simultaneous notes,
+for example the following expression can be used
+to play a major
+.Ql c
+chord for a time of 1/8 measures:
+.Bd -literal -offset indent
+<c e g>8
+.Ed
+.Pp
+The subexpressions of a relsimultence
+can be any music expressions
+and they are scaled according to the length specifier,
+or the previously used note length if none were specified.
+If subexpressions have differing lengths,
+the longest subexpression is scaled to the specified length,
+and other subexpressions are scaled with the same scaling factor.
+.Pp
 Another type of music expression
-(which can of course be a part of a sequence or a simultence)
+(which can of course be a part of a sequence, simultence
+or relsimultence)
 is a
 .Em chord ,
 that is written by appending
@@ -593,37 +628,37 @@ The note chosen functions as the base note for a chord.
 The following chord identifiers are supported by
 .Nm mdl ,
 with the identifier on the left
-and the corresponding simultence expression on the right:
+and the corresponding relsimultence expression on the right:
 .Bl -column "XXXXXXXXXXX" -offset indent
-.It Li "c:5"        Ta "<< c e  g'                  >>"
-.It Li "c:m"        Ta "<< c es g'                  >>"
-.It Li "c:m5"       Ta "<< c es g'                  >>"
-.It Li "c:aug"      Ta "<< c e  gis'                >>"
-.It Li "c:dim"      Ta "<< c es ges'                >>"
-.It Li "c:7"        Ta "<< c e  g'   bes'           >>"
-.It Li "c:maj7"     Ta "<< c e  g'   b'             >>"
-.It Li "c:maj"      Ta "<< c e  g'   b'             >>"
-.It Li "c:m7"       Ta "<< c es g'   bes'           >>"
-.It Li "c:dim7"     Ta "<< c es ges' beses'         >>"
-.It Li "c:aug7"     Ta "<< c e  gis' bes'           >>"
-.It Li "c:m7.5-"    Ta "<< c es ges' bes'           >>"
-.It Li "c:m7+"      Ta "<< c es g'   b'             >>"
-.It Li "c:6"        Ta "<< c e  g'   a'             >>"
-.It Li "c:m6"       Ta "<< c es g'   a'             >>"
-.It Li "c:9"        Ta "<< c e  g'   bes' d'        >>"
-.It Li "c:maj9"     Ta "<< c e  g'   b'   d'        >>"
-.It Li "c:m9"       Ta "<< c es g'   bes' d'        >>"
-.It Li "c:11"       Ta "<< c e  g'   bes' d' f'     >>"
-.It Li "c:maj11"    Ta "<< c e  g'   b'   d' f'     >>"
-.It Li "c:m11"      Ta "<< c es g'   bes' d' f'     >>"
-.It Li "c:13"       Ta "<< c e  g'   bes' d'    a'' >>"
-.It Li "c:13.11"    Ta "<< c e  g'   bes' d' f' a'' >>"
-.It Li "c:maj13.11" Ta "<< c e  g'   b'   d' f' a'' >>"
-.It Li "c:m13.11"   Ta "<< c es g'   bes' d' f' a'' >>"
-.It Li "c:sus2"     Ta "<< c d  g'                  >>"
-.It Li "c:sus4"     Ta "<< c f  g'                  >>"
-.It Li "c:1.5"      Ta "<< c    g'                  >>"
-.It Li "c:1.5.8"    Ta "<< c    g'   c'             >>"
+.It Li "c:5"        Ta "< c e  g              >"
+.It Li "c:m"        Ta "< c es g              >"
+.It Li "c:m5"       Ta "< c es g              >"
+.It Li "c:aug"      Ta "< c e  gis            >"
+.It Li "c:dim"      Ta "< c es ges            >"
+.It Li "c:7"        Ta "< c e  g   bes        >"
+.It Li "c:maj7"     Ta "< c e  g   b          >"
+.It Li "c:maj"      Ta "< c e  g   b          >"
+.It Li "c:m7"       Ta "< c es g   bes        >"
+.It Li "c:dim7"     Ta "< c es ges beses      >"
+.It Li "c:aug7"     Ta "< c e  gis bes        >"
+.It Li "c:m7.5-"    Ta "< c es ges bes        >"
+.It Li "c:m7+"      Ta "< c es g   b          >"
+.It Li "c:6"        Ta "< c e  g   a          >"
+.It Li "c:m6"       Ta "< c es g   a          >"
+.It Li "c:9"        Ta "< c e  g   bes d      >"
+.It Li "c:maj9"     Ta "< c e  g   b   d      >"
+.It Li "c:m9"       Ta "< c es g   bes d      >"
+.It Li "c:11"       Ta "< c e  g   bes d f    >"
+.It Li "c:maj11"    Ta "< c e  g   b   d f    >"
+.It Li "c:m11"      Ta "< c es g   bes d f    >"
+.It Li "c:13"       Ta "< c e  g   bes d   a' >"
+.It Li "c:13.11"    Ta "< c e  g   bes d f a  >"
+.It Li "c:maj13.11" Ta "< c e  g   b   d f a  >"
+.It Li "c:m13.11"   Ta "< c es g   bes d f a  >"
+.It Li "c:sus2"     Ta "< c d  g              >"
+.It Li "c:sus4"     Ta "< c f  g              >"
+.It Li "c:1.5"      Ta "< c    g              >"
+.It Li "c:1.5.8"    Ta "< c    g   c          >"
 .El
 .Pp
 In case the identifier is left out and only
@@ -644,6 +679,8 @@ For example, the following expressions are valid chord expressions:
 .It Li a16.:maj9
 .It Li g:
 .El
+.Pp
+XXX drums joins tracks instruments tempo volume XXX
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
