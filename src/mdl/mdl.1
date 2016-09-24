@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.28 2016/09/24 19:14:57 je Exp $
+.\"	$Id: mdl.1,v 1.29 2016/09/24 20:41:42 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -806,7 +806,146 @@ Here is an example that plays a few notes with a drawbar organ:
 "drawbar organ" :: { c c c e   d d d f   e e d d   c1 }
 .Ed
 .Pp
-XXX instrument tempo volume XXX
+Multiple track specifications with the same name
+simply use the same track
+and do not create multiple tracks.
+.Pp
+.Nm
+also supports
+.Em functions .
+Function syntax is:
+.Bd -literal -offset indent
+\\function_name funcarg1 funcarg2 ... ;
+.Ed
+.Pp
+The last
+.Ql \&;
+can be omitted in case
+a newline ends the argument list.
+Function call can be also continued to the next line by using
+.Ql \\\\
+(a backslash) at the end of the line.
+.Pp
+Currently supported functions are
+.Ic \\\\instrument
+(XXX not yet),
+.Ic \\\\tempo 
+and
+.Ic \\\\volume . 
+To change an instrument in a track do (XXX not yet):
+.Bd -literal -offset indent
+\\instrument "instrument name";
+.Ed
+.Pp
+Recognized instrument names for toned instruments are:
+.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXXX" -offset indent
+.It Li "acoustic grand"          Ta "soprano sax"
+.It Li "bright acoustic"         Ta "alto sax"
+.It Li "electric grand"          Ta "tenor sax"
+.It Li "honky-tonk"              Ta "baritone sax"
+.It Li "electric piano 1"        Ta "oboe"
+.It Li "electric piano 2"        Ta "english horn"
+.It Li "harpsichord"             Ta "bassoon"
+.It Li "clav"                    Ta "clarinet"
+.It
+.It Li "celesta"                 Ta "piccolo"
+.It Li "glockenspiel"            Ta "flute"
+.It Li "music box"               Ta "recorder"
+.It Li "vibraphone"              Ta "pan flute"
+.It Li "marimba"                 Ta "blown bottle"
+.It Li "xylophone"               Ta "shakuhachi"
+.It Li "tubular bells"           Ta "whistle"
+.It Li "dulcimer"                Ta "ocarina"
+.It
+.It Li "drawbar organ"           Ta "lead 1 (square)"
+.It Li "percussive organ"        Ta "lead 2 (sawtooth)"
+.It Li "rock organ"              Ta "lead 3 (calliope)"
+.It Li "church organ"            Ta "lead 4 (chiff)"
+.It Li "reed organ"              Ta "lead 5 (charang)"
+.It Li "accordion"               Ta "lead 6 (voice)"
+.It Li "harmonica"               Ta "lead 7 (fifths)"
+.It Li "concertina"              Ta "lead 8 (bass+lead)"
+.It
+.It Li "acoustic guitar (nylon)" Ta "pad 1 (new age)"
+.It Li "acoustic guitar (steel)" Ta "pad 2 (warm)"
+.It Li "electric guitar (jazz)"  Ta "pad 3 (polysynth)"
+.It Li "electric guitar (clean)" Ta "pad 4 (choir)"
+.It Li "electric guitar (muted)" Ta "pad 5 (bowed)"
+.It Li "overdriven guitar"       Ta "pad 6 (metallic)"
+.It Li "distorted guitar"        Ta "pad 7 (halo)"
+.It Li "guitar harmonics"        Ta "pad 8 (sweep)"
+.It
+.It Li "acoustic bass"           Ta "fx 1 (rain)"
+.It Li "electric bass (finger)"  Ta "fx 2 (soundtrack)"
+.It Li "electric bass (pick)"    Ta "fx 3 (crystal)"
+.It Li "fretless bass"           Ta "fx 4 (atmosphere)"
+.It Li "slap bass 1"             Ta "fx 5 (brightness)"
+.It Li "slap bass 2"             Ta "fx 6 (goblins)"
+.It Li "synth bass 1"            Ta "fx 7 (echoes)"
+.It Li "synth bass 2"            Ta "fx 8 (sci-fi)"
+.It
+.It Li "violin"                  Ta "sitar"
+.It Li "viola"                   Ta "banjo"
+.It Li "cello"                   Ta "shamisen"
+.It Li "contrabass"              Ta "koto"
+.It Li "tremolo strings"         Ta "kalimba"
+.It Li "pizzicato strings"       Ta "bagpipe"
+.It Li "orchestral harp"         Ta "fiddle"
+.It Li "timpani"                 Ta "shanai"
+.It
+.It Li "string ensemble 1"       Ta "tinkle bell"
+.It Li "string ensemble 2"       Ta "agogo"
+.It Li "synthstrings 1"          Ta "steel drums"
+.It Li "synthstrings 2"          Ta "woodblock"
+.It Li "choir aahs"              Ta "taiko drum"
+.It Li "voice oohs"              Ta "melodic tom"
+.It Li "synth voice"             Ta "synth drum"
+.It Li "orchestra hit"           Ta "reverse cymbal"
+.It
+.It Li "trumpet"                 Ta "guitar fret noise"
+.It Li "trombone"                Ta "breath noise"
+.It Li "tuba"                    Ta "seashore"
+.It Li "muted trumpet"           Ta "bird tweet"
+.It Li "french horn"             Ta "telephone ring"
+.It Li "brass section"           Ta "helicopter"
+.It Li "synthbrass 1"            Ta "applause"
+.It Li "synthbrass 2"            Ta "gunshot"
+.El
+.Pp
+Recognized instrument names for drumkits are
+(setting this affects all the drum sounds (XXX does this work?)):
+.Bl -column "XXXXXXXXXXXXXXXXXXXXXXXXXX" -offset indent
+.It Li "drums"            Ta "jazz kit"
+.It Li "standard drums"   Ta "brush drums"
+.It Li "standard kit"     Ta "brush kit"
+.It Li "room drums"       Ta "classical drums"
+.It Li "room kit"         Ta "orchestra drums"
+.It Li "power drums"      Ta "orchestra kit"
+.It Li "power kit"        Ta "sfx drums"
+.It Li "rock drums"       Ta "sfx kit"
+.It Li "electronic drums" Ta "cm-64 drums"
+.It Li "electronic kit"   Ta "cm-64 kit"
+.It Li "tr-808 drums"     Ta "mt-32 drums"
+.It Li "tr-808 kit"       Ta "mt-32 kit"
+.It Li "jazz drums"
+.El
+.Pp
+To change volume on a track do:
+.Bd -literal -offset indent
+\\\\volume VOLUME;
+.Ed
+.Pp
+Here VOLUME must be some value between 0 and 127.
+.Pp
+To change tempo (this can be anywhere but affects all tracks) do:
+.Bd -literal -offset indent
+\\\\tempo BPM;
+.Ed
+.Pp
+Here BPM means beats-per-minute
+and must be a value between 1 and
+.Dv LLONG_MAX
+(a big number).
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
@@ -863,8 +1002,8 @@ means that only 15 toned instrument tracks
 and one drum track can be simultaneously active
 (playing notes at the same time).
 .Pp
-\\instrument function
-to set an instrument for a track
+.Ic \\\\instrument
+function to set an instrument for a track
 is not yet implemented.
 .Pp
 Many others probably, but most seriously
