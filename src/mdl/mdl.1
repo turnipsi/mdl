@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.25 2016/09/24 08:34:13 je Exp $
+.\"	$Id: mdl.1,v 1.26 2016/09/24 10:47:13 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -759,17 +759,51 @@ Supported drum names and their longer counterparts are:
 .Pp
 For example, to play a drum beat with bass drums,
 snare drums and hihats
-(as usually, whitespace does not matter here,
-but it may be nice to line up expressions
-that are played at the exact same time):
+one can use the following expression.
 .Bd -literal -offset indent
 <<
-  { bassdrum4      snare        bd8   bd     sn4         }
-  { hh16 hh hh hh  hh hh hh hh  hh hh hh hh  hh hh hh hh }
+  { bassdrum4      snare        bd8   bd     sn4    }
+  { hh16 hh hh hh  hh hh hh hh  hh hh hh hh  hh8 hh }
 >>
 .Ed
 .Pp
-XXX joins tracks instruments tempo volume XXX
+As usually, whitespace does not matter here,
+but it may be nice to line up expressions
+that are played at the exact same time.
+.Pp
+Music expressions can be
+.Em joined
+together with
+.Ql ~
+syntax (XXX buggy!).
+When music expressions are joined,
+notes which are playing at the end of the previous expression
+are not turned off
+in case the following expression starts
+with those notes.
+This allows for expressing music expressions that have lengths
+that are not otherwise expressible
+with simple length specifiers (numbers and dots).
+Some examples:
+.Bl -column -offset indent
+.It Li "c2 ~ c8 d e f"
+.It Li "c8 d e r ~ r g e c4"
+.It Li "tomfl8 tomfl tomfl tomfl ~ tomfl4. tomfl8"
+.It Li "c ~ d"
+.It Li "c4.:5 ~ e8:m7 ~ e4:7 ~ gis"
+.El
+.Pp
+The last example joins together chords and a
+.Ql gis
+note at the end,
+joining the common notes while others
+turn on and off as required.
+Trying to join unjoinable expressions is possible
+(as in
+.Dq c ~ d ) ,
+joining simply fails and notes remain distinct.
+.Pp
+XXX tracks instruments tempo volume XXX
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
@@ -796,7 +830,10 @@ c4 d e f g a b c
 .\" .Sh CAVEATS
 .Sh BUGS
 On
-.Fx ,
+.Fx 10.3
+(the only tested
+.Fx
+release),
 .Nm
 sometimes exits with an error for some unknown reason.
 .Pp
@@ -808,7 +845,17 @@ this should not be.
 Drum handling is strange and lacking, for example drum volumes
 can not be adjusted.
 .Pp
-Many others probably, but the most serious one is that
+The note joining code is buggy
+and should be moved to sequencer
+and implemented differently.
+For example, the following syntax
+produces either an assertion crash
+or sometimes a hang:
+.Bd -literal -offset indent
+<<c>> ~ {a}
+.Ed
+.Pp
+Many others probably, but most seriously
 .Nm
 is lacking features that a programming language should have,
 such as variables, functions and such.
