@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.26 2016/09/24 10:47:13 je Exp $
+.\"	$Id: mdl.1,v 1.27 2016/09/24 18:01:53 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -691,70 +691,39 @@ note modifiers and octave modifiers can not be used,
 but length specifiers can be used
 like with notes, rests, chords and relsimultences.
 Supported drum names and their longer counterparts are:
-.Bl -column "XXXXX" -offset indent
-.It Li bda   Ta acousticbassdrum
-.It Li bd    Ta bassdrum
-.It Li ssh   Ta hisidestick
-.It Li ss    Ta sidestick
-.It Li ssl   Ta losidestick
-.It Li sna   Ta acousticsnare
-.It Li sn    Ta snare
-.It Li hc    Ta handclap
-.It Li sne   Ta electricsnare
-.It Li tomfl Ta lowfloortom
-.It Li hhc   Ta closedhihat
-.It Li hh    Ta hihat
-.It Li tomfh Ta highfloortom
-.It Li hhp   Ta pedalhihat
-.It Li toml  Ta lowtom
-.It Li hho   Ta openhihat
-.It Li hhho  Ta halfopenhihat
-.It Li tomml Ta lowmidtom
-.It Li tommh Ta himidtom
-.It Li cymca Ta crashcymbala
-.It Li cymc  Ta crashcymbal
-.It Li tomh  Ta hightom
-.It Li cymra Ta ridecymbala
-.It Li cymr  Ta ridecymbal
-.It Li cymch Ta chinesecymbal
-.It Li rb    Ta ridebell
-.It Li tamb  Ta tambourine
-.It Li cyms  Ta splashcymbal
-.It Li cb    Ta cowbell
-.It Li cymcb Ta crashcymbalb
-.It Li vibs  Ta vibraslap
+.Bl -column "XXX" "XXXXXXXXXXXXXXXXXXXX" "XXX" -offset indent
+.It Li bda   Ta acousticbassdrum Ta bohm  Ta mutehibongo
+.It Li bd    Ta bassdrum         Ta boh   Ta hibongo
+.It Li ssh   Ta hisidestick      Ta boho  Ta openhibongo
+.It Li ss    Ta sidestick        Ta bolm  Ta mutelobongo
+.It Li ssl   Ta losidestick      Ta bol   Ta lobongo
+.It Li sna   Ta acousticsnare    Ta bolo  Ta openlobongo
+.It Li sn    Ta snare            Ta cghm  Ta mutehiconga
+.It Li hc    Ta handclap         Ta cglm  Ta muteloconga
+.It Li sne   Ta electricsnare    Ta cgho  Ta openhiconga
+.It Li tomfl Ta lowfloortom      Ta cgh   Ta hiconga
+.It Li hhc   Ta closedhihat      Ta cglo  Ta openloconga
+.It Li hh    Ta hihat            Ta cgl   Ta loconga
+.It Li tomfh Ta highfloortom     Ta timh  Ta hitimbale
+.It Li hhp   Ta pedalhihat       Ta timl  Ta lotimbale
+.It Li toml  Ta lowtom           Ta agh   Ta hiagogo
+.It Li hho   Ta openhihat        Ta agl   Ta loagogo
+.It Li hhho  Ta halfopenhihat    Ta cab   Ta cabasa
+.It Li tomml Ta lowmidtom        Ta mar   Ta maracas
+.It Li tommh Ta himidtom         Ta whs   Ta shortwhistle
+.It Li cymca Ta crashcymbala     Ta whl   Ta longwhistle
+.It Li cymc  Ta crashcymbal      Ta guis  Ta shortguiro
+.It Li tomh  Ta hightom          Ta guil  Ta longguiro
+.It Li cymra Ta ridecymbala      Ta gui   Ta guiro
+.It Li cymr  Ta ridecymbal       Ta cl    Ta claves
+.It Li cymch Ta chinesecymbal    Ta wbh   Ta hiwoodblock
+.It Li rb    Ta ridebell         Ta wbl   Ta lowoodblock
+.It Li tamb  Ta tambourine       Ta cuim  Ta mutecuica
+.It Li cyms  Ta splashcymbal     Ta cuio  Ta opencuica
+.It Li cb    Ta cowbell          Ta trim  Ta mutetriangle
+.It Li cymcb Ta crashcymbalb     Ta tri   Ta triangle
+.It Li vibs  Ta vibraslap        Ta trio  Ta opentriangle
 .It Li cymrb Ta ridecymbalb
-.It Li bohm  Ta mutehibongo
-.It Li boh   Ta hibongo
-.It Li boho  Ta openhibongo
-.It Li bolm  Ta mutelobongo
-.It Li bol   Ta lobongo
-.It Li bolo  Ta openlobongo
-.It Li cghm  Ta mutehiconga
-.It Li cglm  Ta muteloconga
-.It Li cgho  Ta openhiconga
-.It Li cgh   Ta hiconga
-.It Li cglo  Ta openloconga
-.It Li cgl   Ta loconga
-.It Li timh  Ta hitimbale
-.It Li timl  Ta lotimbale
-.It Li agh   Ta hiagogo
-.It Li agl   Ta loagogo
-.It Li cab   Ta cabasa
-.It Li mar   Ta maracas
-.It Li whs   Ta shortwhistle
-.It Li whl   Ta longwhistle
-.It Li guis  Ta shortguiro
-.It Li guil  Ta longguiro
-.It Li gui   Ta guiro
-.It Li cl    Ta claves
-.It Li wbh   Ta hiwoodblock
-.It Li wbl   Ta lowoodblock
-.It Li cuim  Ta mutecuica
-.It Li cuio  Ta opencuica
-.It Li trim  Ta mutetriangle
-.It Li tri   Ta triangle
-.It Li trio  Ta opentriangle
 .El
 .Pp
 For example, to play a drum beat with bass drums,
