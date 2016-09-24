@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.24 2016/09/24 06:56:26 je Exp $
+.\"	$Id: mdl.1,v 1.25 2016/09/24 08:34:13 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -683,7 +683,93 @@ on the right:
 .It Li g:            Ta "<g b d> if previous chord was :5"
 .El
 .Pp
-XXX drums joins tracks instruments tempo volume XXX
+It is also possible to use
+.Em drum hit expressions
+instead of notes.
+Drum hits are like rests in that
+note modifiers and octave modifiers can not be used,
+but length specifiers can be used
+like with notes, rests, chords and relsimultences.
+Supported drum names and their longer counterparts are:
+.Bl -column "XXXXX" -offset indent
+.It Li bda   Ta acousticbassdrum
+.It Li bd    Ta bassdrum
+.It Li ssh   Ta hisidestick
+.It Li ss    Ta sidestick
+.It Li ssl   Ta losidestick
+.It Li sna   Ta acousticsnare
+.It Li sn    Ta snare
+.It Li hc    Ta handclap
+.It Li sne   Ta electricsnare
+.It Li tomfl Ta lowfloortom
+.It Li hhc   Ta closedhihat
+.It Li hh    Ta hihat
+.It Li tomfh Ta highfloortom
+.It Li hhp   Ta pedalhihat
+.It Li toml  Ta lowtom
+.It Li hho   Ta openhihat
+.It Li hhho  Ta halfopenhihat
+.It Li tomml Ta lowmidtom
+.It Li tommh Ta himidtom
+.It Li cymca Ta crashcymbala
+.It Li cymc  Ta crashcymbal
+.It Li tomh  Ta hightom
+.It Li cymra Ta ridecymbala
+.It Li cymr  Ta ridecymbal
+.It Li cymch Ta chinesecymbal
+.It Li rb    Ta ridebell
+.It Li tamb  Ta tambourine
+.It Li cyms  Ta splashcymbal
+.It Li cb    Ta cowbell
+.It Li cymcb Ta crashcymbalb
+.It Li vibs  Ta vibraslap
+.It Li cymrb Ta ridecymbalb
+.It Li bohm  Ta mutehibongo
+.It Li boh   Ta hibongo
+.It Li boho  Ta openhibongo
+.It Li bolm  Ta mutelobongo
+.It Li bol   Ta lobongo
+.It Li bolo  Ta openlobongo
+.It Li cghm  Ta mutehiconga
+.It Li cglm  Ta muteloconga
+.It Li cgho  Ta openhiconga
+.It Li cgh   Ta hiconga
+.It Li cglo  Ta openloconga
+.It Li cgl   Ta loconga
+.It Li timh  Ta hitimbale
+.It Li timl  Ta lotimbale
+.It Li agh   Ta hiagogo
+.It Li agl   Ta loagogo
+.It Li cab   Ta cabasa
+.It Li mar   Ta maracas
+.It Li whs   Ta shortwhistle
+.It Li whl   Ta longwhistle
+.It Li guis  Ta shortguiro
+.It Li guil  Ta longguiro
+.It Li gui   Ta guiro
+.It Li cl    Ta claves
+.It Li wbh   Ta hiwoodblock
+.It Li wbl   Ta lowoodblock
+.It Li cuim  Ta mutecuica
+.It Li cuio  Ta opencuica
+.It Li trim  Ta mutetriangle
+.It Li tri   Ta triangle
+.It Li trio  Ta opentriangle
+.El
+.Pp
+For example, to play a drum beat with bass drums,
+snare drums and hihats
+(as usually, whitespace does not matter here,
+but it may be nice to line up expressions
+that are played at the exact same time):
+.Bd -literal -offset indent
+<<
+  { bassdrum4      snare        bd8   bd     sn4         }
+  { hh16 hh hh hh  hh hh hh hh  hh hh hh hh  hh hh hh hh }
+>>
+.Ed
+.Pp
+XXX joins tracks instruments tempo volume XXX
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
@@ -698,14 +784,6 @@ to higher
 using quarter notes:
 .Bd -literal -offset indent
 c4 d e f g a b c
-.Ed
-.Pp
-Play some drumbeats, with bass drum, snare and steady hihat hits.
-.Bd -literal -offset indent
-<<
-  { bd4            sn           bd8   bd     sd4         }
-  { hh16 hh hh hh  hh hh hh hh  hh hh hh hh  hh hh hh hh }
->>
 .Ed
 .\" .Sh DIAGNOSTICS
 .\" For sections 1, 4, 6, 7, 8, and 9 printf/stderr messages only.
