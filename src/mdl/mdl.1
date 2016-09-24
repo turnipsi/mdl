@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.23 2016/09/23 21:38:25 je Exp $
+.\"	$Id: mdl.1,v 1.24 2016/09/24 06:56:26 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: September 23 2016 $
+.Dd $Mdocdate: September 24 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -672,12 +672,15 @@ The base note of the chord follows
 the same rules as notes
 regarding note modifiers, octave modifiers and lengths,
 and these affect other notes of the chord as well.
-For example, the following expressions are valid chord expressions:
-.Bl -column -offset indent
-.It Li cis'2:maj
-.It Li es,4..:m13.11
-.It Li a16.:maj9
-.It Li g:
+For example, the following expressions on the left
+are valid chord expressions
+and are equivalent to relsimultence expressions
+on the right:
+.Bl -column "XXXXXXXXXXXXX" -offset indent
+.It Li cis'2:maj     Ta "<cis' f gis c>2"
+.It Li es,4..:m13.11 Ta "<es, ges bes des f aes c>4.."
+.It Li a16.:maj9     Ta "<a cis e gis b>16."
+.It Li g:            Ta "<g b d> if previous chord was :5"
 .El
 .Pp
 XXX drums joins tracks instruments tempo volume XXX
