@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.27 2016/09/24 18:01:53 je Exp $
+.\"	$Id: mdl.1,v 1.28 2016/09/24 19:14:57 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -624,7 +624,7 @@ is a
 that is written by appending
 .Ql \&:
 and a chord identifier to a note.
-The note chosen functions as the base note for a chord.
+The chosen note functions as the base note for a chord.
 The following chord identifiers are supported by
 .Nm mdl ,
 with the identifier on the left
@@ -680,7 +680,7 @@ on the right:
 .It Li cis'2:maj     Ta "<cis' f gis c>2"
 .It Li es,4..:m13.11 Ta "<es, ges bes des f aes c>4.."
 .It Li a16.:maj9     Ta "<a cis e gis b>16."
-.It Li g:            Ta "<g b d> if previous chord was :5"
+.It Li g:            Ta "<g b d> (in case previous chord was :5)"
 .El
 .Pp
 It is also possible to use
@@ -772,7 +772,41 @@ Trying to join unjoinable expressions is possible
 .Dq c ~ d ) ,
 joining simply fails and notes remain distinct.
 .Pp
-XXX tracks instruments tempo volume XXX
+Music expressions can be assigned to
+.Em tracks 
+with track syntax:
+.Bd -literal -offset indent
+"track name" :: SOME_MUSIC_EXPRESSION
+.Ed
+.Pp
+Actually all music expressions belong to some track
+even if they are not explicitly assigned to any.
+The default track for notes is
+.Dq acoustic grand ,
+and
+.Dq drums
+for drum hits.
+Tracks have their own parameters
+such as the instrument used and the volume level,
+and these can be changed independently for each track.
+Tracks have their own midi channels.
+(These are in fact allocated dynamically
+so that they may change,
+but this should not matter as all track-specific settings
+should always follow to the new midi channel).
+.Pp
+Track name can be anything made of letters, numbers and space.
+If there is an instrument name recognized by
+.Nm
+that matches the track name exactly,
+that instrument will be used on the track
+and no other instrument specification is needed.
+Here is an example that plays a few notes with a drawbar organ:
+.Bd -literal -offset indent
+"drawbar organ" :: { c c c e   d d d f   e e d d   c1 }
+.Ed
+.Pp
+XXX instrument tempo volume XXX
 .\" .Sh ENVIRONMENT
 .\" For sections 1, 6, 7, and 8 only.
 .Sh EXIT STATUS
@@ -806,13 +840,13 @@ release),
 .Nm
 sometimes exits with an error for some unknown reason.
 .Pp
-Parser does not suggest where parsing fails or why.
+The parser does not suggest where parsing fails or why.
 .Pp
 Empty sequences and simultences are syntax errors,
 this should not be.
 .Pp
-Drum handling is strange and lacking, for example drum volumes
-can not be adjusted.
+Drum handling is strange and lacking,
+for example drum volumes can not be adjusted.
 .Pp
 The note joining code is buggy
 and should be moved to sequencer
@@ -824,9 +858,18 @@ or sometimes a hang:
 <<c>> ~ {a}
 .Ed
 .Pp
+MIDI channel limitation of 16 channels
+means that only 15 toned instrument tracks
+and one drum track can be simultaneously active
+(playing notes at the same time).
+.Pp
+\\instrument function
+to set an instrument for a track
+is not yet implemented.
+.Pp
 Many others probably, but most seriously
 .Nm
 is lacking features that a programming language should have,
-such as variables, functions and such.
+such as variables, user-definable functions and such.
 The current plan is to integrate with Tcl
 that should provide some of that functionality.
