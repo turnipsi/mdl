@@ -1,4 +1,4 @@
-/* $Id: relative.c,v 1.38 2016/09/18 20:36:11 je Exp $ */
+/* $Id: relative.c,v 1.39 2016/09/25 19:47:34 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -267,6 +267,7 @@ relative_to_absolute(struct musicexpr *me, struct previous_exprs *prev_exprs,
 		break;
 	case ME_TYPE_SCALEDEXPR:
 		relative_to_absolute(me->u.scaledexpr.me, prev_exprs, level);
+		prev_exprs->length = me->u.scaledexpr.length;
 		break;
 	case ME_TYPE_SEQUENCE:
 		/*

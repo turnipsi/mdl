@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.30 2016/09/25 10:58:14 je Exp $
+.\"	$Id: mdl.1,v 1.31 2016/09/25 19:47:39 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -532,6 +532,18 @@ Thus, the following two expressions are equivalent:
 .It Li "c8 e g {c} g e c" Ta "c8 e g c,4 g'8 e c"
 .El
 .Pp
+Previous length specifiers do not affect sequence length
+nor the lengths of its subexpressions,
+but in case a sequence has a length specifier appended,
+the whole sequence expression is scaled to that specific length.
+Try the following example:
+.Bd -literal -offset indent
+c4 e   {d f d}4   {e g e}4
+.Ed
+.Pp
+In this case this length also affects subsequent music expressions,
+except for sequences and simultences (see below).
+.Pp
 Sequences can also contain other sequences
 and music expressions.
 Music expressions (such as notes and sequences)
@@ -581,6 +593,12 @@ To play two sequences simultaneously one can write:
   { c8 c c c   e e e e   g g g g   c c c c }
 >>
 .Ed
+.Pp
+Simultences can also have a length specifier appended,
+in which case the whole simultence is scaled to that specific length.
+As with sequences,
+this length also affects subsequent music expressions,
+except for sequences and other simultences.
 .Pp
 Another expression type is a relative simultence,
 or

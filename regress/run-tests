@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-tests,v 1.15 2016/09/25 07:20:40 je Exp $
+# $Id: run-tests,v 1.16 2016/09/25 19:47:35 je Exp $
 
 set -eu
 
@@ -69,6 +69,8 @@ test_inputs='
   t-relative-reset-in-subsimultence
   t-relsimultences
   t-rest
+  t-scaled-sequences
+  t-scaled-simultences
   t-simple-notes
   t-simultence-with-subexpressions
   t-single-note

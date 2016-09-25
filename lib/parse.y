@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.69 2016/09/25 15:46:22 je Exp $ */
+/* $Id: parse.y,v 1.70 2016/09/25 19:47:34 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -29,7 +29,9 @@
 struct musicexpr *parsed_expr = NULL;
 unsigned int	parse_errors = 0;
 
-static float countlength(int, int);
+static float		 countlength(int, int);
+static struct musicexpr *maybe_apply_scaling(struct musicexpr *, float,
+    struct textloc);
 
 %}
 
@@ -147,10 +149,16 @@ static float countlength(int, int);
 %type	<function>	function
 %type	<i>		notemods octavemods lengthdots
 %type	<joinexpr>	joinexpr
-%type	<musicexpr>	grammar musicexpr relsimultence_expr_with_enclosers
-			sequence_expr simultence_expr track_expr
+%type	<musicexpr>	grammar
+			musicexpr
+			relsimultence_expr_with_enclosers_and_length
+			sequence_expr
 			sequence_expr_with_enclosers
-			simultence_expr_with_enclosers track_expr
+			sequence_expr_with_enclosers_and_length
+			simultence_expr
+			simultence_expr_with_enclosers
+			simultence_expr_with_enclosers_and_length
+			track_expr
 %type	<melist>	expression_list
 %type	<relnote>	relnote
 %type	<reldrum>	reldrum
@@ -219,7 +227,7 @@ musicexpr:
 		}
 		$$->u.relnote = $1.expr;
 	  }
-	| relsimultence_expr_with_enclosers { $$ = $1; }
+	| relsimultence_expr_with_enclosers_and_length { $$ = $1; }
 	| rest {
 		$$ = _mdl_musicexpr_new(ME_TYPE_REST, $1.textloc, 0);
 		if ($$ == NULL) {
@@ -229,8 +237,8 @@ musicexpr:
 		}
 		$$->u.rest = $1.expr;
 	  }
-	| sequence_expr_with_enclosers { $$ = $1; }
-	| simultence_expr_with_enclosers { $$ = $1; }
+	| sequence_expr_with_enclosers_and_length { $$ = $1; }
+	| simultence_expr_with_enclosers_and_length { $$ = $1; }
 	| track_expr { $$ = $1; }
 	;
 
@@ -322,7 +330,7 @@ relnote:
 	  }
 	;
 
-relsimultence_expr_with_enclosers:
+relsimultence_expr_with_enclosers_and_length:
 	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
 		struct textloc tl;
 
@@ -341,6 +349,7 @@ relsimultence_expr_with_enclosers:
 	  }
 	| RELSIMULTENCE_START RELSIMULTENCE_END notelength {
 		/* XXX A smarter way to accept empty relsimultences? */
+		struct musicexpr *simultence;
 		struct textloc tl;
 
 		tl = _mdl_join_textlocs(&$1.textloc, &$2.textloc, &$3.textloc,
@@ -352,9 +361,14 @@ relsimultence_expr_with_enclosers:
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
 		}
+		simultence = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, tl, 0);
+		if (simultence == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
 
-		$$->u.scaledexpr.me = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE,
-		    tl, 0);
+		$$->u.scaledexpr.me = simultence;
 		$$->u.scaledexpr.length = $3.expr;
 	  }
 	;
@@ -367,11 +381,22 @@ rest:
 	  }
 	;
 
+sequence_expr_with_enclosers_and_length:
+	sequence_expr_with_enclosers notelength {
+		$$ = maybe_apply_scaling($1, $2.expr, $2.textloc);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+	  }
+	;
+	
 sequence_expr_with_enclosers:
 	SEQUENCE_START sequence_expr SEQUENCE_END {
 		$$ = $2;
-		$$->id.textloc = _mdl_join_textlocs(&$1.textloc, &$3.textloc,
-		    NULL);
+		$$->id.textloc = _mdl_join_textlocs(&$1.textloc,
+		    &$2->id.textloc, &$3.textloc, NULL);
 	  }
 	| SEQUENCE_START SEQUENCE_END {
 		/* XXX A smarter way to accept empty sequences? */
@@ -402,11 +427,22 @@ sequence_expr:
 	  }
 	;
 
+simultence_expr_with_enclosers_and_length:
+	simultence_expr_with_enclosers notelength {
+		$$ = maybe_apply_scaling($1, $2.expr, $2.textloc);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+	  }
+	;
+
 simultence_expr_with_enclosers:
 	SIMULTENCE_START simultence_expr SIMULTENCE_END {
 		$$ = $2;
-		$$->id.textloc = _mdl_join_textlocs(&$1.textloc, &$3.textloc,
-		    NULL);
+		$$->id.textloc = _mdl_join_textlocs(&$1.textloc,
+		    &$2->id.textloc, &$3.textloc, NULL);
 	  }
 	| SIMULTENCE_START SIMULTENCE_END {
 		/* XXX A smarter way to accept empty simultences? */
@@ -540,6 +576,29 @@ countlength(int lengthbase, int dotcount)
 	}
 
 	return length;
+}
+
+static struct musicexpr *
+maybe_apply_scaling(struct musicexpr *me, float length,
+    struct textloc extending_tl)
+{
+	struct musicexpr *scaled_expr;
+	struct textloc tl;
+
+	/* Length is zero so no scaling applied to music expression. */
+	if (length == 0.0)
+		return me;
+
+	tl = _mdl_join_textlocs(&me->id.textloc, &extending_tl, NULL);
+
+	scaled_expr = _mdl_musicexpr_new(ME_TYPE_SCALEDEXPR, tl, 0);
+	if (scaled_expr == NULL)
+		return NULL;
+
+	scaled_expr->u.scaledexpr.me = me;
+	scaled_expr->u.scaledexpr.length = length;
+
+	return scaled_expr;
 }
 
 void
