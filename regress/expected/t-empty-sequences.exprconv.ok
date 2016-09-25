@@ -1,0 +1,20 @@
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:8:1,1:1,24 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :       inspecting sequence:0:1,1:1,2 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :       inspecting sequence:1:1,4:1,6 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :       inspecting sequence:3:1,8:1,11 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:2:1,9:1,10 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :           offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :       inspecting sequence:5:1,13:1,17 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:4:1,14:1,16 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :           offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :       inspecting sequence:7:1,19:1,24 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :         inspecting simultence:6:1,20:1,23 for flatsimultence:9:0,0:0,0
+mdl.interp.exprconv    :           offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 0.000000
+mdl.interp.exprconv    :       offset changed from 0.000000 to 0.000000

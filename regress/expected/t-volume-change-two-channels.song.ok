@@ -1,8 +1,8 @@
 mdl.main.song          : starting to play inputs/t-volume-change-two-channels.mdl
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:36:2,4:20,7
-mdl.interp.parsing     :     simultence:35:2,4:20,7
-mdl.interp.parsing     :       ontrack:34:12,4:20,7 track=string ensemble 1
+mdl.interp.parsing     :   sequence:36:1,1:22,2
+mdl.interp.parsing     :     simultence:35:1,1:22,2
+mdl.interp.parsing     :       ontrack:34:12,4:21,3 track=string ensemble 1
 mdl.interp.song        :         added a new track "violin"
 mdl.interp.song        :         added a new track "string ensemble 1"
 mdl.interp.song        :   added a new track "acoustic grand"

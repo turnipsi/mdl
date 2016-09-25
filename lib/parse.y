@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.66 2016/09/19 20:11:27 je Exp $ */
+/* $Id: parse.y,v 1.67 2016/09/25 07:20:38 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -147,8 +147,10 @@ static float countlength(int, int);
 %type	<function>	function
 %type	<i>		notemods octavemods lengthdots
 %type	<joinexpr>	joinexpr
-%type	<musicexpr>	grammar musicexpr relsimultence_expr
+%type	<musicexpr>	grammar musicexpr relsimultence_expr_with_enclosers
 			sequence_expr simultence_expr track_expr
+			sequence_expr_with_enclosers
+			simultence_expr_with_enclosers track_expr
 %type	<melist>	expression_list
 %type	<relnote>	relnote
 %type	<reldrum>	reldrum
@@ -217,7 +219,7 @@ musicexpr:
 		}
 		$$->u.relnote = $1.expr;
 	  }
-	| relsimultence_expr { $$ = $1; }
+	| relsimultence_expr_with_enclosers { $$ = $1; }
 	| rest {
 		$$ = _mdl_musicexpr_new(ME_TYPE_REST, $1.textloc, 0);
 		if ($$ == NULL) {
@@ -227,8 +229,8 @@ musicexpr:
 		}
 		$$->u.rest = $1.expr;
 	  }
-	| SEQUENCE_START sequence_expr SEQUENCE_END { $$ = $2; }
-	| SIMULTENCE_START simultence_expr SIMULTENCE_END { $$ = $2; }
+	| sequence_expr_with_enclosers { $$ = $1; }
+	| simultence_expr_with_enclosers { $$ = $1; }
 	| track_expr { $$ = $1; }
 	;
 
@@ -330,7 +332,7 @@ relnote:
 	  }
 	;
 
-relsimultence_expr:
+relsimultence_expr_with_enclosers:
 	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
 		struct textloc tl;
 
@@ -349,12 +351,52 @@ relsimultence_expr:
 		$$->u.scaledexpr.me = $2;
 		$$->u.scaledexpr.length = $4.expr;
 	  }
+	| RELSIMULTENCE_START RELSIMULTENCE_END notelength {
+		/* XXX A smarter way to accept empty relsimultences? */
+		struct textloc tl;
+
+		tl = $1.textloc;
+		tl = _mdl_join_textlocs(tl, $2.textloc);
+		tl = _mdl_join_textlocs(tl, $3.textloc);
+
+		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+
+		$$->u.scaledexpr.me = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE,
+		    tl, 0);
+		$$->u.scaledexpr.length = $3.expr;
+	  }
 	;
 
 rest:
 	RESTTOKEN notelength {
 		$$.expr.length = $2.expr;
 		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+	  }
+	;
+
+sequence_expr_with_enclosers:
+	SEQUENCE_START sequence_expr SEQUENCE_END {
+		$$ = $2;
+		$$->id.textloc = _mdl_join_textlocs($1.textloc, $3.textloc);
+	  }
+	| SEQUENCE_START SEQUENCE_END {
+		/* XXX A smarter way to accept empty sequences? */
+		struct textloc tl;
+
+		tl = _mdl_join_textlocs($1.textloc, $2.textloc);
+
+		$$ = _mdl_musicexpr_new(ME_TYPE_SEQUENCE, tl, 0);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		TAILQ_INIT(&$$->u.melist);
 	  }
 	;
 
@@ -368,6 +410,27 @@ sequence_expr:
 			YYERROR;
 		}
 		$$->u.melist = $1.expr;
+	  }
+	;
+
+simultence_expr_with_enclosers:
+	SIMULTENCE_START simultence_expr SIMULTENCE_END {
+		$$ = $2;
+		$$->id.textloc = _mdl_join_textlocs($1.textloc, $3.textloc);
+	  }
+	| SIMULTENCE_START SIMULTENCE_END {
+		/* XXX A smarter way to accept empty simultences? */
+		struct textloc tl;
+
+		tl = _mdl_join_textlocs($1.textloc, $2.textloc);
+
+		$$ = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, tl, 0);
+		if ($$ == NULL) {
+			/* XXX YYERROR and memory leaks?
+			 * XXX return NULL and handle on upper layer? */
+			YYERROR;
+		}
+		TAILQ_INIT(&$$->u.melist);
 	  }
 	;
 

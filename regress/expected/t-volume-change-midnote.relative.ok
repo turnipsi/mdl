@@ -1,8 +1,8 @@
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.relative    :   converting relative expressions to absolute
-mdl.interp.relative    :     rel->abs for expression sequence:22:2,5:5,74
-mdl.interp.relative    :       rel->abs for expression simultence:21:2,5:5,74
-mdl.interp.relative    :         rel->abs for expression sequence:3:2,5:2,11
+mdl.interp.relative    :     rel->abs for expression sequence:22:1,1:7,2
+mdl.interp.relative    :       rel->abs for expression simultence:21:1,1:7,2
+mdl.interp.relative    :         rel->abs for expression sequence:3:2,3:2,13
 mdl.interp.relative    :           rel->abs for expression joinexpr:2:2,5:2,11
 mdl.interp.relative    :             rel->abs for expression relnote:0:2,5:2,6
 mdl.interp.relative    :               relnote:0:2,5:2,6 notesym=0 notemods=0 length=1.000 octavemods=0
@@ -10,7 +10,7 @@ mdl.interp.relative    :                 --> absnote:0:2,5:2,6 notesym=0 note=60
 mdl.interp.relative    :             rel->abs for expression relnote:1:2,10:2,11
 mdl.interp.relative    :               relnote:1:2,10:2,11 notesym=0 notemods=0 length=1.000 octavemods=0
 mdl.interp.relative    :                 --> absnote:1:2,10:2,11 notesym=0 note=60 length=1.000 instrument="acoustic grand" track="acoustic grand"
-mdl.interp.relative    :         rel->abs for expression sequence:20:4,6:5,74
+mdl.interp.relative    :         rel->abs for expression sequence:20:3,3:6,3
 mdl.interp.relative    :           rel->abs for expression volumechange:23:4,6:4,11
 mdl.interp.relative    :           rel->abs for expression rest:5:4,18:4,19
 mdl.interp.relative    :             rest:5:4,18:4,19 length=0.250

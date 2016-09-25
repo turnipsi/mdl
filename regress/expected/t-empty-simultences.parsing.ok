@@ -1,0 +1,10 @@
+mdl.interp.parsing     : parse ok, result:
+mdl.interp.parsing     :   sequence:8:1,1:1,36
+mdl.interp.parsing     :     simultence:0:1,1:1,4
+mdl.interp.parsing     :     simultence:1:1,6:1,10
+mdl.interp.parsing     :     simultence:3:1,12:1,19
+mdl.interp.parsing     :       simultence:2:1,14:1,17
+mdl.interp.parsing     :     simultence:5:1,21:1,29
+mdl.interp.parsing     :       simultence:4:1,23:1,27
+mdl.interp.parsing     :     simultence:7:1,31:1,36
+mdl.interp.parsing     :       sequence:6:1,33:1,34

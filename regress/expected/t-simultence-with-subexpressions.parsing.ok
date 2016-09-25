@@ -1,17 +1,17 @@
 mdl.interp.parsing     : parse ok, result:
-mdl.interp.parsing     :   sequence:16:2,5:4,14
-mdl.interp.parsing     :     simultence:15:2,5:4,14
-mdl.interp.parsing     :       sequence:4:2,5:2,14
+mdl.interp.parsing     :   sequence:16:1,1:5,2
+mdl.interp.parsing     :     simultence:15:1,1:5,2
+mdl.interp.parsing     :       sequence:4:2,3:2,17
 mdl.interp.parsing     :         relnote:0:2,5:2,6 notesym=0 notemods=0 length=0.250 octavemods=0
 mdl.interp.parsing     :         relnote:1:2,9:2,9 notesym=1 notemods=0 length=0.000 octavemods=0
 mdl.interp.parsing     :         relnote:2:2,11:2,11 notesym=2 notemods=0 length=0.000 octavemods=0
 mdl.interp.parsing     :         relnote:3:2,14:2,14 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.parsing     :       sequence:9:3,5:3,15
+mdl.interp.parsing     :       sequence:9:3,3:3,17
 mdl.interp.parsing     :         relnote:5:3,5:3,6 notesym=2 notemods=0 length=0.250 octavemods=0
 mdl.interp.parsing     :         relnote:6:3,9:3,9 notesym=4 notemods=0 length=0.000 octavemods=0
 mdl.interp.parsing     :         relnote:7:3,11:3,11 notesym=5 notemods=0 length=0.000 octavemods=0
 mdl.interp.parsing     :         relnote:8:3,14:3,15 notesym=1 notemods=0 length=0.000 octavemods=-1
-mdl.interp.parsing     :       sequence:14:4,5:4,14
+mdl.interp.parsing     :       sequence:14:4,3:4,17
 mdl.interp.parsing     :         relnote:10:4,5:4,7 notesym=4 notemods=0 length=0.250 octavemods=1
 mdl.interp.parsing     :         relnote:11:4,9:4,9 notesym=5 notemods=0 length=0.000 octavemods=0
 mdl.interp.parsing     :         relnote:12:4,11:4,12 notesym=0 notemods=0 length=0.000 octavemods=-1

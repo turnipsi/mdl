@@ -1,11 +1,11 @@
 mdl.interp.parsing     : parse ok, result:
-mdl.interp.parsing     :   sequence:22:2,5:5,74
-mdl.interp.parsing     :     simultence:21:2,5:5,74
-mdl.interp.parsing     :       sequence:3:2,5:2,11
+mdl.interp.parsing     :   sequence:22:1,1:7,2
+mdl.interp.parsing     :     simultence:21:1,1:7,2
+mdl.interp.parsing     :       sequence:3:2,3:2,13
 mdl.interp.parsing     :         joinexpr:2:2,5:2,11
 mdl.interp.parsing     :           relnote:0:2,5:2,6 notesym=0 notemods=0 length=1.000 octavemods=0
 mdl.interp.parsing     :           relnote:1:2,10:2,11 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :       sequence:20:4,6:5,74
+mdl.interp.parsing     :       sequence:20:3,3:6,3
 mdl.interp.parsing     :         function:4:4,6:4,11 name=volume
 mdl.interp.parsing     :         rest:5:4,18:4,19 length=0.250
 mdl.interp.parsing     :         function:6:4,25:4,30 name=volume

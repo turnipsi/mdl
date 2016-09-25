@@ -1,14 +1,14 @@
 mdl.interp.mm          : created relnote:0:1,15:1,16
 mdl.interp.mm          : created relnote:1:1,18:1,18
 mdl.interp.mm          : created sequence:2:1,15:1,18
-mdl.interp.mm          : created ontrack:3:1,2:1,18
-mdl.interp.mm          : created sequence:4:1,2:1,18
+mdl.interp.mm          : created ontrack:3:1,2:1,20
+mdl.interp.mm          : created sequence:4:1,2:1,20
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:5:0,0:0,0
 mdl.interp.mm          :     created simultence:6:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:4:1,2:1,18 for flatsimultence:5:0,0:0,0
-mdl.interp.exprconv    :       inspecting ontrack:3:1,2:1,18 for flatsimultence:5:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:2:1,15:1,18 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:4:1,2:1,20 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :       inspecting ontrack:3:1,2:1,20 for flatsimultence:5:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:2:1,13:1,20 for flatsimultence:5:0,0:0,0
 mdl.interp.exprconv    :           inspecting absnote:0:1,15:1,16 for flatsimultence:5:0,0:0,0
 mdl.interp.mm          :               created absnote:7:1,15:1,16
 mdl.interp.mm          :               cloning absnote:0:1,15:1,16 as absnote:7:1,15:1,16
@@ -24,8 +24,8 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:8:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:7:1,15:1,16
 mdl.interp.mm          :     freeing musicexpr offsetexpr:10:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:9:1,18:1,18
-mdl.interp.mm          : freeing musicexpr sequence:4:1,2:1,18
-mdl.interp.mm          :   freeing musicexpr ontrack:3:1,2:1,18
-mdl.interp.mm          :     freeing musicexpr sequence:2:1,15:1,18
+mdl.interp.mm          : freeing musicexpr sequence:4:1,2:1,20
+mdl.interp.mm          :   freeing musicexpr ontrack:3:1,2:1,20
+mdl.interp.mm          :     freeing musicexpr sequence:2:1,13:1,20
 mdl.interp.mm          :       freeing musicexpr absnote:0:1,15:1,16
 mdl.interp.mm          :       freeing musicexpr absnote:1:1,18:1,18

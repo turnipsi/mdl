@@ -19,12 +19,12 @@ mdl.interp.mm          : created rest:17:5,54:5,55
 mdl.interp.mm          : created function:18:5,61:5,66
 mdl.interp.mm          : created rest:19:5,73:5,74
 mdl.interp.mm          : created sequence:20:4,6:5,74
-mdl.interp.mm          : created simultence:21:2,5:5,74
-mdl.interp.mm          : created sequence:22:2,5:5,74
+mdl.interp.mm          : created simultence:21:2,3:6,3
+mdl.interp.mm          : created sequence:22:1,1:7,2
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:22:2,5:5,74
-mdl.interp.parsing     :     simultence:21:2,5:5,74
-mdl.interp.parsing     :       sequence:20:4,6:5,74
+mdl.interp.parsing     :   sequence:22:1,1:7,2
+mdl.interp.parsing     :     simultence:21:1,1:7,2
+mdl.interp.parsing     :       sequence:20:3,3:6,3
 mdl.interp.parsing     :         rest:19:5,73:5,74 length=0.250
 mdl.interp.mm          :           created volumechange:23:4,6:4,11
 mdl.interp.mm          :           created volumechange:24:4,25:4,30
@@ -35,9 +35,9 @@ mdl.interp.mm          :           created volumechange:28:5,25:5,30
 mdl.interp.mm          :           created volumechange:29:5,43:5,48
 mdl.interp.mm          :           created volumechange:30:5,61:5,66
 mdl.interp.midistream  : joining music expressions
-mdl.interp.joins       :   joining subexpressions in sequence:22:2,5:5,74
-mdl.interp.joins       :     joining subexpressions in simultence:21:2,5:5,74
-mdl.interp.joins       :       joining subexpressions in sequence:3:2,5:2,11
+mdl.interp.joins       :   joining subexpressions in sequence:22:1,1:7,2
+mdl.interp.joins       :     joining subexpressions in simultence:21:1,1:7,2
+mdl.interp.joins       :       joining subexpressions in sequence:3:2,3:2,13
 mdl.interp.joins       :         joining subexpressions in joinexpr:2:2,5:2,11
 mdl.interp.joins       :           joining expressions absnote:0:2,5:2,6 and absnote:1:2,10:2,11
 mdl.interp.joins       :             matched absnotes
@@ -45,14 +45,14 @@ mdl.interp.mm          :               freeing musicexpr absnote:1:2,10:2,11
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:31:0,0:0,0
 mdl.interp.mm          :     created simultence:32:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:22:2,5:5,74 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :       inspecting simultence:21:2,5:5,74 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:3:2,5:2,11 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:22:1,1:7,2 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:21:1,1:7,2 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:3:2,3:2,13 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :           inspecting absnote:0:2,5:2,6 for flatsimultence:31:0,0:0,0
 mdl.interp.mm          :               created absnote:33:2,5:2,6
 mdl.interp.mm          :               cloning absnote:0:2,5:2,6 as absnote:33:2,5:2,6
 mdl.interp.mm          :             created offsetexpr:34:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:20:4,6:5,74 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:20:3,3:6,3 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:23:4,6:4,11 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
 mdl.interp.mm          :               created volumechange:35:4,6:4,11
@@ -113,11 +113,11 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:48:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr volumechange:47:5,43:5,48
 mdl.interp.mm          :     freeing musicexpr offsetexpr:50:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr volumechange:49:5,61:5,66
-mdl.interp.mm          : freeing musicexpr sequence:22:2,5:5,74
-mdl.interp.mm          :   freeing musicexpr simultence:21:2,5:5,74
-mdl.interp.mm          :     freeing musicexpr sequence:3:2,5:2,11
+mdl.interp.mm          : freeing musicexpr sequence:22:1,1:7,2
+mdl.interp.mm          :   freeing musicexpr simultence:21:1,1:7,2
+mdl.interp.mm          :     freeing musicexpr sequence:3:2,3:2,13
 mdl.interp.mm          :       freeing musicexpr absnote:0:2,5:2,6
-mdl.interp.mm          :     freeing musicexpr sequence:20:4,6:5,74
+mdl.interp.mm          :     freeing musicexpr sequence:20:3,3:6,3
 mdl.interp.mm          :       freeing musicexpr volumechange:23:4,6:4,11
 mdl.interp.mm          :       freeing musicexpr rest:5:4,18:4,19
 mdl.interp.mm          :       freeing musicexpr volumechange:24:4,25:4,30

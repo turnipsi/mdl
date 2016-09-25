@@ -1,9 +1,9 @@
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.relative    :   converting relative expressions to absolute
-mdl.interp.relative    :     rel->abs for expression sequence:36:2,4:20,7
-mdl.interp.relative    :       rel->abs for expression simultence:35:2,4:20,7
-mdl.interp.relative    :         rel->abs for expression ontrack:20:2,4:9,13
-mdl.interp.relative    :           rel->abs for expression sequence:19:3,5:9,13
+mdl.interp.relative    :     rel->abs for expression sequence:36:1,1:22,2
+mdl.interp.relative    :       rel->abs for expression simultence:35:1,1:22,2
+mdl.interp.relative    :         rel->abs for expression ontrack:20:2,4:10,3
+mdl.interp.relative    :           rel->abs for expression sequence:19:2,15:10,3
 mdl.interp.relative    :             rel->abs for expression relnote:0:3,5:3,6
 mdl.interp.relative    :               relnote:0:3,5:3,6 notesym=0 notemods=0 length=0.125 octavemods=0
 mdl.interp.relative    :                 --> absnote:0:3,5:3,6 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
@@ -55,8 +55,8 @@ mdl.interp.relative    :                 --> absnote:17:9,11:9,11 notesym=3 note
 mdl.interp.relative    :             rel->abs for expression relnote:18:9,13:9,13
 mdl.interp.relative    :               relnote:18:9,13:9,13 notesym=4 notemods=0 length=0.000 octavemods=0
 mdl.interp.relative    :                 --> absnote:18:9,13:9,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
-mdl.interp.relative    :         rel->abs for expression ontrack:34:12,4:20,7
-mdl.interp.relative    :           rel->abs for expression sequence:33:13,6:20,7
+mdl.interp.relative    :         rel->abs for expression ontrack:34:12,4:21,3
+mdl.interp.relative    :           rel->abs for expression sequence:33:12,26:21,3
 mdl.interp.relative    :             rel->abs for expression volumechange:40:13,6:13,11
 mdl.interp.relative    :             rel->abs for expression chord:23:14,5:14,7
 mdl.interp.relative    :               rel->abs for expression relnote:22:14,5:14,6

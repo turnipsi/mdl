@@ -20,12 +20,12 @@ mdl.interp.mm          : created relnote:18:5,54:5,55
 mdl.interp.mm          : created function:19:5,61:5,65
 mdl.interp.mm          : created relnote:20:5,72:5,73
 mdl.interp.mm          : created sequence:21:4,6:5,73
-mdl.interp.mm          : created simultence:22:2,5:5,73
-mdl.interp.mm          : created sequence:23:2,5:5,73
+mdl.interp.mm          : created simultence:22:2,3:6,3
+mdl.interp.mm          : created sequence:23:1,1:7,2
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:23:2,5:5,73
-mdl.interp.parsing     :     simultence:22:2,5:5,73
-mdl.interp.parsing     :       sequence:21:4,6:5,73
+mdl.interp.parsing     :   sequence:23:1,1:7,2
+mdl.interp.parsing     :     simultence:22:1,1:7,2
+mdl.interp.parsing     :       sequence:21:3,3:6,3
 mdl.interp.parsing     :         relnote:20:5,72:5,73 notesym=4 notemods=0 length=0.250 octavemods=0
 mdl.interp.mm          :           created tempochange:24:4,6:4,10
 mdl.interp.mm          :           created tempochange:25:4,25:4,29
@@ -38,9 +38,9 @@ mdl.interp.mm          :           created tempochange:31:5,61:5,65
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:32:0,0:0,0
 mdl.interp.mm          :     created simultence:33:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:23:2,5:5,73 for flatsimultence:32:0,0:0,0
-mdl.interp.exprconv    :       inspecting simultence:22:2,5:5,73 for flatsimultence:32:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:4:2,5:2,12 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:23:1,1:7,2 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:22:1,1:7,2 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:4:2,3:2,14 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :           inspecting absnote:0:2,5:2,6 for flatsimultence:32:0,0:0,0
 mdl.interp.mm          :               created absnote:34:2,5:2,6
 mdl.interp.mm          :               cloning absnote:0:2,5:2,6 as absnote:34:2,5:2,6
@@ -60,7 +60,7 @@ mdl.interp.exprconv    :             offset changed from 1.000000 to 1.500000
 mdl.interp.mm          :               created absnote:40:2,12:2,12
 mdl.interp.mm          :               cloning absnote:3:2,12:2,12 as absnote:40:2,12:2,12
 mdl.interp.mm          :             created offsetexpr:41:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:21:4,6:5,73 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:21:3,3:6,3 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :           inspecting tempochange:24:4,6:4,10 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.500000 to 2.000000
 mdl.interp.mm          :               created tempochange:42:4,6:4,10
@@ -183,14 +183,14 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:71:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr tempochange:70:5,61:5,65
 mdl.interp.mm          :     freeing musicexpr offsetexpr:73:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:72:5,72:5,73
-mdl.interp.mm          : freeing musicexpr sequence:23:2,5:5,73
-mdl.interp.mm          :   freeing musicexpr simultence:22:2,5:5,73
-mdl.interp.mm          :     freeing musicexpr sequence:4:2,5:2,12
+mdl.interp.mm          : freeing musicexpr sequence:23:1,1:7,2
+mdl.interp.mm          :   freeing musicexpr simultence:22:1,1:7,2
+mdl.interp.mm          :     freeing musicexpr sequence:4:2,3:2,14
 mdl.interp.mm          :       freeing musicexpr absnote:0:2,5:2,6
 mdl.interp.mm          :       freeing musicexpr absnote:1:2,8:2,8
 mdl.interp.mm          :       freeing musicexpr absnote:2:2,10:2,10
 mdl.interp.mm          :       freeing musicexpr absnote:3:2,12:2,12
-mdl.interp.mm          :     freeing musicexpr sequence:21:4,6:5,73
+mdl.interp.mm          :     freeing musicexpr sequence:21:3,3:6,3
 mdl.interp.mm          :       freeing musicexpr tempochange:24:4,6:4,10
 mdl.interp.mm          :       freeing musicexpr absnote:6:4,18:4,19
 mdl.interp.mm          :       freeing musicexpr tempochange:25:4,25:4,29

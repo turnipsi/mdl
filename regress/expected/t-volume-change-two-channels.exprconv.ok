@@ -1,9 +1,9 @@
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:44:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:36:2,4:20,7 for flatsimultence:44:0,0:0,0
-mdl.interp.exprconv    :       inspecting simultence:35:2,4:20,7 for flatsimultence:44:0,0:0,0
-mdl.interp.exprconv    :         inspecting ontrack:20:2,4:9,13 for flatsimultence:44:0,0:0,0
-mdl.interp.exprconv    :           inspecting sequence:19:3,5:9,13 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:36:1,1:22,2 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:35:1,1:22,2 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :         inspecting ontrack:20:2,4:10,3 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :           inspecting sequence:19:2,15:10,3 for flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :             inspecting absnote:0:3,5:3,6 for flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :               adding offsetexpr:47:0,0:0,0 to flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :               offsetexpr:47:0,0:0,0 offset=0.000
@@ -101,8 +101,8 @@ mdl.interp.exprconv    :                 absnote:82:9,13:9,13 notesym=4 note=67 
 mdl.interp.exprconv    :               offset changed from 1.875000 to 2.000000
 mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
 mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
-mdl.interp.exprconv    :         inspecting ontrack:34:12,4:20,7 for flatsimultence:44:0,0:0,0
-mdl.interp.exprconv    :           inspecting sequence:33:13,6:20,7 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :         inspecting ontrack:34:12,4:21,3 for flatsimultence:44:0,0:0,0
+mdl.interp.exprconv    :           inspecting sequence:33:12,26:21,3 for flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :             inspecting volumechange:40:13,6:13,11 for flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :               adding offsetexpr:85:0,0:0,0 to flatsimultence:44:0,0:0,0
 mdl.interp.exprconv    :               offsetexpr:85:0,0:0,0 offset=0.000

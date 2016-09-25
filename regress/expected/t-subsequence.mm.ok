@@ -12,7 +12,7 @@ mdl.interp.exprconv    :       inspecting absnote:0:1,1:1,2 for flatsimultence:6
 mdl.interp.mm          :           created absnote:8:1,1:1,2
 mdl.interp.mm          :           cloning absnote:0:1,1:1,2 as absnote:8:1,1:1,2
 mdl.interp.mm          :         created offsetexpr:9:0,0:0,0
-mdl.interp.exprconv    :       inspecting sequence:3:1,6:1,9 for flatsimultence:6:0,0:0,0
+mdl.interp.exprconv    :       inspecting sequence:3:1,4:1,11 for flatsimultence:6:0,0:0,0
 mdl.interp.exprconv    :         inspecting absnote:1:1,6:1,7 for flatsimultence:6:0,0:0,0
 mdl.interp.exprconv    :           absnote:8:1,1:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.mm          :             created absnote:10:1,6:1,7
@@ -40,7 +40,7 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:15:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:14:1,13:1,13
 mdl.interp.mm          : freeing musicexpr sequence:5:1,1:1,13
 mdl.interp.mm          :   freeing musicexpr absnote:0:1,1:1,2
-mdl.interp.mm          :   freeing musicexpr sequence:3:1,6:1,9
+mdl.interp.mm          :   freeing musicexpr sequence:3:1,4:1,11
 mdl.interp.mm          :     freeing musicexpr absnote:1:1,6:1,7
 mdl.interp.mm          :     freeing musicexpr absnote:2:1,9:1,9
 mdl.interp.mm          :   freeing musicexpr absnote:4:1,13:1,13

@@ -1,8 +1,8 @@
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.relative    :   converting relative expressions to absolute
-mdl.interp.relative    :     rel->abs for expression sequence:4:1,2:1,18
-mdl.interp.relative    :       rel->abs for expression ontrack:3:1,2:1,18
-mdl.interp.relative    :         rel->abs for expression sequence:2:1,15:1,18
+mdl.interp.relative    :     rel->abs for expression sequence:4:1,2:1,20
+mdl.interp.relative    :       rel->abs for expression ontrack:3:1,2:1,20
+mdl.interp.relative    :         rel->abs for expression sequence:2:1,13:1,20
 mdl.interp.relative    :           rel->abs for expression relnote:0:1,15:1,16
 mdl.interp.relative    :             relnote:0:1,15:1,16 notesym=2 notemods=0 length=0.500 octavemods=0
 mdl.interp.relative    :               --> absnote:0:1,15:1,16 notesym=2 note=64 length=0.500 instrument="violin" track="violin"

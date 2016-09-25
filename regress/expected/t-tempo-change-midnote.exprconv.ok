@@ -1,8 +1,8 @@
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:32:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:23:2,5:5,73 for flatsimultence:32:0,0:0,0
-mdl.interp.exprconv    :       inspecting simultence:22:2,5:5,73 for flatsimultence:32:0,0:0,0
-mdl.interp.exprconv    :         inspecting sequence:4:2,5:2,12 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:23:1,1:7,2 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:22:1,1:7,2 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:4:2,3:2,14 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :           inspecting absnote:0:2,5:2,6 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :             adding offsetexpr:35:0,0:0,0 to flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :             offsetexpr:35:0,0:0,0 offset=0.000
@@ -24,7 +24,7 @@ mdl.interp.exprconv    :             offsetexpr:41:0,0:0,0 offset=1.500
 mdl.interp.exprconv    :               absnote:40:2,12:2,12 notesym=0 note=60 length=0.500 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.exprconv    :             offset changed from 1.500000 to 2.000000
 mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
-mdl.interp.exprconv    :         inspecting sequence:21:4,6:5,73 for flatsimultence:32:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:21:3,3:6,3 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :           inspecting tempochange:24:4,6:4,10 for flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :             adding offsetexpr:43:0,0:0,0 to flatsimultence:32:0,0:0,0
 mdl.interp.exprconv    :             offsetexpr:43:0,0:0,0 offset=0.000

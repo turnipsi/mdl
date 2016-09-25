@@ -1,0 +1,23 @@
+mdl.interp.mm          : created sequence:0:1,1:1,2
+mdl.interp.mm          : created sequence:1:1,4:1,6
+mdl.interp.mm          : created sequence:2:1,9:1,10
+mdl.interp.mm          : created sequence:3:1,9:1,10
+mdl.interp.mm          : created sequence:4:1,14:1,16
+mdl.interp.mm          : created sequence:5:1,14:1,16
+mdl.interp.mm          : created simultence:6:1,20:1,23
+mdl.interp.mm          : created sequence:7:1,20:1,23
+mdl.interp.mm          : created sequence:8:1,1:1,24
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:9:0,0:0,0
+mdl.interp.mm          :     created simultence:10:0,0:0,0
+mdl.interp.mm          : freeing musicexpr flatsimultence:9:0,0:0,0
+mdl.interp.mm          :   freeing musicexpr simultence:10:0,0:0,0
+mdl.interp.mm          : freeing musicexpr sequence:8:1,1:1,24
+mdl.interp.mm          :   freeing musicexpr sequence:0:1,1:1,2
+mdl.interp.mm          :   freeing musicexpr sequence:1:1,4:1,6
+mdl.interp.mm          :   freeing musicexpr sequence:3:1,8:1,11
+mdl.interp.mm          :     freeing musicexpr sequence:2:1,9:1,10
+mdl.interp.mm          :   freeing musicexpr sequence:5:1,13:1,17
+mdl.interp.mm          :     freeing musicexpr sequence:4:1,14:1,16
+mdl.interp.mm          :   freeing musicexpr sequence:7:1,19:1,24
+mdl.interp.mm          :     freeing musicexpr simultence:6:1,20:1,23

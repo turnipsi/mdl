@@ -4,7 +4,7 @@ mdl.interp.relative    :     rel->abs for expression sequence:6:1,1:1,14
 mdl.interp.relative    :       rel->abs for expression relnote:0:1,1:1,2
 mdl.interp.relative    :         relnote:0:1,1:1,2 notesym=1 notemods=0 length=0.125 octavemods=0
 mdl.interp.relative    :           --> absnote:0:1,1:1,2 notesym=1 note=62 length=0.125 instrument="acoustic grand" track="acoustic grand"
-mdl.interp.relative    :       rel->abs for expression sequence:4:1,6:1,10
+mdl.interp.relative    :       rel->abs for expression sequence:4:1,4:1,12
 mdl.interp.relative    :         rel->abs for expression relnote:1:1,6:1,6
 mdl.interp.relative    :           relnote:1:1,6:1,6 notesym=4 notemods=0 length=0.000 octavemods=0
 mdl.interp.relative    :             --> absnote:1:1,6:1,6 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
