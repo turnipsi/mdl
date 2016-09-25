@@ -1012,6 +1012,12 @@ mdl.interp.exprconv    :           inspecting absnote:491:29,1:29,2 for flatsimu
 mdl.interp.mm          :               created absnote:492:29,1:29,2
 mdl.interp.mm          :               cloning absnote:491:29,1:29,2 as absnote:492:29,1:29,2
 mdl.interp.mm          :             created offsetexpr:493:0,0:0,0
+mdl.interp.mm          :             created absnote:494:29,1:29,2
+mdl.interp.mm          :             cloning absnote:487:29,1:29,2 as absnote:494:29,1:29,2
+mdl.interp.exprconv    :           inspecting absnote:494:29,1:29,2 for flatsimultence:59:0,0:0,0
+mdl.interp.mm          :               created absnote:495:29,1:29,2
+mdl.interp.mm          :               cloning absnote:494:29,1:29,2 as absnote:495:29,1:29,2
+mdl.interp.mm          :             created offsetexpr:496:0,0:0,0
 mdl.interp.mm          :         freeing musicexpr noteoffsetexpr:486:0,0:0,0
 mdl.interp.mm          :           freeing musicexpr absnote:487:29,1:29,2
 mdl.interp.mm          : freeing musicexpr flatsimultence:59:0,0:0,0
@@ -1266,6 +1272,8 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:490:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:489:29,1:29,2
 mdl.interp.mm          :     freeing musicexpr offsetexpr:493:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:492:29,1:29,2
+mdl.interp.mm          :     freeing musicexpr offsetexpr:496:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:495:29,1:29,2
 mdl.interp.mm          : freeing musicexpr sequence:58:1,1:29,8
 mdl.interp.mm          :   freeing musicexpr chord:1:1,1:1,4
 mdl.interp.mm          :     freeing musicexpr absnote:0:1,1:1,2
