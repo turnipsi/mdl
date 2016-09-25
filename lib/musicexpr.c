@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.124 2016/09/23 15:35:03 je Exp $ */
+/* $Id: musicexpr.c,v 1.125 2016/09/25 20:50:22 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -925,7 +925,7 @@ _mdl_chord_to_noteoffsetexpr(struct chord chord, int level)
 		{ 3, { 0, 2, 7                 } }, /* CHORDTYPE_SUS2     */
 		{ 3, { 0, 5, 7                 } }, /* CHORDTYPE_SUS4     */
 		{ 2, { 0,    7                 } }, /* CHORDTYPE_5        */
-		{ 2, { 0, 7, 12                } }, /* CHORDTYPE_5_8      */
+		{ 3, { 0, 7, 12                } }, /* CHORDTYPE_5_8      */
 	};
 
 	struct musicexpr *me;
