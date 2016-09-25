@@ -1,4 +1,4 @@
-/* $Id: util.c,v 1.44 2016/08/19 19:19:15 je Exp $ */
+/* $Id: util.c,v 1.45 2016/09/25 20:09:05 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -120,24 +120,27 @@ _mdl_logging_setopts(char *optstring)
 		}
 
 		if (loglevel >= 1) {
-			logstate.opts |= (1 << MDLLOG_PROCESS)
-			    | (1 << MDLLOG_PARSING);
+			logstate.opts |= (1 << MDLLOG_PARSING)
+			    | (1 << MDLLOG_PROCESS);
 		}
 
 		if (loglevel >= 2) {
-			logstate.opts |= (1 << MDLLOG_RELATIVE)
+			logstate.opts |= (1 << MDLLOG_FUNC)
+			    | (1 << MDLLOG_RELATIVE)
 			    | (1 << MDLLOG_SONG);
 		}
 
 		if (loglevel >= 3) {
 			logstate.opts |= (1 << MDLLOG_MIDI)
-			    | (1 << MDLLOG_MIDISTREAM);
+			    | (1 << MDLLOG_MIDISTREAM)
+			    | (1 << MDLLOG_SEQ);
 		}
 
 		if (loglevel >= 4) {
 			logstate.opts |= (1 << MDLLOG_CLOCK)
 			    | (1 << MDLLOG_EXPRCONV)
 			    | (1 << MDLLOG_JOINS)
+			    | (1 << MDLLOG_IPC)
 			    | (1 << MDLLOG_MM);
 		}
 	}

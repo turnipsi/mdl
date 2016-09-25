@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.31 2016/09/25 19:47:39 je Exp $
+.\"	$Id: mdl.1,v 1.32 2016/09/25 20:09:06 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -50,10 +50,11 @@ exits with error if connecting to a server fails.
 Set
 .Ar debuglevel
 to some value.
-Supported values are numbers from from 0 to 4,
+Supported values are numbers from from 1 to 4,
 where a bigger number means
 more detailed debugging messages are printed.
 Other possible values are
+.Cm all ,
 .Cm clock ,
 .Cm exprconv ,
 .Cm functions ,
@@ -71,6 +72,9 @@ and
 Several options may be set by separating them with a comma,
 for example
 .Dq joins,midi .
+Using the option
+.Dq all
+turns on all options.
 .It Fl f Ar device
 Sets the MIDI device path.
 Interpretation for this depends on the MIDI-interface used.
