@@ -1,4 +1,4 @@
-/* $Id: textloc.h,v 1.2 2016/08/12 19:06:52 je Exp $ */
+/* $Id: textloc.h,v 1.3 2016/09/25 15:41:54 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,7 +27,7 @@ struct textloc {
 };
 
 /* __BEGIN_DECLS XXX triggers syntax error in C ?!? */
-struct textloc	_mdl_join_textlocs(struct textloc, struct textloc);
+struct textloc	_mdl_join_textlocs(struct textloc *, ...);
 struct textloc	_mdl_textloc_zero(void);
 /* __END_DECLS XXX triggers syntax error in C ?!? */
 

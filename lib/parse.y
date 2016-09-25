@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.67 2016/09/25 07:20:38 je Exp $ */
+/* $Id: parse.y,v 1.68 2016/09/25 15:41:54 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -245,7 +245,8 @@ chord:
 			YYERROR;
 		}
 		$$.expr.me->u.relnote = $1.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	  }
 	;
 
@@ -286,15 +287,16 @@ reldrum:
 		$$.expr.drumsym = $1.expr;
 		$$.expr.length  = $2.expr;
 
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	  };
 
 joinexpr:
 	musicexpr JOINEXPR musicexpr {
 		$$.expr.a = $1;
 		$$.expr.b = $3;
-		$$.textloc = _mdl_join_textlocs($1->id.textloc,
-		    $3->id.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1->id.textloc,
+		    &$3->id.textloc, NULL);
 	  }
 	;
 
@@ -308,9 +310,9 @@ relnote:
 		$$.expr.length     = $4.expr;
 
 		tl = $1.textloc;
-		tl = _mdl_join_textlocs(tl, $2.textloc);
-		tl = _mdl_join_textlocs(tl, $3.textloc);
-		tl = _mdl_join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
 
 		$$.textloc = tl;
 	  }
@@ -324,9 +326,9 @@ relnote:
 		$$.expr.length     = $4.expr;
 
 		tl = $1.textloc;
-		tl = _mdl_join_textlocs(tl, $2.textloc);
-		tl = _mdl_join_textlocs(tl, $3.textloc);
-		tl = _mdl_join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
 
 		$$.textloc = tl;
 	  }
@@ -337,9 +339,9 @@ relsimultence_expr_with_enclosers:
 		struct textloc tl;
 
 		tl = $1.textloc;
-		tl = _mdl_join_textlocs(tl, $2->id.textloc);
-		tl = _mdl_join_textlocs(tl, $3.textloc);
-		tl = _mdl_join_textlocs(tl, $4.textloc);
+		tl = _mdl_join_textlocs(&tl, &$2->id.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
 		if ($$ == NULL) {
@@ -356,8 +358,8 @@ relsimultence_expr_with_enclosers:
 		struct textloc tl;
 
 		tl = $1.textloc;
-		tl = _mdl_join_textlocs(tl, $2.textloc);
-		tl = _mdl_join_textlocs(tl, $3.textloc);
+		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
 		if ($$ == NULL) {
@@ -375,20 +377,22 @@ relsimultence_expr_with_enclosers:
 rest:
 	RESTTOKEN notelength {
 		$$.expr.length = $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	  }
 	;
 
 sequence_expr_with_enclosers:
 	SEQUENCE_START sequence_expr SEQUENCE_END {
 		$$ = $2;
-		$$->id.textloc = _mdl_join_textlocs($1.textloc, $3.textloc);
+		$$->id.textloc = _mdl_join_textlocs(&$1.textloc, &$3.textloc,
+		    NULL);
 	  }
 	| SEQUENCE_START SEQUENCE_END {
 		/* XXX A smarter way to accept empty sequences? */
 		struct textloc tl;
 
-		tl = _mdl_join_textlocs($1.textloc, $2.textloc);
+		tl = _mdl_join_textlocs(&$1.textloc, &$2.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_SEQUENCE, tl, 0);
 		if ($$ == NULL) {
@@ -416,13 +420,14 @@ sequence_expr:
 simultence_expr_with_enclosers:
 	SIMULTENCE_START simultence_expr SIMULTENCE_END {
 		$$ = $2;
-		$$->id.textloc = _mdl_join_textlocs($1.textloc, $3.textloc);
+		$$->id.textloc = _mdl_join_textlocs(&$1.textloc, &$3.textloc,
+		    NULL);
 	  }
 	| SIMULTENCE_START SIMULTENCE_END {
 		/* XXX A smarter way to accept empty simultences? */
 		struct textloc tl;
 
-		tl = _mdl_join_textlocs($1.textloc, $2.textloc);
+		tl = _mdl_join_textlocs(&$1.textloc, &$2.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, tl, 0);
 		if ($$ == NULL) {
@@ -452,8 +457,8 @@ track_expr:
 		struct textloc tl;
 
 		tl = $1.textloc;
-		tl = _mdl_join_textlocs(tl, $2.textloc);
-		tl = _mdl_join_textlocs(tl, $3->id.textloc);
+		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
+		tl = _mdl_join_textlocs(&tl, &$3->id.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_ONTRACK, tl, 0);
 		if ($$ == NULL) {
@@ -486,7 +491,8 @@ expression_list:
 	  }
 	| expression_list musicexpr {
 		$$.expr = $1.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2->id.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2->id.textloc,
+		    NULL);
 		TAILQ_INSERT_TAIL(&$$.expr, $2, tq);
 	  }
 	;
@@ -494,11 +500,13 @@ expression_list:
 notemods:
 	notemods NOTEMODTOKEN_IS {
 		$$.expr = $1.expr + $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	}
 	| notemods NOTEMODTOKEN_ES {
 		$$.expr = $1.expr - $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	}
 	| /* empty */ { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
@@ -506,11 +514,13 @@ notemods:
 octavemods:
 	octavemods OCTAVEUP {
 		$$.expr = $1.expr + $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	}
 	| octavemods OCTAVEDOWN {
 		$$.expr = $1.expr - $2.expr;
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	}
 	| /* empty */ { $$.expr = 0; $$.textloc = _mdl_textloc_zero(); }
 	;
@@ -518,7 +528,8 @@ octavemods:
 notelength:
 	LENGTHNUMBER lengthdots {
 		$$.expr = countlength($1.expr, $2.expr);
-		$$.textloc = _mdl_join_textlocs($1.textloc, $2.textloc);
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    NULL);
 	  }
 	| /* empty */ { $$.expr = 0.0; $$.textloc = _mdl_textloc_zero(); }
 	;

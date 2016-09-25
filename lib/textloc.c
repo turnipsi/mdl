@@ -1,4 +1,4 @@
-/* $Id: textloc.c,v 1.1 2016/08/12 18:16:07 je Exp $ */
+/* $Id: textloc.c,v 1.2 2016/09/25 15:41:54 je Exp $ */
 
 /*
  * Copyright (c) 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -19,6 +19,8 @@
 #include "textloc.h"
 #include "util.h"
 
+#include <stdarg.h>
+
 struct textloc
 _mdl_textloc_zero(void)
 {
@@ -32,39 +34,46 @@ _mdl_textloc_zero(void)
 	return x;
 }
 
-/* XXX this should probably take variable length arguments */
 struct textloc
-_mdl_join_textlocs(struct textloc a, struct textloc b)
+_mdl_join_textlocs(struct textloc *first, ...)
 {
-	struct textloc x;
+	va_list va;
+	struct textloc result;
+	struct textloc *current;
 
-	if (a.first_line == 0)
-		return b;
+	if (first == NULL)
+		return _mdl_textloc_zero();
 
-	if (b.first_line == 0)
-		return a;
+	result = *first;
 
-	if (a.first_line < b.first_line) {
-		x.first_line   = a.first_line;
-		x.first_column = a.first_column;
-	} else if (a.first_line > b.first_line) {
-		x.first_line   = b.first_line;
-		x.first_column = b.first_column;
-	} else {
-		x.first_line = a.first_line;
-		x.first_column = MIN(a.first_column, b.first_column);
+	va_start(va, first);
+
+	current = va_arg(va, struct textloc *);
+	while (current != NULL) {
+		if (current->first_line != 0) {
+			if (current->first_line < result.first_line) {
+				result.first_line   = current->first_line;
+				result.first_column = current->first_column;
+			} else if (current->first_line == result.first_line) {
+				result.first_column = MIN(result.first_column,
+				    current->first_column);
+			}
+		}
+
+		if (current->last_line != 0) {
+			if (current->last_line > result.last_line) {
+				result.last_line   = current->last_line;
+				result.last_column = current->last_column;
+			} else if (current->last_line == result.last_line) {
+				result.last_column = MAX(result.last_column,
+				    current->last_column);
+			}
+		}
+
+		current = va_arg(va, struct textloc *);
 	}
 
-	if (a.last_line < b.last_line) {
-		x.last_line   = b.last_line;
-		x.last_column = b.last_column;
-	} else if (a.last_line > b.last_line) {
-		x.last_line   = a.last_line;
-		x.last_column = a.last_column;
-	} else {
-		x.last_line = a.last_line;
-		x.last_column = MAX(a.last_column, b.last_column);
-	}
+	va_end(va);
 
-	return x;
+	return result;
 }
