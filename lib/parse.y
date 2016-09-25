@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.68 2016/09/25 15:41:54 je Exp $ */
+/* $Id: parse.y,v 1.69 2016/09/25 15:46:22 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -302,35 +302,23 @@ joinexpr:
 
 relnote:
 	NOTETOKEN notemods octavemods notelength {
-		struct textloc tl;
-
 		$$.expr.notesym    = $1.expr;
 		$$.expr.notemods   = $2.expr;
 		$$.expr.octavemods = $3.expr;
 		$$.expr.length     = $4.expr;
 
-		tl = $1.textloc;
-		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
-
-		$$.textloc = tl;
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    &$3.textloc, &$4.textloc, NULL);
 	  }
 	| NOTETOKEN_ES notemods octavemods notelength {
-		struct textloc tl;
-
 		/* "es" is a special case */
 		$$.expr.notesym    = $1.expr;
 		$$.expr.notemods   = $2.expr - 1;
 		$$.expr.octavemods = $3.expr;
 		$$.expr.length     = $4.expr;
 
-		tl = $1.textloc;
-		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
-
-		$$.textloc = tl;
+		$$.textloc = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    &$3.textloc, &$4.textloc, NULL);
 	  }
 	;
 
@@ -338,10 +326,8 @@ relsimultence_expr_with_enclosers:
 	RELSIMULTENCE_START simultence_expr RELSIMULTENCE_END notelength {
 		struct textloc tl;
 
-		tl = $1.textloc;
-		tl = _mdl_join_textlocs(&tl, &$2->id.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$4.textloc, NULL);
+		tl = _mdl_join_textlocs(&$1.textloc, &$2->id.textloc,
+		    &$3.textloc, &$4.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
 		if ($$ == NULL) {
@@ -357,9 +343,8 @@ relsimultence_expr_with_enclosers:
 		/* XXX A smarter way to accept empty relsimultences? */
 		struct textloc tl;
 
-		tl = $1.textloc;
-		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$3.textloc, NULL);
+		tl = _mdl_join_textlocs(&$1.textloc, &$2.textloc, &$3.textloc,
+		    NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_RELSIMULTENCE, tl, 0);
 		if ($$ == NULL) {
@@ -456,9 +441,8 @@ track_expr:
 	QUOTED_STRING TRACK_OPERATOR musicexpr {
 		struct textloc tl;
 
-		tl = $1.textloc;
-		tl = _mdl_join_textlocs(&tl, &$2.textloc, NULL);
-		tl = _mdl_join_textlocs(&tl, &$3->id.textloc, NULL);
+		tl = _mdl_join_textlocs(&$1.textloc, &$2.textloc,
+		    &$3->id.textloc, NULL);
 
 		$$ = _mdl_musicexpr_new(ME_TYPE_ONTRACK, tl, 0);
 		if ($$ == NULL) {
