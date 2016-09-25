@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.70 2016/09/25 19:47:34 je Exp $ */
+/* $Id: parse.y,v 1.71 2016/09/25 21:04:03 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -237,7 +237,7 @@ musicexpr:
 		}
 		$$->u.rest = $1.expr;
 	  }
-	| sequence_expr_with_enclosers_and_length { $$ = $1; }
+	| sequence_expr_with_enclosers_and_length   { $$ = $1; }
 	| simultence_expr_with_enclosers_and_length { $$ = $1; }
 	| track_expr { $$ = $1; }
 	;
@@ -363,6 +363,7 @@ relsimultence_expr_with_enclosers_and_length:
 		}
 		simultence = _mdl_musicexpr_new(ME_TYPE_SIMULTENCE, tl, 0);
 		if (simultence == NULL) {
+			free($$);
 			/* XXX YYERROR and memory leaks?
 			 * XXX return NULL and handle on upper layer? */
 			YYERROR;
