@@ -4,39 +4,39 @@ mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absdrum:23:2,5:2,7 drumsym=1 note=36 length=0.250 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:23:2,5:2,7 drumsym=1 note=36 length=0.250 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
-mdl.interp.midistream  :       absdrum:25:2,9:2,11 drumsym=3 note=37 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:25:2,9:2,11 drumsym=3 note=37 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
-mdl.interp.midistream  :       absdrum:27:2,13:2,14 drumsym=3 note=37 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:27:2,13:2,14 drumsym=3 note=37 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absdrum:29:2,21:2,23 drumsym=1 note=36 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:29:2,21:2,23 drumsym=1 note=36 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.625 to trackmidievents
-mdl.interp.midistream  :       absdrum:31:2,25:2,26 drumsym=1 note=36 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:31:2,25:2,26 drumsym=1 note=36 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
-mdl.interp.midistream  :       absdrum:33:2,28:2,31 drumsym=3 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:33:2,28:2,31 drumsym=3 note=37 length=0.062 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.812 to trackmidievents
-mdl.interp.midistream  :       absdrum:35:2,33:2,34 drumsym=3 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:35:2,33:2,34 drumsym=3 note=37 length=0.062 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.875 to trackmidievents
-mdl.interp.midistream  :       absdrum:37:2,36:2,37 drumsym=3 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:37:2,36:2,37 drumsym=3 note=37 length=0.062 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.938 to trackmidievents
-mdl.interp.midistream  :       absdrum:39:2,39:2,40 drumsym=3 note=37 length=0.062 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:39:2,39:2,40 drumsym=3 note=37 length=0.062 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absdrum:41:3,5:3,7 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:41:3,5:3,7 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.125 to trackmidievents
-mdl.interp.midistream  :       absdrum:43:3,9:3,10 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:43:3,9:3,10 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
-mdl.interp.midistream  :       absdrum:45:3,12:3,13 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:45:3,12:3,13 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.375 to trackmidievents
-mdl.interp.midistream  :       absdrum:47:3,15:3,16 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:47:3,15:3,16 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absdrum:49:3,21:3,22 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:49:3,21:3,22 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.625 to trackmidievents
-mdl.interp.midistream  :       absdrum:51:3,24:3,25 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:51:3,24:3,25 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
-mdl.interp.midistream  :       absdrum:53:3,27:3,28 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:53:3,27:3,28 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.875 to trackmidievents
-mdl.interp.midistream  :       absdrum:55:3,30:3,31 drumsym=11 note=42 length=0.125 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:55:3,30:3,31 drumsym=11 note=42 length=0.125 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  : adding midievents to send queue:
 mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=9 instrument=0

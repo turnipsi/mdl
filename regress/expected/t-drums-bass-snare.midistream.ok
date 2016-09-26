@@ -4,13 +4,13 @@ mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absdrum:7:1,1:1,2 drumsym=1 note=36 length=0.250 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:7:1,1:1,2 drumsym=1 note=36 length=0.250 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
-mdl.interp.midistream  :       absdrum:9:1,4:1,5 drumsym=6 note=38 length=0.250 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:9:1,4:1,5 drumsym=6 note=38 length=0.250 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absdrum:11:1,7:1,8 drumsym=1 note=36 length=0.250 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:11:1,7:1,8 drumsym=1 note=36 length=0.250 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
-mdl.interp.midistream  :       absdrum:13:1,10:1,11 drumsym=6 note=38 length=0.250 instrument="drums" track="drums"
+mdl.interp.midistream  :       absdrum:13:1,10:1,11 drumsym=6 note=38 length=0.250 joining=0 instrument="drums" track="drums"
 mdl.interp.midistream  : adding midievents to send queue:
 mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=9 instrument=0

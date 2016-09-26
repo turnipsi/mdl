@@ -4,45 +4,45 @@ mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absnote:34:2,5:2,6 notesym=0 note=60 length=0.500 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:34:2,5:2,6 notesym=0 note=60 length=0.500 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absnote:36:2,8:2,8 notesym=0 note=60 length=0.500 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:36:2,8:2,8 notesym=0 note=60 length=0.500 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.000 to trackmidievents
-mdl.interp.midistream  :       absnote:38:2,10:2,10 notesym=0 note=60 length=0.500 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:38:2,10:2,10 notesym=0 note=60 length=0.500 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.500 to trackmidievents
-mdl.interp.midistream  :       absnote:40:2,12:2,12 notesym=0 note=60 length=0.500 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:40:2,12:2,12 notesym=0 note=60 length=0.500 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
 mdl.interp.midistream  :       tempochange:42:4,6:4,10 bpm=240.000
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absnote:44:4,18:4,19 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:44:4,18:4,19 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
 mdl.interp.midistream  :       tempochange:46:4,25:4,29 bpm=140.000
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents
-mdl.interp.midistream  :       absnote:48:4,36:4,37 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:48:4,36:4,37 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
 mdl.interp.midistream  :       tempochange:50:4,43:4,47 bpm=80.000
 mdl.interp.midistream  :     adding expression with offset 0.500 to trackmidievents
-mdl.interp.midistream  :       absnote:52:4,54:4,55 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:52:4,54:4,55 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
 mdl.interp.midistream  :       tempochange:54:4,61:4,65 bpm=40.000
 mdl.interp.midistream  :     adding expression with offset 0.750 to trackmidievents
-mdl.interp.midistream  :       absnote:56:4,72:4,73 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:56:4,72:4,73 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.000 to trackmidievents
 mdl.interp.midistream  :       tempochange:58:5,6:5,10 bpm=40.000
 mdl.interp.midistream  :     adding expression with offset 1.000 to trackmidievents
-mdl.interp.midistream  :       absnote:60:5,18:5,19 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:60:5,18:5,19 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.250 to trackmidievents
 mdl.interp.midistream  :       tempochange:62:5,25:5,29 bpm=80.000
 mdl.interp.midistream  :     adding expression with offset 1.250 to trackmidievents
-mdl.interp.midistream  :       absnote:64:5,36:5,37 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:64:5,36:5,37 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.500 to trackmidievents
 mdl.interp.midistream  :       tempochange:66:5,43:5,47 bpm=140.000
 mdl.interp.midistream  :     adding expression with offset 1.500 to trackmidievents
-mdl.interp.midistream  :       absnote:68:5,54:5,55 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:68:5,54:5,55 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 1.750 to trackmidievents
 mdl.interp.midistream  :       tempochange:70:5,61:5,65 bpm=240.000
 mdl.interp.midistream  :     adding expression with offset 1.750 to trackmidievents
-mdl.interp.midistream  :       absnote:72:5,72:5,73 notesym=4 note=55 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:72:5,72:5,73 notesym=4 note=55 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  : adding midievents to send queue:
 mdl.interp.midistream  :   putting track "acoustic grand" to midichannel 0
 mdl.interp.midistream  : writing midi stream to sequencer

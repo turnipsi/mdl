@@ -22,10 +22,10 @@ mdl.interp.mm          : created sequence:20:4,6:5,74
 mdl.interp.mm          : created simultence:21:2,3:6,3
 mdl.interp.mm          : created sequence:22:1,1:7,2
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:22:1,1:7,2
-mdl.interp.parsing     :     simultence:21:1,1:7,2
-mdl.interp.parsing     :       sequence:20:3,3:6,3
-mdl.interp.parsing     :         rest:19:5,73:5,74 length=0.250
+mdl.interp.parsing     :   sequence:22:1,1:7,2 joining=0
+mdl.interp.parsing     :     simultence:21:1,1:7,2 joining=0
+mdl.interp.parsing     :       sequence:20:3,3:6,3 joining=0
+mdl.interp.parsing     :         rest:19:5,73:5,74 length=0.250 joining=0
 mdl.interp.mm          :           created volumechange:23:4,6:4,11
 mdl.interp.mm          :           created volumechange:24:4,25:4,30
 mdl.interp.mm          :           created volumechange:25:4,43:4,48

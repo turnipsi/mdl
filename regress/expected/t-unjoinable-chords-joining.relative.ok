@@ -4,9 +4,9 @@ mdl.interp.relative    :     rel->abs for expression sequence:5:1,6:1,6
 mdl.interp.relative    :       rel->abs for expression joinexpr:4:1,6:1,6
 mdl.interp.relative    :         rel->abs for expression chord:1:1,1:1,4
 mdl.interp.relative    :           rel->abs for expression relnote:0:1,1:1,2
-mdl.interp.relative    :             relnote:0:1,1:1,2 notesym=0 notemods=0 length=0.250 octavemods=0
-mdl.interp.relative    :               --> absnote:0:1,1:1,2 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :             relnote:0:1,1:1,2 notesym=0 notemods=0 octavemods=0 length=0.250 joining=0
+mdl.interp.relative    :               --> absnote:0:1,1:1,2 notesym=0 note=60 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.relative    :         rel->abs for expression chord:3:1,8:1,10
 mdl.interp.relative    :           rel->abs for expression relnote:2:1,8:1,8
-mdl.interp.relative    :             relnote:2:1,8:1,8 notesym=1 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :               --> absnote:2:1,8:1,8 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.relative    :             relnote:2:1,8:1,8 notesym=1 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :               --> absnote:2:1,8:1,8 notesym=1 note=62 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"

@@ -4,7 +4,7 @@ mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
-mdl.interp.midistream  :       absnote:33:2,5:2,6 notesym=0 note=60 length=2.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.midistream  :       absnote:33:2,5:2,6 notesym=0 note=60 length=2.000 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.midistream  :     adding expression with offset 0.000 to trackmidievents
 mdl.interp.midistream  :       volumechange:35:4,6:4,11 track=acoustic grand volume=127
 mdl.interp.midistream  :     adding expression with offset 0.250 to trackmidievents

@@ -19,8 +19,8 @@ mdl.interp.mm          : created relnote:17:13,7:13,7
 mdl.interp.mm          : created relnote:18:13,9:13,9
 mdl.interp.mm          : created sequence:19:1,1:13,9
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:19:1,1:13,9
-mdl.interp.parsing     :     relnote:18:13,9:13,9 notesym=4 notemods=0 length=0.000 octavemods=0
+mdl.interp.parsing     :   sequence:19:1,1:13,9 joining=0
+mdl.interp.parsing     :     relnote:18:13,9:13,9 notesym=4 notemods=0 octavemods=0 length=0.000 joining=0
 mdl.interp.mm          :       created volumechange:20:3,2:3,7
 mdl.interp.mm          :       created volumechange:21:7,2:7,7
 mdl.interp.mm          :       created volumechange:22:11,2:11,7

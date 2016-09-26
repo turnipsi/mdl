@@ -31,7 +31,7 @@ mdl.interp.mm          :           cloning absnote:1:1,4:1,4 as absnote:22:1,4:1
 mdl.interp.mm          :         created offsetexpr:23:0,0:0,0
 mdl.interp.exprconv    :       inspecting scaledexpr:6:1,8:1,18 for flatsimultence:18:0,0:0,0
 mdl.interp.exprconv    :         scaling musicexpr sequence:5:1,8:1,17 to target length 0.500
-mdl.interp.exprconv    :           absnote:22:1,4:1,4 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :           absnote:22:1,4:1,4 notesym=1 note=62 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.mm          :             created sequence:24:1,8:1,17
 mdl.interp.mm          :               created absnote:25:1,10:1,11
 mdl.interp.mm          :               cloning absnote:2:1,10:1,11 as absnote:25:1,10:1,11
@@ -71,7 +71,7 @@ mdl.interp.mm          :           cloning absnote:8:2,5:2,5 as absnote:36:2,5:2
 mdl.interp.mm          :         created offsetexpr:37:0,0:0,0
 mdl.interp.exprconv    :       inspecting scaledexpr:13:2,8:2,18 for flatsimultence:18:0,0:0,0
 mdl.interp.exprconv    :         scaling musicexpr sequence:12:2,8:2,17 to target length 0.500
-mdl.interp.exprconv    :           absnote:36:2,5:2,5 notesym=5 note=69 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :           absnote:36:2,5:2,5 notesym=5 note=69 length=0.250 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.mm          :             created sequence:38:2,8:2,17
 mdl.interp.mm          :               created absnote:39:2,10:2,11
 mdl.interp.mm          :               cloning absnote:9:2,10:2,11 as absnote:39:2,10:2,11

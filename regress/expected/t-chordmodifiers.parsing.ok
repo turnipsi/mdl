@@ -1,89 +1,89 @@
 mdl.interp.parsing     : parse ok, result:
-mdl.interp.parsing     :   sequence:58:1,1:29,8
-mdl.interp.parsing     :     chord:1:1,1:1,4
+mdl.interp.parsing     :   sequence:58:1,1:29,8 joining=0
+mdl.interp.parsing     :     chord:1:1,1:1,4 joining=0
 mdl.interp.parsing     :       chordtype 5
-mdl.interp.parsing     :       relnote:0:1,1:1,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:3:2,1:2,4
+mdl.interp.parsing     :       relnote:0:1,1:1,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:3:2,1:2,4 joining=0
 mdl.interp.parsing     :       chordtype m
-mdl.interp.parsing     :       relnote:2:2,1:2,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:5:3,1:3,5
+mdl.interp.parsing     :       relnote:2:2,1:2,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:5:3,1:3,5 joining=0
 mdl.interp.parsing     :       chordtype m
-mdl.interp.parsing     :       relnote:4:3,1:3,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:7:4,1:4,6
+mdl.interp.parsing     :       relnote:4:3,1:3,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:7:4,1:4,6 joining=0
 mdl.interp.parsing     :       chordtype aug
-mdl.interp.parsing     :       relnote:6:4,1:4,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:9:5,1:5,6
+mdl.interp.parsing     :       relnote:6:4,1:4,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:9:5,1:5,6 joining=0
 mdl.interp.parsing     :       chordtype dim
-mdl.interp.parsing     :       relnote:8:5,1:5,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:11:6,1:6,4
+mdl.interp.parsing     :       relnote:8:5,1:5,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:11:6,1:6,4 joining=0
 mdl.interp.parsing     :       chordtype 7
-mdl.interp.parsing     :       relnote:10:6,1:6,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:13:7,1:7,7
+mdl.interp.parsing     :       relnote:10:6,1:6,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:13:7,1:7,7 joining=0
 mdl.interp.parsing     :       chordtype maj7
-mdl.interp.parsing     :       relnote:12:7,1:7,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:15:8,1:8,6
+mdl.interp.parsing     :       relnote:12:7,1:7,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:15:8,1:8,6 joining=0
 mdl.interp.parsing     :       chordtype maj7
-mdl.interp.parsing     :       relnote:14:8,1:8,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:17:9,1:9,5
+mdl.interp.parsing     :       relnote:14:8,1:8,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:17:9,1:9,5 joining=0
 mdl.interp.parsing     :       chordtype m7
-mdl.interp.parsing     :       relnote:16:9,1:9,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:19:10,1:10,7
+mdl.interp.parsing     :       relnote:16:9,1:9,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:19:10,1:10,7 joining=0
 mdl.interp.parsing     :       chordtype dim7
-mdl.interp.parsing     :       relnote:18:10,1:10,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:21:11,1:11,7
+mdl.interp.parsing     :       relnote:18:10,1:10,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:21:11,1:11,7 joining=0
 mdl.interp.parsing     :       chordtype aug7
-mdl.interp.parsing     :       relnote:20:11,1:11,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:23:12,1:12,8
+mdl.interp.parsing     :       relnote:20:11,1:11,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:23:12,1:12,8 joining=0
 mdl.interp.parsing     :       chordtype m7.5-
-mdl.interp.parsing     :       relnote:22:12,1:12,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:25:13,1:13,6
+mdl.interp.parsing     :       relnote:22:12,1:12,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:25:13,1:13,6 joining=0
 mdl.interp.parsing     :       chordtype m7+
-mdl.interp.parsing     :       relnote:24:13,1:13,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:27:14,1:14,4
+mdl.interp.parsing     :       relnote:24:13,1:13,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:27:14,1:14,4 joining=0
 mdl.interp.parsing     :       chordtype 6
-mdl.interp.parsing     :       relnote:26:14,1:14,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:29:15,1:15,5
+mdl.interp.parsing     :       relnote:26:14,1:14,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:29:15,1:15,5 joining=0
 mdl.interp.parsing     :       chordtype m6
-mdl.interp.parsing     :       relnote:28:15,1:15,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:31:16,1:16,4
+mdl.interp.parsing     :       relnote:28:15,1:15,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:31:16,1:16,4 joining=0
 mdl.interp.parsing     :       chordtype 9
-mdl.interp.parsing     :       relnote:30:16,1:16,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:33:17,1:17,7
+mdl.interp.parsing     :       relnote:30:16,1:16,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:33:17,1:17,7 joining=0
 mdl.interp.parsing     :       chordtype maj9
-mdl.interp.parsing     :       relnote:32:17,1:17,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:35:18,1:18,5
+mdl.interp.parsing     :       relnote:32:17,1:17,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:35:18,1:18,5 joining=0
 mdl.interp.parsing     :       chordtype m9
-mdl.interp.parsing     :       relnote:34:18,1:18,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:37:19,1:19,5
+mdl.interp.parsing     :       relnote:34:18,1:18,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:37:19,1:19,5 joining=0
 mdl.interp.parsing     :       chordtype 11
-mdl.interp.parsing     :       relnote:36:19,1:19,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:39:20,1:20,8
+mdl.interp.parsing     :       relnote:36:19,1:19,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:39:20,1:20,8 joining=0
 mdl.interp.parsing     :       chordtype maj11
-mdl.interp.parsing     :       relnote:38:20,1:20,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:41:21,1:21,6
+mdl.interp.parsing     :       relnote:38:20,1:20,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:41:21,1:21,6 joining=0
 mdl.interp.parsing     :       chordtype m11
-mdl.interp.parsing     :       relnote:40:21,1:21,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:43:22,1:22,5
+mdl.interp.parsing     :       relnote:40:21,1:21,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:43:22,1:22,5 joining=0
 mdl.interp.parsing     :       chordtype 13
-mdl.interp.parsing     :       relnote:42:22,1:22,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:45:23,1:23,8
+mdl.interp.parsing     :       relnote:42:22,1:22,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:45:23,1:23,8 joining=0
 mdl.interp.parsing     :       chordtype 13.11
-mdl.interp.parsing     :       relnote:44:23,1:23,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:47:24,1:24,11
+mdl.interp.parsing     :       relnote:44:23,1:23,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:47:24,1:24,11 joining=0
 mdl.interp.parsing     :       chordtype maj13.11
-mdl.interp.parsing     :       relnote:46:24,1:24,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:49:25,1:25,9
+mdl.interp.parsing     :       relnote:46:24,1:24,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:49:25,1:25,9 joining=0
 mdl.interp.parsing     :       chordtype m13.11
-mdl.interp.parsing     :       relnote:48:25,1:25,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:51:26,1:26,7
+mdl.interp.parsing     :       relnote:48:25,1:25,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:51:26,1:26,7 joining=0
 mdl.interp.parsing     :       chordtype sus2
-mdl.interp.parsing     :       relnote:50:26,1:26,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:53:27,1:27,7
+mdl.interp.parsing     :       relnote:50:26,1:26,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:53:27,1:27,7 joining=0
 mdl.interp.parsing     :       chordtype sus4
-mdl.interp.parsing     :       relnote:52:27,1:27,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:55:28,1:28,6
+mdl.interp.parsing     :       relnote:52:27,1:27,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:55:28,1:28,6 joining=0
 mdl.interp.parsing     :       chordtype 1.5
-mdl.interp.parsing     :       relnote:54:28,1:28,2 notesym=0 notemods=0 length=1.000 octavemods=0
-mdl.interp.parsing     :     chord:57:29,1:29,8
+mdl.interp.parsing     :       relnote:54:28,1:28,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0
+mdl.interp.parsing     :     chord:57:29,1:29,8 joining=0
 mdl.interp.parsing     :       chordtype 1.5.8
-mdl.interp.parsing     :       relnote:56:29,1:29,2 notesym=0 notemods=0 length=1.000 octavemods=0
+mdl.interp.parsing     :       relnote:56:29,1:29,2 notesym=0 notemods=0 octavemods=0 length=1.000 joining=0

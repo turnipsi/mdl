@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.126 2016/09/26 18:23:30 je Exp $ */
+/* $Id: musicexpr.c,v 1.127 2016/09/26 18:52:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -659,22 +659,23 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 	switch (me->me_type) {
 	case ME_TYPE_ABSDRUM:
 		_mdl_log(logtype, level,
-		    "%s%s drumsym=%d note=%d length=%.3f instrument=\"%s\""
-		    " track=\"%s\"\n", prefix, me_id,
+		    "%s%s drumsym=%d note=%d length=%.3f joining=%d"
+		    " instrument=\"%s\" track=\"%s\"\n", prefix, me_id,
 		    me->u.absdrum.drumsym, me->u.absdrum.note,
-		    me->u.absdrum.length, me->u.absdrum.instrument->name,
-		    me->u.absdrum.track->name);
+		    me->u.absdrum.length, me->joining,
+		    me->u.absdrum.instrument->name, me->u.absdrum.track->name);
 		break;
 	case ME_TYPE_ABSNOTE:
 		_mdl_log(logtype, level,
-		    "%s%s notesym=%d note=%d length=%.3f instrument=\"%s\""
-		    " track=\"%s\"\n", prefix, me_id,
+		    "%s%s notesym=%d note=%d length=%.3f joining=%d"
+		    " instrument=\"%s\" track=\"%s\"\n", prefix, me_id,
 		    me->u.absnote.notesym, me->u.absnote.note,
-		    me->u.absnote.length, me->u.absnote.instrument->name,
-		    me->u.absnote.track->name);
+		    me->u.absnote.length, me->joining,
+		    me->u.absnote.instrument->name, me->u.absnote.track->name);
 		break;
 	case ME_TYPE_CHORD:
-		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
+		_mdl_log(logtype, level, "%s%s joining=%d\n", prefix, me_id,
+		    me->joining);
 		_mdl_musicexpr_log_chordtype(me->u.chord.chordtype, logtype,
 		    level+1, prefix);
 		_mdl_musicexpr_log(me->u.chord.me, logtype, level+1, prefix);
@@ -683,8 +684,8 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
 		break;
 	case ME_TYPE_FLATSIMULTENCE:
-		_mdl_log(logtype, level, "%s%s length=%f\n", prefix, me_id,
-		    me->u.flatsimultence.length);
+		_mdl_log(logtype, level, "%s%s length=%f joining=%d\n", prefix,
+		    me_id, me->u.flatsimultence.length, me->joining);
 		_mdl_musicexpr_log(me->u.flatsimultence.me, logtype, level+1,
 		    prefix);
 		break;
@@ -699,7 +700,8 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_musicexpr_log(me->u.joinexpr.b, logtype, level+1, prefix);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
-		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
+		_mdl_log(logtype, level, "%s%s joining=%d\n", prefix, me_id,
+		    me->joining);
 		_mdl_musicexpr_log(me->u.noteoffsetexpr.me, logtype, level+1,
 		    prefix);
 		if ((old_tmpstring = strdup("noteoffsets:")) == NULL) {
@@ -734,37 +736,40 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		_mdl_musicexpr_log(me->u.ontrack.me, logtype, level+1, prefix);
 		break;
 	case ME_TYPE_RELDRUM:
-		_mdl_log(logtype, level, "%s%s drumsym=%d length=%.3f\n",
+		_mdl_log(logtype, level,
+		    "%s%s drumsym=%d length=%.3f joining=%d\n",
 		    prefix, me_id, me->u.reldrum.drumsym,
-		    me->u.reldrum.length);
+		    me->u.reldrum.length, me->joining);
 		break;
 	case ME_TYPE_RELNOTE:
 		_mdl_log(logtype, level,
-		    "%s%s notesym=%d notemods=%d length=%.3f octavemods=%d\n",
+		    "%s%s notesym=%d notemods=%d octavemods=%d length=%.3f"
+		    " joining=%d\n",
 		    prefix, me_id, me->u.relnote.notesym,
-		    me->u.relnote.notemods, me->u.relnote.length,
-		    me->u.relnote.octavemods);
+		    me->u.relnote.notemods, me->u.relnote.octavemods,
+		    me->u.relnote.length, me->joining);
 		break;
 	case ME_TYPE_RELSIMULTENCE:
 		assert(me->u.scaledexpr.me->me_type == ME_TYPE_SIMULTENCE);
-		_mdl_log(logtype, level, "%s%s length=%.3f\n", prefix,
-		    me_id, me->u.scaledexpr.length);
+		_mdl_log(logtype, level, "%s%s length=%.3f joining=%d\n",
+		    prefix, me_id, me->u.scaledexpr.length, me->joining);
 		_mdl_musicexpr_log(me->u.scaledexpr.me, logtype, level+1,
 		    prefix);
 		break;
 	case ME_TYPE_REST:
-		_mdl_log(logtype, level, "%s%s length=%.3f\n", prefix, me_id,
-		    me->u.rest.length);
+		_mdl_log(logtype, level, "%s%s length=%.3f joining=%d\n",
+		    prefix, me_id, me->u.rest.length, me->joining);
 		break;
 	case ME_TYPE_SCALEDEXPR:
-		_mdl_log(logtype, level, "%s%s length=%.3f\n", prefix, me_id,
-		    me->u.scaledexpr.length);
+		_mdl_log(logtype, level, "%s%s length=%.3f joining=%d\n",
+		    prefix, me_id, me->u.scaledexpr.length, me->joining);
 		_mdl_musicexpr_log(me->u.scaledexpr.me, logtype, level+1,
 		    prefix);
 		break;
 	case ME_TYPE_SEQUENCE:
 	case ME_TYPE_SIMULTENCE:
-		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
+		_mdl_log(logtype, level, "%s%s joining=%d\n", prefix, me_id,
+		    me->joining);
 		_mdl_musicexpr_log_melist(me->u.melist, logtype, level+1,
 		    prefix);
 		break;

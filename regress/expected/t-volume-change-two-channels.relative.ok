@@ -5,75 +5,75 @@ mdl.interp.relative    :       rel->abs for expression simultence:35:1,1:22,2
 mdl.interp.relative    :         rel->abs for expression ontrack:20:2,4:10,3
 mdl.interp.relative    :           rel->abs for expression sequence:19:2,15:10,3
 mdl.interp.relative    :             rel->abs for expression relnote:0:3,5:3,6
-mdl.interp.relative    :               relnote:0:3,5:3,6 notesym=0 notemods=0 length=0.125 octavemods=0
-mdl.interp.relative    :                 --> absnote:0:3,5:3,6 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:0:3,5:3,6 notesym=0 notemods=0 octavemods=0 length=0.125 joining=0
+mdl.interp.relative    :                 --> absnote:0:3,5:3,6 notesym=0 note=60 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:1:3,8:3,8
-mdl.interp.relative    :               relnote:1:3,8:3,8 notesym=2 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:1:3,8:3,8 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:1:3,8:3,8 notesym=2 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:1:3,8:3,8 notesym=2 note=64 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:2:3,10:3,10
-mdl.interp.relative    :               relnote:2:3,10:3,10 notesym=3 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:2:3,10:3,10 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:2:3,10:3,10 notesym=3 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:2:3,10:3,10 notesym=3 note=65 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:3:3,12:3,12
-mdl.interp.relative    :               relnote:3:3,12:3,12 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:3:3,12:3,12 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:3:3,12:3,12 notesym=4 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:3:3,12:3,12 notesym=4 note=67 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression volumechange:37:4,6:4,11
 mdl.interp.relative    :             rel->abs for expression relnote:5:5,5:5,7
-mdl.interp.relative    :               relnote:5:5,5:5,7 notesym=0 notemods=0 length=0.125 octavemods=-1
-mdl.interp.relative    :                 --> absnote:5:5,5:5,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:5:5,5:5,7 notesym=0 notemods=0 octavemods=-1 length=0.125 joining=0
+mdl.interp.relative    :                 --> absnote:5:5,5:5,7 notesym=0 note=60 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:6:5,9:5,9
-mdl.interp.relative    :               relnote:6:5,9:5,9 notesym=2 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:6:5,9:5,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:6:5,9:5,9 notesym=2 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:6:5,9:5,9 notesym=2 note=64 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:7:5,11:5,11
-mdl.interp.relative    :               relnote:7:5,11:5,11 notesym=3 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:7:5,11:5,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:7:5,11:5,11 notesym=3 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:7:5,11:5,11 notesym=3 note=65 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:8:5,13:5,13
-mdl.interp.relative    :               relnote:8:5,13:5,13 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:8:5,13:5,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:8:5,13:5,13 notesym=4 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:8:5,13:5,13 notesym=4 note=67 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression volumechange:38:6,6:6,11
 mdl.interp.relative    :             rel->abs for expression relnote:10:7,5:7,7
-mdl.interp.relative    :               relnote:10:7,5:7,7 notesym=0 notemods=0 length=0.125 octavemods=-1
-mdl.interp.relative    :                 --> absnote:10:7,5:7,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:10:7,5:7,7 notesym=0 notemods=0 octavemods=-1 length=0.125 joining=0
+mdl.interp.relative    :                 --> absnote:10:7,5:7,7 notesym=0 note=60 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:11:7,9:7,9
-mdl.interp.relative    :               relnote:11:7,9:7,9 notesym=2 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:11:7,9:7,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:11:7,9:7,9 notesym=2 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:11:7,9:7,9 notesym=2 note=64 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:12:7,11:7,11
-mdl.interp.relative    :               relnote:12:7,11:7,11 notesym=3 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:12:7,11:7,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:12:7,11:7,11 notesym=3 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:12:7,11:7,11 notesym=3 note=65 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:13:7,13:7,13
-mdl.interp.relative    :               relnote:13:7,13:7,13 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:13:7,13:7,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:13:7,13:7,13 notesym=4 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:13:7,13:7,13 notesym=4 note=67 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression volumechange:39:8,6:8,11
 mdl.interp.relative    :             rel->abs for expression relnote:15:9,5:9,7
-mdl.interp.relative    :               relnote:15:9,5:9,7 notesym=0 notemods=0 length=0.125 octavemods=-1
-mdl.interp.relative    :                 --> absnote:15:9,5:9,7 notesym=0 note=60 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:15:9,5:9,7 notesym=0 notemods=0 octavemods=-1 length=0.125 joining=0
+mdl.interp.relative    :                 --> absnote:15:9,5:9,7 notesym=0 note=60 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:16:9,9:9,9
-mdl.interp.relative    :               relnote:16:9,9:9,9 notesym=2 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:16:9,9:9,9 notesym=2 note=64 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:16:9,9:9,9 notesym=2 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:16:9,9:9,9 notesym=2 note=64 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:17:9,11:9,11
-mdl.interp.relative    :               relnote:17:9,11:9,11 notesym=3 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:17:9,11:9,11 notesym=3 note=65 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:17:9,11:9,11 notesym=3 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:17:9,11:9,11 notesym=3 note=65 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :             rel->abs for expression relnote:18:9,13:9,13
-mdl.interp.relative    :               relnote:18:9,13:9,13 notesym=4 notemods=0 length=0.000 octavemods=0
-mdl.interp.relative    :                 --> absnote:18:9,13:9,13 notesym=4 note=67 length=0.125 instrument="violin" track="violin"
+mdl.interp.relative    :               relnote:18:9,13:9,13 notesym=4 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.relative    :                 --> absnote:18:9,13:9,13 notesym=4 note=67 length=0.125 joining=0 instrument="violin" track="violin"
 mdl.interp.relative    :         rel->abs for expression ontrack:34:12,4:21,3
 mdl.interp.relative    :           rel->abs for expression sequence:33:12,26:21,3
 mdl.interp.relative    :             rel->abs for expression volumechange:40:13,6:13,11
 mdl.interp.relative    :             rel->abs for expression chord:23:14,5:14,7
 mdl.interp.relative    :               rel->abs for expression relnote:22:14,5:14,6
-mdl.interp.relative    :                 relnote:22:14,5:14,6 notesym=0 notemods=0 length=0.500 octavemods=0
-mdl.interp.relative    :                   --> absnote:22:14,5:14,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.relative    :                 relnote:22:14,5:14,6 notesym=0 notemods=0 octavemods=0 length=0.500 joining=0
+mdl.interp.relative    :                   --> absnote:22:14,5:14,6 notesym=0 note=60 length=0.500 joining=0 instrument="string ensemble 1" track="string ensemble 1"
 mdl.interp.relative    :             rel->abs for expression volumechange:41:15,6:15,11
 mdl.interp.relative    :             rel->abs for expression chord:26:16,5:16,7
 mdl.interp.relative    :               rel->abs for expression relnote:25:16,5:16,6
-mdl.interp.relative    :                 relnote:25:16,5:16,6 notesym=0 notemods=0 length=0.500 octavemods=0
-mdl.interp.relative    :                   --> absnote:25:16,5:16,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.relative    :                 relnote:25:16,5:16,6 notesym=0 notemods=0 octavemods=0 length=0.500 joining=0
+mdl.interp.relative    :                   --> absnote:25:16,5:16,6 notesym=0 note=60 length=0.500 joining=0 instrument="string ensemble 1" track="string ensemble 1"
 mdl.interp.relative    :             rel->abs for expression volumechange:42:17,6:17,11
 mdl.interp.relative    :             rel->abs for expression chord:29:18,5:18,7
 mdl.interp.relative    :               rel->abs for expression relnote:28:18,5:18,6
-mdl.interp.relative    :                 relnote:28:18,5:18,6 notesym=0 notemods=0 length=0.500 octavemods=0
-mdl.interp.relative    :                   --> absnote:28:18,5:18,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.relative    :                 relnote:28:18,5:18,6 notesym=0 notemods=0 octavemods=0 length=0.500 joining=0
+mdl.interp.relative    :                   --> absnote:28:18,5:18,6 notesym=0 note=60 length=0.500 joining=0 instrument="string ensemble 1" track="string ensemble 1"
 mdl.interp.relative    :             rel->abs for expression volumechange:43:19,6:19,11
 mdl.interp.relative    :             rel->abs for expression chord:32:20,5:20,7
 mdl.interp.relative    :               rel->abs for expression relnote:31:20,5:20,6
-mdl.interp.relative    :                 relnote:31:20,5:20,6 notesym=0 notemods=0 length=0.500 octavemods=0
-mdl.interp.relative    :                   --> absnote:31:20,5:20,6 notesym=0 note=60 length=0.500 instrument="string ensemble 1" track="string ensemble 1"
+mdl.interp.relative    :                 relnote:31:20,5:20,6 notesym=0 notemods=0 octavemods=0 length=0.500 joining=0
+mdl.interp.relative    :                   --> absnote:31:20,5:20,6 notesym=0 note=60 length=0.500 joining=0 instrument="string ensemble 1" track="string ensemble 1"

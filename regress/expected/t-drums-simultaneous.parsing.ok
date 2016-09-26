@@ -1,22 +1,22 @@
 mdl.interp.parsing     : parse ok, result:
-mdl.interp.parsing     :   sequence:20:1,1:4,2
-mdl.interp.parsing     :     simultence:19:1,1:4,2
-mdl.interp.parsing     :       sequence:9:2,3:2,42
-mdl.interp.parsing     :         reldrum:0:2,5:2,7 drumsym=1 length=0.250
-mdl.interp.parsing     :         reldrum:1:2,9:2,11 drumsym=3 length=0.125
-mdl.interp.parsing     :         reldrum:2:2,13:2,14 drumsym=3 length=0.000
-mdl.interp.parsing     :         reldrum:3:2,21:2,23 drumsym=1 length=0.125
-mdl.interp.parsing     :         reldrum:4:2,25:2,26 drumsym=1 length=0.000
-mdl.interp.parsing     :         reldrum:5:2,28:2,31 drumsym=3 length=0.062
-mdl.interp.parsing     :         reldrum:6:2,33:2,34 drumsym=3 length=0.000
-mdl.interp.parsing     :         reldrum:7:2,36:2,37 drumsym=3 length=0.000
-mdl.interp.parsing     :         reldrum:8:2,39:2,40 drumsym=3 length=0.000
-mdl.interp.parsing     :       sequence:18:3,3:3,42
-mdl.interp.parsing     :         reldrum:10:3,5:3,7 drumsym=11 length=0.125
-mdl.interp.parsing     :         reldrum:11:3,9:3,10 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:12:3,12:3,13 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:13:3,15:3,16 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:14:3,21:3,22 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:15:3,24:3,25 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:16:3,27:3,28 drumsym=11 length=0.000
-mdl.interp.parsing     :         reldrum:17:3,30:3,31 drumsym=11 length=0.000
+mdl.interp.parsing     :   sequence:20:1,1:4,2 joining=0
+mdl.interp.parsing     :     simultence:19:1,1:4,2 joining=0
+mdl.interp.parsing     :       sequence:9:2,3:2,42 joining=0
+mdl.interp.parsing     :         reldrum:0:2,5:2,7 drumsym=1 length=0.250 joining=0
+mdl.interp.parsing     :         reldrum:1:2,9:2,11 drumsym=3 length=0.125 joining=0
+mdl.interp.parsing     :         reldrum:2:2,13:2,14 drumsym=3 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:3:2,21:2,23 drumsym=1 length=0.125 joining=0
+mdl.interp.parsing     :         reldrum:4:2,25:2,26 drumsym=1 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:5:2,28:2,31 drumsym=3 length=0.062 joining=0
+mdl.interp.parsing     :         reldrum:6:2,33:2,34 drumsym=3 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:7:2,36:2,37 drumsym=3 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:8:2,39:2,40 drumsym=3 length=0.000 joining=0
+mdl.interp.parsing     :       sequence:18:3,3:3,42 joining=0
+mdl.interp.parsing     :         reldrum:10:3,5:3,7 drumsym=11 length=0.125 joining=0
+mdl.interp.parsing     :         reldrum:11:3,9:3,10 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:12:3,12:3,13 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:13:3,15:3,16 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:14:3,21:3,22 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:15:3,24:3,25 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:16:3,27:3,28 drumsym=11 length=0.000 joining=0
+mdl.interp.parsing     :         reldrum:17:3,30:3,31 drumsym=11 length=0.000 joining=0

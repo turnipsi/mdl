@@ -24,7 +24,7 @@ mdl.interp.mm          :           cloning absnote:1:1,4:1,5 as absnote:15:1,4:1
 mdl.interp.mm          :         created offsetexpr:16:0,0:0,0
 mdl.interp.exprconv    :       inspecting scaledexpr:5:1,7:1,11 for flatsimultence:11:0,0:0,0
 mdl.interp.exprconv    :         scaling musicexpr simultence:4:1,8:1,10 to target length 0.125
-mdl.interp.exprconv    :           absnote:15:1,4:1,5 notesym=2 note=64 length=0.125 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :           absnote:15:1,4:1,5 notesym=2 note=64 length=0.125 joining=0 instrument="acoustic grand" track="acoustic grand"
 mdl.interp.mm          :             created simultence:17:1,8:1,10
 mdl.interp.mm          :               created absnote:18:1,8:1,8
 mdl.interp.mm          :               cloning absnote:2:1,8:1,8 as absnote:18:1,8:1,8

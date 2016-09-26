@@ -1,25 +1,25 @@
 mdl.interp.parsing     : parse ok, result:
-mdl.interp.parsing     :   sequence:23:1,1:7,2
-mdl.interp.parsing     :     simultence:22:1,1:7,2
-mdl.interp.parsing     :       sequence:4:2,3:2,14
-mdl.interp.parsing     :         relnote:0:2,5:2,6 notesym=0 notemods=0 length=0.500 octavemods=0
-mdl.interp.parsing     :         relnote:1:2,8:2,8 notesym=0 notemods=0 length=0.000 octavemods=0
-mdl.interp.parsing     :         relnote:2:2,10:2,10 notesym=0 notemods=0 length=0.000 octavemods=0
-mdl.interp.parsing     :         relnote:3:2,12:2,12 notesym=0 notemods=0 length=0.000 octavemods=0
-mdl.interp.parsing     :       sequence:21:3,3:6,3
+mdl.interp.parsing     :   sequence:23:1,1:7,2 joining=0
+mdl.interp.parsing     :     simultence:22:1,1:7,2 joining=0
+mdl.interp.parsing     :       sequence:4:2,3:2,14 joining=0
+mdl.interp.parsing     :         relnote:0:2,5:2,6 notesym=0 notemods=0 octavemods=0 length=0.500 joining=0
+mdl.interp.parsing     :         relnote:1:2,8:2,8 notesym=0 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.parsing     :         relnote:2:2,10:2,10 notesym=0 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.parsing     :         relnote:3:2,12:2,12 notesym=0 notemods=0 octavemods=0 length=0.000 joining=0
+mdl.interp.parsing     :       sequence:21:3,3:6,3 joining=0
 mdl.interp.parsing     :         function:5:4,6:4,10 name=tempo
-mdl.interp.parsing     :         relnote:6:4,18:4,19 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:6:4,18:4,19 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:7:4,25:4,29 name=tempo
-mdl.interp.parsing     :         relnote:8:4,36:4,37 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:8:4,36:4,37 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:9:4,43:4,47 name=tempo
-mdl.interp.parsing     :         relnote:10:4,54:4,55 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:10:4,54:4,55 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:11:4,61:4,65 name=tempo
-mdl.interp.parsing     :         relnote:12:4,72:4,73 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:12:4,72:4,73 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:13:5,6:5,10 name=tempo
-mdl.interp.parsing     :         relnote:14:5,18:5,19 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:14:5,18:5,19 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:15:5,25:5,29 name=tempo
-mdl.interp.parsing     :         relnote:16:5,36:5,37 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:16:5,36:5,37 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:17:5,43:5,47 name=tempo
-mdl.interp.parsing     :         relnote:18:5,54:5,55 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:18:5,54:5,55 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :         function:19:5,61:5,65 name=tempo
-mdl.interp.parsing     :         relnote:20:5,72:5,73 notesym=4 notemods=0 length=0.250 octavemods=0
+mdl.interp.parsing     :         relnote:20:5,72:5,73 notesym=4 notemods=0 octavemods=0 length=0.250 joining=0

@@ -36,11 +36,11 @@ mdl.interp.mm          : created ontrack:34:12,4:21,3
 mdl.interp.mm          : created simultence:35:2,4:21,3
 mdl.interp.mm          : created sequence:36:1,1:22,2
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.parsing     :   sequence:36:1,1:22,2
-mdl.interp.parsing     :     simultence:35:1,1:22,2
+mdl.interp.parsing     :   sequence:36:1,1:22,2 joining=0
+mdl.interp.parsing     :     simultence:35:1,1:22,2 joining=0
 mdl.interp.parsing     :       ontrack:34:12,4:21,3 track=string ensemble 1
-mdl.interp.parsing     :         sequence:33:12,26:21,3
-mdl.interp.parsing     :           chord:32:20,5:20,7
+mdl.interp.parsing     :         sequence:33:12,26:21,3 joining=0
+mdl.interp.parsing     :           chord:32:20,5:20,7 joining=0
 mdl.interp.mm          :             created volumechange:37:4,6:4,11
 mdl.interp.mm          :             created volumechange:38:6,6:6,11
 mdl.interp.mm          :             created volumechange:39:8,6:8,11

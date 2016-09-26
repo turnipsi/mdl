@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.72 2016/09/26 18:31:41 je Exp $ */
+/* $Id: parse.y,v 1.73 2016/09/26 18:52:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -304,6 +304,7 @@ joinexpr:
 		$$.expr.a = $1;
 		$$.expr.b = $3;
 		$$.textloc = $2.textloc;
+		$$.expr.a->joining = 1;
 	  }
 	;
 
