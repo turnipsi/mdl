@@ -1,21 +1,21 @@
 mdl.interp.mm          : created reldrum:0:1,1:1,4
 mdl.interp.mm          : created reldrum:1:1,6:1,8
 mdl.interp.mm          : created reldrum:2:1,12:1,14
-mdl.interp.mm          : created joinexpr:3:1,6:1,14
+mdl.interp.mm          : created joinexpr:3:1,10:1,10
 mdl.interp.mm          : created reldrum:4:1,16:1,18
 mdl.interp.mm          : created reldrum:5:1,23:1,25
 mdl.interp.mm          : created reldrum:6:1,27:1,29
 mdl.interp.mm          : created reldrum:7:1,33:1,35
-mdl.interp.mm          : created joinexpr:8:1,27:1,35
+mdl.interp.mm          : created joinexpr:8:1,31:1,31
 mdl.interp.mm          : created reldrum:9:1,37:1,39
 mdl.interp.mm          : created sequence:10:1,1:1,39
 mdl.interp.midistream  : joining music expressions
 mdl.interp.joins       :   joining subexpressions in sequence:10:1,1:1,39
-mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,6:1,14
+mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,10:1,10
 mdl.interp.joins       :       joining expressions absdrum:1:1,6:1,8 and absdrum:2:1,12:1,14
 mdl.interp.joins       :         matched absdrums
 mdl.interp.mm          :           freeing musicexpr absdrum:2:1,12:1,14
-mdl.interp.joins       :     joining subexpressions in joinexpr:8:1,27:1,35
+mdl.interp.joins       :     joining subexpressions in joinexpr:8:1,31:1,31
 mdl.interp.joins       :       joining expressions absdrum:6:1,27:1,29 and absdrum:7:1,33:1,35
 mdl.interp.joins       :         matched absdrums
 mdl.interp.mm          :           freeing musicexpr absdrum:7:1,33:1,35

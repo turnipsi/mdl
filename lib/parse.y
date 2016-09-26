@@ -1,4 +1,4 @@
-/* $Id: parse.y,v 1.71 2016/09/25 21:04:03 je Exp $ */
+/* $Id: parse.y,v 1.72 2016/09/26 18:31:41 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -303,8 +303,7 @@ joinexpr:
 	musicexpr JOINEXPR musicexpr {
 		$$.expr.a = $1;
 		$$.expr.b = $3;
-		$$.textloc = _mdl_join_textlocs(&$1->id.textloc,
-		    &$3->id.textloc, NULL);
+		$$.textloc = $2.textloc;
 	  }
 	;
 

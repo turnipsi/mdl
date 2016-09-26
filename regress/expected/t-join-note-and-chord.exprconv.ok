@@ -1,6 +1,6 @@
 mdl.interp.midistream  : joining music expressions
-mdl.interp.joins       :   joining subexpressions in sequence:4:1,1:1,9
-mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,1:1,9
+mdl.interp.joins       :   joining subexpressions in sequence:4:1,4:1,4
+mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,4:1,4
 mdl.interp.joins       :       joining expressions absnote:0:1,1:1,2 and chord:2:1,6:1,9
 mdl.interp.joins       :         converting chord to noteoffsetexpr
 mdl.interp.joins       :           joining expressions absnote:0:1,1:1,2 and noteoffsetexpr:5:0,0:0,0
@@ -36,7 +36,7 @@ mdl.interp.exprconv    :                     offset changed from 0.000000 to 0.2
 mdl.interp.exprconv    :                   offset changed from 0.000000 to 0.250000
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:25:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:4:1,1:1,9 for flatsimultence:25:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:4:1,4:1,4 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :       inspecting flatsimultence:7:0,0:0,0 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :         inspecting simultence:8:0,0:0,0 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :           inspecting offsetexpr:10:0,0:0,0 for flatsimultence:25:0,0:0,0

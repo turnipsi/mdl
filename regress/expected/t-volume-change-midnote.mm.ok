@@ -1,7 +1,7 @@
 mdl.interp.mm          : created relnote:0:2,5:2,6
 mdl.interp.mm          : created relnote:1:2,10:2,11
-mdl.interp.mm          : created joinexpr:2:2,5:2,11
-mdl.interp.mm          : created sequence:3:2,5:2,11
+mdl.interp.mm          : created joinexpr:2:2,8:2,8
+mdl.interp.mm          : created sequence:3:2,8:2,8
 mdl.interp.mm          : created function:4:4,6:4,11
 mdl.interp.mm          : created rest:5:4,18:4,19
 mdl.interp.mm          : created function:6:4,25:4,30
@@ -38,7 +38,7 @@ mdl.interp.midistream  : joining music expressions
 mdl.interp.joins       :   joining subexpressions in sequence:22:1,1:7,2
 mdl.interp.joins       :     joining subexpressions in simultence:21:1,1:7,2
 mdl.interp.joins       :       joining subexpressions in sequence:3:2,3:2,13
-mdl.interp.joins       :         joining subexpressions in joinexpr:2:2,5:2,11
+mdl.interp.joins       :         joining subexpressions in joinexpr:2:2,8:2,8
 mdl.interp.joins       :           joining expressions absnote:0:2,5:2,6 and absnote:1:2,10:2,11
 mdl.interp.joins       :             matched absnotes
 mdl.interp.mm          :               freeing musicexpr absnote:1:2,10:2,11

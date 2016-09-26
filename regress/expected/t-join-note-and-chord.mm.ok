@@ -1,11 +1,11 @@
 mdl.interp.mm          : created relnote:0:1,1:1,2
 mdl.interp.mm          : created relnote:1:1,6:1,6
 mdl.interp.mm          : created chord:2:1,6:1,9
-mdl.interp.mm          : created joinexpr:3:1,1:1,9
-mdl.interp.mm          : created sequence:4:1,1:1,9
+mdl.interp.mm          : created joinexpr:3:1,4:1,4
+mdl.interp.mm          : created sequence:4:1,4:1,4
 mdl.interp.midistream  : joining music expressions
-mdl.interp.joins       :   joining subexpressions in sequence:4:1,1:1,9
-mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,1:1,9
+mdl.interp.joins       :   joining subexpressions in sequence:4:1,4:1,4
+mdl.interp.joins       :     joining subexpressions in joinexpr:3:1,4:1,4
 mdl.interp.joins       :       joining expressions absnote:0:1,1:1,2 and chord:2:1,6:1,9
 mdl.interp.joins       :         converting chord to noteoffsetexpr
 mdl.interp.mm          :           created noteoffsetexpr:5:0,0:0,0
@@ -59,7 +59,7 @@ mdl.interp.mm          :             freeing musicexpr absnote:1:1,6:1,6
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:25:0,0:0,0
 mdl.interp.mm          :     created simultence:26:0,0:0,0
-mdl.interp.exprconv    :     inspecting sequence:4:1,1:1,9 for flatsimultence:25:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:4:1,4:1,4 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :       inspecting flatsimultence:7:0,0:0,0 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :         inspecting simultence:8:0,0:0,0 for flatsimultence:25:0,0:0,0
 mdl.interp.exprconv    :           inspecting offsetexpr:10:0,0:0,0 for flatsimultence:25:0,0:0,0
@@ -95,7 +95,7 @@ mdl.interp.mm          :     freeing musicexpr offsetexpr:32:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:31:1,6:1,6
 mdl.interp.mm          :     freeing musicexpr offsetexpr:34:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:33:1,6:1,6
-mdl.interp.mm          : freeing musicexpr sequence:4:1,1:1,9
+mdl.interp.mm          : freeing musicexpr sequence:4:1,4:1,4
 mdl.interp.mm          :   freeing musicexpr flatsimultence:7:0,0:0,0
 mdl.interp.mm          :     freeing musicexpr simultence:8:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr offsetexpr:10:0,0:0,0

@@ -1,9 +1,9 @@
 mdl.interp.midistream  : converting music expression to midi stream
 mdl.interp.relative    :   converting relative expressions to absolute
-mdl.interp.relative    :     rel->abs for expression sequence:19:1,1:1,33
-mdl.interp.relative    :       rel->abs for expression joinexpr:18:1,1:1,33
-mdl.interp.relative    :         rel->abs for expression joinexpr:13:1,1:1,24
-mdl.interp.relative    :           rel->abs for expression joinexpr:8:1,1:1,15
+mdl.interp.relative    :     rel->abs for expression sequence:19:1,26:1,26
+mdl.interp.relative    :       rel->abs for expression joinexpr:18:1,26:1,26
+mdl.interp.relative    :         rel->abs for expression joinexpr:13:1,17:1,17
+mdl.interp.relative    :           rel->abs for expression joinexpr:8:1,9:1,9
 mdl.interp.relative    :             rel->abs for expression relsimultence:3:1,1:1,7
 mdl.interp.relative    :               rel->abs for expression relnote:0:1,2:1,2
 mdl.interp.relative    :                 relnote:0:1,2:1,2 notesym=0 notemods=0 length=0.000 octavemods=0
