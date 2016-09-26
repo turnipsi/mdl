@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.32 2016/09/21 20:08:55 je Exp $
+# $Id: Makefile,v 1.33 2016/09/26 06:16:39 je Exp $
 
 LIBDIR?=	../lib
 SRCDIR?=	../src
@@ -28,7 +28,7 @@ afl-fuzz-inputs: ${AFLMDL} inputs
 	mv afl-fuzz-inputs.tmp afl-fuzz-inputs
 
 ${AFLMDL}:
-	${MAKE} -C ${SRCDIR}/mdl afl-mdl
+	${MAKE} -C ${SRCDIR}/mdl -DMDL_USE_AFL afl-mdl
 
 .PHONY: clean
 clean:
