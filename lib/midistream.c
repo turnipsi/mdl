@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.67 2016/09/07 19:05:04 je Exp $ */
+/* $Id: midistream.c,v 1.68 2016/09/26 18:20:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -367,7 +367,9 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 
 	if (miditracks[ch].notecount[ tme->midiev.u.midinote.note ] > 1) {
 		/* This note is already playing, go to next event. */
-		/* XXX Actually retriggering note would be better. */
+		/* XXX Actually retriggering note would be better...
+		 * XXX t-play-notes-already-playing.mdl is a testcase that
+		 * XXX needs fixing. */
 		return 0;
 	}
 
@@ -422,7 +424,7 @@ lookup_midichannel(struct trackmidievent *tme, struct miditrack *miditracks,
 	old_ch = ch = tme->track->midichannel;
 
 	/*
- 	 * If autoallocation is not on, just provide the preferred channel of
+	 * If autoallocation is not on, just provide the preferred channel of
 	 * the track.
 	 */
 	if (!tme->track->autoallocate_channel) {
