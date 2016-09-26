@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.125 2016/09/25 20:50:22 je Exp $ */
+/* $Id: musicexpr.c,v 1.126 2016/09/26 18:23:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1031,6 +1031,7 @@ _mdl_musicexpr_new(enum musicexpr_type me_type, struct textloc textloc,
 	}
 
 	me->me_type = me_type;
+	me->joining = 0;
 	me->id.id = musicexpr_id_counter++;
 	me->id.textloc = textloc;
 

@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.85 2016/08/27 18:23:07 je Exp $ */
+/* $Id: musicexpr.h,v 1.86 2016/09/26 18:23:30 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -251,6 +251,7 @@ struct musicexpr_id {
 struct musicexpr {
 	struct musicexpr_id	id;
 	enum musicexpr_type	me_type;
+	int			joining;
 	union {
 		struct absnote		absnote;
 		struct absdrum		absdrum;
