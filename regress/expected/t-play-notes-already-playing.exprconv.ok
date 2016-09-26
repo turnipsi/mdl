@@ -1,0 +1,74 @@
+mdl.interp.midistream  : converting expression to a (flat) simultence
+mdl.interp.mm          :   created flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :     inspecting sequence:16:1,1:4,2 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :       inspecting simultence:15:1,1:4,2 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :         inspecting sequence:5:2,3:2,25 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :           inspecting chord:1:2,5:2,11 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             inspecting noteoffsetexpr:19:0,0:0,0 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :               inspecting absnote:21:2,5:2,6 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 adding offsetexpr:23:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 offsetexpr:23:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                   absnote:22:2,5:2,6 notesym=0 note=60 length=2.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :                 offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :               inspecting absnote:24:2,5:2,6 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 adding offsetexpr:26:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 offsetexpr:26:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                   absnote:25:2,5:2,6 notesym=0 note=64 length=2.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :                 offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :               inspecting absnote:27:2,5:2,6 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 adding offsetexpr:29:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 offsetexpr:29:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                   absnote:28:2,5:2,6 notesym=0 note=67 length=2.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :                 offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :               inspecting absnote:30:2,5:2,6 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 adding offsetexpr:32:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :                 offsetexpr:32:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                   absnote:31:2,5:2,6 notesym=0 note=71 length=2.000 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :                 offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :               offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :         inspecting sequence:14:3,3:3,25 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :           inspecting absnote:6:3,5:3,5 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:34:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:34:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :               absnote:33:3,5:3,5 notesym=0 note=60 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 0.000000 to 0.250000
+mdl.interp.exprconv    :           inspecting absnote:7:3,7:3,7 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:36:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:36:0,0:0,0 offset=0.250
+mdl.interp.exprconv    :               absnote:35:3,7:3,7 notesym=1 note=62 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 0.250000 to 0.500000
+mdl.interp.exprconv    :           inspecting absnote:8:3,9:3,9 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:38:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:38:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :               absnote:37:3,9:3,9 notesym=2 note=64 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 0.500000 to 0.750000
+mdl.interp.exprconv    :           inspecting absnote:9:3,11:3,11 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:40:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:40:0,0:0,0 offset=0.750
+mdl.interp.exprconv    :               absnote:39:3,11:3,11 notesym=3 note=65 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 0.750000 to 1.000000
+mdl.interp.exprconv    :           inspecting absnote:10:3,17:3,17 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:42:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:42:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :               absnote:41:3,17:3,17 notesym=4 note=67 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 1.000000 to 1.250000
+mdl.interp.exprconv    :           inspecting absnote:11:3,19:3,19 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:44:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:44:0,0:0,0 offset=1.250
+mdl.interp.exprconv    :               absnote:43:3,19:3,19 notesym=5 note=69 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 1.250000 to 1.500000
+mdl.interp.exprconv    :           inspecting absnote:12:3,21:3,21 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:46:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:46:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :               absnote:45:3,21:3,21 notesym=6 note=71 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 1.500000 to 1.750000
+mdl.interp.exprconv    :           inspecting absnote:13:3,23:3,23 for flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             adding offsetexpr:48:0,0:0,0 to flatsimultence:17:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:48:0,0:0,0 offset=1.750
+mdl.interp.exprconv    :               absnote:47:3,23:3,23 notesym=0 note=72 length=0.250 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :             offset changed from 1.750000 to 2.000000
+mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :         offset changed from 0.000000 to 2.000000
+mdl.interp.exprconv    :       offset changed from 0.000000 to 2.000000
