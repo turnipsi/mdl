@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.152 2016/09/27 15:35:51 je Exp $ */
+/* $Id: sequencer.c,v 1.153 2016/09/27 16:15:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -60,16 +60,15 @@ struct midievent_item {
 };
 
 struct notestate {
+	struct midievent_item  *wanting_join_expr;
 	unsigned int		state    : 1;
 	unsigned int		velocity : 7;
-	struct midievent_item  *me_item;
-	float			wanting_join_at;
 };
 
 struct channel_state {
-	struct notestate notestates[MIDI_NOTE_COUNT];
-	u_int8_t instrument;
-	u_int8_t volume;
+	struct notestate	notestates[MIDI_NOTE_COUNT];
+	u_int8_t		instrument;
+	u_int8_t		volume;
 };
 
 enum playback_state { IDLE, READING, PLAYING, FREEING_EVENTSTREAM, };
@@ -515,8 +514,7 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 			notestate = &ss->channelstates[c].notestates[n];
 			notestate->state = 0;
 			notestate->velocity = 0;
-			notestate->me_item = NULL;
-			notestate->wanting_join_at = 0.0;
+			notestate->wanting_join_expr = NULL;
 		}
 	}
 
@@ -932,12 +930,53 @@ static int
 sequencer_play_midievent_queue(struct midievent_queue *meq,
     struct songstate *ss, const struct sequencer *seq)
 {
-	struct midievent_item *p, *q;
+	struct midievent_item *p, *q, *wanting_join_expr;
+	u_int8_t channel, note;
 	int ret;
 
 	ret = 0;
 
+	/*
+	 * XXX Should keep track of exact times when notes are off,
+	 * XXX and then compare those.  This heuristic works correctly only if
+	 * XXX sequencer awakes up fast enough so that notes that should not
+	 * XXX join are far enough, so get into different queues.
+	 */
+
 	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
+		if (p->midievent.evtype == MIDIEV_NOTEOFF
+		    && p->midievent.u.midinote.joining) {
+			channel = p->midievent.u.midinote.channel;
+			note = p->midievent.u.midinote.note;
+			ss->channelstates[channel].notestates[note]
+			    .wanting_join_expr = p;
+		}
+	}
+
+	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
+		if (p->midievent.evtype == MIDIEV_NOTEON) {
+			channel = p->midievent.u.midinote.channel;
+			note = p->midievent.u.midinote.note;
+			wanting_join_expr = ss->channelstates[channel]
+			    .notestates[note].wanting_join_expr;
+			if (wanting_join_expr) {
+				TAILQ_REMOVE(meq, p, tq);
+				free(p);
+				TAILQ_REMOVE(meq, wanting_join_expr, tq);
+				free(wanting_join_expr);
+				ss->channelstates[channel]
+				    .notestates[note]
+				    .wanting_join_expr = NULL;
+			}
+		}
+	}
+
+	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
+		channel = p->midievent.u.midinote.channel;
+		note = p->midievent.u.midinote.note;
+		ss->channelstates[channel].notestates[note]
+		    .wanting_join_expr = NULL;
+
 		if (ret == 0)
 			ret = sequencer_midievent(seq, ss, &p->midievent, 0);
 		TAILQ_REMOVE(meq, p, tq);
@@ -1293,11 +1332,6 @@ current_event_found:
 
 			assert(old_ns.state == new_ns.state);
 			assert(old_ns.velocity == new_ns.velocity);
-			/*
-			 * XXX note yet
-			 * assert(old_ns.wanting_join_at ==
-			 *   new_ns.wanting_join_at);
-			 */
 		}
 		assert(old_cs.instrument == new_cs.instrument);
 		assert(old_cs.volume == new_cs.volume);
