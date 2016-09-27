@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.151 2016/09/27 12:55:49 je Exp $ */
+/* $Id: sequencer.c,v 1.152 2016/09/27 15:35:51 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,16 +53,17 @@ struct eventpointer {
 	int			index;
 };
 
-SIMPLEQ_HEAD(midievent_queue, midievent_item);
+TAILQ_HEAD(midievent_queue, midievent_item);
 struct midievent_item {
 	struct midievent		midievent;
-	SIMPLEQ_ENTRY(midievent_item)	sq;
+	TAILQ_ENTRY(midievent_item)	tq;
 };
 
 struct notestate {
-	unsigned int	state    : 1;
-	unsigned int	velocity : 7;
-	float		wanting_join_at;
+	unsigned int		state    : 1;
+	unsigned int		velocity : 7;
+	struct midievent_item  *me_item;
+	float			wanting_join_at;
 };
 
 struct channel_state {
@@ -495,6 +496,8 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 		"playing",		/* PLAYING */
 		"freeing eventstream",	/* FREEING_EVENTSTREAM */
 	};
+	int c, n;
+	struct notestate *notestate;
 
 	assert(ps == IDLE || ps == READING);
 
@@ -504,12 +507,18 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 	    "initializing a new songstate %s to state \"%s\"\n",
 	   ss_label(seq, ss), strings[ps]);
 
-	/*
-	 * This memset() sets the default instrument for all channels to 0
-	 * ("acoustic grand"), all notes are off with velocity 0,
-	 * and "wanting_join_at" is at 0.0.
-	 */
-	memset(ss->channelstates, 0, sizeof(ss->channelstates));
+	/* Initialize channelstates. */
+	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
+		ss->channelstates[c].instrument = 0;
+		ss->channelstates[c].volume = 0;
+		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
+			notestate = &ss->channelstates[c].notestates[n];
+			notestate->state = 0;
+			notestate->velocity = 0;
+			notestate->me_item = NULL;
+			notestate->wanting_join_at = 0.0;
+		}
+	}
 
 	ss->current_event.block = NULL;
 	ss->current_event.index = 0;
@@ -817,7 +826,7 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 
 	ce = &ss->current_event;
 
-	SIMPLEQ_INIT(&meq);
+	TAILQ_INIT(&meq);
 
 	while (ce->block) {
 		while (ce->index < EVENTBLOCKCOUNT) {
@@ -914,7 +923,7 @@ sequencer_add_to_midievent_queue(struct midievent_queue *meq,
 
 	mi->midievent = midievent;
 
-	SIMPLEQ_INSERT_TAIL(meq, mi, sq);
+	TAILQ_INSERT_TAIL(meq, mi, tq);
 
 	return 0;
 }
@@ -923,16 +932,15 @@ static int
 sequencer_play_midievent_queue(struct midievent_queue *meq,
     struct songstate *ss, const struct sequencer *seq)
 {
-	struct midievent_item *p;
+	struct midievent_item *p, *q;
 	int ret;
 
 	ret = 0;
 
-	while (!SIMPLEQ_EMPTY(meq)) {
-		p = SIMPLEQ_FIRST(meq);
+	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
 		if (ret == 0)
 			ret = sequencer_midievent(seq, ss, &p->midievent, 0);
-		SIMPLEQ_REMOVE_HEAD(meq, sq);
+		TAILQ_REMOVE(meq, p, tq);
 		free(p);
 	}
 
@@ -1126,7 +1134,7 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct midievent_queue meq;
 	int instr_changed, retrigger_note, volume_changed, c, n, ret;
 
-	SIMPLEQ_INIT(&meq);
+	TAILQ_INIT(&meq);
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -1161,8 +1169,6 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				    1;
 				new_ss->channelstates[c].notestates[n]
 				    .velocity = midiev->u.midinote.velocity;
-				new_ss->channelstates[c].notestates[n]
-				    .wanting_join_at = 0.0;
 				break;
 			case MIDIEV_NOTEOFF:
 				c = midiev->u.midinote.channel;
@@ -1171,11 +1177,6 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				    0;
 				new_ss->channelstates[c].notestates[n]
 				    .velocity = 0;
-				if (midiev->u.midinote.joining) {
-					new_ss->channelstates[c].notestates[n]
-					    .wanting_join_at =
-					    new_ss->time_as_measures;
-				}
 				break;
 			case MIDIEV_SONG_END:
 				/* This has been handled above. */
