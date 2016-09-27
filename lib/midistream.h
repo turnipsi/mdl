@@ -1,4 +1,4 @@
-/* $Id: midistream.h,v 1.13 2016/08/26 20:50:56 je Exp $ */
+/* $Id: midistream.h,v 1.14 2016/09/27 07:59:07 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -33,6 +33,7 @@ enum midistreamevent_type {
 	MIDISTREV_NOTEOFF,
 	MIDISTREV_TEMPOCHANGE,
 	MIDISTREV_VOLUMECHANGE,
+	MIDISTREV_JOINEXPR,
 	MIDISTREV_NOTEON,
 	MIDISTREV_TYPECOUNT,	/* not a type */
 };

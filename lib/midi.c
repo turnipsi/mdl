@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.42 2016/09/27 04:07:57 je Exp $ */
+/* $Id: midi.c,v 1.43 2016/09/27 07:59:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -244,6 +244,8 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 		}
 
 		return 1;
+	case MIDIEV_JOINEXPR:
+		return 1;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
 		ret = midi_check_range(me->u.midinote.channel, 0,
@@ -419,6 +421,10 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 		    " instrument=%d\n", prefix, tme->time_as_measures,
 		    me->u.instr_change.channel,
 		    me->u.instr_change.code);
+		break;
+	case MIDIEV_JOINEXPR:
+		_mdl_log(logtype, level, "%s join expression time=%.3f\n",
+		    prefix, tme->time_as_measures);
 		break;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:

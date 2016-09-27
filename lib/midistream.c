@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.70 2016/09/27 06:14:49 je Exp $ */
+/* $Id: midistream.c,v 1.71 2016/09/27 07:59:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -50,6 +50,7 @@ static struct mdl_stream *offsetexpr_mdlstream_new(void);
 static struct mdl_stream *offsetexprstream_to_midievents(struct mdl_stream *,
     float, int);
 
+static int	add_joinexpr_to_midistream(struct mdl_stream *, float);
 static int	add_note_to_midistream(struct mdl_stream *,
     const struct musicexpr *, float, int);
 static int	add_tempochange_to_midistream(struct mdl_stream *,
@@ -59,6 +60,7 @@ static int	add_volumechange_to_midistream(struct mdl_stream *,
 
 static int	add_instrument_change_to_midievents(struct mdl_stream *,
     struct instrument *, int, float);
+static int	add_joinexpr_to_midievents(struct mdl_stream *, float);
 static int	add_noteoff_to_midievents(struct mdl_stream *,
     struct trackmidievent *, struct miditrack *, float, int);
 static int	add_noteon_to_midievents(struct mdl_stream *,
@@ -281,6 +283,19 @@ error:
 }
 
 static int
+add_joinexpr_to_midievents(struct mdl_stream *midi_es, float time_as_measures)
+{
+	struct timed_midievent *tmidiev;
+
+	tmidiev = &midi_es->u.timed_midievents[ midi_es->count ];
+	memset(tmidiev, 0, sizeof(struct timed_midievent));
+	tmidiev->time_as_measures = time_as_measures;
+	tmidiev->midiev.evtype = MIDIEV_JOINEXPR;
+
+	return _mdl_stream_increment(midi_es);
+}
+
+static int
 add_noteoff_to_midievents(struct mdl_stream *midi_es,
     struct trackmidievent *tme, struct miditrack *miditracks,
     float time_as_measures, int level)
@@ -357,7 +372,7 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 	miditracks[ch].total_notecount += 1;
 
 	if (miditracks[ch].notecount[ tme->midiev.u.midinote.note ] > 1) {
-		/* This note is already playing, go to next event. */
+		/* This note is xlready playing, go to next event. */
 		/* XXX Actually retriggering note would be better...
 		 * XXX t-play-notes-already-playing.mdl is a testcase that
 		 * XXX needs fixing. */
@@ -556,6 +571,10 @@ handle_midistreamevent(struct midistreamevent *mse, struct mdl_stream *midi_es,
 	assert(midi_es->s_type == MIDIEVENTS);
 
 	switch (mse->evtype) {
+	case MIDISTREV_JOINEXPR:
+		ret = add_joinexpr_to_midievents(midi_es,
+		    mse->time_as_measures);
+		break;
 	case MIDISTREV_NOTEOFF:
 		ret = add_noteoff_to_midievents(midi_es, &mse->u.tme,
 		    miditracks, mse->time_as_measures, level);
@@ -603,8 +622,12 @@ add_musicexpr_to_midistream(struct mdl_stream *midistream_es,
 
 	assert(me->me_type == ME_TYPE_ABSDRUM ||
 	    me->me_type == ME_TYPE_ABSNOTE ||
+	    me->me_type == ME_TYPE_JOINEXPR ||
 	    me->me_type == ME_TYPE_TEMPOCHANGE ||
 	    me->me_type == ME_TYPE_VOLUMECHANGE);
+
+	if (me->me_type == ME_TYPE_JOINEXPR)
+		return add_joinexpr_to_midistream(midistream_es, timeoffset);
 
 	if (me->me_type == ME_TYPE_TEMPOCHANGE)
 		return add_tempochange_to_midistream(midistream_es,
@@ -615,6 +638,25 @@ add_musicexpr_to_midistream(struct mdl_stream *midistream_es,
 		    &me->u.volumechange, timeoffset);
 
 	return add_note_to_midistream(midistream_es, me, timeoffset, level);
+}
+
+static int
+add_joinexpr_to_midistream(struct mdl_stream *midistream_es, float timeoffset)
+{
+	struct midistreamevent *mse;
+
+	/*
+	 * XXX This may seem pointless, but makes more sense once note
+	 * XXX expression identities and textual locations are passed to
+	 * XXX sequencer as well.
+	 */
+
+	mse = &midistream_es->u.midistreamevents[ midistream_es->count ];
+	memset(mse, 0, sizeof(struct midistreamevent));
+	mse->evtype = MIDISTREV_JOINEXPR;
+	mse->time_as_measures = timeoffset;
+
+	return _mdl_stream_increment(midistream_es);
 }
 
 static int
@@ -773,6 +815,12 @@ compare_midistreamevents(const void *va, const void *vb)
 
 	assert(a->evtype == b->evtype);
 	switch (a->evtype) {
+	case MIDISTREV_JOINEXPR:
+		/*
+		 * XXX Just order these randomly.  With textual locations
+		 * XXX one might be able to do a more rational choice.
+		 */
+		return 1;
 	case MIDISTREV_NOTEOFF:
 	case MIDISTREV_NOTEON:
 	case MIDISTREV_VOLUMECHANGE:
@@ -825,6 +873,12 @@ compare_midievents(const struct midievent *a, const struct midievent *b)
 		    (ic_a->channel > ic_b->channel) ?  1 :
 		    (ic_a->code    < ic_b->code)    ? -1 :
 		    (ic_a->code    > ic_b->code)    ?  1 : 0;
+	case MIDIEV_JOINEXPR:
+		/*
+		 * XXX Just order these randomly.  With textual locations
+		 * XXX one might be able to do a more rational choice.
+		 */
+		return 1;
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
 		return

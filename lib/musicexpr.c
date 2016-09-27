@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.129 2016/09/27 06:14:49 je Exp $ */
+/* $Id: musicexpr.c,v 1.130 2016/09/27 07:59:07 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -264,7 +264,6 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	int noteoffset, ret;
 	char *me_id1, *me_id2;
 
-	assert(me->me_type != ME_TYPE_JOINEXPR);
 	assert(me->me_type != ME_TYPE_RELNOTE);
 
 	new_next_offset = old_offset = *next_offset;
@@ -283,6 +282,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	switch (me->me_type) {
 	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
+	case ME_TYPE_JOINEXPR:
 	case ME_TYPE_TEMPOCHANGE:
 	case ME_TYPE_VOLUMECHANGE:
 		ret = add_as_offsetexpr_to_flat_simultence(flatme, me,
@@ -313,7 +313,6 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		    (old_offset + me->u.flatsimultence.length));
 		break;
 	case ME_TYPE_FUNCTION:
-	case ME_TYPE_JOINEXPR:	/* XXX Is this correct? */
 	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_RELSIMULTENCE:
@@ -436,7 +435,8 @@ add_as_offsetexpr_to_flat_simultence(struct musicexpr *flatme,
 		*next_offset += cloned->u.absnote.length;
 	} else if (me->me_type == ME_TYPE_ABSDRUM) {
 		*next_offset += cloned->u.absdrum.length;
-	} else if (me->me_type == ME_TYPE_TEMPOCHANGE ||
+	} else if (me->me_type == ME_TYPE_JOINEXPR ||
+	    me->me_type == ME_TYPE_TEMPOCHANGE ||
 	    me->me_type == ME_TYPE_VOLUMECHANGE) {
 		/* No change to *next_offset. */
 	} else {

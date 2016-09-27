@@ -846,6 +846,13 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 				if (ret != 0)
 					return ret;
 				break;
+			case MIDIEV_JOINEXPR:
+				/*
+				 * XXX Not doing anything currently.
+				 * XXX (Only interesting with textual location
+				 * XXX -aware sequencer).
+				 */
+				break;
 			case MIDIEV_SONG_END:
 				/* This has been handled above. */
 				assert(0);
