@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.86 2016/09/26 18:23:30 je Exp $ */
+/* $Id: musicexpr.h,v 1.87 2016/09/27 06:14:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -299,6 +299,8 @@ struct musicexpr       *_mdl_musicexpr_scaledexpr_unscale(struct scaledexpr *,
 struct musicexpr       *_mdl_musicexpr_sequence(int, struct musicexpr *, ...);
 struct musicexpr       *_mdl_musicexpr_to_flat_simultence(struct musicexpr *,
     int);
+
+void	_mdl_musicexpr_tag_expressions_for_joining(struct musicexpr *, int);
 __END_DECLS
 
 #endif /* !MDL_MUSICEXPR_H */

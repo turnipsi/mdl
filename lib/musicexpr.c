@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.128 2016/09/27 04:07:57 je Exp $ */
+/* $Id: musicexpr.c,v 1.129 2016/09/27 06:14:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,7 +27,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "joinexpr.h"
 #include "musicexpr.h"
 #include "util.h"
 
@@ -54,6 +53,8 @@ static int	add_as_offsetexpr_to_flat_simultence(struct musicexpr *,
 static int	add_musicexpr_to_flat_simultence(struct musicexpr *,
     struct musicexpr *, float *, int);
 static float	musicexpr_calc_length(struct musicexpr *);
+
+static void	tag_as_joining(struct musicexpr *, int);
 
 struct musicexpr *
 _mdl_musicexpr_clone(struct musicexpr *me, int level)
@@ -1154,4 +1155,67 @@ _mdl_musicexpr_replace(struct musicexpr *dst, struct musicexpr *src,
 	dst->joining = src->joining;
 	dst->me_type = src->me_type;
 	dst->u       = src->u;
+}
+
+void
+_mdl_musicexpr_tag_expressions_for_joining(struct musicexpr *me, int level)
+{
+	struct musicexpr *p;
+	struct musicexpr_iter iter;
+
+	level += 1;
+
+	if (me->me_type == ME_TYPE_JOINEXPR)
+		tag_as_joining(me->u.joinexpr.a, level);
+
+	/* Traverse the subexpressions. */
+	iter = _mdl_musicexpr_iter_new(me);
+	while ((p = _mdl_musicexpr_iter_next(&iter)) != NULL)
+		_mdl_musicexpr_tag_expressions_for_joining(p, level);
+}
+
+static void
+tag_as_joining(struct musicexpr *me, int level)
+{
+	struct musicexpr *p;
+
+	level += 1;
+
+	_mdl_log(MDLLOG_JOINS, level, "tagging as a joining expression:\n");
+	_mdl_musicexpr_log(me, MDLLOG_JOINS, level, NULL);
+
+	me->joining = 1;
+
+	/* Should not happen here. */
+	assert(me->me_type != ME_TYPE_FLATSIMULTENCE);
+	assert(me->me_type != ME_TYPE_FUNCTION);
+	assert(me->me_type != ME_TYPE_OFFSETEXPR);
+
+	switch (me->me_type) {
+	case ME_TYPE_CHORD:
+		assert(me->u.chord.me->me_type == ME_TYPE_ABSNOTE);
+		tag_as_joining(me->u.chord.me, level);
+		break;
+	case ME_TYPE_NOTEOFFSETEXPR:
+		tag_as_joining(me->u.noteoffsetexpr.me, level);
+		break;
+	case ME_TYPE_ONTRACK:
+		tag_as_joining(me->u.ontrack.me, level);
+		break;
+	case ME_TYPE_RELSIMULTENCE:
+	case ME_TYPE_SCALEDEXPR:
+		tag_as_joining(me->u.scaledexpr.me, level);
+		break;
+	case ME_TYPE_SEQUENCE:
+		p = TAILQ_LAST(&me->u.melist, melist);
+		if (p != NULL)
+			tag_as_joining(p, level);
+		break;
+	case ME_TYPE_SIMULTENCE:
+		TAILQ_FOREACH(p, &me->u.melist, tq)
+			tag_as_joining(p, level);
+		break;
+	default:
+		;
+	}
 }

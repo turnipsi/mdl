@@ -1,6 +1,6 @@
-# $Id: Makefile,v 1.65 2016/09/14 20:09:47 je Exp $
+# $Id: Makefile,v 1.66 2016/09/27 06:14:48 je Exp $
 
-SRCS=	functions.c interpreter.c instrument.c ipc.c joinexpr.c lex.c midi.c \
+SRCS=	functions.c interpreter.c instrument.c ipc.c lex.c midi.c \
 	midistream.c musicexpr.c parse.c relative.c sequencer.c song.c \
 	textloc.c track.c util.c
 

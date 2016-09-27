@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.69 2016/09/27 04:07:57 je Exp $ */
+/* $Id: midistream.c,v 1.70 2016/09/27 06:14:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -27,7 +27,6 @@
 #include <unistd.h>
 
 #include "functions.h"
-#include "joinexpr.h"
 #include "midi.h"
 #include "midistream.h"
 #include "relative.h"
@@ -117,17 +116,9 @@ _mdl_musicexpr_to_midievents(struct musicexpr *me, int level)
 		return NULL;
 	}
 
-	/*
-	 * First convert relative->absolute,
-	 * _mdl_joinexpr_musicexpr() can not handle relative expressions.
-	 */
 	_mdl_musicexpr_relative_to_absolute(song, me, level+1);
 
-	_mdl_log(MDLLOG_MIDISTREAM, level, "joining music expressions\n");
-	if (_mdl_joinexpr_musicexpr(me, level+1) != 0) {
-		warnx("error occurred in joining music expressions");
-		goto finish;
-	}
+	_mdl_musicexpr_tag_expressions_for_joining(me, level);
 
 	_mdl_log(MDLLOG_MIDISTREAM, level,
 	    "converting expression to a (flat) simultence\n");
