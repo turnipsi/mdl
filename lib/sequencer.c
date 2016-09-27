@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.149 2016/09/27 10:57:12 je Exp $ */
+/* $Id: sequencer.c,v 1.150 2016/09/27 11:04:32 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -923,14 +923,16 @@ static int
 sequencer_play_midievent_queue(struct midievent_queue *meq,
     struct songstate *ss, const struct sequencer *seq)
 {
-	struct midievent_item *p, *q;
+	struct midievent_item *p;
 	int ret;
 
 	ret = 0;
 
-	SIMPLEQ_FOREACH_SAFE(p, meq, sq, q) {
+	while (!SIMPLEQ_EMPTY(meq)) {
+		p = SIMPLEQ_FIRST(meq);
 		if (ret == 0)
 			ret = sequencer_midievent(seq, ss, &p->midievent, 0);
+		SIMPLEQ_REMOVE_HEAD(meq, sq);
 		free(p);
 	}
 
