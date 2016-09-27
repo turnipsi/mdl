@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.150 2016/09/27 11:04:32 je Exp $ */
+/* $Id: sequencer.c,v 1.151 2016/09/27 12:55:49 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -1115,7 +1115,8 @@ static int
 sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
     struct songstate *old_ss)
 {
-	struct notestate old, new;
+	struct channel_state old_cs, new_cs;
+	struct notestate old_ns, new_ns;
 	struct eventpointer ce;
 	struct timed_midievent *tmidiev;
 	struct midievent change_instrument, change_volume, note_off, note_on;
@@ -1197,16 +1198,17 @@ current_event_found:
 	 *   (start or turn off notes according to new playback song).
 	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
-		instr_changed = (old_ss->channelstates[c].instrument !=
-		    new_ss->channelstates[c].instrument);
-		volume_changed = (old_ss->channelstates[c].volume !=
-		    new_ss->channelstates[c].volume);
+		old_cs = old_ss->channelstates[c];
+		new_cs = new_ss->channelstates[c];
+
+		instr_changed = (old_cs.instrument != new_cs.instrument);
+		volume_changed = (old_cs.volume != new_cs.volume);
 
 		if (instr_changed) {
 			change_instrument.evtype = MIDIEV_INSTRUMENT_CHANGE;
 			change_instrument.u.instr_change.channel = c;
 			change_instrument.u.instr_change.code =
-			    new_ss->channelstates[c].instrument;
+			    new_cs.instrument;
 			ret = sequencer_add_to_midievent_queue(&meq,
 			    change_instrument);
 			if (ret != 0)
@@ -1216,8 +1218,7 @@ current_event_found:
 		if (volume_changed) {
 			change_volume.evtype = MIDIEV_VOLUMECHANGE;
 			change_volume.u.volumechange.channel = c;
-			change_volume.u.volumechange.volume =
-			    new_ss->channelstates[c].volume;
+			change_volume.u.volumechange.volume = new_cs.volume;
 			ret = sequencer_add_to_midievent_queue(&meq,
 			    change_volume);
 			if (ret != 0)
@@ -1225,8 +1226,8 @@ current_event_found:
 		}
 
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
-			old = old_ss->channelstates[c].notestates[n];
-			new = new_ss->channelstates[c].notestates[n];
+			old_ns = old_cs.notestates[n];
+			new_ns = new_cs.notestates[n];
 
 			note_off.evtype = MIDIEV_NOTEOFF;
 			note_off.u.midinote.channel = c;
@@ -1236,7 +1237,7 @@ current_event_found:
 			note_on.evtype = MIDIEV_NOTEON;
 			note_on.u.midinote.channel = c;
 			note_on.u.midinote.note = n;
-			note_on.u.midinote.velocity = new.velocity;
+			note_on.u.midinote.velocity = new_ns.velocity;
 
 			/*
 			 * Retrigger note if:
@@ -1246,8 +1247,9 @@ current_event_found:
 			 *     OR
 			 *   2b. velocity has changed
 			 */
-			retrigger_note = old.state && new.state &&
-			    ((old.velocity != new.velocity) || instr_changed);
+			retrigger_note = old_ns.state && new_ns.state &&
+			    ((old_ns.velocity != new_ns.velocity) ||
+			    instr_changed);
 
 			if (retrigger_note) {
 				ret = sequencer_add_to_midievent_queue(&meq,
@@ -1258,13 +1260,13 @@ current_event_found:
 				    note_on);
 				if (ret != 0)
 					return ret;
-			} else if (old.state && !new.state) {
+			} else if (old_ns.state && !new_ns.state) {
 				/* Note is playing, but should no longer be. */
 				ret = sequencer_add_to_midievent_queue(&meq,
 				    note_off);
 				if (ret != 0)
 					return ret;
-			} else if (!old.state && new.state) {
+			} else if (!old_ns.state && new_ns.state) {
 				/* Note is not playing, but should be. */
 				ret = sequencer_add_to_midievent_queue(&meq,
 				    note_on);
@@ -1282,17 +1284,22 @@ current_event_found:
 	 * these assertions true:
 	 */
 	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
+		old_cs = old_ss->channelstates[c];
+		new_cs = new_ss->channelstates[c];
 		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
-			assert(old_ss->channelstates[c].notestates[n].state ==
-			    new_ss->channelstates[c].notestates[n].state &&
-			    old_ss->channelstates[c].notestates[n].velocity ==
-			    new_ss->channelstates[c].notestates[n].velocity
-			);
+			old_ns = old_cs.notestates[n];
+			new_ns = new_cs.notestates[n];
+
+			assert(old_ns.state == new_ns.state);
+			assert(old_ns.velocity == new_ns.velocity);
+			/*
+			 * XXX note yet
+			 * assert(old_ns.wanting_join_at ==
+			 *   new_ns.wanting_join_at);
+			 */
 		}
-		assert(old_ss->channelstates[c].instrument ==
-		       new_ss->channelstates[c].instrument);
-		assert(old_ss->channelstates[c].volume ==
-		       new_ss->channelstates[c].volume);
+		assert(old_cs.instrument == new_cs.instrument);
+		assert(old_cs.volume == new_cs.volume);
 	}
 
 	/*
