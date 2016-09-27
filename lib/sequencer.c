@@ -53,9 +53,16 @@ struct eventpointer {
 	int			index;
 };
 
+SIMPLEQ_HEAD(midievent_queue, midievent_item);
+struct midievent_item {
+	struct midievent		midievent;
+	SIMPLEQ_ENTRY(midievent_item)	sq;
+};
+
 struct notestate {
-	unsigned int state    : 1;
-	unsigned int velocity : 7;
+	unsigned int	state    : 1;
+	unsigned int	velocity : 7;
+	float		wanting_join_at;
 };
 
 struct channel_state {
@@ -97,6 +104,8 @@ volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 static int	sequencer_loop(struct sequencer *);
 static int	sequencer_accept_client_socket(struct sequencer *, int);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
+static int	sequencer_add_to_midievent_queue(struct midievent_queue *,
+     struct midievent);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     const struct timespec *, struct timespec *);
 static int	sequencer_clock_gettime(struct timespec *);
@@ -111,8 +120,10 @@ static int	sequencer_init(struct sequencer *, int, int, enum mididev_type,
     const char *);
 static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
-static int	sequencer_noteevent(const struct sequencer *,
+static int	sequencer_midievent(const struct sequencer *,
     struct songstate *, struct midievent *, int);
+static int	sequencer_play_midievent_queue(struct midievent_queue *,
+    struct songstate *, const struct sequencer *);
 static int	sequencer_play_music(struct sequencer *,
     struct songstate *);
 static ssize_t	sequencer_read_to_eventstream(struct songstate *, int);
@@ -495,7 +506,8 @@ sequencer_init_songstate(const struct sequencer *seq, struct songstate *ss,
 
 	/*
 	 * This memset() sets the default instrument for all channels to 0
-	 * ("acoustic grand"), and all notes are off with velocity 0.
+	 * ("acoustic grand"), all notes are off with velocity 0,
+	 * and "wanting_join_at" is at 0.0.
 	 */
 	memset(ss->channelstates, 0, sizeof(ss->channelstates));
 
@@ -798,9 +810,14 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	struct timed_midievent *tmidiev;
 	struct midievent *midiev;
 	struct timespec eventtime, time_to_play;
-	int ret;
+	struct midievent_queue meq;
+	int ret, retvalue;
+
+	retvalue = 0;
 
 	ce = &ss->current_event;
+
+	SIMPLEQ_INIT(&meq);
 
 	while (ce->block) {
 		while (ce->index < EVENTBLOCKCOUNT) {
@@ -817,11 +834,12 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 					if (ret == -1) {
 						warnx("error sending"
 						    " SEQEVENT_SONG_END");
-						return 1;
+						retvalue = 1;
+						goto finish;
 					}
 				}
 
-				return 0;
+				goto finish;
 			}
 
 			sequencer_time_for_next_event(ss, &eventtime);
@@ -835,16 +853,19 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			if (time_to_play.tv_sec > 0 ||
 			    (time_to_play.tv_sec == 0 &&
 			    time_to_play.tv_nsec > 0))
-				return 0;
+				goto finish;
 
 			switch (midiev->evtype) {
 			case MIDIEV_INSTRUMENT_CHANGE:
 			case MIDIEV_NOTEOFF:
 			case MIDIEV_NOTEON:
 			case MIDIEV_VOLUMECHANGE:
-				ret = sequencer_noteevent(seq, ss, midiev, 0);
-				if (ret != 0)
-					return ret;
+				ret = sequencer_add_to_midievent_queue(&meq,
+				    *midiev);
+				if (ret != 0) {
+					retvalue = 1;
+					goto finish;
+				}
 				break;
 			case MIDIEV_MARKER:
 				/*
@@ -876,11 +897,48 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 		ce->index = 0;
 	}
 
+finish:
+	return sequencer_play_midievent_queue(&meq, ss, seq);
+}
+
+static int
+sequencer_add_to_midievent_queue(struct midievent_queue *meq,
+     struct midievent midievent)
+{
+	struct midievent_item *mi;
+
+	if ((mi = malloc(sizeof(struct midievent_item))) == NULL) {
+		warn("malloc failure in sequencer_add_to_midievent_queue");
+		return 1;
+	}
+
+	mi->midievent = midievent;
+
+	SIMPLEQ_INSERT_TAIL(meq, mi, sq);
+
 	return 0;
 }
 
 static int
-sequencer_noteevent(const struct sequencer *seq, struct songstate *ss,
+sequencer_play_midievent_queue(struct midievent_queue *meq,
+    struct songstate *ss, const struct sequencer *seq)
+{
+	struct midievent_item *p, *q;
+	int ret;
+
+	ret = 0;
+
+	SIMPLEQ_FOREACH_SAFE(p, meq, sq, q) {
+		if (ret == 0)
+			ret = sequencer_midievent(seq, ss, &p->midievent, 0);
+		free(p);
+	}
+
+	return ret;
+}
+
+static int
+sequencer_midievent(const struct sequencer *seq, struct songstate *ss,
     struct midievent *me, int level)
 {
 	int ret;
@@ -1062,7 +1120,10 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct midievent *midiev;
 	struct timespec latest_tempo_change_as_time,
 	    time_since_latest_tempo_change;
+	struct midievent_queue meq;
 	int instr_changed, retrigger_note, volume_changed, c, n, ret;
+
+	SIMPLEQ_INIT(&meq);
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -1097,6 +1158,8 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				    1;
 				new_ss->channelstates[c].notestates[n]
 				    .velocity = midiev->u.midinote.velocity;
+				new_ss->channelstates[c].notestates[n]
+				    .wanting_join_at = 0.0;
 				break;
 			case MIDIEV_NOTEOFF:
 				c = midiev->u.midinote.channel;
@@ -1105,6 +1168,11 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 				    0;
 				new_ss->channelstates[c].notestates[n]
 				    .velocity = 0;
+				if (midiev->u.midinote.joining) {
+					new_ss->channelstates[c].notestates[n]
+					    .wanting_join_at =
+					    new_ss->time_as_measures;
+				}
 				break;
 			case MIDIEV_SONG_END:
 				/* This has been handled above. */
@@ -1137,8 +1205,8 @@ current_event_found:
 			change_instrument.u.instr_change.channel = c;
 			change_instrument.u.instr_change.code =
 			    new_ss->channelstates[c].instrument;
-			ret = sequencer_noteevent(seq, old_ss,
-			    &change_instrument, 0);
+			ret = sequencer_add_to_midievent_queue(&meq,
+			    change_instrument);
 			if (ret != 0)
 				return ret;
 		}
@@ -1148,8 +1216,8 @@ current_event_found:
 			change_volume.u.volumechange.channel = c;
 			change_volume.u.volumechange.volume =
 			    new_ss->channelstates[c].volume;
-			ret = sequencer_noteevent(seq, old_ss, &change_volume,
-			    0);
+			ret = sequencer_add_to_midievent_queue(&meq,
+			    change_volume);
 			if (ret != 0)
 				return ret;
 		}
@@ -1180,39 +1248,45 @@ current_event_found:
 			    ((old.velocity != new.velocity) || instr_changed);
 
 			if (retrigger_note) {
-				ret = sequencer_noteevent(seq, old_ss,
-				    &note_off, 0);
+				ret = sequencer_add_to_midievent_queue(&meq,
+				    note_off);
 				if (ret != 0)
 					return ret;
-				ret = sequencer_noteevent(seq, old_ss,
-				    &note_on, 0);
+				ret = sequencer_add_to_midievent_queue(&meq,
+				    note_on);
 				if (ret != 0)
 					return ret;
 			} else if (old.state && !new.state) {
 				/* Note is playing, but should no longer be. */
-				ret = sequencer_noteevent(seq, old_ss,
-				    &note_off, 0);
+				ret = sequencer_add_to_midievent_queue(&meq,
+				    note_off);
 				if (ret != 0)
 					return ret;
 			} else if (!old.state && new.state) {
 				/* Note is not playing, but should be. */
-				ret = sequencer_noteevent(seq, old_ss,
-				    &note_on, 0);
+				ret = sequencer_add_to_midievent_queue(&meq,
+				    note_on);
 				if (ret != 0)
 					return ret;
 			}
+		}
+	}
 
-			/*
-			 * sequencer_noteevent() should also have
-			 * a side effect to make these true:
-			 */
+	if ((ret = sequencer_play_midievent_queue(&meq, old_ss, seq)) != 0)
+		return ret;
+
+	/*
+	 * play_midievent_queue() should also have a side effect to make
+	 * these assertions true:
+	 */
+	for (c = 0; c < MIDI_CHANNEL_COUNT; c++) {
+		for (n = 0; n < MIDI_NOTE_COUNT; n++) {
 			assert(old_ss->channelstates[c].notestates[n].state ==
 			    new_ss->channelstates[c].notestates[n].state &&
 			    old_ss->channelstates[c].notestates[n].velocity ==
 			    new_ss->channelstates[c].notestates[n].velocity
 			);
 		}
-
 		assert(old_ss->channelstates[c].instrument ==
 		       new_ss->channelstates[c].instrument);
 		assert(old_ss->channelstates[c].volume ==
@@ -1393,7 +1467,7 @@ sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 				note_off.u.midinote.channel = c;
 				note_off.u.midinote.note = n;
 				note_off.u.midinote.velocity = 0;
-				ret = sequencer_noteevent(seq, ss, &note_off,
+				ret = sequencer_midievent(seq, ss, &note_off,
 				    2);
 				if (ret != 0)
 					warnx("error in turning off note"
