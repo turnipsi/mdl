@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.130 2016/09/27 07:59:07 je Exp $ */
+/* $Id: musicexpr.c,v 1.131 2016/09/27 09:22:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -258,7 +258,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
     struct musicexpr *me, float *next_offset, int level)
 {
 	struct musicexpr *noteoffsetexpr, *p;
-	struct musicexpr *scaled_me, *subexpr;
+	struct musicexpr *marker, *scaled_me, *subexpr;
 	float new_next_offset, old_offset;
 	size_t i;
 	int noteoffset, ret;
@@ -282,13 +282,30 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 	switch (me->me_type) {
 	case ME_TYPE_ABSDRUM:
 	case ME_TYPE_ABSNOTE:
-	case ME_TYPE_JOINEXPR:
+	case ME_TYPE_MARKER:
 	case ME_TYPE_TEMPOCHANGE:
 	case ME_TYPE_VOLUMECHANGE:
 		ret = add_as_offsetexpr_to_flat_simultence(flatme, me,
 		    next_offset, level);
 		if (ret != 0)
 			return ret;
+		break;
+	case ME_TYPE_JOINEXPR:
+		ret = add_as_offsetexpr_to_flat_simultence(flatme,
+		    me->u.joinexpr.a, next_offset, level);
+		if (ret != 0)
+			return ret;
+		marker = _mdl_musicexpr_new(ME_TYPE_MARKER, me->id.textloc,
+		    level+1);
+		if (ret != 0)
+			return ret;
+		marker->u.marker.marker_type = ME_MARKER_JOINEXPR;
+		ret = add_as_offsetexpr_to_flat_simultence(flatme,
+		    me->u.joinexpr.b, next_offset, level);
+		if (ret != 0) {
+			_mdl_musicexpr_free(marker, level);
+			return ret;
+		}
 		break;
 	case ME_TYPE_CHORD:
 		noteoffsetexpr = _mdl_chord_to_noteoffsetexpr(me->u.chord,
@@ -435,7 +452,7 @@ add_as_offsetexpr_to_flat_simultence(struct musicexpr *flatme,
 		*next_offset += cloned->u.absnote.length;
 	} else if (me->me_type == ME_TYPE_ABSDRUM) {
 		*next_offset += cloned->u.absdrum.length;
-	} else if (me->me_type == ME_TYPE_JOINEXPR ||
+	} else if (me->me_type == ME_TYPE_MARKER ||
 	    me->me_type == ME_TYPE_TEMPOCHANGE ||
 	    me->me_type == ME_TYPE_VOLUMECHANGE) {
 		/* No change to *next_offset. */
@@ -697,9 +714,15 @@ _mdl_musicexpr_log(const struct musicexpr *me, enum logtype logtype, int level,
 		    me->u.function.name);
 		break;
 	case ME_TYPE_JOINEXPR:
-		_mdl_log(logtype, level, "%s%s\n", prefix, me_id);
+		_mdl_log(logtype, level, "%s%s joining=%d\n", prefix, me_id,
+		    me->joining);
 		_mdl_musicexpr_log(me->u.joinexpr.a, logtype, level+1, prefix);
 		_mdl_musicexpr_log(me->u.joinexpr.b, logtype, level+1, prefix);
+		break;
+	case ME_TYPE_MARKER:
+		assert(me->u.marker.marker_type == ME_MARKER_JOINEXPR);
+		_mdl_log(logtype, level, "%s%s marker/joinexpr\n", prefix,
+		    me_id);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
 		_mdl_log(logtype, level, "%s%s joining=%d\n", prefix, me_id,
@@ -989,6 +1012,7 @@ _mdl_musicexpr_id_string(const struct musicexpr *me)
 		"flatsimultence",	/* ME_TYPE_FLATSIMULTENCE */
 		"function",		/* ME_TYPE_FUNCTION */
 		"joinexpr",		/* ME_TYPE_JOINEXPR */
+		"marker",		/* ME_TYPE_MARKER */
 		"noteoffsetexpr",	/* ME_TYPE_NOTEOFFSETEXPR */
 		"offsetexpr",		/* ME_TYPE_OFFSETEXPR */
 		"ontrack",		/* ME_TYPE_ONTRACK */
@@ -1063,6 +1087,7 @@ _mdl_musicexpr_iter_new(struct musicexpr *me)
 	case ME_TYPE_ABSNOTE:
 	case ME_TYPE_EMPTY:
 	case ME_TYPE_FUNCTION:
+	case ME_TYPE_MARKER:
 	case ME_TYPE_RELDRUM:
 	case ME_TYPE_RELNOTE:
 	case ME_TYPE_REST:
@@ -1179,22 +1204,22 @@ tag_as_joining(struct musicexpr *me, int level)
 {
 	struct musicexpr *p;
 
-	level += 1;
-
-	_mdl_log(MDLLOG_JOINS, level, "tagging as a joining expression:\n");
-	_mdl_musicexpr_log(me, MDLLOG_JOINS, level, NULL);
-
-	me->joining = 1;
-
 	/* Should not happen here. */
 	assert(me->me_type != ME_TYPE_FLATSIMULTENCE);
 	assert(me->me_type != ME_TYPE_FUNCTION);
 	assert(me->me_type != ME_TYPE_OFFSETEXPR);
 
+	me->joining = 1;
+
+	level += 1;
+
 	switch (me->me_type) {
 	case ME_TYPE_CHORD:
 		assert(me->u.chord.me->me_type == ME_TYPE_ABSNOTE);
 		tag_as_joining(me->u.chord.me, level);
+		break;
+	case ME_TYPE_JOINEXPR:
+		tag_as_joining(me->u.joinexpr.b, level);
 		break;
 	case ME_TYPE_NOTEOFFSETEXPR:
 		tag_as_joining(me->u.noteoffsetexpr.me, level);

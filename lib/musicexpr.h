@@ -1,4 +1,4 @@
-/* $Id: musicexpr.h,v 1.87 2016/09/27 06:14:49 je Exp $ */
+/* $Id: musicexpr.h,v 1.88 2016/09/27 09:22:18 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,6 +37,7 @@ enum musicexpr_type {
 	ME_TYPE_FLATSIMULTENCE,
 	ME_TYPE_FUNCTION,
 	ME_TYPE_JOINEXPR,
+	ME_TYPE_MARKER,
 	ME_TYPE_NOTEOFFSETEXPR,
 	ME_TYPE_OFFSETEXPR,
 	ME_TYPE_ONTRACK,
@@ -164,6 +165,10 @@ enum chordtype {
 	CHORDTYPE_MAX,	/* not a chord */
 };
 
+enum marker_type {
+	ME_MARKER_JOINEXPR,
+};
+
 struct absdrum {
 	struct instrument      *instrument;
 	struct track	       *track;
@@ -217,6 +222,10 @@ struct joinexpr {
 	struct musicexpr       *b;
 };
 
+struct marker {
+	enum marker_type	marker_type;
+};
+
 struct scaledexpr {
 	struct musicexpr       *me;
 	float			length;
@@ -260,6 +269,7 @@ struct musicexpr {
 		struct function		function;
 		struct joinexpr		joinexpr;
 		struct melist		melist;
+		struct marker		marker;
 		struct noteoffsetexpr	noteoffsetexpr;
 		struct offsetexpr	offsetexpr;
 		struct ontrack		ontrack;

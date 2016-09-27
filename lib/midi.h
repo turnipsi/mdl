@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.37 2016/09/27 07:59:07 je Exp $ */
+/* $Id: midi.h,v 1.38 2016/09/27 09:22:18 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -37,7 +37,7 @@ enum midievent_type {
 	MIDIEV_TEMPOCHANGE,
 	MIDIEV_INSTRUMENT_CHANGE,
 	MIDIEV_VOLUMECHANGE,
-	MIDIEV_JOINEXPR,
+	MIDIEV_MARKER,
 	MIDIEV_NOTEON,
 	MIDIEV_SONG_END,
 	MIDIEV_TYPECOUNT,	/* not a type */
