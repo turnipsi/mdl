@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.127 2016/09/26 18:52:00 je Exp $ */
+/* $Id: musicexpr.c,v 1.128 2016/09/27 04:07:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -68,6 +68,7 @@ _mdl_musicexpr_clone(struct musicexpr *me, int level)
 
 	level += 1;
 
+	cloned->joining = me->joining;
 	cloned->u = me->u;
 
 	/* XXX could use subexpression iterators? */
@@ -1150,6 +1151,7 @@ _mdl_musicexpr_replace(struct musicexpr *dst, struct musicexpr *src,
 	}
 
 	dst->id      = src->id;
+	dst->joining = src->joining;
 	dst->me_type = src->me_type;
 	dst->u       = src->u;
 }

@@ -1,4 +1,4 @@
-/* $Id: midi.c,v 1.41 2016/09/12 18:46:28 je Exp $ */
+/* $Id: midi.c,v 1.42 2016/09/27 04:07:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -270,6 +270,12 @@ _mdl_midi_check_timed_midievent(struct timed_midievent tme,
 			return 0;
 		}
 
+		if (!(me->u.midinote.joining == 0
+		    || me->u.midinote.joining == 1)) {
+			warnx("joining marker not either 0 or 1");
+			return 0;
+		}
+
 		return 1;
 	case MIDIEV_SONG_END:
 		return 1;
@@ -417,11 +423,13 @@ _mdl_timed_midievent_log(enum logtype logtype, const char *prefix,
 	case MIDIEV_NOTEOFF:
 	case MIDIEV_NOTEON:
 		_mdl_log(logtype, level,
-		    "%s %s time=%.3f channel=%d note=%d velocity=%d\n",
+		    "%s %s time=%.3f channel=%d note=%d velocity=%d"
+		    " joining=%d\n",
 		    prefix,
 		    (me->evtype == MIDIEV_NOTEOFF ? "noteoff" : "noteon"),
 		    tme->time_as_measures, me->u.midinote.channel,
-		    me->u.midinote.note, me->u.midinote.velocity);
+		    me->u.midinote.note, me->u.midinote.velocity,
+		    me->u.midinote.joining);
 		break;
 	case MIDIEV_SONG_END:
 		_mdl_log(logtype, level, "%s song end time=%.3f\n", prefix,

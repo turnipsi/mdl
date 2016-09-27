@@ -1,4 +1,4 @@
-/* $Id: midi.h,v 1.35 2016/09/12 18:46:28 je Exp $ */
+/* $Id: midi.h,v 1.36 2016/09/27 04:07:57 je Exp $ */
 
 /*
  * Copyright (c) 2015 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -56,6 +56,7 @@ struct midi_volumechange {
 
 struct midinote {
 	u_int8_t	channel;
+	u_int8_t	joining;
 	u_int8_t	note;
 	u_int8_t	velocity;
 };

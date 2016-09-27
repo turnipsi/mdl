@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.68 2016/09/26 18:20:00 je Exp $ */
+/* $Id: midistream.c,v 1.69 2016/09/27 04:07:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -679,6 +679,7 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	tme = &mse->u.tme;
 	tme->midiev.evtype = MIDIEV_NOTEON;
 	tme->midiev.u.midinote.channel = MIDI_DEFAULTCHANNEL;
+	tme->midiev.u.midinote.joining = me->joining;
 	tme->midiev.u.midinote.note = new_note;
 	tme->midiev.u.midinote.velocity = DEFAULT_VELOCITY;
 
@@ -703,6 +704,7 @@ add_note_to_midistream(struct mdl_stream *midistream_es,
 	tme = &mse->u.tme;
 	tme->midiev.evtype = MIDIEV_NOTEOFF;
 	tme->midiev.u.midinote.channel = MIDI_DEFAULTCHANNEL;
+	tme->midiev.u.midinote.joining = me->joining;
 	tme->midiev.u.midinote.note = new_note;
 	tme->midiev.u.midinote.velocity = 0;
 
