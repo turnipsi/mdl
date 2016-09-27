@@ -1,4 +1,4 @@
-/* $Id: musicexpr.c,v 1.131 2016/09/27 09:22:18 je Exp $ */
+/* $Id: musicexpr.c,v 1.132 2016/09/27 13:10:01 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -291,7 +291,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 			return ret;
 		break;
 	case ME_TYPE_JOINEXPR:
-		ret = add_as_offsetexpr_to_flat_simultence(flatme,
+		ret = add_musicexpr_to_flat_simultence(flatme,
 		    me->u.joinexpr.a, next_offset, level);
 		if (ret != 0)
 			return ret;
@@ -300,7 +300,7 @@ add_musicexpr_to_flat_simultence(struct musicexpr *flatme,
 		if (ret != 0)
 			return ret;
 		marker->u.marker.marker_type = ME_MARKER_JOINEXPR;
-		ret = add_as_offsetexpr_to_flat_simultence(flatme,
+		ret = add_musicexpr_to_flat_simultence(flatme,
 		    me->u.joinexpr.b, next_offset, level);
 		if (ret != 0) {
 			_mdl_musicexpr_free(marker, level);
