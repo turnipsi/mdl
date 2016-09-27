@@ -1,4 +1,4 @@
-/* $id: sequencer.c,v 1.144 2016/09/12 18:46:28 je exp $ */
+/* $Id: sequencer.c,v 1.149 2016/09/27 10:57:12 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
