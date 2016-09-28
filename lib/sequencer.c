@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.153 2016/09/27 16:15:18 je Exp $ */
+/* $Id: sequencer.c,v 1.154 2016/09/28 19:05:00 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -940,23 +940,18 @@ sequencer_play_midievent_queue(struct midievent_queue *meq,
 	 * XXX Should keep track of exact times when notes are off,
 	 * XXX and then compare those.  This heuristic works correctly only if
 	 * XXX sequencer awakes up fast enough so that notes that should not
-	 * XXX join are far enough, so get into different queues.
+	 * XXX join are far enough, so they get into different queues.
 	 */
 
 	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
+		channel = p->midievent.u.midinote.channel;
+		note = p->midievent.u.midinote.note;
+
 		if (p->midievent.evtype == MIDIEV_NOTEOFF
 		    && p->midievent.u.midinote.joining) {
-			channel = p->midievent.u.midinote.channel;
-			note = p->midievent.u.midinote.note;
 			ss->channelstates[channel].notestates[note]
 			    .wanting_join_expr = p;
-		}
-	}
-
-	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
-		if (p->midievent.evtype == MIDIEV_NOTEON) {
-			channel = p->midievent.u.midinote.channel;
-			note = p->midievent.u.midinote.note;
+		} else if (p->midievent.evtype == MIDIEV_NOTEON) {
 			wanting_join_expr = ss->channelstates[channel]
 			    .notestates[note].wanting_join_expr;
 			if (wanting_join_expr) {
@@ -964,11 +959,12 @@ sequencer_play_midievent_queue(struct midievent_queue *meq,
 				free(p);
 				TAILQ_REMOVE(meq, wanting_join_expr, tq);
 				free(wanting_join_expr);
-				ss->channelstates[channel]
-				    .notestates[note]
+				ss->channelstates[channel].notestates[note]
 				    .wanting_join_expr = NULL;
 			}
 		}
+
+
 	}
 
 	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
