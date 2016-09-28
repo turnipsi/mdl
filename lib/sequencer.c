@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.154 2016/09/28 19:05:00 je Exp $ */
+/* $Id: sequencer.c,v 1.155 2016/09/28 20:34:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -53,14 +53,14 @@ struct eventpointer {
 	int			index;
 };
 
-TAILQ_HEAD(midievent_queue, midievent_item);
-struct midievent_item {
-	struct midievent		midievent;
-	TAILQ_ENTRY(midievent_item)	tq;
+TAILQ_HEAD(tmidiev_queue, tmidiev_item);
+struct tmidiev_item {
+	struct timed_midievent		tmidiev;
+	TAILQ_ENTRY(tmidiev_item)	tq;
 };
 
 struct notestate {
-	struct midievent_item  *wanting_join_expr;
+	struct tmidiev_item    *wanting_join_expr;
 	unsigned int		state    : 1;
 	unsigned int		velocity : 7;
 };
@@ -104,8 +104,8 @@ volatile sig_atomic_t	_mdl_shutdown_sequencer = 0;
 static int	sequencer_loop(struct sequencer *);
 static int	sequencer_accept_client_socket(struct sequencer *, int);
 static int	sequencer_accept_interp_fd(struct sequencer *, int);
-static int	sequencer_add_to_midievent_queue(struct midievent_queue *,
-     struct midievent);
+static int	sequencer_add_to_tmidiev_queue(struct tmidiev_queue *,
+     struct timed_midievent);
 static void	sequencer_calculate_timeout(const struct sequencer *,
     const struct timespec *, struct timespec *);
 static int	sequencer_clock_gettime(struct timespec *);
@@ -122,7 +122,7 @@ static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
 static int	sequencer_midievent(const struct sequencer *,
     struct songstate *, struct midievent *, int);
-static int	sequencer_play_midievent_queue(struct midievent_queue *,
+static int	sequencer_play_tmidiev_queue(struct tmidiev_queue *,
     struct songstate *, const struct sequencer *);
 static int	sequencer_play_music(struct sequencer *,
     struct songstate *);
@@ -817,14 +817,14 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	struct timed_midievent *tmidiev;
 	struct midievent *midiev;
 	struct timespec eventtime, time_to_play;
-	struct midievent_queue meq;
+	struct tmidiev_queue tmeq;
 	int ret, retvalue;
 
 	retvalue = 0;
 
 	ce = &ss->current_event;
 
-	TAILQ_INIT(&meq);
+	TAILQ_INIT(&tmeq);
 
 	while (ce->block) {
 		while (ce->index < EVENTBLOCKCOUNT) {
@@ -867,8 +867,8 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			case MIDIEV_NOTEOFF:
 			case MIDIEV_NOTEON:
 			case MIDIEV_VOLUMECHANGE:
-				ret = sequencer_add_to_midievent_queue(&meq,
-				    *midiev);
+				ret = sequencer_add_to_tmidiev_queue(&tmeq,
+				    *tmidiev);
 				if (ret != 0) {
 					retvalue = 1;
 					goto finish;
@@ -905,32 +905,33 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	}
 
 finish:
-	return sequencer_play_midievent_queue(&meq, ss, seq);
+	return sequencer_play_tmidiev_queue(&tmeq, ss, seq);
 }
 
 static int
-sequencer_add_to_midievent_queue(struct midievent_queue *meq,
-     struct midievent midievent)
+sequencer_add_to_tmidiev_queue(struct tmidiev_queue *tmeq,
+     struct timed_midievent tmidiev)
 {
-	struct midievent_item *mi;
+	struct tmidiev_item *mi;
 
-	if ((mi = malloc(sizeof(struct midievent_item))) == NULL) {
-		warn("malloc failure in sequencer_add_to_midievent_queue");
+	if ((mi = malloc(sizeof(struct tmidiev_item))) == NULL) {
+		warn("malloc failure in sequencer_add_to_tmidiev_queue");
 		return 1;
 	}
 
-	mi->midievent = midievent;
+	mi->tmidiev = tmidiev;
 
-	TAILQ_INSERT_TAIL(meq, mi, tq);
+	TAILQ_INSERT_TAIL(tmeq, mi, tq);
 
 	return 0;
 }
 
 static int
-sequencer_play_midievent_queue(struct midievent_queue *meq,
+sequencer_play_tmidiev_queue(struct tmidiev_queue *tmeq,
     struct songstate *ss, const struct sequencer *seq)
 {
-	struct midievent_item *p, *q, *wanting_join_expr;
+	struct tmidiev_item *p, *q, *wanting_join_expr;
+	struct midievent *midiev;
 	u_int8_t channel, note;
 	int ret;
 
@@ -943,39 +944,48 @@ sequencer_play_midievent_queue(struct midievent_queue *meq,
 	 * XXX join are far enough, so they get into different queues.
 	 */
 
-	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
-		channel = p->midievent.u.midinote.channel;
-		note = p->midievent.u.midinote.note;
+	TAILQ_FOREACH_SAFE(p, tmeq, tq, q) {
+		midiev = &p->tmidiev.midiev;
+		channel = midiev->u.midinote.channel;
+		note = midiev->u.midinote.note;
 
-		if (p->midievent.evtype == MIDIEV_NOTEOFF
-		    && p->midievent.u.midinote.joining) {
+		if (midiev->evtype == MIDIEV_NOTEOFF
+		    && midiev->u.midinote.joining) {
 			ss->channelstates[channel].notestates[note]
 			    .wanting_join_expr = p;
-		} else if (p->midievent.evtype == MIDIEV_NOTEON) {
+		} else if (midiev->evtype == MIDIEV_NOTEON) {
 			wanting_join_expr = ss->channelstates[channel]
 			    .notestates[note].wanting_join_expr;
-			if (wanting_join_expr) {
-				TAILQ_REMOVE(meq, p, tq);
+			if (wanting_join_expr &&
+			    wanting_join_expr->tmidiev.time_as_measures ==
+			    p->tmidiev.time_as_measures) {
+				/*
+				 * There is a noteoff at the exact same time
+				 * that wants a join, so remove the noteoff
+				 * note from the play queue, and the noteon
+				 * midievent as well, so the note simply
+				 * continues on.
+				 */
+				TAILQ_REMOVE(tmeq, p, tq);
 				free(p);
-				TAILQ_REMOVE(meq, wanting_join_expr, tq);
+				TAILQ_REMOVE(tmeq, wanting_join_expr, tq);
 				free(wanting_join_expr);
 				ss->channelstates[channel].notestates[note]
 				    .wanting_join_expr = NULL;
 			}
 		}
-
-
 	}
 
-	TAILQ_FOREACH_SAFE(p, meq, tq, q) {
-		channel = p->midievent.u.midinote.channel;
-		note = p->midievent.u.midinote.note;
+	TAILQ_FOREACH_SAFE(p, tmeq, tq, q) {
+		midiev = &p->tmidiev.midiev;
+		channel = midiev->u.midinote.channel;
+		note = midiev->u.midinote.note;
 		ss->channelstates[channel].notestates[note]
 		    .wanting_join_expr = NULL;
 
 		if (ret == 0)
-			ret = sequencer_midievent(seq, ss, &p->midievent, 0);
-		TAILQ_REMOVE(meq, p, tq);
+			ret = sequencer_midievent(seq, ss, midiev, 0);
+		TAILQ_REMOVE(tmeq, p, tq);
 		free(p);
 	}
 
@@ -1162,14 +1172,15 @@ sequencer_start_playing(const struct sequencer *seq, struct songstate *new_ss,
 	struct notestate old_ns, new_ns;
 	struct eventpointer ce;
 	struct timed_midievent *tmidiev;
-	struct midievent change_instrument, change_volume, note_off, note_on;
+	struct timed_midievent change_instrument, change_volume, note_off,
+	    note_on;
 	struct midievent *midiev;
 	struct timespec latest_tempo_change_as_time,
 	    time_since_latest_tempo_change;
-	struct midievent_queue meq;
+	struct tmidiev_queue tmeq;
 	int instr_changed, retrigger_note, volume_changed, c, n, ret;
 
-	TAILQ_INIT(&meq);
+	TAILQ_INIT(&tmeq);
 
 	/*
 	 * Find the event where we should be at at new songstate,
@@ -1241,21 +1252,27 @@ current_event_found:
 		volume_changed = (old_cs.volume != new_cs.volume);
 
 		if (instr_changed) {
-			change_instrument.evtype = MIDIEV_INSTRUMENT_CHANGE;
-			change_instrument.u.instr_change.channel = c;
-			change_instrument.u.instr_change.code =
+			change_instrument.time_as_measures =
+			    new_ss->time_as_measures;
+			change_instrument.midiev.evtype =
+			    MIDIEV_INSTRUMENT_CHANGE;
+			change_instrument.midiev.u.instr_change.channel = c;
+			change_instrument.midiev.u.instr_change.code =
 			    new_cs.instrument;
-			ret = sequencer_add_to_midievent_queue(&meq,
+			ret = sequencer_add_to_tmidiev_queue(&tmeq,
 			    change_instrument);
 			if (ret != 0)
 				return ret;
 		}
 
 		if (volume_changed) {
-			change_volume.evtype = MIDIEV_VOLUMECHANGE;
-			change_volume.u.volumechange.channel = c;
-			change_volume.u.volumechange.volume = new_cs.volume;
-			ret = sequencer_add_to_midievent_queue(&meq,
+			change_volume.time_as_measures =
+			    new_ss->time_as_measures;
+			change_volume.midiev.evtype = MIDIEV_VOLUMECHANGE;
+			change_volume.midiev.u.volumechange.channel = c;
+			change_volume.midiev.u.volumechange.volume =
+			    new_cs.volume;
+			ret = sequencer_add_to_tmidiev_queue(&tmeq,
 			    change_volume);
 			if (ret != 0)
 				return ret;
@@ -1265,15 +1282,19 @@ current_event_found:
 			old_ns = old_cs.notestates[n];
 			new_ns = new_cs.notestates[n];
 
-			note_off.evtype = MIDIEV_NOTEOFF;
-			note_off.u.midinote.channel = c;
-			note_off.u.midinote.note = n;
-			note_off.u.midinote.velocity = 0;
+			note_off.time_as_measures = new_ss->time_as_measures;
+			note_off.midiev.evtype = MIDIEV_NOTEOFF;
+			note_off.midiev.u.midinote.channel = c;
+			note_off.midiev.u.midinote.joining = 0;
+			note_off.midiev.u.midinote.note = n;
+			note_off.midiev.u.midinote.velocity = 0;
 
-			note_on.evtype = MIDIEV_NOTEON;
-			note_on.u.midinote.channel = c;
-			note_on.u.midinote.note = n;
-			note_on.u.midinote.velocity = new_ns.velocity;
+			note_on.time_as_measures = new_ss->time_as_measures;
+			note_on.midiev.evtype = MIDIEV_NOTEON;
+			note_on.midiev.u.midinote.channel = c;
+			note_on.midiev.u.midinote.joining = 0;
+			note_on.midiev.u.midinote.note = n;
+			note_on.midiev.u.midinote.velocity = new_ns.velocity;
 
 			/*
 			 * Retrigger note if:
@@ -1288,23 +1309,23 @@ current_event_found:
 			    instr_changed);
 
 			if (retrigger_note) {
-				ret = sequencer_add_to_midievent_queue(&meq,
+				ret = sequencer_add_to_tmidiev_queue(&tmeq,
 				    note_off);
 				if (ret != 0)
 					return ret;
-				ret = sequencer_add_to_midievent_queue(&meq,
+				ret = sequencer_add_to_tmidiev_queue(&tmeq,
 				    note_on);
 				if (ret != 0)
 					return ret;
 			} else if (old_ns.state && !new_ns.state) {
 				/* Note is playing, but should no longer be. */
-				ret = sequencer_add_to_midievent_queue(&meq,
+				ret = sequencer_add_to_tmidiev_queue(&tmeq,
 				    note_off);
 				if (ret != 0)
 					return ret;
 			} else if (!old_ns.state && new_ns.state) {
 				/* Note is not playing, but should be. */
-				ret = sequencer_add_to_midievent_queue(&meq,
+				ret = sequencer_add_to_tmidiev_queue(&tmeq,
 				    note_on);
 				if (ret != 0)
 					return ret;
@@ -1312,7 +1333,7 @@ current_event_found:
 		}
 	}
 
-	if ((ret = sequencer_play_midievent_queue(&meq, old_ss, seq)) != 0)
+	if ((ret = sequencer_play_tmidiev_queue(&tmeq, old_ss, seq)) != 0)
 		return ret;
 
 	/*

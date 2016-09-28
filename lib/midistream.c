@@ -1,4 +1,4 @@
-/* $Id: midistream.c,v 1.72 2016/09/27 09:22:18 je Exp $ */
+/* $Id: midistream.c,v 1.73 2016/09/28 20:34:57 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -375,7 +375,8 @@ add_noteon_to_midievents(struct mdl_stream *midi_es,
 		/* This note is xlready playing, go to next event. */
 		/* XXX Actually retriggering note would be better...
 		 * XXX t-play-notes-already-playing.mdl is a testcase that
-		 * XXX needs fixing. */
+		 * XXX needs fixing.  But when fixing, consider also
+		 * XXX how sequencer is handling the joined expressions. */
 		return 0;
 	}
 
