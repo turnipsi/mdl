@@ -1,4 +1,4 @@
-.\"	$Id: mdl.1,v 1.32 2016/09/25 20:09:06 je Exp $
+.\"	$Id: mdl.1,v 1.33 2016/09/28 20:38:20 je Exp $
 .\"
 .\" Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
 .\"
@@ -16,7 +16,7 @@
 .\"
 .\" The following requests are required for all man pages.
 .\"
-.Dd $Mdocdate: September 25 2016 $
+.Dd $Mdocdate: September 28 2016 $
 .Dt MDL 1
 .Os
 .Sh NAME
@@ -1005,16 +1005,6 @@ The parser does not suggest where parsing fails or why.
 .Pp
 Drum handling is strange and lacking,
 for example drum volumes can not be adjusted.
-.Pp
-The note joining code is buggy
-and should be moved to sequencer
-and implemented differently.
-For example, the following syntax
-produces either an assertion crash
-or sometimes a hang:
-.Bd -literal -offset indent
-<<c>> ~ {a}
-.Ed
 .Pp
 MIDI channel limitation of 16 channels
 means that only 15 toned instrument tracks
