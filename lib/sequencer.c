@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.155 2016/09/28 20:34:57 je Exp $ */
+/* $Id: sequencer.c,v 1.156 2016/09/29 20:39:23 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -121,7 +121,7 @@ static int	sequencer_init(struct sequencer *, int, int, enum mididev_type,
 static void	sequencer_init_songstate(const struct sequencer *,
     struct songstate *, enum playback_state);
 static int	sequencer_midievent(const struct sequencer *,
-    struct songstate *, struct midievent *, int);
+    struct songstate *, struct timed_midievent *, int);
 static int	sequencer_play_tmidiev_queue(struct tmidiev_queue *,
     struct songstate *, const struct sequencer *);
 static int	sequencer_play_music(struct sequencer *,
@@ -862,39 +862,10 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 			    time_to_play.tv_nsec > 0))
 				goto finish;
 
-			switch (midiev->evtype) {
-			case MIDIEV_INSTRUMENT_CHANGE:
-			case MIDIEV_NOTEOFF:
-			case MIDIEV_NOTEON:
-			case MIDIEV_VOLUMECHANGE:
-				ret = sequencer_add_to_tmidiev_queue(&tmeq,
-				    *tmidiev);
-				if (ret != 0) {
-					retvalue = 1;
-					goto finish;
-				}
-				break;
-			case MIDIEV_MARKER:
-				/*
-				 * XXX Not doing anything currently.
-				 * XXX (Only interesting with textual location
-				 * XXX -aware sequencer).
-				 */
-				break;
-			case MIDIEV_SONG_END:
-				/* This has been handled above. */
-				assert(0);
-				break;
-			case MIDIEV_TEMPOCHANGE:
-				ss->latest_tempo_change_as_time = eventtime;
-				ss->latest_tempo_change_as_measures =
-				    tmidiev->time_as_measures;
-				ss->tempo = midiev->u.bpm;
-				_mdl_log(MDLLOG_MIDI, 0,
-				    "changing tempo to %.0fbpm\n", ss->tempo);
-				break;
-			default:
-				assert(0);
+			ret = sequencer_add_to_tmidiev_queue(&tmeq, *tmidiev);
+			if (ret != 0) {
+				retvalue = 1;
+				goto finish;
 			}
 
 			ce->index += 1;
@@ -905,7 +876,9 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	}
 
 finish:
-	return sequencer_play_tmidiev_queue(&tmeq, ss, seq);
+	ret = sequencer_play_tmidiev_queue(&tmeq, ss, seq);
+
+	return (retvalue == 0) ? ret : retvalue;
 }
 
 static int
@@ -984,7 +957,7 @@ sequencer_play_tmidiev_queue(struct tmidiev_queue *tmeq,
 		    .wanting_join_expr = NULL;
 
 		if (ret == 0)
-			ret = sequencer_midievent(seq, ss, midiev, 0);
+			ret = sequencer_midievent(seq, ss, &p->tmidiev, 0);
 		TAILQ_REMOVE(tmeq, p, tq);
 		free(p);
 	}
@@ -994,10 +967,25 @@ sequencer_play_tmidiev_queue(struct tmidiev_queue *tmeq,
 
 static int
 sequencer_midievent(const struct sequencer *seq, struct songstate *ss,
-    struct midievent *me, int level)
+    struct timed_midievent *tmidiev, int level)
 {
 	int ret;
 	struct notestate *nstate;
+	struct midievent *me;
+	struct timespec eventtime;
+
+	if (tmidiev->midiev.evtype == MIDIEV_TEMPOCHANGE) {
+		/* XXX ss->latest_tempo_change_as_time = eventtime; */
+		ss->latest_tempo_change_as_measures =
+		    tmidiev->time_as_measures;
+		ss->tempo = tmidiev->midiev.u.bpm;
+		_mdl_log(MDLLOG_MIDI, 0, "changing tempo to %.0fbpm\n",
+		    ss->tempo);
+
+		return 0;
+	}
+
+	me = &tmidiev->midiev;
 
 	ret = _mdl_midi_play_midievent(me, level, seq->dry_run);
 	if (ret == 0) {
@@ -1512,7 +1500,7 @@ sequencer_close(struct sequencer *seq)
 static void
 sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 {
-	struct midievent note_off;
+	struct timed_midievent note_off;
 	int c, n, ret;
 
 	_mdl_log(MDLLOG_SEQ, 0,
@@ -1524,10 +1512,12 @@ sequencer_close_songstate(const struct sequencer *seq, struct songstate *ss)
 				_mdl_log(MDLLOG_SEQ, 1,
 				    "channel=%d has note=%d playing,"
 				    " turning it off\n", c, n);
-				note_off.evtype = MIDIEV_NOTEOFF;
-				note_off.u.midinote.channel = c;
-				note_off.u.midinote.note = n;
-				note_off.u.midinote.velocity = 0;
+				note_off.time_as_measures =
+				    ss->time_as_measures;
+				note_off.midiev.evtype = MIDIEV_NOTEOFF;
+				note_off.midiev.u.midinote.channel = c;
+				note_off.midiev.u.midinote.note = n;
+				note_off.midiev.u.midinote.velocity = 0;
 				ret = sequencer_midievent(seq, ss, &note_off,
 				    2);
 				if (ret != 0)
