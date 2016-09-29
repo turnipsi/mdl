@@ -8,6 +8,12 @@ mdl.seq.midi           : received noteoff time=0.375 channel=0 note=67 velocity=
 mdl.seq.midi           : received noteon time=0.375 channel=0 note=60 velocity=80
 mdl.seq.midi           : received noteon time=0.375 channel=0 note=64 velocity=80
 mdl.seq.midi           : received noteon time=0.375 channel=0 note=67 velocity=80
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=64 velocity=0
+mdl.seq.midi           : received noteoff time=0.500 channel=0 note=67 velocity=0
+mdl.seq.midi           : received noteon time=0.500 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteon time=0.500 channel=0 note=64 velocity=80
+mdl.seq.midi           : received noteon time=0.500 channel=0 note=67 velocity=80
 mdl.seq.midi           : received noteoff time=0.625 channel=0 note=60 velocity=0
 mdl.seq.midi           : received noteoff time=0.625 channel=0 note=64 velocity=0
 mdl.seq.midi           : received noteoff time=0.625 channel=0 note=67 velocity=0

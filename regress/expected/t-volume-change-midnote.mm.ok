@@ -34,89 +34,91 @@ mdl.interp.mm          :           created volumechange:27:5,6:5,11
 mdl.interp.mm          :           created volumechange:28:5,25:5,30
 mdl.interp.mm          :           created volumechange:29:5,43:5,48
 mdl.interp.mm          :           created volumechange:30:5,61:5,66
-mdl.interp.midistream  : joining music expressions
-mdl.interp.joins       :   joining subexpressions in sequence:22:1,1:7,2
-mdl.interp.joins       :     joining subexpressions in simultence:21:1,1:7,2
-mdl.interp.joins       :       joining subexpressions in sequence:3:2,3:2,13
-mdl.interp.joins       :         joining subexpressions in joinexpr:2:2,8:2,8
-mdl.interp.joins       :           joining expressions absnote:0:2,5:2,6 and absnote:1:2,10:2,11
-mdl.interp.joins       :             matched absnotes
-mdl.interp.mm          :               freeing musicexpr absnote:1:2,10:2,11
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.mm          :   created flatsimultence:31:0,0:0,0
 mdl.interp.mm          :     created simultence:32:0,0:0,0
 mdl.interp.exprconv    :     inspecting sequence:22:1,1:7,2 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :       inspecting simultence:21:1,1:7,2 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :         inspecting sequence:3:2,3:2,13 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :           inspecting absnote:0:2,5:2,6 for flatsimultence:31:0,0:0,0
-mdl.interp.mm          :               created absnote:33:2,5:2,6
-mdl.interp.mm          :               cloning absnote:0:2,5:2,6 as absnote:33:2,5:2,6
-mdl.interp.mm          :             created offsetexpr:34:0,0:0,0
+mdl.interp.exprconv    :           inspecting joinexpr:2:2,8:2,8 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             inspecting absnote:0:2,5:2,6 for flatsimultence:31:0,0:0,0
+mdl.interp.mm          :                 created absnote:33:2,5:2,6
+mdl.interp.mm          :                 cloning absnote:0:2,5:2,6 as absnote:33:2,5:2,6
+mdl.interp.mm          :               created offsetexpr:34:0,0:0,0
+mdl.interp.mm          :               created marker:35:2,8:2,8
+mdl.interp.exprconv    :             inspecting absnote:1:2,10:2,11 for flatsimultence:31:0,0:0,0
+mdl.interp.mm          :                 created absnote:36:2,10:2,11
+mdl.interp.mm          :                 cloning absnote:1:2,10:2,11 as absnote:36:2,10:2,11
+mdl.interp.mm          :               created offsetexpr:37:0,0:0,0
 mdl.interp.exprconv    :         inspecting sequence:20:3,3:6,3 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:23:4,6:4,11 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
-mdl.interp.mm          :               created volumechange:35:4,6:4,11
-mdl.interp.mm          :               cloning volumechange:23:4,6:4,11 as volumechange:35:4,6:4,11
-mdl.interp.mm          :             created offsetexpr:36:0,0:0,0
+mdl.interp.mm          :               created volumechange:38:4,6:4,11
+mdl.interp.mm          :               cloning volumechange:23:4,6:4,11 as volumechange:38:4,6:4,11
+mdl.interp.mm          :             created offsetexpr:39:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:24:4,25:4,30 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.000000 to 0.250000
-mdl.interp.mm          :               created volumechange:37:4,25:4,30
-mdl.interp.mm          :               cloning volumechange:24:4,25:4,30 as volumechange:37:4,25:4,30
-mdl.interp.mm          :             created offsetexpr:38:0,0:0,0
+mdl.interp.mm          :               created volumechange:40:4,25:4,30
+mdl.interp.mm          :               cloning volumechange:24:4,25:4,30 as volumechange:40:4,25:4,30
+mdl.interp.mm          :             created offsetexpr:41:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:25:4,43:4,48 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.250000 to 0.500000
-mdl.interp.mm          :               created volumechange:39:4,43:4,48
-mdl.interp.mm          :               cloning volumechange:25:4,43:4,48 as volumechange:39:4,43:4,48
-mdl.interp.mm          :             created offsetexpr:40:0,0:0,0
+mdl.interp.mm          :               created volumechange:42:4,43:4,48
+mdl.interp.mm          :               cloning volumechange:25:4,43:4,48 as volumechange:42:4,43:4,48
+mdl.interp.mm          :             created offsetexpr:43:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:26:4,61:4,66 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.500000 to 0.750000
-mdl.interp.mm          :               created volumechange:41:4,61:4,66
-mdl.interp.mm          :               cloning volumechange:26:4,61:4,66 as volumechange:41:4,61:4,66
-mdl.interp.mm          :             created offsetexpr:42:0,0:0,0
+mdl.interp.mm          :               created volumechange:44:4,61:4,66
+mdl.interp.mm          :               cloning volumechange:26:4,61:4,66 as volumechange:44:4,61:4,66
+mdl.interp.mm          :             created offsetexpr:45:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:27:5,6:5,11 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.750000 to 1.000000
-mdl.interp.mm          :               created volumechange:43:5,6:5,11
-mdl.interp.mm          :               cloning volumechange:27:5,6:5,11 as volumechange:43:5,6:5,11
-mdl.interp.mm          :             created offsetexpr:44:0,0:0,0
+mdl.interp.mm          :               created volumechange:46:5,6:5,11
+mdl.interp.mm          :               cloning volumechange:27:5,6:5,11 as volumechange:46:5,6:5,11
+mdl.interp.mm          :             created offsetexpr:47:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:28:5,25:5,30 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.000000 to 1.250000
-mdl.interp.mm          :               created volumechange:45:5,25:5,30
-mdl.interp.mm          :               cloning volumechange:28:5,25:5,30 as volumechange:45:5,25:5,30
-mdl.interp.mm          :             created offsetexpr:46:0,0:0,0
+mdl.interp.mm          :               created volumechange:48:5,25:5,30
+mdl.interp.mm          :               cloning volumechange:28:5,25:5,30 as volumechange:48:5,25:5,30
+mdl.interp.mm          :             created offsetexpr:49:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:29:5,43:5,48 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.250000 to 1.500000
-mdl.interp.mm          :               created volumechange:47:5,43:5,48
-mdl.interp.mm          :               cloning volumechange:29:5,43:5,48 as volumechange:47:5,43:5,48
-mdl.interp.mm          :             created offsetexpr:48:0,0:0,0
+mdl.interp.mm          :               created volumechange:50:5,43:5,48
+mdl.interp.mm          :               cloning volumechange:29:5,43:5,48 as volumechange:50:5,43:5,48
+mdl.interp.mm          :             created offsetexpr:51:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:30:5,61:5,66 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.500000 to 1.750000
-mdl.interp.mm          :               created volumechange:49:5,61:5,66
-mdl.interp.mm          :               cloning volumechange:30:5,61:5,66 as volumechange:49:5,61:5,66
-mdl.interp.mm          :             created offsetexpr:50:0,0:0,0
+mdl.interp.mm          :               created volumechange:52:5,61:5,66
+mdl.interp.mm          :               cloning volumechange:30:5,61:5,66 as volumechange:52:5,61:5,66
+mdl.interp.mm          :             created offsetexpr:53:0,0:0,0
 mdl.interp.mm          : freeing musicexpr flatsimultence:31:0,0:0,0
 mdl.interp.mm          :   freeing musicexpr simultence:32:0,0:0,0
 mdl.interp.mm          :     freeing musicexpr offsetexpr:34:0,0:0,0
 mdl.interp.mm          :       freeing musicexpr absnote:33:2,5:2,6
-mdl.interp.mm          :     freeing musicexpr offsetexpr:36:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:35:4,6:4,11
-mdl.interp.mm          :     freeing musicexpr offsetexpr:38:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:37:4,25:4,30
-mdl.interp.mm          :     freeing musicexpr offsetexpr:40:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:39:4,43:4,48
-mdl.interp.mm          :     freeing musicexpr offsetexpr:42:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:41:4,61:4,66
-mdl.interp.mm          :     freeing musicexpr offsetexpr:44:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:43:5,6:5,11
-mdl.interp.mm          :     freeing musicexpr offsetexpr:46:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:45:5,25:5,30
-mdl.interp.mm          :     freeing musicexpr offsetexpr:48:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:47:5,43:5,48
-mdl.interp.mm          :     freeing musicexpr offsetexpr:50:0,0:0,0
-mdl.interp.mm          :       freeing musicexpr volumechange:49:5,61:5,66
+mdl.interp.mm          :     freeing musicexpr offsetexpr:37:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr absnote:36:2,10:2,11
+mdl.interp.mm          :     freeing musicexpr offsetexpr:39:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:38:4,6:4,11
+mdl.interp.mm          :     freeing musicexpr offsetexpr:41:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:40:4,25:4,30
+mdl.interp.mm          :     freeing musicexpr offsetexpr:43:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:42:4,43:4,48
+mdl.interp.mm          :     freeing musicexpr offsetexpr:45:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:44:4,61:4,66
+mdl.interp.mm          :     freeing musicexpr offsetexpr:47:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:46:5,6:5,11
+mdl.interp.mm          :     freeing musicexpr offsetexpr:49:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:48:5,25:5,30
+mdl.interp.mm          :     freeing musicexpr offsetexpr:51:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:50:5,43:5,48
+mdl.interp.mm          :     freeing musicexpr offsetexpr:53:0,0:0,0
+mdl.interp.mm          :       freeing musicexpr volumechange:52:5,61:5,66
 mdl.interp.mm          : freeing musicexpr sequence:22:1,1:7,2
 mdl.interp.mm          :   freeing musicexpr simultence:21:1,1:7,2
 mdl.interp.mm          :     freeing musicexpr sequence:3:2,3:2,13
-mdl.interp.mm          :       freeing musicexpr absnote:0:2,5:2,6
+mdl.interp.mm          :       freeing musicexpr joinexpr:2:2,8:2,8
+mdl.interp.mm          :         freeing musicexpr absnote:0:2,5:2,6
+mdl.interp.mm          :         freeing musicexpr absnote:1:2,10:2,11
 mdl.interp.mm          :     freeing musicexpr sequence:20:3,3:6,3
 mdl.interp.mm          :       freeing musicexpr volumechange:23:4,6:4,11
 mdl.interp.mm          :       freeing musicexpr rest:5:4,18:4,19

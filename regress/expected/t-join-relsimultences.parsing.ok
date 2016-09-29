@@ -1,9 +1,9 @@
 mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:19:1,26:1,26 joining=0
-mdl.interp.parsing     :     joinexpr:18:1,26:1,26
-mdl.interp.parsing     :       joinexpr:13:1,17:1,17
-mdl.interp.parsing     :         joinexpr:8:1,9:1,9
-mdl.interp.parsing     :           relsimultence:3:1,1:1,7 length=0.250 joining=1
+mdl.interp.parsing     :     joinexpr:18:1,26:1,26 joining=0
+mdl.interp.parsing     :       joinexpr:13:1,17:1,17 joining=0
+mdl.interp.parsing     :         joinexpr:8:1,9:1,9 joining=0
+mdl.interp.parsing     :           relsimultence:3:1,1:1,7 length=0.250 joining=0
 mdl.interp.parsing     :             simultence:2:1,2:1,5 joining=0
 mdl.interp.parsing     :               relnote:0:1,2:1,2 notesym=0 notemods=0 octavemods=0 length=0.000 joining=0
 mdl.interp.parsing     :               relnote:1:1,4:1,5 notesym=4 notemods=0 octavemods=1 length=0.000 joining=0

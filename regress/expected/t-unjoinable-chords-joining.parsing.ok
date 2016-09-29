@@ -1,7 +1,7 @@
 mdl.interp.parsing     : parse ok, result:
 mdl.interp.parsing     :   sequence:5:1,6:1,6 joining=0
-mdl.interp.parsing     :     joinexpr:4:1,6:1,6
-mdl.interp.parsing     :       chord:1:1,1:1,4 joining=1
+mdl.interp.parsing     :     joinexpr:4:1,6:1,6 joining=0
+mdl.interp.parsing     :       chord:1:1,1:1,4 joining=0
 mdl.interp.parsing     :         chordtype 5
 mdl.interp.parsing     :         relnote:0:1,1:1,2 notesym=0 notemods=0 octavemods=0 length=0.250 joining=0
 mdl.interp.parsing     :       chord:3:1,8:1,10 joining=0

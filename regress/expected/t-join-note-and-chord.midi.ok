@@ -1,5 +1,7 @@
 mdl.seq.midi           : received instrument change time=0.000 channel=0 instrument=0
 mdl.seq.midi           : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midi           : received noteoff time=0.250 channel=0 note=60 velocity=0
+mdl.seq.midi           : received noteon time=0.250 channel=0 note=60 velocity=80
 mdl.seq.midi           : received noteon time=0.250 channel=0 note=63 velocity=80
 mdl.seq.midi           : received noteon time=0.250 channel=0 note=67 velocity=80
 mdl.seq.midi           : received noteon time=0.250 channel=0 note=69 velocity=80

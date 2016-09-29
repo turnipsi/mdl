@@ -3,66 +3,73 @@ mdl.interp.mm          :   created flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :     inspecting sequence:22:1,1:7,2 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :       inspecting simultence:21:1,1:7,2 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :         inspecting sequence:3:2,3:2,13 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :           inspecting absnote:0:2,5:2,6 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:34:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:34:0,0:0,0 offset=0.000
-mdl.interp.exprconv    :               absnote:33:2,5:2,6 notesym=0 note=60 length=2.000 joining=0 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :           inspecting joinexpr:2:2,8:2,8 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             inspecting absnote:0:2,5:2,6 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:34:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:34:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :                 absnote:33:2,5:2,6 notesym=0 note=60 length=1.000 joining=1 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :               offset changed from 0.000000 to 1.000000
+mdl.interp.exprconv    :             inspecting absnote:1:2,10:2,11 for flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :               adding offsetexpr:37:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :               offsetexpr:37:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :                 absnote:36:2,10:2,11 notesym=0 note=60 length=1.000 joining=0 instrument="acoustic grand" track="acoustic grand"
+mdl.interp.exprconv    :               offset changed from 1.000000 to 2.000000
 mdl.interp.exprconv    :             offset changed from 0.000000 to 2.000000
 mdl.interp.exprconv    :           offset changed from 0.000000 to 2.000000
 mdl.interp.exprconv    :         inspecting sequence:20:3,3:6,3 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :           inspecting volumechange:23:4,6:4,11 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:36:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:36:0,0:0,0 offset=0.000
-mdl.interp.exprconv    :               volumechange:35:4,6:4,11 track=acoustic grand volume=127
+mdl.interp.exprconv    :             adding offsetexpr:39:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:39:0,0:0,0 offset=0.000
+mdl.interp.exprconv    :               volumechange:38:4,6:4,11 track=acoustic grand volume=127
 mdl.interp.exprconv    :             offset changed from 0.000000 to 0.000000
 mdl.interp.exprconv    :           inspecting rest:5:4,18:4,19 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.000000 to 0.250000
 mdl.interp.exprconv    :           inspecting volumechange:24:4,25:4,30 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:38:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:38:0,0:0,0 offset=0.250
-mdl.interp.exprconv    :               volumechange:37:4,25:4,30 track=acoustic grand volume=96
+mdl.interp.exprconv    :             adding offsetexpr:41:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:41:0,0:0,0 offset=0.250
+mdl.interp.exprconv    :               volumechange:40:4,25:4,30 track=acoustic grand volume=96
 mdl.interp.exprconv    :             offset changed from 0.250000 to 0.250000
 mdl.interp.exprconv    :           inspecting rest:7:4,36:4,37 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.250000 to 0.500000
 mdl.interp.exprconv    :           inspecting volumechange:25:4,43:4,48 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:40:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:40:0,0:0,0 offset=0.500
-mdl.interp.exprconv    :               volumechange:39:4,43:4,48 track=acoustic grand volume=64
+mdl.interp.exprconv    :             adding offsetexpr:43:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:43:0,0:0,0 offset=0.500
+mdl.interp.exprconv    :               volumechange:42:4,43:4,48 track=acoustic grand volume=64
 mdl.interp.exprconv    :             offset changed from 0.500000 to 0.500000
 mdl.interp.exprconv    :           inspecting rest:9:4,54:4,55 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.500000 to 0.750000
 mdl.interp.exprconv    :           inspecting volumechange:26:4,61:4,66 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:42:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:42:0,0:0,0 offset=0.750
-mdl.interp.exprconv    :               volumechange:41:4,61:4,66 track=acoustic grand volume=32
+mdl.interp.exprconv    :             adding offsetexpr:45:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:45:0,0:0,0 offset=0.750
+mdl.interp.exprconv    :               volumechange:44:4,61:4,66 track=acoustic grand volume=32
 mdl.interp.exprconv    :             offset changed from 0.750000 to 0.750000
 mdl.interp.exprconv    :           inspecting rest:11:4,73:4,74 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 0.750000 to 1.000000
 mdl.interp.exprconv    :           inspecting volumechange:27:5,6:5,11 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:44:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:44:0,0:0,0 offset=1.000
-mdl.interp.exprconv    :               volumechange:43:5,6:5,11 track=acoustic grand volume=32
+mdl.interp.exprconv    :             adding offsetexpr:47:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:47:0,0:0,0 offset=1.000
+mdl.interp.exprconv    :               volumechange:46:5,6:5,11 track=acoustic grand volume=32
 mdl.interp.exprconv    :             offset changed from 1.000000 to 1.000000
 mdl.interp.exprconv    :           inspecting rest:13:5,18:5,19 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.000000 to 1.250000
 mdl.interp.exprconv    :           inspecting volumechange:28:5,25:5,30 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:46:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:46:0,0:0,0 offset=1.250
-mdl.interp.exprconv    :               volumechange:45:5,25:5,30 track=acoustic grand volume=64
+mdl.interp.exprconv    :             adding offsetexpr:49:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:49:0,0:0,0 offset=1.250
+mdl.interp.exprconv    :               volumechange:48:5,25:5,30 track=acoustic grand volume=64
 mdl.interp.exprconv    :             offset changed from 1.250000 to 1.250000
 mdl.interp.exprconv    :           inspecting rest:15:5,36:5,37 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.250000 to 1.500000
 mdl.interp.exprconv    :           inspecting volumechange:29:5,43:5,48 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:48:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:48:0,0:0,0 offset=1.500
-mdl.interp.exprconv    :               volumechange:47:5,43:5,48 track=acoustic grand volume=96
+mdl.interp.exprconv    :             adding offsetexpr:51:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:51:0,0:0,0 offset=1.500
+mdl.interp.exprconv    :               volumechange:50:5,43:5,48 track=acoustic grand volume=96
 mdl.interp.exprconv    :             offset changed from 1.500000 to 1.500000
 mdl.interp.exprconv    :           inspecting rest:17:5,54:5,55 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.500000 to 1.750000
 mdl.interp.exprconv    :           inspecting volumechange:30:5,61:5,66 for flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             adding offsetexpr:50:0,0:0,0 to flatsimultence:31:0,0:0,0
-mdl.interp.exprconv    :             offsetexpr:50:0,0:0,0 offset=1.750
-mdl.interp.exprconv    :               volumechange:49:5,61:5,66 track=acoustic grand volume=127
+mdl.interp.exprconv    :             adding offsetexpr:53:0,0:0,0 to flatsimultence:31:0,0:0,0
+mdl.interp.exprconv    :             offsetexpr:53:0,0:0,0 offset=1.750
+mdl.interp.exprconv    :               volumechange:52:5,61:5,66 track=acoustic grand volume=127
 mdl.interp.exprconv    :             offset changed from 1.750000 to 1.750000
 mdl.interp.exprconv    :           inspecting rest:19:5,73:5,74 for flatsimultence:31:0,0:0,0
 mdl.interp.exprconv    :             offset changed from 1.750000 to 2.000000

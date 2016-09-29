@@ -1,5 +1,4 @@
 mdl.interp.midistream  : converting music expression to midi stream
-mdl.interp.midistream  : joining music expressions
 mdl.interp.midistream  : converting expression to a (flat) simultence
 mdl.interp.midistream  : making offset expression stream
 mdl.interp.midistream  :   offset expression stream to midi events

@@ -1,6 +1,0 @@
-mdl.interp.midistream  : joining music expressions
-mdl.interp.joins       :   joining subexpressions in sequence:17:1,1:4,2
-mdl.interp.joins       :     joining subexpressions in scaledexpr:6:1,8:1,18
-mdl.interp.joins       :       joining subexpressions in sequence:5:1,8:1,17
-mdl.interp.joins       :     joining subexpressions in scaledexpr:13:2,8:2,18
-mdl.interp.joins       :       joining subexpressions in sequence:12:2,8:2,17
