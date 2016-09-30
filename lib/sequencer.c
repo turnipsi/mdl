@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.157 2016/09/30 19:17:42 je Exp $ */
+/* $Id: sequencer.c,v 1.158 2016/09/30 19:22:22 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -821,6 +821,17 @@ sequencer_play_music(struct sequencer *seq, struct songstate *ss)
 	struct playback_queue pbq;
 	int ret, retvalue;
 
+	/*
+	 * This function constructs a playback queue and then calls
+	 * sequencer_play_playback_queue() to play it.  Current the
+	 * playback queue is used mostly so that note joining can be done.
+	 * This means that all noteon/noteoff-events with the exact same 
+	 * moment of playback should go to the same queue, so that the
+	 * possible noteoff-events that request joining can be joined to
+	 * noteon-events.  Playback queue is emptied and freed always,
+	 * even in case of playback failures.
+	 */
+
 	retvalue = 0;
 
 	ce = &ss->current_event;
@@ -912,15 +923,6 @@ sequencer_play_playback_queue(struct playback_queue *pbq,
 	int ret;
 
 	ret = 0;
-
-	/*
-	 * XXX Update this comment:
-	 *
-	 * XXX Should keep track of exact times when notes are off,
-	 * XXX and then compare those.  This heuristic works correctly only if
-	 * XXX sequencer awakes up fast enough so that notes that should not
-	 * XXX join are far enough, so they get into different queues.
-	 */
 
 	TAILQ_FOREACH_SAFE(p, pbq, tq, q) {
 		midiev = &p->tmidiev.midiev;
