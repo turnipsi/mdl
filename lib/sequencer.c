@@ -1,4 +1,4 @@
-/* $Id: sequencer.c,v 1.159 2016/09/30 19:41:08 je Exp $ */
+/* $Id: sequencer.c,v 1.160 2016/09/30 20:33:05 je Exp $ */
 
 /*
  * Copyright (c) 2015, 2016 Juha Erkkilä <je@turnipsi.no-ip.org>
@@ -946,10 +946,6 @@ sequencer_play_playback_queue(struct playback_queue *pbq,
 				 * midievent as well, so the note simply
 				 * continues on.
 				 */
-				_mdl_log(MDLLOG_JOINS, 0,
-				    "joining notes on channel=%d note=%d\n",
-				    channel, note);
-
 				TAILQ_REMOVE(pbq, p, tq);
 				free(p);
 				TAILQ_REMOVE(pbq, joinrequest_event, tq);
