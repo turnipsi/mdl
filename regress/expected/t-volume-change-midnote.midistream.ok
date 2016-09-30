@@ -31,12 +31,26 @@ mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note
 mdl.interp.midistream  :   sending to sequencer volumechange time=0.250 channel=0 volume=96
 mdl.interp.midistream  :   sending to sequencer volumechange time=0.500 channel=0 volume=64
 mdl.interp.midistream  :   sending to sequencer volumechange time=0.750 channel=0 volume=32
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0 joining=1
 mdl.interp.midistream  :   sending to sequencer volumechange time=1.000 channel=0 volume=32
 mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=0 note=60 velocity=80
 mdl.interp.midistream  :   sending to sequencer volumechange time=1.250 channel=0 volume=64
 mdl.interp.midistream  :   sending to sequencer volumechange time=1.500 channel=0 volume=96
 mdl.interp.midistream  :   sending to sequencer volumechange time=1.750 channel=0 volume=127
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer song end time=2.000
 mdl.interp.midistream  :   wrote 168 bytes to sequencer
+mdl.seq.midistream     : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midistream     : received volumechange time=0.000 channel=0 volume=127
+mdl.seq.midistream     : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received volumechange time=0.250 channel=0 volume=96
+mdl.seq.midistream     : received volumechange time=0.500 channel=0 volume=64
+mdl.seq.midistream     : received volumechange time=0.750 channel=0 volume=32
+mdl.seq.midistream     : received noteoff time=1.000 channel=0 note=60 velocity=0 joining=1
+mdl.seq.midistream     : received volumechange time=1.000 channel=0 volume=32
+mdl.seq.midistream     : received noteon time=1.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received volumechange time=1.250 channel=0 volume=64
+mdl.seq.midistream     : received volumechange time=1.500 channel=0 volume=96
+mdl.seq.midistream     : received volumechange time=1.750 channel=0 volume=127
+mdl.seq.midistream     : received noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received song end time=2.000

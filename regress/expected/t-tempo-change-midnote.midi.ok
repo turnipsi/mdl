@@ -1,37 +1,3 @@
-mdl.seq.midi           : received tempochange time=0.000 bpm=240.000
-mdl.seq.midi           : received instrument change time=0.000 channel=0 instrument=0
-mdl.seq.midi           : received noteon time=0.000 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteon time=0.000 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=0.250 channel=0 note=55 velocity=0
-mdl.seq.midi           : received tempochange time=0.250 bpm=140.000
-mdl.seq.midi           : received noteon time=0.250 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteoff time=0.500 channel=0 note=55 velocity=0
-mdl.seq.midi           : received noteoff time=0.500 channel=0 note=60 velocity=0
-mdl.seq.midi           : received tempochange time=0.500 bpm=80.000
-mdl.seq.midi           : received noteon time=0.500 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteon time=0.500 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=0.750 channel=0 note=55 velocity=0
-mdl.seq.midi           : received tempochange time=0.750 bpm=40.000
-mdl.seq.midi           : received noteon time=0.750 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteoff time=1.000 channel=0 note=55 velocity=0
-mdl.seq.midi           : received noteoff time=1.000 channel=0 note=60 velocity=0
-mdl.seq.midi           : received tempochange time=1.000 bpm=40.000
-mdl.seq.midi           : received noteon time=1.000 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteon time=1.000 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=1.250 channel=0 note=55 velocity=0
-mdl.seq.midi           : received tempochange time=1.250 bpm=80.000
-mdl.seq.midi           : received noteon time=1.250 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteoff time=1.500 channel=0 note=55 velocity=0
-mdl.seq.midi           : received noteoff time=1.500 channel=0 note=60 velocity=0
-mdl.seq.midi           : received tempochange time=1.500 bpm=140.000
-mdl.seq.midi           : received noteon time=1.500 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteon time=1.500 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=1.750 channel=0 note=55 velocity=0
-mdl.seq.midi           : received tempochange time=1.750 bpm=240.000
-mdl.seq.midi           : received noteon time=1.750 channel=0 note=55 velocity=80
-mdl.seq.midi           : received noteoff time=2.000 channel=0 note=55 velocity=0
-mdl.seq.midi           : received noteoff time=2.000 channel=0 note=60 velocity=0
-mdl.seq.midi           : received song end time=2.000
 mdl.seq.midi           : changing tempo to 240bpm
 mdl.seq.midi           : playing instrumentchange: channel=0 code=0
 mdl.seq.midi           : playing noteon: notevalue=55 channel=0 velocity=80

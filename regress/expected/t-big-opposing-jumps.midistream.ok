@@ -17,14 +17,26 @@ mdl.interp.midistream  :   putting track "acoustic grand" to midichannel 0
 mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=55 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=55 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=77 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=77 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=77 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer song end time=1.250
 mdl.interp.midistream  :   wrote 144 bytes to sequencer
+mdl.seq.midistream     : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midistream     : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.250 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteoff time=0.500 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.750 channel=0 note=77 velocity=80
+mdl.seq.midistream     : received noteoff time=1.000 channel=0 note=77 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received song end time=1.250

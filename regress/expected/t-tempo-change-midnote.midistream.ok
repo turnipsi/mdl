@@ -49,34 +49,68 @@ mdl.interp.midistream  :   sending to sequencer tempochange time=0.000 bpm=240.0
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=55 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=55 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=0.250 bpm=140.000
 mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=55 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=55 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=55 velocity=0 joining=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=0.500 bpm=80.000
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=55 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=55 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=0.750 bpm=40.000
 mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=55 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=55 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=55 velocity=0 joining=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=1.000 bpm=40.000
 mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=0 note=55 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=55 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=1.250 bpm=80.000
 mdl.interp.midistream  :   sending to sequencer noteon time=1.250 channel=0 note=55 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=55 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=55 velocity=0 joining=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=1.500 bpm=140.000
 mdl.interp.midistream  :   sending to sequencer noteon time=1.500 channel=0 note=55 velocity=80
 mdl.interp.midistream  :   sending to sequencer noteon time=1.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.750 channel=0 note=55 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.750 channel=0 note=55 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer tempochange time=1.750 bpm=240.000
 mdl.interp.midistream  :   sending to sequencer noteon time=1.750 channel=0 note=55 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=55 velocity=0
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=55 velocity=0 joining=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer song end time=2.000
 mdl.interp.midistream  :   wrote 408 bytes to sequencer
+mdl.seq.midistream     : received tempochange time=0.000 bpm=240.000
+mdl.seq.midistream     : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midistream     : received noteon time=0.000 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.250 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=0.250 bpm=140.000
+mdl.seq.midistream     : received noteon time=0.250 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteoff time=0.500 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received noteoff time=0.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=0.500 bpm=80.000
+mdl.seq.midistream     : received noteon time=0.500 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteon time=0.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.750 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=0.750 bpm=40.000
+mdl.seq.midistream     : received noteon time=0.750 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteoff time=1.000 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received noteoff time=1.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=1.000 bpm=40.000
+mdl.seq.midistream     : received noteon time=1.000 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteon time=1.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.250 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=1.250 bpm=80.000
+mdl.seq.midistream     : received noteon time=1.250 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteoff time=1.500 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received noteoff time=1.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=1.500 bpm=140.000
+mdl.seq.midistream     : received noteon time=1.500 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteon time=1.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.750 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received tempochange time=1.750 bpm=240.000
+mdl.seq.midistream     : received noteon time=1.750 channel=0 note=55 velocity=80
+mdl.seq.midistream     : received noteoff time=2.000 channel=0 note=55 velocity=0 joining=0
+mdl.seq.midistream     : received noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received song end time=2.000

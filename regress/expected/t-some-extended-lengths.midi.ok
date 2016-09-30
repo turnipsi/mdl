@@ -1,21 +1,3 @@
-mdl.seq.midi           : received instrument change time=0.000 channel=0 instrument=0
-mdl.seq.midi           : received noteon time=0.000 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=1.500 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=1.500 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=3.000 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=3.000 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=3.500 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=3.500 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=3.875 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=3.875 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=4.094 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=4.094 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=4.211 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=4.211 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=4.271 channel=0 note=60 velocity=0
-mdl.seq.midi           : received noteon time=4.271 channel=0 note=60 velocity=80
-mdl.seq.midi           : received noteoff time=4.295 channel=0 note=60 velocity=0
-mdl.seq.midi           : received song end time=4.295
 mdl.seq.midi           : playing instrumentchange: channel=0 code=0
 mdl.seq.midi           : playing noteon: notevalue=60 channel=0 velocity=80
 mdl.seq.midi           : playing noteoff: notevalue=60 channel=0 velocity=0

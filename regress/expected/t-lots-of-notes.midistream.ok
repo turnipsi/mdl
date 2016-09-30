@@ -521,518 +521,1034 @@ mdl.interp.midistream  :   putting track "acoustic grand" to midichannel 0
 mdl.interp.midistream  : writing midi stream to sequencer
 mdl.interp.midistream  :   sending to sequencer instrument change time=0.000 channel=0 instrument=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=0.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=0.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=0.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=1.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=1.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=1.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=2.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=2.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=2.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=3.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=3.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=3.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=4.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=4.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=4.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=5.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=5.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=5.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=6.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=6.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=6.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.031 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.031 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.031 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.062 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.062 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.062 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.094 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.094 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.094 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.125 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.125 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.125 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.156 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.156 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.156 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.188 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.188 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.188 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.219 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.219 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.219 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.250 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.250 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.250 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.281 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.281 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.281 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.312 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.312 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.312 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.344 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.344 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.344 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.375 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.375 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.375 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.406 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.406 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.406 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.438 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.438 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.438 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.469 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.469 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.469 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.500 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.500 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.500 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.531 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.531 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.531 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.562 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.562 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.562 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.594 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.594 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.594 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.625 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.625 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.625 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.656 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.656 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.656 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.688 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.688 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.688 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.719 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.719 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.719 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.750 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.750 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.750 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.781 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.781 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.781 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.812 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.812 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.812 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.844 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.844 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.844 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.875 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.875 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.875 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.906 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.906 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.906 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.938 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.938 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.938 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=7.969 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=7.969 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=7.969 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=8.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=8.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer noteon time=8.000 channel=0 note=60 velocity=80
-mdl.interp.midistream  :   sending to sequencer noteoff time=9.000 channel=0 note=60 velocity=0
+mdl.interp.midistream  :   sending to sequencer noteoff time=9.000 channel=0 note=60 velocity=0 joining=0
 mdl.interp.midistream  :   sending to sequencer song end time=9.000
 mdl.interp.midistream  :   wrote 6192 bytes to sequencer
+mdl.seq.midistream     : received instrument change time=0.000 channel=0 instrument=0
+mdl.seq.midistream     : received noteon time=0.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=0.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=0.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=1.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=1.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=2.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=2.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=3.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=3.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=4.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=4.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=5.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=5.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=6.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=6.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.031 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.031 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.062 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.062 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.094 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.094 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.125 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.125 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.156 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.156 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.188 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.188 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.219 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.219 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.250 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.250 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.281 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.281 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.312 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.312 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.344 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.344 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.375 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.375 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.406 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.406 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.438 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.438 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.469 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.469 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.500 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.500 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.531 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.531 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.562 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.562 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.594 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.594 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.625 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.625 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.656 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.656 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.688 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.688 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.719 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.719 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.750 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.750 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.781 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.781 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.812 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.812 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.844 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.844 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.875 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.875 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.906 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.906 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.938 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.938 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=7.969 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=7.969 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=8.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received noteon time=8.000 channel=0 note=60 velocity=80
+mdl.seq.midistream     : received noteoff time=9.000 channel=0 note=60 velocity=0 joining=0
+mdl.seq.midistream     : received song end time=9.000
